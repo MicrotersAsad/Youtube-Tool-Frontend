@@ -190,10 +190,10 @@ const TagGenerator = () => {
           )}
         </div>
       </div>
-      {process.env.NEXT_PUBLIC_CAPTCHA_KEY && (
+      {process.env.CAPTCHA_KEY && (
                 <ReCAPTCHA
                     ref={recaptchaRef}
-                    sitekey={process.env.NEXT_PUBLIC_CAPTCHA_KEY}
+                    sitekey={process.env.CAPTCHA_KEY}
                     onChange={handleCaptchaChange}
                 />
             )}
