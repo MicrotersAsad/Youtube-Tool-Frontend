@@ -1,25 +1,23 @@
+
 /* eslint-disable react/no-unescaped-entities */
 
-
-import React, { useState, useRef } from "react";
-
-import {
-  FaSearch,
-  FaShareAlt,
-  FaFacebook,
-  FaLinkedin,
-  FaInstagram,
-  FaTwitter,
-} from "react-icons/fa";
-
+import { useState, useRef } from "react";
+import { FaSearch, FaShareAlt, FaFacebook, FaLinkedin, FaInstagram, FaTwitter } from "react-icons/fa";
+import { useAuth } from "../AuthContext";
+import ReCAPTCHA from "react-google-recaptcha";
 const TagGenerator = () => {
+    const { isLoggedIn, login, logout } = useAuth(); 
   const [tags, setTags] = useState([]);
   const [input, setInput] = useState("");
   const [generatedTags, setGeneratedTags] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showShareIcons, setShowShareIcons] = useState(false); // State to manage share icons display
+  const [generateCount, setGenerateCount] = useState(0);
+  const [captchaValidated, setCaptchaValidated] = useState(false);
+  const [showShareIcons, setShowShareIcons] = useState(false);
   const tagsRef = useRef(null);
-  const apiKey = process.env.API_KEY; // Ensure this is secure
+  const apiKey =process.env.APP_KEY; // Ensure this is secure
+  const captchaKey =process.env.CAPCHA_KEY; // Ensure this is secure
+  const recaptchaRef = useRef(null); // Ref for the reCAPTCHA
   const api = "https://api.openai.com/v1/chat/completions";
 
   const handleKeyDown = (event) => {
@@ -33,16 +31,28 @@ const TagGenerator = () => {
     }
   };
 
+   const handleCaptchaChange = (value) => {
+        console.log("Captcha value:", value); // Log CAPTCHA value for debug
+        if (value) {
+            setCaptchaValidated(true);
+        } else {
+            setCaptchaValidated(false); // Reset on expire
+        }
+    };
   const removeTag = (index) => {
     setTags(tags.filter((_, i) => i !== index));
   };
 
   const generateText = async () => {
-    const prompt = `Generate a list of at least 20 SEO-friendly tag for all keyword "${tags.join(
-      ", "
-    )}".`;
+    if (!isLoggedIn && generateCount >= 5) {
+      alert("Please log in for more tag generations.");
+      return;
+    }
+    if (!captchaValidated) {
+      alert("Please complete the CAPTCHA to prove you are not a robot.");
+      return;
+  }
     setIsLoading(true);
-
     try {
       const response = await fetch(api, {
         method: "POST",
@@ -53,7 +63,7 @@ const TagGenerator = () => {
         body: JSON.stringify({
           model: "gpt-3.5-turbo-16k",
           messages: [
-            { role: "system", content: prompt },
+            { role: "system", content: `Generate a list of at least 20 SEO-friendly tags for all keywords "${tags.join(", ")}".` },
             { role: "user", content: tags.join(", ") },
           ],
           temperature: 0.7,
@@ -65,18 +75,15 @@ const TagGenerator = () => {
       });
 
       const data = await response.json();
-      if (
-        data.choices &&
-        data.choices.length > 0 &&
-        data.choices[0].message &&
-        data.choices[0].message.content
-      ) {
+      if (data.choices && data.choices.length > 0 && data.choices[0].message && data.choices[0].message.content) {
         const generatedHtml = data.choices[0].message.content.trim();
         setGeneratedTags(generatedHtml);
+        if (!isLoggedIn) {
+          setGenerateCount(generateCount + 1);
+        }
       } else {
         console.error("No usable tags generated:", data);
         setGeneratedTags([]);
-        // Optionally notify user that no tags were generated
       }
     } catch (error) {
       console.error("Error generating text:", error);
@@ -128,6 +135,11 @@ const TagGenerator = () => {
   return (
     <div className="container p-5">
       <h2>Youtube Tag Generator</h2>
+      {isLoggedIn ? (
+        <p>You are logged in and can generate unlimited tags.</p>
+      ) : (
+        <p>You are not logged in. You can generate tags {5 - generateCount} more times.</p>
+      )}
       <div className="keywords-input center rounded">
         <div className="tags">
           {tags.map((tag, index) => (
@@ -177,6 +189,11 @@ const TagGenerator = () => {
           )}
         </div>
       </div>
+      <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={captchaKey}  // Directly passing the variable
+                onChange={handleCaptchaChange}
+            />
       {generatedTags.length > 0 && (
         <div className="generated-tags-display" ref={tagsRef}>
           <h3 className="text-muted">Results</h3>
@@ -296,18 +313,7 @@ const styles = `
         margin-left: 8px;
         cursor: pointer;
     }
-    .facebook-icon {
-        color: #1877F2;
-    }
-    .instagram-icon {
-        color: #E4405F;
-    }
-    .twitter-icon {
-        color: #1DA1F2;
-    }
-    .linkedin-icon {
-        color: #0A66C2;
-    }
+    
         
     input:focus {
         outline: none;
@@ -331,17 +337,7 @@ const styles = `
         margin-top: 20px;
     }
 
-    .share-icons {
-        display: flex;
-        justify-content: space-around;
-        margin-top: 10px;
-    }
-
-    .share-icons svg {
-        font-size: 24px;
-        margin-right: 10px;
-        cursor: pointer;
-    }
+  
 `;
 
 export default TagGenerator;

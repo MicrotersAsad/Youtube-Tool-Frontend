@@ -1,13 +1,14 @@
+import Link from "next/link";
 import React from "react";
 
 const Navbar = () => {
   return (
-    <div classNameName="container">
+    <div className="container-fluid">
       <nav id="mynav" className="navbar navbar-expand-lg navbar-dark bg-dark">
         <div className="container-fluid">
-          <a className="navbar-brand headline fs-3 ps-3" href="#">
-            AsaTem
-          </a>
+          <Link href="/" className="navbar-brand headline fs-3 ps-3">
+           YoutubeTool
+          </Link>
           <button
             className="navbar-toggler"
             type="button"
@@ -22,81 +23,24 @@ const Navbar = () => {
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <ul className="navbar-nav mx-auto mb-2 mb-lg-0 text-uppercase">
               <li className="nav-item">
-                <a className="nav-link text-white" aria-current="page" href="#">
-                  Home
-                </a>
-              </li>
-              <li className="nav-item dropdown">
-                <a
-                  className="nav-link dropdown-toggle"
-                  href="#"
-                  id="navbarDropdown"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  Tool
-                </a>
-                <ul className="dropdown-menu" aria-labelledby="navbarDropdown">
-                  <li>
-                    <a className="dropdown-item" href="#">
-                      Youtube Tag Geneartor
-                    </a>
-                  </li>
-                  <li>
-                    <a className="dropdown-item" href="">
-                      Youtube Title & Description Geneartor
-                    </a>
-                  </li>
-
-                  <li>
-                    <a className="dropdown-item" href="#">
-                      Something else here
-                    </a>
-                  </li>
-                </ul>
-              </li>
-
-              <li className="nav-item">
-                <a
-                  className="nav-link text-white"
-                  aria-current="page"
-                  href="#service"
-                >
-                  Services
-                </a>
+                <Link href="/" className="nav-link text-white" aria-current="page">Home</Link>
               </li>
               <li className="nav-item">
-                <a
-                  className="nav-link text-white"
-                  aria-current="page"
-                  href="#review"
-                >
-                  Client Say
-                </a>
+                <Link href="./tools/tagExtractor" className="nav-link text-white">Services</Link>
               </li>
               <li className="nav-item">
-                <a
-                  className="nav-link text-white"
-                  aria-current="page"
-                  href="#Faq"
-                >
-                  Faq
-                </a>
+                <Link href="#review" className="nav-link text-white">Client Say</Link>
               </li>
               <li className="nav-item">
-                <a
-                  className="nav-link text-white"
-                  aria-current="page"
-                  href="#contact"
-                >
-                  Contact Us
-                </a>
+                <Link href="#faq" className="nav-link text-white">Faq</Link>
+              </li>
+              <li className="nav-item">
+                <Link href="#contact" className="nav-link text-white">Contact Us</Link>
+              </li>
+              <li className="nav-item">
+                <Link href="/register" className="nav-link text-white">Registration</Link>
               </li>
             </ul>
-            <button className="btn btn-outline-primary text-white">
-              Become a member
-            </button>
           </div>
         </div>
       </nav>

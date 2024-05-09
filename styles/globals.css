@@ -169,4 +169,26 @@ body {
   button:hover {
     background-color: #0056b3;
   }
-  
+  .facebook-icon {
+    color: #1877F2;
+}
+.instagram-icon {
+    color: #E4405F;
+}
+.twitter-icon {
+    color: #1DA1F2;
+}
+.linkedin-icon {
+    color: #0A66C2;
+}
+.share-icons {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+}
+
+.share-icons svg {
+    font-size: 24px;
+    margin-right: 10px;
+    cursor: pointer;
+}
