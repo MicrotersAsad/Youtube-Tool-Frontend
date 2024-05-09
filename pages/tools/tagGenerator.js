@@ -15,7 +15,7 @@ const TagGenerator = () => {
     const [showShareIcons, setShowShareIcons] = useState(false);
     const tagsRef = useRef(null);
     const recaptchaRef = useRef(null);
-    const apiKey = process.env.NEXT_PUBLIC_APP_KEY;
+    const apiKey = process.env.NEXT_PUBLIC_API_KEY;
 
     useEffect(() => {
         // Sync UI with URL state or perform actions that should only happen client-side

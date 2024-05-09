@@ -1,33 +1,32 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from 'react';
 
-// Create the context
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
-// Export the useContext Hook
-export function useAuth() {
-    return useContext(AuthContext);
-}
+export const useAuth = () => useContext(AuthContext);
 
-// Define a provider component
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            setIsLoggedIn(true);
+        }
+    }, []);
 
     const login = (token) => {
-        // Here you would typically validate the token and fetch user details
-        // Simulate a login by setting the user object
-        setUser({ token });
+        localStorage.setItem('token', token);
+        setIsLoggedIn(true);
     };
 
     const logout = () => {
-        // Clear the user state
-        setUser(null);
+        localStorage.removeItem('token');
+        setIsLoggedIn(false);
     };
 
-    const value = {
-        user,
-        login,
-        logout
-    };
-
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
+            {children}
+        </AuthContext.Provider>
+    );
 };
