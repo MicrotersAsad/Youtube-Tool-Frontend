@@ -108,6 +108,10 @@ const TagGenerator = () => {
         setShowShareIcons(!showShareIcons);
     };
 
+    const handleCaptchaCheckboxChange = () => {
+        setShowCaptcha(false); // Hide captcha when checkbox is checked
+    };
+
     return (
         <div className="container p-5">
             <h2>Youtube Tag Generator</h2>
@@ -166,11 +170,20 @@ const TagGenerator = () => {
                 </div>
             </div>
             {showCaptcha && ( // Render captcha if showCaptcha is true
-                <ReCAPTCHA
-                    ref={recaptchaRef}
-                    sitekey={process.env.NEXT_PUBLIC_CAPTCHA_KEY}
-                    onChange={handleCaptchaChange}
-                />
+                <div>
+                    <ReCAPTCHA
+                        ref={recaptchaRef}
+                        sitekey={process.env.NEXT_PUBLIC_CAPTCHA_KEY}
+                        onChange={handleCaptchaChange}
+                    />
+                    <label>
+                        <input
+                            type="checkbox"
+                            onChange={handleCaptchaCheckboxChange}
+                        />
+                        CAPTCHA checked
+                    </label>
+                </div>
             )}
             {generatedTags.length > 0 && (
                 <div className="generated-tags-display" ref={tagsRef}>
