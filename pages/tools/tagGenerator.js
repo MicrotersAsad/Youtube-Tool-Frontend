@@ -1,9 +1,10 @@
 
 /* eslint-disable react/no-unescaped-entities */
 import React, { useState, useEffect, useRef } from "react";
-import { FaSearch, FaShareAlt, FaFacebook, FaLinkedin, FaInstagram, FaTwitter } from "react-icons/fa";
+import { FaSearch, FaShareAlt, FaFacebook, FaLinkedin, FaInstagram, FaTwitter, FaTimes } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
+import { FaGrip } from "react-icons/fa6";
 
 const TagGenerator = () => {
     const { isLoggedIn } = useAuth();
@@ -87,6 +88,17 @@ const TagGenerator = () => {
             document.execCommand("copy");
         }
     };
+    const copyToClipboardtext = (text) => {
+        navigator.clipboard.writeText(text).then(() => {
+            alert(`Copied "${text}" to clipboard!`);
+        }, (err) => {
+            console.error('Could not copy text: ', err);
+        });
+    };
+
+    const removeTagetxt = (index) => {
+        setTags(tags.filter((_, i) => i !== index));
+    };
 
     const shareOnSocialMedia = (socialNetwork) => {
         const url = encodeURIComponent(window.location.href);
@@ -108,9 +120,7 @@ const TagGenerator = () => {
         setShowShareIcons(!showShareIcons);
     };
 
-    const handleCaptchaCheckboxChange = () => {
-        setShowCaptcha(false); // Hide captcha when checkbox is checked
-    };
+
 
     return (
         <div className="container p-5">
@@ -176,13 +186,7 @@ const TagGenerator = () => {
                         sitekey={process.env.NEXT_PUBLIC_CAPTCHA_KEY}
                         onChange={handleCaptchaChange}
                     />
-                    <label>
-                        <input
-                            type="checkbox"
-                            onChange={handleCaptchaCheckboxChange}
-                        />
-                        CAPTCHA checked
-                    </label>
+                    
                 </div>
             )}
             {generatedTags.length > 0 && (
@@ -190,7 +194,7 @@ const TagGenerator = () => {
                     <h3 className="text-muted">Results</h3>
                     <h5 className="fw-bold">List Of Tags Found</h5>
                     <div className="tags">
-                        <span className="generated-tag">{generatedTags}</span>
+                    <FaGrip className='text-muted'/>    <span onClick={() => copyToClipboardtext(generatedTags)} style={{ cursor: 'pointer' }}>{generatedTags}</span> <FaTimes className="ms-2 text-danger" onClick={() => removeTagetxt(index)} />
                     </div>
                     <button className="btn btn-primary" onClick={copyToClipboard}>
                         Copy

@@ -1,5 +1,4 @@
-// This file should be placed in the pages/api directory of your Next.js project.
-
+// pages/api/fetch-tags.js
 import fetch from 'node-fetch';
 
 export default async function handler(req, res) {
@@ -16,7 +15,8 @@ export default async function handler(req, res) {
     }
 
     try {
-        const apiKey = process.env.YOUTUBE_API_KEY; // Ensure you have this in your environment variables
+        const apiKey = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
+        console.log(apiKey); // Ensure you have this in your environment variables
         const url = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&key=${apiKey}&part=snippet`;
         const response = await fetch(url);
         const data = await response.json();
