@@ -16,7 +16,8 @@ const TagGenerator = () => {
   const [showShareIcons, setShowShareIcons] = useState(false);
   const tagsRef = useRef(null);
   const apiKey =process.env.APP_KEY; // Ensure this is secure
-  const captchaKey =process.env.CAPCHA_KEY; // Ensure this is secure
+
+
   const recaptchaRef = useRef(null); // Ref for the reCAPTCHA
   const api = "https://api.openai.com/v1/chat/completions";
 
@@ -189,11 +190,13 @@ const TagGenerator = () => {
           )}
         </div>
       </div>
-      <ReCAPTCHA
-                ref={recaptchaRef}
-                sitekey={captchaKey}  // Directly passing the variable
-                onChange={handleCaptchaChange}
-            />
+      {process.env.NEXT_PUBLIC_CAPTCHA_KEY && (
+                <ReCAPTCHA
+                    ref={recaptchaRef}
+                    sitekey={process.env.NEXT_PUBLIC_CAPTCHA_KEY}
+                    onChange={handleCaptchaChange}
+                />
+            )}
       {generatedTags.length > 0 && (
         <div className="generated-tags-display" ref={tagsRef}>
           <h3 className="text-muted">Results</h3>
