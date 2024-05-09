@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 import React, { useState, useEffect, useRef } from "react";
 import { FaSearch, FaShareAlt, FaFacebook, FaLinkedin, FaInstagram, FaTwitter } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
@@ -11,6 +10,7 @@ const TagGenerator = () => {
     const [generatedTags, setGeneratedTags] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [generateCount, setGenerateCount] = useState(0);
+    const [showCaptcha, setShowCaptcha] = useState(false); // State to control captcha visibility
     const [captchaValidated, setCaptchaValidated] = useState(false);
     const [showShareIcons, setShowShareIcons] = useState(false);
     const tagsRef = useRef(null);
@@ -41,10 +41,7 @@ const TagGenerator = () => {
     };
 
     const generateText = async () => {
-        if (!captchaValidated) {
-            alert("Please complete the CAPTCHA to prove you are not a robot.");
-            return;
-        }
+        setShowCaptcha(true); // Show captcha when generate button is clicked
         setIsLoading(true);
         try {
             const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -166,7 +163,7 @@ const TagGenerator = () => {
                     )}
                 </div>
             </div>
-            {process.env.NEXT_PUBLIC_CAPTCHA_KEY && (
+            {showCaptcha && ( // Render captcha if showCaptcha is true
                 <ReCAPTCHA
                     ref={recaptchaRef}
                     sitekey={process.env.NEXT_PUBLIC_CAPTCHA_KEY}
@@ -313,6 +310,5 @@ const styles = `
         padding: 10px.
         margin-top: 20px.
     }
-`;
-
-export default TagGenerator
+`; 
+export default TagGenerator;
