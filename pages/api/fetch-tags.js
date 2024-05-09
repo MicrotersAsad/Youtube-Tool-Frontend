@@ -9,6 +9,7 @@ export default async function handler(req, res) {
 
     const { videoUrl } = req.body;
     const videoId = new URLSearchParams(new URL(videoUrl).search).get('v');
+    console.log(videoId);
 
     if (!videoId) {
         return res.status(400).json({ message: 'Invalid YouTube video URL' });

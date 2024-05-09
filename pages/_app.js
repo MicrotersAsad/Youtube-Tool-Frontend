@@ -2,7 +2,8 @@ import Script from 'next/script'
 import '../styles/globals.css'
 import Head from 'next/head'
 import Navbar from './Navbar'
-import { AuthProvider } from './AuthContext'
+import { AuthProvider } from '../contexts/AuthContext'
+
 
 
 
@@ -25,8 +26,8 @@ function MyApp({ Component, pageProps }) {
  
 
     <AuthProvider>
-    <Component {...pageProps} />
-    </AuthProvider>
+            <Component {...pageProps} />
+        </AuthProvider>
 
  
 
