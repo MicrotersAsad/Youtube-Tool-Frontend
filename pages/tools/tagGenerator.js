@@ -1,3 +1,5 @@
+
+/* eslint-disable react/no-unescaped-entities */
 import React, { useState, useEffect, useRef } from "react";
 import { FaSearch, FaShareAlt, FaFacebook, FaLinkedin, FaInstagram, FaTwitter } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
