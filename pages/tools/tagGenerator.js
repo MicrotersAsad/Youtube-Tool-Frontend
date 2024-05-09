@@ -35,9 +35,9 @@ const TagGenerator = () => {
     };
 
     const handleCaptchaChange = (value) => {
-        setCaptchaValidated(Boolean(value));
+        setShowCaptcha(!Boolean(value)); // Hide captcha when value is true (checkbox is checked)
+        setCaptchaValidated(Boolean(value)); // Update captcha validation state
     };
-
     const removeTag = (index) => {
         setTags(tags.filter((_, i) => i !== index));
     };
