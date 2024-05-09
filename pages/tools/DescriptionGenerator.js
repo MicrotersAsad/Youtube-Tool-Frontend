@@ -1,21 +1,21 @@
 
 /* eslint-disable react/no-unescaped-entities */
+
 import React, { useState, useRef } from "react";
 import { FaShareAlt, FaFacebook, FaLinkedin, FaInstagram, FaTwitter, FaCog, FaCopy, FaDownload } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
 
-const TitleGenerator = () => {
+const  DescriptionGenerator= () => {
     const { isLoggedIn } = useAuth();
     const [tags, setTags] = useState([]);
     const [input, setInput] = useState("");
-    const [generatedTitles, setGeneratedTitles] = useState([]);
+    const [generateDescription, setgenerateDescription] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [showCaptcha, setShowCaptcha] = useState(false);
     const [showShareIcons, setShowShareIcons] = useState(false);
     const recaptchaRef = useRef(null);
     const apiKey = process.env.NEXT_PUBLIC_API_KEY;
-    const [selectAll, setSelectAll] = useState(false);
     const [generateCount, setGenerateCount] = useState(0);
     const handleKeyDown = (event) => {
         if (event.key === "Enter" || event.key === ",") {
@@ -28,14 +28,7 @@ const TitleGenerator = () => {
         }
     };
 
-    const handleSelectAll = () => {
-        const newSelection = !selectAll;
-        setSelectAll(newSelection);
-        setGeneratedTitles(generatedTitles.map(title => ({
-            ...title,
-            selected: newSelection
-        })));
-    };
+ 
     const shareOnSocialMedia = (socialNetwork) => {
         const url = encodeURIComponent(window.location.href);
         const socialMediaUrls = {
@@ -57,12 +50,7 @@ const TitleGenerator = () => {
     };
 
 
-    const toggleTitleSelect = index => {
-        const newTitles = [...generatedTitles];
-        newTitles[index].selected = !newTitles[index].selected;
-        setGeneratedTitles(newTitles);
-        setSelectAll(newTitles.every(title => title.selected));
-    };
+
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text).then(() => {
             alert(`Copied: "${text}"`);
@@ -71,26 +59,7 @@ const TitleGenerator = () => {
         });
     };
     
-    const copySelectedTitles = () => {
-        const selectedTitlesText = generatedTitles
-            .filter(title => title.selected)
-            .map(title => title.text)
-            .join("\n");
-        copyToClipboard(selectedTitlesText);
-    };
-    const downloadSelectedTitles = () => {
-        const selectedTitlesText = generatedTitles
-            .filter(title => title.selected)
-            .map(title => title.text)
-            .join("\n");
-        const element = document.createElement("a");
-        const file = new Blob([selectedTitlesText], { type: 'text/plain' });
-        element.href = URL.createObjectURL(file);
-        element.download = "selected_titles.txt";
-        document.body.appendChild(element); // Required for this to work in FireFox
-        element.click();
-        document.body.removeChild(element);
-    };
+ 
     const generateTitles = async () => {
         setIsLoading(true);
         setShowCaptcha(true);
@@ -104,7 +73,7 @@ const TitleGenerator = () => {
                 body: JSON.stringify({
                     model: "gpt-3.5-turbo-16k",
                     messages: [
-                        { role: "system", content: `Generate a list of at least 20 SEO-friendly Tag for all keywords "${tags.join(", ")}".` },
+                        { role: "system", content: `Generate a Youtube Video description  SEO-friendly  for all keywords "${tags.join(", ")}".` },
                         { role: "user", content: tags.join(", ") }
                     ],
                     temperature: 0.7,
@@ -120,18 +89,33 @@ const TitleGenerator = () => {
                 text: title,
                 selected: false
             }));
-            setGeneratedTitles(titles);
+            setgenerateDescription(titles);
         } catch (error) {
             console.error("Error generating titles:", error);
-            setGeneratedTitles([]);
+            setgenerateDescription([]);
         } finally {
             setIsLoading(false);
         }
     };
+    const copySelectedTitles = () => {
+        const titlesText = generateDescription.map(title => title.text).join("\n");
+        copyToClipboard(titlesText);
+    };
+    
+    const downloadSelectedTitles = () => {
+        const element = document.createElement("a");
+        const file = new Blob([generateDescription.map(title => title.text).join("\n")], {type: 'text/plain'});
+        element.href = URL.createObjectURL(file);
+        element.download = "GeneratedDescription.txt";
+        document.body.appendChild(element); // Required for this to work in FireFox
+        element.click();
+        document.body.removeChild(element);
+    };
+    
 
     return (
         <div className="container p-5">
-            <h2>YouTube Tag Generator</h2>
+            <h2>YouTube Description Generator</h2>
             {isLoggedIn ? (
                 <p>You are logged in and can generate unlimited tags.</p>
             ) : (
@@ -161,7 +145,7 @@ const TitleGenerator = () => {
             <div className="center">
                 <div className="d-flex pt-5">
                     <button className="btn btn-primary" onClick={generateTitles} disabled={isLoading|| tags.length === 0 }>
-                        {isLoading ? "Generating..." : "Generate Tag"} <FaCog />
+                        {isLoading ? "Generating..." : "Generate Description"} <FaCog />
                     </button>
                     <button className="btn btn-primary ms-5" onClick={handleShareClick}>
                         Share <FaShareAlt />
@@ -188,35 +172,28 @@ const TitleGenerator = () => {
                     onChange={value => setShowCaptcha(!value)}
                 />
             )}
-            <div className="generated-titles-container">
-            <div className="select-all-checkbox">
-                    <input type="checkbox" checked={selectAll} onChange={handleSelectAll} />
-                    <span>Select All</span>
-                </div>
-                {generatedTitles.map((title, index) => (
-                    
-                    <div key={index} className="title-checkbox">
-                        <input
-                            type="checkbox"
-                            checked={title.selected}
-                            onChange={() => toggleTitleSelect(index)}
-                        />
+            <div className="generated-titles-container border">
+                
+                {generateDescription.map((title, index) => (
+                    <div key={index}>
+                       
                         {title.text}
-                        <FaCopy className="copy-icon" onClick={() => copyToClipboard(title.text)} />
-                    </div>
-                    
-                ))}
-                 {generatedTitles.some(title => title.selected) && (
-                    <button className="btn btn-primary" onClick={copySelectedTitles}>
+                        <br/>
+                        <button className="btn btn-primary" onClick={copySelectedTitles}>
                         Copy  <FaCopy />
                     </button>
                     
-                )}
-                {generatedTitles.some(title => title.selected) && (
+              
+             
                     <button className="btn btn-primary ms-2" onClick={downloadSelectedTitles}>
                         Download  <FaDownload />
                     </button>
-                )}
+                    </div>
+                    
+                ))}
+              
+                   
+               
             </div>
             <h3>Introduction to Our YouTube Tag Generator</h3>
             <p>
@@ -347,4 +324,4 @@ const styles = `
         margin-top: 20px.
     }
 `; 
-export default TitleGenerator;
+export default DescriptionGenerator;

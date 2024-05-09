@@ -228,3 +228,28 @@ body {
   .extract{
     cursor: pointer;
   }
+
+  .generated-titles-container {
+    margin-top: 20px;
+    background: #f8f8f8;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.select-all-checkbox, .title-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 5px;
+    background: white;
+    border: 1px solid #ddd;
+}
+
+.select-all-checkbox span, .title-checkbox span {
+    margin-left: 8px;
+}
+.copy-icon {
+    margin-left: 10px;
+    cursor: pointer;
+    color: #007bff; 
+}

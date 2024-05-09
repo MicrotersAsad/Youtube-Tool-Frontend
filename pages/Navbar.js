@@ -25,12 +25,27 @@ const Navbar = () => {
               <li className="nav-item">
                 <Link href="/" className="nav-link text-white" aria-current="page">Home</Link>
               </li>
-              <li className="nav-item">
-                <Link href="./tools/tagExtractor" className="nav-link text-white">Services</Link>
-              </li>
-              <li className="nav-item">
-                <Link href="#review" className="nav-link text-white">Client Say</Link>
-              </li>
+
+              <li class="nav-item dropdown">
+          <Link class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Tools
+          </Link>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li> <Link  href="/tools/tagGenerator" className="dropdown-item" aria-current="page">Tag Generator</Link></li>
+            <li> <Link  href="/tools/tagExtractor" className="dropdown-item" aria-current="page">Tag Extractor</Link></li>
+            <li> <Link href="/tools/youtube-title-and-description-generator" className="dropdown-item" >Title & Description Generator</Link></li>
+            <li> <Link  href="/tools/tagExtractor" className="dropdown-item" aria-current="page">Tag Extractor</Link></li>
+            <li> <Link href="/tools/youtube-title-and-description-generator" className="dropdown-item" >Title & Description Generator</Link></li>
+    
+            <li><a class="dropdown-item" href="#">Something else here</a></li>
+          </ul>
+        </li>
+              {/* <li className="nav-item">
+                <Link  href="./tools/tagExtractor" className="dropdown-item text-white">Services</Link>
+              </li> */}
+              {/* <li className="nav-item">
+                <Link href="./tools/youtube-title-and-description-generator" className="dropdown-item text-white">Client Say</Link>
+              </li> */}
               <li className="nav-item">
                 <Link href="#faq" className="nav-link text-white">Faq</Link>
               </li>

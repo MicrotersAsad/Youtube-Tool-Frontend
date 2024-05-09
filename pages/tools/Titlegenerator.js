@@ -104,7 +104,7 @@ const TitleGenerator = () => {
                 body: JSON.stringify({
                     model: "gpt-3.5-turbo-16k",
                     messages: [
-                        { role: "system", content: `Generate a list of at least 20 SEO-friendly Tag for all keywords "${tags.join(", ")}".` },
+                        { role: "system", content: `Generate a list of at least 20 SEO-friendly titles for all keywords "${tags.join(", ")}". Each title must be 140-160 characters and use a list tag.` },
                         { role: "user", content: tags.join(", ") }
                     ],
                     temperature: 0.7,
@@ -131,7 +131,7 @@ const TitleGenerator = () => {
 
     return (
         <div className="container p-5">
-            <h2>YouTube Tag Generator</h2>
+            <h2>YouTube Title Generator</h2>
             {isLoggedIn ? (
                 <p>You are logged in and can generate unlimited tags.</p>
             ) : (
@@ -161,7 +161,7 @@ const TitleGenerator = () => {
             <div className="center">
                 <div className="d-flex pt-5">
                     <button className="btn btn-primary" onClick={generateTitles} disabled={isLoading|| tags.length === 0 }>
-                        {isLoading ? "Generating..." : "Generate Tag"} <FaCog />
+                        {isLoading ? "Generating..." : "Generate Title"} <FaCog />
                     </button>
                     <button className="btn btn-primary ms-5" onClick={handleShareClick}>
                         Share <FaShareAlt />
