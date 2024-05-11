@@ -196,3 +196,24 @@ body {
   background-color: red;
     color: white;
 }
+
+
+.nav-link {
+  display: block;
+  padding: .5rem 1rem;
+  color: red;
+  text-decoration: none;
+  transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+  color: #fff;
+  background-color: red;
+}
+@media (max-width: 600px) {
+ 
+      .btn {
+         width: auto !important;;
+          margin-top: 10px !important
+      }
+  }

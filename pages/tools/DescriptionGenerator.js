@@ -174,10 +174,10 @@ const DescriptionGenerator = () => {
             </div>
             <div className="center">
                 <button className="btn btn-primary" onClick={generateTitles} disabled={isLoading || tags.length === 0}>
-                    {isLoading ? 'Generating...' : 'Generate Description'} <FaCog />
+                    {isLoading ? 'Generating...' : 'Generate Description'} 
                 </button>
-                <button className="btn btn-primary ms-5" onClick={handleShareClick}>
-                    Share <FaShareAlt />
+                <button className="btn btn-primary ms-3" onClick={handleShareClick}>
+                    <FaShareAlt />
                 </button>
                 {showShareIcons && (
                     <div className="share-icons ms-2">

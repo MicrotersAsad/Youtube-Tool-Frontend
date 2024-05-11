@@ -50,10 +50,10 @@ const TitleDescription = () => {
           role="tabpanel"
           aria-labelledby="pills-home-tab"
         >
-          <div className="container">
+          
            <TitleGenerator/>
 
-          </div>
+          
         </div>
         <div
           className="tab-pane fade"

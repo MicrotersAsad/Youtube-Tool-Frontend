@@ -95,7 +95,8 @@ const TagExtractor = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="row justify-content-center">
+            <h2 className='text-3xl pt-5'>Youtube Tag Extractor</h2>
+            <div className="row justify-content-center pt-5">
                 <div className="col-md-6">
                     <div className="input-group mb-3">
                         <input
@@ -114,15 +115,17 @@ const TagExtractor = () => {
                             onClick={fetchTags}
                             disabled={loading}
                         >
-                            {loading ? 'Loading...' : 'Generate Tags'} <FaSearch />
+                           {loading ? 'Loading...' : 'Generate Tags'}   
                         </button>
+                        
                     </div>
                     <small className="text-muted">
                         Example: https://youtu.be/eUDKzw0gLg
                     </small>
                     <br/>
-                    <button className="btn btn-danger mt-3" onClick={handleShareClick}>
-                        Share <FaShareAlt />
+                    <div className='ms-5'>
+                        <button className="btn btn-danger mt-3" onClick={handleShareClick}>
+                         <FaShareAlt />
                     </button>
                     {showShareIcons && (
                         <div className="share-icons mt-3">
@@ -132,6 +135,7 @@ const TagExtractor = () => {
                             <FaLinkedin className="linkedin-icon" onClick={() => shareOnSocialMedia('linkedin')} />
                         </div>
                     )}
+                        </div>
                     {error && <div className="alert alert-danger" role="alert">{error}</div>}
                     {tags.length > 0 && (
                         <div>

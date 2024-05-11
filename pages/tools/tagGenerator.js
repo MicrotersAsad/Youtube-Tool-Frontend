@@ -249,12 +249,12 @@ const TitleGenerator = () => {
           >
             <span>
               {" "}
-              {isLoading ? "Generating..." : "Generate Tag"} <FaCog />
+              {isLoading ? "Generating..." : "Generate Tag"} 
             </span>
           </button>
           <div className="share-button-container">
             <button className="btn btn-danger ms-5" onClick={handleShareClick}>
-              <span className="share-button-text">Share</span>{" "}
+           
               <FaShareAlt className="share-button-icon" />
             </button>
             {showShareIcons && (

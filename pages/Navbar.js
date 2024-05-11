@@ -1,9 +1,10 @@
+/* eslint-disable react/no-unescaped-entities */
+
 import { Fragment, useState, useEffect } from 'react';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
-
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -76,7 +77,7 @@ function Navbar() {
                           </Menu>
                         ) : (
                           <Link key={item.name} href={item.href} aria-current={item.current ? 'page' : undefined} className={classNames(
-                              item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                              item.current ?  'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                               'px-3 py-2 rounded-md text-sm font-medium'
                             )}>
                             {item.name}
@@ -88,16 +89,18 @@ function Navbar() {
                 </div>
                 {/* Login/Logout buttons */}
                 <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-                  {!isLoggedIn ? (
-                    // Render Login button if not logged in
-                    <button onClick={login} className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
-                      Login
-                    </button>
-                  ) : (
+                  {isLoggedIn ? (
                     // Render Logout button if logged in
-                    <button onClick={logout} className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                    <button onClick={logout} className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium btn btn-danger">
                       Logout
                     </button>
+                  ) : (
+                    // Render Login button if not logged in
+                    <Link href="/login"> {/* Navigate to the login page */}
+                      <button className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium btn btn-success">
+                        Login
+                      </button>
+                    </Link>
                   )}
                 </div>
               </div>
@@ -125,7 +128,7 @@ function Navbar() {
                           {item.children.map((subItem) => (
                             <Menu.Item key={subItem.name}>
                               {({ active }) => (
-                                <Link href={subItem.href} className={classNames(active ? 'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700')}>
+                                <Link href={subItem.href} className={classNames(active ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white')}>
                                   {subItem.name}
                                 </Link>
                               )}
@@ -136,7 +139,7 @@ function Navbar() {
                     </Menu>
                   ) : (
                     <Link key={item.name} href={item.href} className={classNames(
-                      item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                      item.current ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                       'block px-3 py-2 rounded-md text-base font-medium'
                     )}>
                       {item.name}

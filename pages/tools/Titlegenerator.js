@@ -197,10 +197,10 @@ const TitleGenerator = () => {
             <div className="center">
                 <div className="d-flex pt-5">
                     <button className="btn btn-primary" onClick={generateTitles} disabled={isLoading|| tags.length === 0 }>
-                        {isLoading ? "Generating..." : "Generate Title"} <FaCog />
+                        {isLoading ? "Generating..." : "Generate Title"}
                     </button>
                     <button className="btn btn-primary ms-5" onClick={handleShareClick}>
-                        Share <FaShareAlt />
+                        Share 
                     </button>
                     {showShareIcons && (
                         <div className="share-icons ms-2">
