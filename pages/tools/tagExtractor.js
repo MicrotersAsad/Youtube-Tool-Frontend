@@ -94,7 +94,7 @@ const TagExtractor = () => {
     };
 
     return (
-        <div className="container mt-5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="row justify-content-center">
                 <div className="col-md-6">
                     <div className="input-group mb-3">
@@ -108,7 +108,7 @@ const TagExtractor = () => {
                             onChange={handleUrlChange}
                         />
                         <button
-                            className="btn btn-primary"
+                            className="btn btn-danger"
                             type="button"
                             id="button-addon2"
                             onClick={fetchTags}
@@ -121,7 +121,7 @@ const TagExtractor = () => {
                         Example: https://youtu.be/eUDKzw0gLg
                     </small>
                     <br/>
-                    <button className="btn btn-primary mt-3" onClick={handleShareClick}>
+                    <button className="btn btn-danger mt-3" onClick={handleShareClick}>
                         Share <FaShareAlt />
                     </button>
                     {showShareIcons && (
@@ -143,11 +143,11 @@ const TagExtractor = () => {
                                     </div>
                                 ))}
                             </div>
-                            <button className="btn btn-primary mt-3" onClick={downloadTags}>
+                            <button className="btn btn-danger mt-3" onClick={downloadTags}>
     Download <FaDownload />
 </button>
 
-                    <button className="btn btn-primary mt-3 ms-2" onClick={copyAllTagsToClipboard}>
+                    <button className="btn btn-danger mt-3 ms-2" onClick={copyAllTagsToClipboard}>
     Copy <FaCopy />
 </button>
 
@@ -155,16 +155,17 @@ const TagExtractor = () => {
                     )}
                    
                 </div>
-                <h3 className='pt-5'>Introduction to Our YouTube Tag Generator</h3>
-            <p>
+               <div className='pt-5 pb-5'>
+               <h3 className='pt-5 text-3xl'>Introduction to Our YouTube Tag Generator</h3>
+            <p className='pt-2'>
                 Tags are super descriptive keywords, or we can use phrases that can
                 help content creators market their content; on the other hand, with
                 the help of tags, viewers can reach out to the correct video content.
                 With the proper tags, a YouTube channel owner can grow their audience
                 and increase views on their content.
             </p>
-            <h3>What is a YouTube Tag?</h3>
-            <p>
+            <h3 className='text-3xl pt-2'>What is a YouTube Tag?</h3>
+            <p className='pt-2'>
                 YouTube tags are known as &apos;Video Tags&apos;. They are a collection of words
                 and phrases used to describe YouTube videos. Tags are a crucial ranking factor
                 in the YouTube algorithm.
@@ -174,13 +175,13 @@ const TagExtractor = () => {
                 making it easier for viewers to find relevant videos based on their interests.
             </p>
 
-            <h3>Why Are YouTube Tags Important?</h3>
+            <h3 className='text-3xl pt-2'>Why Are YouTube Tags Important?</h3>
             <p>
                 Generally, tags are an opportunity to increase your video content
                 reachability, including your video content topics, category, and many
                 more. Tags connect directly relate to the YouTube ranking.
             </p>
-            <h3>Why Should We Use a YouTube Tag Generator?</h3>
+            <h3 className='text-3xl pt-2'>Why Should We Use a YouTube Tag Generator?</h3>
             <p>
                 YouTube Video tags generator is a tool you can get free and paid for,
                 which can help you generate SEO-optimized keywords and tags for your
@@ -198,6 +199,7 @@ const TagExtractor = () => {
                 we'd like to make your decision simple. We will show you how it will
                 simplify your work.
             </p>
+               </div>
             </div>
         </div>
     );

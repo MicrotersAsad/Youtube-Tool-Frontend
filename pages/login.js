@@ -1,10 +1,8 @@
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEnvelope, FaKey } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
-import login from "../public/login.svg"
 import Image from "next/image";
-// import { useAuth } from "../contexts/AuthContext"; // Adjust this path to where your AuthContext is located
 
 function Login() {
     const { login } = useAuth(); // This hook must be defined in your AuthContext
@@ -13,6 +11,30 @@ function Login() {
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+
+    // Effect to set meta tags on component mount
+    useEffect(() => {
+        // Set document title for better SEO
+        document.title = "Login | Youtube Tool";
+        // Add meta description for better SEO
+        const metaDesc = document.createElement('meta');
+        metaDesc.name = 'description';
+        metaDesc.content = 'Log in to access exclusive features on Youtube Tool.';
+        document.querySelector('head').appendChild(metaDesc);
+        // Add Open Graph meta tags for social sharing
+        const ogTitle = document.createElement('meta');
+        ogTitle.property = 'og:title';
+        ogTitle.content = 'Login | Youtube Tool';
+        document.querySelector('head').appendChild(ogTitle);
+        const ogDesc = document.createElement('meta');
+        ogDesc.property = 'og:description';
+        ogDesc.content = 'Log in to access exclusive features on Youtube Tool.';
+        document.querySelector('head').appendChild(ogDesc);
+        const ogUrl = document.createElement('meta');
+        ogUrl.property = 'og:url';
+        ogUrl.content = window.location.href;
+        document.querySelector('head').appendChild(ogUrl);
+    }, []);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -47,25 +69,13 @@ function Login() {
     };
 
     return (
-      <div className="container"> 
- <div className="row"> 
- <div className="col-md-6"> 
- <Image
-      src="../public/login.svg"
-      width={500}
-      height={500}
-      alt="Picture of the author"
-    />
- </div>
- <div className="col-md-6"> 
- 
         <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
             <div className="card p-4 shadow" style={{ width: "90%", maxWidth: "400px" }}>
-                <h2 className="text-center mb-3">Login</h2>
+                <h2 className="text-center mb-3 text-3xl">Login</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
                         <label htmlFor="email" className="form-label">
-                            <FaEnvelope className="me-2 fs-5 text-primary" /> Email
+                            <FaEnvelope className="me-2 fs-5 text-danger" /> Email
                         </label>
                         <input
                             type="email"
@@ -78,7 +88,7 @@ function Login() {
                     </div>
                     <div className="mb-3">
                         <label htmlFor="password" className="form-label">
-                            <FaKey className="me-2 fs-5 text-primary" /> Password
+                            <FaKey className="me-2 fs-5 text-danger" /> Password
                         </label>
                         <input
                             type="password"
@@ -90,18 +100,13 @@ function Login() {
                         />
                     </div>
                     {error && <div className="alert alert-danger" role="alert">{error}</div>}
-                    <button type="submit" className="btn btn-primary w-100" disabled={isLoading}>
+                    <button type="submit" className="btn btn-danger w-100" disabled={isLoading}>
                         {isLoading ? "Logging in..." : "Log In"}
                     </button>
                 </form>
             </div>
         </div>
-        </div>
-        </div>
-        </div>
-        
     );
-    
 }
 
 export default Login;

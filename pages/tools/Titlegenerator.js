@@ -1,9 +1,9 @@
-
 /* eslint-disable react/no-unescaped-entities */
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { FaShareAlt, FaFacebook, FaLinkedin, FaInstagram, FaTwitter, FaCog, FaCopy, FaDownload } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
+import Head from 'next/head'; // Import Head component
 
 const TitleGenerator = () => {
     const { isLoggedIn } = useAuth();
@@ -17,6 +17,12 @@ const TitleGenerator = () => {
     const apiKey = process.env.NEXT_PUBLIC_API_KEY;
     const [selectAll, setSelectAll] = useState(false);
     const [generateCount, setGenerateCount] = useState(0);
+    useEffect(() => {
+        if (!isLoggedIn) {
+            setGenerateCount(5);
+        }
+    }, [isLoggedIn]);
+    // Function to handle key down event for adding tags
     const handleKeyDown = (event) => {
         if (event.key === "Enter" || event.key === ",") {
             event.preventDefault();
@@ -28,6 +34,7 @@ const TitleGenerator = () => {
         }
     };
 
+    // Function to handle select all checkbox
     const handleSelectAll = () => {
         const newSelection = !selectAll;
         setSelectAll(newSelection);
@@ -36,6 +43,8 @@ const TitleGenerator = () => {
             selected: newSelection
         })));
     };
+
+    // Function to share on social media
     const shareOnSocialMedia = (socialNetwork) => {
         const url = encodeURIComponent(window.location.href);
         const socialMediaUrls = {
@@ -52,17 +61,20 @@ const TitleGenerator = () => {
         }
     };
 
+    // Function to handle share button click
     const handleShareClick = () => {
         setShowShareIcons(!showShareIcons);
     };
 
-
+    // Function to toggle title selection
     const toggleTitleSelect = index => {
         const newTitles = [...generatedTitles];
         newTitles[index].selected = !newTitles[index].selected;
         setGeneratedTitles(newTitles);
         setSelectAll(newTitles.every(title => title.selected));
     };
+
+    // Function to copy text to clipboard
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text).then(() => {
             alert(`Copied: "${text}"`);
@@ -71,6 +83,7 @@ const TitleGenerator = () => {
         });
     };
     
+    // Function to copy selected titles
     const copySelectedTitles = () => {
         const selectedTitlesText = generatedTitles
             .filter(title => title.selected)
@@ -78,6 +91,8 @@ const TitleGenerator = () => {
             .join("\n");
         copyToClipboard(selectedTitlesText);
     };
+
+    // Function to download selected titles
     const downloadSelectedTitles = () => {
         const selectedTitlesText = generatedTitles
             .filter(title => title.selected)
@@ -91,6 +106,8 @@ const TitleGenerator = () => {
         element.click();
         document.body.removeChild(element);
     };
+
+    // Function to generate titles
     const generateTitles = async () => {
         setIsLoading(true);
         setShowCaptcha(true);
@@ -130,13 +147,31 @@ const TitleGenerator = () => {
     };
 
     return (
-        <div className="container p-5">
-            <h2>YouTube Title Generator</h2>
-            {isLoggedIn ? (
-                <p>You are logged in and can generate unlimited tags.</p>
-            ) : (
-                <p>You are not logged in. You can generate tags {5 - generateCount} more times.</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Head>
+            {/* Open Graph meta tags */}
+            <meta property="og:title" content="YouTube Title Generator" />
+            <meta property="og:description" content="Generate SEO-friendly YouTube video titles based on your tags." />
+            {typeof window !== 'undefined' && (
+                <meta property="og:url" content={window.location.href} />
             )}
+        </Head>
+            {/* Component title */}
+            <h2 className="text-3xl">YouTube Title Generator</h2>
+            {/* Logged in status */}
+            <div className="text-center pt-4 pb-4">
+        {isLoggedIn ? (
+          <p className="text-center p-3 alert-warning">
+            You are logged in and can generate unlimited tags.
+          </p>
+        ) : (
+          <p className="text-center p-3 alert-warning">
+            You are not logged in. You can generate tags {5 - generateCount}{" "}
+            more times.<button className="btn btn-warning">Registration</button>
+          </p>
+        )}
+      </div>
+            {/* Tags input */}
             <div className="keywords-input center rounded">
                 <div className="tags">
                     {tags.map((tag, index) => (
@@ -158,6 +193,7 @@ const TitleGenerator = () => {
                     required
                 />
             </div>
+            {/* Buttons section */}
             <div className="center">
                 <div className="d-flex pt-5">
                     <button className="btn btn-primary" onClick={generateTitles} disabled={isLoading|| tags.length === 0 }>
@@ -177,10 +213,9 @@ const TitleGenerator = () => {
                             <FaLinkedin className="linkedin-icon" onClick={() => shareOnSocialMedia('linkedin')} />
                         </div>
                     )}
-                   
                 </div>
-                
             </div>
+            {/* ReCAPTCHA component */}
             {showCaptcha && (
                 <ReCAPTCHA
                     ref={recaptchaRef}
@@ -188,13 +223,14 @@ const TitleGenerator = () => {
                     onChange={value => setShowCaptcha(!value)}
                 />
             )}
+            {/* Container for generated titles */}
             <div className="generated-titles-container">
-            <div className="select-all-checkbox">
+                <div className="select-all-checkbox">
                     <input type="checkbox" checked={selectAll} onChange={handleSelectAll} />
                     <span>Select All</span>
                 </div>
+                {/* Display generated titles */}
                 {generatedTitles.map((title, index) => (
-                    
                     <div key={index} className="title-checkbox">
                         <input
                             type="checkbox"
@@ -204,69 +240,29 @@ const TitleGenerator = () => {
                         {title.text}
                         <FaCopy className="copy-icon" onClick={() => copyToClipboard(title.text)} />
                     </div>
-                    
                 ))}
-                 {generatedTitles.some(title => title.selected) && (
+                {/* Button to copy selected titles */}
+                {generatedTitles.some(title => title.selected) && (
                     <button className="btn btn-primary" onClick={copySelectedTitles}>
                         Copy  <FaCopy />
                     </button>
-                    
                 )}
+                {/* Button to download selected titles */}
                 {generatedTitles.some(title => title.selected) && (
                     <button className="btn btn-primary ms-2" onClick={downloadSelectedTitles}>
                         Download  <FaDownload />
                     </button>
                 )}
             </div>
-            <h3>Introduction to Our YouTube Tag Generator</h3>
-            <p>
-                Tags are super descriptive keywords, or we can use phrases that can
-                help content creators market their content; on the other hand, with
-                the help of tags, viewers can reach out to the correct video content.
-                With the proper tags, a YouTube channel owner can grow their audience
-                and increase views on their content.
-            </p>
-            <h3>What is a YouTube Tag?</h3>
-            <p>
-                YouTube tags are known as &apos;Video Tags&apos;. They are a collection of words
-                and phrases used to describe YouTube videos. Tags are a crucial ranking factor
-                in the YouTube algorithm.
-            </p>
-            <p>
-                Why are tags important? Tags help to categorize content and improve its discoverability,
-                making it easier for viewers to find relevant videos based on their interests.
-            </p>
-
-            <h3>Why Are YouTube Tags Important?</h3>
-            <p>
-                Generally, tags are an opportunity to increase your video content
-                reachability, including your video content topics, category, and many
-                more. Tags connect directly relate to the YouTube ranking.
-            </p>
-            <h3>Why Should We Use a YouTube Tag Generator?</h3>
-            <p>
-                YouTube Video tags generator is a tool you can get free and paid for,
-                which can help you generate SEO-optimized keywords and tags for your
-                videos. With the help of that tags, you can make your video content
-                easily.
-            </p>
-            <p>
-                Now, you know that with the help of that tags, you can create YouTube
-                tags to get more reach, but which tool will be best for you that can
-                produce your result accurately? There are many Tags generators for
-                YouTube in the market, and more options must be clarified.
-            </p>
-            <p>
-                Now that we've outlined everything you need to know about YTubeTool,
-                we'd like to make your decision simple. We will show you how it will
-                simplify your work.
-            </p>
+          
+            {/* Inline CSS */}
             <style jsx>{styles}</style>
           
         </div>
     );
 };
 
+// CSS styles
 const styles = `
     .keywords-input {
         border: 2px solid #ccc;
@@ -347,4 +343,5 @@ const styles = `
         margin-top: 20px.
     }
 `; 
+
 export default TitleGenerator;

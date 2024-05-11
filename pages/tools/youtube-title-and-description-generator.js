@@ -4,8 +4,8 @@ import DescriptionGenerator from "./DescriptionGenerator";
 
 const TitleDescription = () => {
   return (
-    <div className="container">
-      <h3 className="pt-5">YouTube Title and Description Generator</h3>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h3 className="pt-5 text-3xl text-center p-5">YouTube Title and Description Generator</h3>
       
 
 

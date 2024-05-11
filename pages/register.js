@@ -1,18 +1,44 @@
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEnvelope, FaImage, FaKey, FaUser } from "react-icons/fa";
 
 function Register() {
+  // State variables
   const [formData, setFormData] = useState({
-    name: "", // This represents the username
+    name: "", // Username
     email: "",
     password: "",
     confirmPassword: "",
     profileImage: null,
   });
-  const [showVerification, setShowVerification] = useState(false);
-  const [verificationCode, setVerificationCode] = useState("");
+  const [showVerification, setShowVerification] = useState(false); // Whether to show verification form
+  const [verificationCode, setVerificationCode] = useState(""); // Verification code input
 
+  // Effect to set meta tags on component mount
+  useEffect(() => {
+    // Set document title for better SEO
+    document.title = "Register | Youtube Tool";
+    // Add meta description for better SEO
+    const metaDesc = document.createElement('meta');
+    metaDesc.name = 'description';
+    metaDesc.content = 'Register to access exclusive features on Youtube Tool.';
+    document.querySelector('head').appendChild(metaDesc);
+    // Add Open Graph meta tags for social sharing
+    const ogTitle = document.createElement('meta');
+    ogTitle.property = 'og:title';
+    ogTitle.content = 'Register | Youtube Tool';
+    document.querySelector('head').appendChild(ogTitle);
+    const ogDesc = document.createElement('meta');
+    ogDesc.property = 'og:description';
+    ogDesc.content = 'Register to access exclusive features on Youtube Tool.';
+    document.querySelector('head').appendChild(ogDesc);
+    const ogUrl = document.createElement('meta');
+    ogUrl.property = 'og:url';
+    ogUrl.content = window.location.href;
+    document.querySelector('head').appendChild(ogUrl);
+  }, []);
+
+  // Function to handle input change
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((prevState) => ({
@@ -21,6 +47,7 @@ function Register() {
     }));
   };
 
+  // Function to handle file input change
   const handleFileChange = (event) => {
     setFormData((prevState) => ({
       ...prevState,
@@ -28,6 +55,7 @@ function Register() {
     }));
   };
 
+  // Function to handle form submission for registration
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (formData.password !== formData.confirmPassword) {
@@ -61,37 +89,38 @@ function Register() {
     }
   };
 
+  // Function to handle email verification
   const handleVerification = async (event) => {
     event.preventDefault();
     if (!verificationCode.trim()) {
-        alert("Please enter the verification code.");
-        return;
+      alert("Please enter the verification code.");
+      return;
     }
 
     try {
-        // Assuming verificationCode is the token the backend expects
-        const response = await fetch('http://localhost:5000/verify-email', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ token: verificationCode })  // Send the token as expected by backend
-        });
+      // Assuming verificationCode is the token the backend expects
+      const response = await fetch("http://localhost:5000/verify-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token: verificationCode }), // Send the token as expected by backend
+      });
 
-        const data = await response.json();
-        if (response.ok) {
-            console.log('Verification successful:', data);
-            alert('Email verified successfully!');
-            setShowVerification(false);  // Hide the verification form
-            // Optionally redirect the user or perform further actions
-        } else {
-            throw new Error(data.message || 'Failed to verify email');
-        }
+      const data = await response.json();
+      if (response.ok) {
+        console.log("Verification successful:", data);
+        alert("Email verified successfully!");
+        setShowVerification(false); // Hide the verification form
+        // Optionally redirect the user or perform further actions
+      } else {
+        throw new Error(data.message || "Failed to verify email");
+      }
     } catch (error) {
-        console.error('Verification failed:', error);
-        alert(error.message || 'Verification failed');
+      console.error("Verification failed:", error);
+      alert(error.message || "Verification failed");
     }
-};
+  };
 
   return (
     <div
@@ -107,7 +136,7 @@ function Register() {
           <form className="" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email">
-                <FaUser className="me-2 fs-5 text-primary" />
+                <FaUser className="me-2 fs-5 text-danger" />
                 Name:
               </label>
               <input
@@ -121,7 +150,7 @@ function Register() {
             </div>
             <div>
               <label htmlFor="email">
-                <FaEnvelope className="me-2 fs-5 text-primary" />
+                <FaEnvelope className="me-2 fs-5 text-danger" />
                 Email:
               </label>
               <input
@@ -135,7 +164,7 @@ function Register() {
             </div>
             <div>
               <label htmlFor="password">
-                <FaKey className="me-2 fs-5 text-primary" />
+                <FaKey className="me-2 fs-5 text-danger" />
                 Password:
               </label>
               <input
@@ -149,7 +178,7 @@ function Register() {
             </div>
             <div>
               <label htmlFor="confirmPassword">
-                <FaKey className="me-2 fs-5 text-primary" />
+                <FaKey className="me-2 fs-5 text-danger" />
                 Confirm Password:
               </label>
               <input
@@ -163,7 +192,7 @@ function Register() {
             </div>
             <div>
               <label htmlFor="profileImage">
-                <FaImage className="me-2 fs-5 text-primary" />
+                <FaImage className="me-2 fs-5 text-danger" />
                 Profile Image:
               </label>
               <input
@@ -175,11 +204,11 @@ function Register() {
               />
             </div>
             <div className="mt-3">
-              <button type="submit">Register</button>
+              <button className="btn btn btn-danger" type="submit">Register</button>
             </div>
             <div className="mt-3">
               <h6>
-                If You Are Registred,Please <Link href="/login">Login</Link>
+                If You Are Registered, Please <Link className="text-danger fw-bold" href="/login">Login</Link>
               </h6>
             </div>
           </form>
@@ -194,7 +223,7 @@ function Register() {
               onChange={(e) => setVerificationCode(e.target.value)}
             />
             <div className="mt-3">
-              <button type="submit">Verify Email</button>
+              <button className="btn btn btn-danger" type="submit">Verify Email</button>
             </div>
           </form>
         )}

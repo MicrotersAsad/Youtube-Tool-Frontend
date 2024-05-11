@@ -1,21 +1,52 @@
 /* eslint-disable react/no-unescaped-entities */
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Head from 'next/head';
 import { FaShareAlt, FaFacebook, FaLinkedin, FaInstagram, FaTwitter, FaCog, FaCopy, FaDownload } from 'react-icons/fa';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext'; // Importing custom AuthContext
 import ReCAPTCHA from 'react-google-recaptcha';
+import Link from 'next/link';
 
 const DescriptionGenerator = () => {
-    const { isLoggedIn } = useAuth();
-    const [tags, setTags] = useState([]);
-    const [input, setInput] = useState('');
-    const [generateDescription, setGenerateDescription] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [showCaptcha, setShowCaptcha] = useState(false);
-    const [showShareIcons, setShowShareIcons] = useState(false);
-    const recaptchaRef = useRef(null);
-    const apiKey = process.env.NEXT_PUBLIC_API_KEY;
+    const { isLoggedIn } = useAuth(); // Using custom AuthContext hook
+    const [tags, setTags] = useState([]); // State for tags
+    const [input, setInput] = useState(''); // State for input field
+    const [generateDescription, setGenerateDescription] = useState([]); // State for generated descriptions
+    const [isLoading, setIsLoading] = useState(false); // State for loading indicator
+    const [showCaptcha, setShowCaptcha] = useState(false); // State for showing captcha
+    const [showShareIcons, setShowShareIcons] = useState(false); // State for showing share icons
+    const recaptchaRef = useRef(null); // Ref for reCAPTCHA component
+    const apiKey = process.env.NEXT_PUBLIC_API_KEY; // API key
+    const [generateCount, setGenerateCount] = useState(0);
+    useEffect(() => {
+        if (!isLoggedIn) {
+            setGenerateCount(5);
+        }
+    }, [isLoggedIn]);
+    // Effect to set meta tags on component mount
+    useEffect(() => {
+        // Set document title for better SEO
+        document.title = "YouTube Description Generator";
+        // Add meta description for better SEO
+        const metaDesc = document.createElement('meta');
+        metaDesc.name = 'description';
+        metaDesc.content = 'Generate SEO-friendly YouTube video descriptions based on your tags.';
+        document.querySelector('head').appendChild(metaDesc);
+        // Add Open Graph meta tags for social sharing
+        const ogTitle = document.createElement('meta');
+        ogTitle.property = 'og:title';
+        ogTitle.content = 'YouTube Description Generator';
+        document.querySelector('head').appendChild(ogTitle);
+        const ogDesc = document.createElement('meta');
+        ogDesc.property = 'og:description';
+        ogDesc.content = 'Generate SEO-friendly YouTube video descriptions based on your tags.';
+        document.querySelector('head').appendChild(ogDesc);
+        const ogUrl = document.createElement('meta');
+        ogUrl.property = 'og:url';
+        ogUrl.content = window.location.href;
+        document.querySelector('head').appendChild(ogUrl);
+    }, []);
 
+    // Function to handle key down event for adding tags
     const handleKeyDown = (event) => {
         if (event.key === 'Enter' || event.key === ',') {
             event.preventDefault();
@@ -27,6 +58,7 @@ const DescriptionGenerator = () => {
         }
     };
 
+    // Function to share on social media
     const shareOnSocialMedia = (socialNetwork) => {
         const url = encodeURIComponent(window.location.href);
         const socialMediaUrls = {
@@ -43,10 +75,12 @@ const DescriptionGenerator = () => {
         }
     };
 
+    // Function to handle share icon click
     const handleShareClick = () => {
         setShowShareIcons(!showShareIcons);
     };
 
+    // Function to copy text to clipboard
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text).then(() => {
             alert(`Copied: "${text}"`);
@@ -55,6 +89,7 @@ const DescriptionGenerator = () => {
         });
     };
 
+    // Function to generate titles
     const generateTitles = async () => {
         setIsLoading(true);
         setShowCaptcha(true);
@@ -92,15 +127,30 @@ const DescriptionGenerator = () => {
             setIsLoading(false);
         }
     };
-
     return (
-        <div className="container p-5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <Head>
-                <title>YouTube Description Generator</title>
-                <meta name="description" content="Generate SEO-friendly YouTube video descriptions based on your tags." />
-            </Head>
-            <h2>YouTube Description Generator</h2>
-            <p>You are {isLoggedIn ? 'logged in and can generate unlimited tags.' : `not logged in. You can generate tags limited times.`}</p>
+            {/* Open Graph meta tags */}
+            <meta property="og:title" content="YouTube Title Generator" />
+            <meta property="og:description" content="Generate SEO-friendly YouTube video titles based on your tags." />
+            {typeof window !== 'undefined' && (
+                <meta property="og:url" content={window.location.href} />
+            )}
+        </Head>
+            <h2 className='text-3xl'>YouTube Description Generator</h2>
+            <div className="text-center pt-4 pb-4">
+        {isLoggedIn ? (
+          <p className="text-center p-3 alert-warning">
+            You are logged in and can generate unlimited tags.
+          </p>
+        ) : (
+          <p className="text-center p-3 alert-warning">
+            You’re using free version of Ytubetool ||
+            You can generate tags {5 - generateCount}{" "}
+            more times.<button className="btn btn-warning ms-2"><Link href='/register'>Registration</Link></button>
+          </p>
+        )}
+      </div>
             <div className="keywords-input center rounded">
                 <div className="tags">
                     {tags.map((tag, index) => (
@@ -167,49 +217,7 @@ const DescriptionGenerator = () => {
                     </div>
                 ))}
             </div>
-            <h3>Introduction to Our YouTube Tag Generator</h3>
-            <p>
-                Tags are super descriptive keywords, or we can use phrases that can
-                help content creators market their content; on the other hand, with
-                the help of tags, viewers can reach out to the correct video content.
-                With the proper tags, a YouTube channel owner can grow their audience
-                and increase views on their content.
-            </p>
-            <h3>What is a YouTube Tag?</h3>
-            <p>
-                YouTube tags are known as &apos;Video Tags&apos;. They are a collection of words
-                and phrases used to describe YouTube videos. Tags are a crucial ranking factor
-                in the YouTube algorithm.
-            </p>
-            <p>
-                Why are tags important? Tags help to categorize content and improve its discoverability,
-                making it easier for viewers to find relevant videos based on their interests.
-            </p>
-
-            <h3>Why Are YouTube Tags Important?</h3>
-            <p>
-                Generally, tags are an opportunity to increase your video content
-                reachability, including your video content topics, category, and many
-                more. Tags connect directly relate to the YouTube ranking.
-            </p>
-            <h3>Why Should We Use a YouTube Tag Generator?</h3>
-            <p>
-                YouTube Video tags generator is a tool you can get free and paid for,
-                which can help you generate SEO-optimized keywords and tags for your
-                videos. With the help of that tags, you can make your video content
-                easily.
-            </p>
-            <p>
-                Now, you know that with the help of that tags, you can create YouTube
-                tags to get more reach, but which tool will be best for you that can
-                produce your result accurately? There are many Tags generators for
-                YouTube in the market, and more options must be clarified.
-            </p>
-            <p>
-                Now that we've outlined everything you need to know about YTubeTool,
-                we'd like to make your decision simple. We will show you how it will
-                simplify your work.
-            </p>
+          
             <style jsx>{styles}</style>
           
         </div>
