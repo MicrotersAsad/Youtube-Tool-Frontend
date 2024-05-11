@@ -2,6 +2,8 @@ import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { FaEnvelope, FaKey } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
+import login from "../public/login.svg"
+import Image from "next/image";
 // import { useAuth } from "../contexts/AuthContext"; // Adjust this path to where your AuthContext is located
 
 function Login() {
@@ -45,6 +47,18 @@ function Login() {
     };
 
     return (
+      <div className="container"> 
+ <div className="row"> 
+ <div className="col-md-6"> 
+ <Image
+      src="../public/login.svg"
+      width={500}
+      height={500}
+      alt="Picture of the author"
+    />
+ </div>
+ <div className="col-md-6"> 
+ 
         <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
             <div className="card p-4 shadow" style={{ width: "90%", maxWidth: "400px" }}>
                 <h2 className="text-center mb-3">Login</h2>
@@ -82,7 +96,12 @@ function Login() {
                 </form>
             </div>
         </div>
+        </div>
+        </div>
+        </div>
+        
     );
+    
 }
 
 export default Login;

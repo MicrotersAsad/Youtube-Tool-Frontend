@@ -1,55 +1,51 @@
-
 /* eslint-disable react/no-unescaped-entities */
+import React, { useState, useRef } from 'react';
+import Head from 'next/head';
+import { FaShareAlt, FaFacebook, FaLinkedin, FaInstagram, FaTwitter, FaCog, FaCopy, FaDownload } from 'react-icons/fa';
+import { useAuth } from '../../contexts/AuthContext';
+import ReCAPTCHA from 'react-google-recaptcha';
 
-import React, { useState, useRef } from "react";
-import { FaShareAlt, FaFacebook, FaLinkedin, FaInstagram, FaTwitter, FaCog, FaCopy, FaDownload } from "react-icons/fa";
-import { useAuth } from "../../contexts/AuthContext";
-import ReCAPTCHA from "react-google-recaptcha";
-
-const  DescriptionGenerator= () => {
+const DescriptionGenerator = () => {
     const { isLoggedIn } = useAuth();
     const [tags, setTags] = useState([]);
-    const [input, setInput] = useState("");
-    const [generateDescription, setgenerateDescription] = useState([]);
+    const [input, setInput] = useState('');
+    const [generateDescription, setGenerateDescription] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [showCaptcha, setShowCaptcha] = useState(false);
     const [showShareIcons, setShowShareIcons] = useState(false);
     const recaptchaRef = useRef(null);
     const apiKey = process.env.NEXT_PUBLIC_API_KEY;
-    const [generateCount, setGenerateCount] = useState(0);
+
     const handleKeyDown = (event) => {
-        if (event.key === "Enter" || event.key === ",") {
+        if (event.key === 'Enter' || event.key === ',') {
             event.preventDefault();
             const newTag = input.trim();
             if (newTag && !tags.includes(newTag)) {
                 setTags([...tags, newTag]);
-                setInput("");
+                setInput('');
             }
         }
     };
 
- 
     const shareOnSocialMedia = (socialNetwork) => {
         const url = encodeURIComponent(window.location.href);
         const socialMediaUrls = {
             facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
             twitter: `https://twitter.com/intent/tweet?url=${url}`,
-            instagram: "You can share this page on Instagram through the Instagram app on your mobile device.",
+            instagram: 'You can share this page on Instagram through the Instagram app on your mobile device.',
             linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
         };
 
         if (socialNetwork === 'instagram') {
             alert(socialMediaUrls[socialNetwork]);
         } else {
-            window.open(socialMediaUrls[socialNetwork], "_blank");
+            window.open(socialMediaUrls[socialNetwork], '_blank');
         }
     };
 
     const handleShareClick = () => {
         setShowShareIcons(!showShareIcons);
     };
-
-
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text).then(() => {
@@ -58,78 +54,62 @@ const  DescriptionGenerator= () => {
             console.error('Failed to copy text: ', err);
         });
     };
-    
- 
+
     const generateTitles = async () => {
         setIsLoading(true);
         setShowCaptcha(true);
         try {
-            const response = await fetch("https://api.openai.com/v1/chat/completions", {
-                method: "POST",
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
                 headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${apiKey}`
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${apiKey}`,
                 },
                 body: JSON.stringify({
-                    model: "gpt-3.5-turbo-16k",
+                    model: 'gpt-3.5-turbo-16k',
                     messages: [
-                        { role: "system", content: `Generate a Youtube Video description  SEO-friendly  for all keywords "${tags.join(", ")}".` },
-                        { role: "user", content: tags.join(", ") }
+                        { role: 'system', content: `Generate a Youtube Video description SEO-friendly for all keywords "${tags.join(', ')}".` },
+                        { role: 'user', content: tags.join(', ') },
                     ],
                     temperature: 0.7,
                     max_tokens: 3500,
                     top_p: 1,
                     frequency_penalty: 0,
-                    presence_penalty: 0
-                })
+                    presence_penalty: 0,
+                }),
             });
 
             const data = await response.json();
-            const titles = data.choices[0].message.content.trim().split("\n").map(title => ({
+            const titles = data.choices[0].message.content.trim().split('\n').map(title => ({
                 text: title,
-                selected: false
+                selected: false,
             }));
-            setgenerateDescription(titles);
+            setGenerateDescription(titles);
         } catch (error) {
-            console.error("Error generating titles:", error);
-            setgenerateDescription([]);
+            console.error('Error generating titles:', error);
+            setGenerateDescription([]);
         } finally {
             setIsLoading(false);
         }
     };
-    const copySelectedTitles = () => {
-        const titlesText = generateDescription.map(title => title.text).join("\n");
-        copyToClipboard(titlesText);
-    };
-    
-    const downloadSelectedTitles = () => {
-        const element = document.createElement("a");
-        const file = new Blob([generateDescription.map(title => title.text).join("\n")], {type: 'text/plain'});
-        element.href = URL.createObjectURL(file);
-        element.download = "GeneratedDescription.txt";
-        document.body.appendChild(element); // Required for this to work in FireFox
-        element.click();
-        document.body.removeChild(element);
-    };
-    
 
     return (
         <div className="container p-5">
+            <Head>
+                <title>YouTube Description Generator</title>
+                <meta name="description" content="Generate SEO-friendly YouTube video descriptions based on your tags." />
+            </Head>
             <h2>YouTube Description Generator</h2>
-            {isLoggedIn ? (
-                <p>You are logged in and can generate unlimited tags.</p>
-            ) : (
-                <p>You are not logged in. You can generate tags {5 - generateCount} more times.</p>
-            )}
+            <p>You are {isLoggedIn ? 'logged in and can generate unlimited tags.' : `not logged in. You can generate tags limited times.`}</p>
             <div className="keywords-input center rounded">
                 <div className="tags">
                     {tags.map((tag, index) => (
-                        <span className="tag" key={index}>
+                        <div className="tag" key={index}>
                             {tag}
-                            <span className="remove-btn" onClick={() => setTags(tags.filter((_, i) => i !== index))}>
+                            <button aria-label={`Remove ${tag}`} className="remove-btn" onClick={() => setTags(tags.filter((_, i) => i !== index))}>
                                 ×
-                            </span>
-                        </span>
+                            </button>
+                        </div>
                     ))}
                 </div>
                 <input
@@ -143,57 +123,49 @@ const  DescriptionGenerator= () => {
                 />
             </div>
             <div className="center">
-                <div className="d-flex pt-5">
-                    <button className="btn btn-primary" onClick={generateTitles} disabled={isLoading|| tags.length === 0 }>
-                        {isLoading ? "Generating..." : "Generate Description"} <FaCog />
-                    </button>
-                    <button className="btn btn-primary ms-5" onClick={handleShareClick}>
-                        Share <FaShareAlt />
-                    </button>
-                    {showShareIcons && (
-                        <div className="share-icons ms-2">
-                            <FaFacebook className="facebook-icon" onClick={() => shareOnSocialMedia('facebook')} />
-                            <FaInstagram
-                                className="instagram-icon"
-                                onClick={() => shareOnSocialMedia('instagram')}
-                            />
-                            <FaTwitter className="twitter-icon" onClick={() => shareOnSocialMedia('twitter')} />
-                            <FaLinkedin className="linkedin-icon" onClick={() => shareOnSocialMedia('linkedin')} />
-                        </div>
-                    )}
-                   
-                </div>
-                
+                <button className="btn btn-primary" onClick={generateTitles} disabled={isLoading || tags.length === 0}>
+                    {isLoading ? 'Generating...' : 'Generate Description'} <FaCog />
+                </button>
+                <button className="btn btn-primary ms-5" onClick={handleShareClick}>
+                    Share <FaShareAlt />
+                </button>
+                {showShareIcons && (
+                    <div className="share-icons ms-2">
+                        <FaFacebook className="facebook-icon" onClick={() => shareOnSocialMedia('facebook')} />
+                        <FaInstagram className="instagram-icon" onClick={() => shareOnSocialMedia('instagram')} />
+                        <FaTwitter className="twitter-icon" onClick={() => shareOnSocialMedia('twitter')} />
+                        <FaLinkedin className="linkedin-icon" onClick={() => shareOnSocialMedia('linkedin')} />
+                    </div>
+                )}
             </div>
             {showCaptcha && (
                 <ReCAPTCHA
                     ref={recaptchaRef}
                     sitekey={process.env.NEXT_PUBLIC_CAPTCHA_KEY}
-                    onChange={value => setShowCaptcha(!value)}
+                    onChange={(value) => setShowCaptcha(!value)}
                 />
             )}
             <div className="generated-titles-container border">
-                
                 {generateDescription.map((title, index) => (
                     <div key={index}>
-                       
                         {title.text}
-                        <br/>
-                        <button className="btn btn-primary" onClick={copySelectedTitles}>
-                        Copy  <FaCopy />
-                    </button>
-                    
-              
-             
-                    <button className="btn btn-primary ms-2" onClick={downloadSelectedTitles}>
-                        Download  <FaDownload />
-                    </button>
+                        <br />
+                        <button className="btn btn-primary" onClick={() => copyToClipboard(title.text)}>
+                            Copy <FaCopy />
+                        </button>
+                        <button className="btn btn-primary ms-2" onClick={() => {
+                            const element = document.createElement("a");
+                            const file = new Blob([title.text], { type: 'text/plain' });
+                            element.href = URL.createObjectURL(file);
+                            element.download = "GeneratedDescription.txt";
+                            document.body.appendChild(element);
+                            element.click();
+                            document.body.removeChild(element);
+                        }}>
+                            Download <FaDownload />
+                        </button>
                     </div>
-                    
                 ))}
-              
-                   
-               
             </div>
             <h3>Introduction to Our YouTube Tag Generator</h3>
             <p>
