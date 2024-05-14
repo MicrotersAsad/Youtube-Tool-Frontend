@@ -1,44 +1,46 @@
+/* eslint-disable react/no-unescaped-entities */
 import Link from "next/link";
+import { useRouter } from "next/router";
 import React, { useState, useEffect } from "react";
 import { FaEnvelope, FaImage, FaKey, FaUser } from "react-icons/fa";
 
 function Register() {
-  // State variables
+  const router = useRouter(); // Use Next.js router
   const [formData, setFormData] = useState({
-    name: "", // Username
+    name: "",
     email: "",
     password: "",
     confirmPassword: "",
     profileImage: null,
   });
-  const [showVerification, setShowVerification] = useState(false); // Whether to show verification form
-  const [verificationCode, setVerificationCode] = useState(""); // Verification code input
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  // Effect to set meta tags on component mount
   useEffect(() => {
-    // Set document title for better SEO
     document.title = "Register | Youtube Tool";
-    // Add meta description for better SEO
     const metaDesc = document.createElement('meta');
     metaDesc.name = 'description';
     metaDesc.content = 'Register to access exclusive features on Youtube Tool.';
     document.querySelector('head').appendChild(metaDesc);
-    // Add Open Graph meta tags for social sharing
+
     const ogTitle = document.createElement('meta');
     ogTitle.property = 'og:title';
     ogTitle.content = 'Register | Youtube Tool';
     document.querySelector('head').appendChild(ogTitle);
+
     const ogDesc = document.createElement('meta');
     ogDesc.property = 'og:description';
     ogDesc.content = 'Register to access exclusive features on Youtube Tool.';
     document.querySelector('head').appendChild(ogDesc);
+
     const ogUrl = document.createElement('meta');
     ogUrl.property = 'og:url';
     ogUrl.content = window.location.href;
     document.querySelector('head').appendChild(ogUrl);
   }, []);
 
-  // Function to handle input change
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((prevState) => ({
@@ -47,7 +49,6 @@ function Register() {
     }));
   };
 
-  // Function to handle file input change
   const handleFileChange = (event) => {
     setFormData((prevState) => ({
       ...prevState,
@@ -55,7 +56,6 @@ function Register() {
     }));
   };
 
-  // Function to handle form submission for registration
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (formData.password !== formData.confirmPassword) {
@@ -70,7 +70,7 @@ function Register() {
     formDataToSend.append("profileImage", formData.profileImage);
 
     try {
-      const response = await fetch("http://localhost:5000/register", {
+      const response = await fetch("/api/register", {
         method: "POST",
         body: formDataToSend,
       });
@@ -81,15 +81,14 @@ function Register() {
       }
       const result = await response.json();
       console.log(result);
-      alert("Registration successful!");
-      setShowVerification(true); // Show verification form
+      alert("Registration successful! Please check your email to verify.");
+      setShowVerification(true);
     } catch (error) {
       console.error("Registration failed:", error);
-      alert(error.message);
+      setError(error.message || "Registration failed");
     }
   };
 
-  // Function to handle email verification
   const handleVerification = async (event) => {
     event.preventDefault();
     if (!verificationCode.trim()) {
@@ -98,27 +97,27 @@ function Register() {
     }
 
     try {
-      // Assuming verificationCode is the token the backend expects
-      const response = await fetch("http://localhost:5000/verify-email", {
+      const response = await fetch("/api/verify-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ token: verificationCode }), // Send the token as expected by backend
+        body: JSON.stringify({ token: verificationCode }),
       });
 
       const data = await response.json();
       if (response.ok) {
         console.log("Verification successful:", data);
         alert("Email verified successfully!");
-        setShowVerification(false); // Hide the verification form
-        // Optionally redirect the user or perform further actions
+        setShowVerification(false);
+        setSuccess("Email verified successfully! You can now login.");
+        router.push("/login"); // Navigate to the login page
       } else {
         throw new Error(data.message || "Failed to verify email");
       }
     } catch (error) {
       console.error("Verification failed:", error);
-      alert(error.message || "Verification failed");
+      setError(error.message || "Verification failed");
     }
   };
 
@@ -133,9 +132,9 @@ function Register() {
       >
         <h1 className="text-center">Register</h1>
         {!showVerification ? (
-          <form className="" onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="email">
+              <label htmlFor="name">
                 <FaUser className="me-2 fs-5 text-danger" />
                 Name:
               </label>
@@ -146,6 +145,7 @@ function Register() {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
+                required
               />
             </div>
             <div>
@@ -160,6 +160,7 @@ function Register() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
+                required
               />
             </div>
             <div>
@@ -174,6 +175,7 @@ function Register() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
+                required
               />
             </div>
             <div>
@@ -188,6 +190,7 @@ function Register() {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
+                required
               />
             </div>
             <div>
@@ -201,16 +204,18 @@ function Register() {
                 id="profileImage"
                 name="profileImage"
                 onChange={handleFileChange}
+                required
               />
             </div>
             <div className="mt-3">
-              <button className="btn btn btn-danger" type="submit">Register</button>
+              <button className="btn btn-danger" type="submit">Register</button>
             </div>
             <div className="mt-3">
               <h6>
-                If You Are Registered, Please <Link className="text-danger fw-bold" href="/login">Login</Link>
+                If You Are Registered, Please <Link href="/login">Login</Link>
               </h6>
             </div>
+            {error && <div className="alert alert-danger mt-3" role="alert">{error}</div>}
           </form>
         ) : (
           <form onSubmit={handleVerification}>
@@ -221,10 +226,13 @@ function Register() {
               placeholder="Enter verification code"
               value={verificationCode}
               onChange={(e) => setVerificationCode(e.target.value)}
+              required
             />
             <div className="mt-3">
-              <button className="btn btn btn-danger" type="submit">Verify Email</button>
+              <button className="btn btn-danger" type="submit">Verify Email</button>
             </div>
+            {success && <div className="alert alert-success mt-3" role="alert">{success}</div>}
+            {error && <div className="alert alert-danger mt-3" role="alert">{error}</div>}
           </form>
         )}
       </div>

@@ -1,3 +1,5 @@
+/* eslint-disable react/no-unescaped-entities */
+import Link from 'next/link';
 import React from 'react';
 
 const Footer = () => {
@@ -30,11 +32,11 @@ const Footer = () => {
       <div>
         <h5 className="text-sm font-semibold uppercase">Company</h5>
         <ul className="mt-4 space-y-2">
-          <li><a href="#" className="text-gray-300 hover:text-white">About</a></li>
-          <li><a href="#" className="text-gray-300 hover:text-white">Blog</a></li>
-          <li><a href="#" className="text-gray-300 hover:text-white">Jobs</a></li>
-          <li><a href="#" className="text-gray-300 hover:text-white">Press</a></li>
-          <li><a href="#" className="text-gray-300 hover:text-white">Partners</a></li>
+          <li><Link href="#" className="text-gray-300 hover:text-white">About</Link></li>
+          <li><Link href="#" className="text-gray-300 hover:text-white">Blog</Link></li>
+          <li><Link href="#" className="text-gray-300 hover:text-white">Jobs</Link></li>
+          <li><Link href="/terms" className="text-gray-300 hover:text-white">Terms & Service</Link></li>
+          <li><Link href="#" className="text-gray-300 hover:text-white">Partners</Link></li>
         </ul>
       </div>
       {/* <!-- Legal Column --> */}

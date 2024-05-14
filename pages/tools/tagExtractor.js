@@ -1,14 +1,21 @@
+
+
 /* eslint-disable react/no-unescaped-entities */
 import React, { useRef, useState } from 'react';
 import { FaCopy, FaDownload, FaFacebook, FaInstagram, FaLinkedin, FaSearch, FaShareAlt, FaTimes, FaTwitter } from 'react-icons/fa';
 import { FaGrip } from 'react-icons/fa6';
+import { useAuth } from '../../contexts/AuthContext';
+import Link from 'next/link';
 
-const TagExtractor = () => {
+const TitleDescriptionExtractor = () => {
+    const { isLoggedIn } = useAuth();
     const [videoUrl, setVideoUrl] = useState('');
     const [tags, setTags] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [showShareIcons, setShowShareIcons] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // Loading state for API requests
+    const [generateCount, setGenerateCount] = useState(0); // generated count show 
     const tagsRef = useRef(null);
     const handleUrlChange = (e) => {
         setVideoUrl(e.target.value);
@@ -32,7 +39,7 @@ const TagExtractor = () => {
         setError('');
         try {
             console.log('Request Payload:', { videoUrl });
-            const response = await fetch('http://localhost:5000/api/fetch-tags', {
+            const response = await fetch('/api/fetch-url', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -94,8 +101,21 @@ const TagExtractor = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
             <h2 className='text-3xl pt-5'>Youtube Tag Extractor</h2>
+            <p className="text-center p-3 mt-4 alert-warning">
+  {isLoggedIn ? (
+    "You are logged in and can generate unlimited tags."
+  ) : (
+    <span>
+      You are not logged in. You can generate tags{" "}
+      {isLoggedIn ? "unlimited" : `${5 - generateCount}`} more times.{" "}
+      <button className="btn btn-warning">
+        <Link href="/register">Register</Link>
+      </button>
+    </span>
+  )}
+</p>
             <div className="row justify-content-center pt-5">
                 <div className="col-md-6">
                     <div className="input-group mb-3">
@@ -209,4 +229,4 @@ const TagExtractor = () => {
     );
 };
 
-export default TagExtractor;
+export default TitleDescriptionExtractor;

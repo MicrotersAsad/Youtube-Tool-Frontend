@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 import React, { useState, useRef, useEffect } from "react";
-import { FaShareAlt, FaFacebook, FaLinkedin, FaInstagram, FaTwitter, FaCog, FaCopy, FaDownload } from "react-icons/fa";
+import { FaShareAlt, FaFacebook, FaLinkedin, FaInstagram, FaTwitter, FaCog, FaCopy, FaDownload, FaShare } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
 import Head from 'next/head'; // Import Head component
@@ -196,11 +196,11 @@ const TitleGenerator = () => {
             {/* Buttons section */}
             <div className="center">
                 <div className="d-flex pt-5">
-                    <button className="btn btn-primary" onClick={generateTitles} disabled={isLoading|| tags.length === 0 }>
+                    <button className="btn btn-danger" onClick={generateTitles} disabled={isLoading|| tags.length === 0 }>
                         {isLoading ? "Generating..." : "Generate Title"}
                     </button>
-                    <button className="btn btn-primary ms-5" onClick={handleShareClick}>
-                        Share 
+                    <button className="btn btn-danger ms-5" onClick={handleShareClick}>
+                        <FaShareAlt/> 
                     </button>
                     {showShareIcons && (
                         <div className="share-icons ms-2">

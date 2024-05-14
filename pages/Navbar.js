@@ -5,7 +5,8 @@ import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
-
+import logo from "../public/yt icon.png"
+import Image from 'next/image';
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
@@ -15,10 +16,17 @@ const navigation = [
   { name: 'Tools', href: '#', current: false, dropdown: true, children: [
       { name: 'Tag Generator', href: '/tools/tagGenerator' },
       { name: 'Tag Extractor', href: '/tools/tagExtractor' },
-      { name: 'Title & Description Generator', href: '/tools/youtube-title-and-description-generator' }
+      { name: 'Title & Description Generator', href: '/tools/youtube-title-and-description-generator' },
+      { name: 'Title & Description Extractor', href: '/tools/youtube-title-and-description-extractor' },
+      { name: 'Youtube Thumbnails Generator', href: '/tools/youtube-thumbnail' },
+      { name: 'YouTube Hashtag Generator', href: '/tools/YouTube-Hashtag-Generator' },
+      { name: 'YouTube Embed Code Generator', href: '/tools/YouTube-Embed-Code-Generator' },
+      { name: 'YouTube Channel Banner Downloader', href: '/tools/YouTube-Channel-Banner-Downloader' },
+      { name: 'YouTube Channel Logo Downloader', href: '/tools/YouTube-Channel-Logo-Downloader' }
     ] },
-  { name: 'Projects', href: '/projects', current: false },
-  { name: 'Calendar', href: '/calendar', current: false },
+  { name: 'About', href: '/about', current: false },
+  { name: 'Privacy & Policy', href: '/privacy', current: false },
+
 ];
 
 function Navbar() {
@@ -42,9 +50,15 @@ function Navbar() {
                 </div>
                 <div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
                   <div className="flex-shrink-0 flex items-center">
+                  <Image 
+                    src={logo}
+                    alt="GFG logo served with static path of public directory"
+                    height="70"
+                    width="150"
+                /> 
                     {/* Logo */}
                   </div>
-                  <div className="hidden sm:block sm:ml-6">
+                  <div className="hidden sm:block sm:ml-6 mx-auto">
                     <div className="flex space-x-4">
                       {/* Navigation links */}
                       {navigation.map((item) => (
