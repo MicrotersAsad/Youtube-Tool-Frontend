@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
+
+import Layout from './layout';
+import Users from './users';
 import { useAuth } from '../../contexts/AuthContext';
-import Users from '../../components/Users';
-import Layout from '../../components/Layout';
+
 
 const UsersPage = () => {
   const { user } = useAuth();
