@@ -1,11 +1,12 @@
-/* eslint-disable react/no-unescaped-entities */
 import React, { useState, useRef, useEffect } from "react";
-import { FaShareAlt, FaFacebook, FaLinkedin, FaInstagram, FaTwitter, FaCog, FaCopy, FaDownload, FaShare } from "react-icons/fa";
+import { FaShareAlt, FaFacebook, FaLinkedin, FaInstagram, FaTwitter, FaCopy, FaDownload } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
-import Head from 'next/head'; // Import Head component
+import Head from 'next/head';
 import sanitizeHtml from 'sanitize-html';
-const TitleGenerator = () => {
+import Link from "next/link";
+
+const TagGenerator = () => {
     const { isLoggedIn } = useAuth();
     const [tags, setTags] = useState([]);
     const [input, setInput] = useState("");
@@ -17,62 +18,71 @@ const TitleGenerator = () => {
     const apiKey = process.env.NEXT_PUBLIC_API_KEY;
     const [selectAll, setSelectAll] = useState(false);
     const [generateCount, setGenerateCount] = useState(0);
-    const [content,setContent]=useState([])
-    const [loading,setLoading]=useState([])
+    const [content, setContent] = useState([]);
+    const [loading, setLoading] = useState([]);
 
     useEffect(() => {
         const fetchContent = async () => {
-          try {
-            const response = await fetch('/api/content');
-            if (!response.ok) {
-              throw new Error('Failed to fetch content');
-            }
-            const data = await response.json();
-            console.log("Content data:", data); // Check the fetched data
-            
-            // Check if data is an array and contains content
-            if (Array.isArray(data) && data.length > 0 && data[0].content) {
-              // Sanitize the content while allowing certain tags
-              const sanitizedContent = sanitizeHtml(data[0].content, {
-                allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
-                allowedAttributes: {
-                  'a': ['href']
+            try {
+                const response = await fetch('/api/content');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch content');
                 }
-              });
-    
-              setContent(sanitizedContent);
-            } else {
-              // Handle the case when data or data[0].content is not available
-              console.error("Content data is invalid:", data);
+                const data = await response.json();
+                console.log("Content data:", data);
+                
+                if (Array.isArray(data) && data.length > 0 && data[0].content) {
+                    const sanitizedContent = sanitizeHtml(data[0].content, {
+                        allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
+                        allowedAttributes: {
+                            'a': ['href']
+                        }
+                    });
+                    setContent(sanitizedContent);
+                } else {
+                    console.error("Content data is invalid:", data);
+                }
+            } catch (error) {
+                console.error("Error fetching content:", error);
+                setError(error.message);
             }
-          } catch (error) {
-            console.error("Error fetching content:", error);
-            setError(error.message);
-          }
         };
-    
+
         fetchContent();
-      }, []);
-    
-    
+    }, []);
+
     useEffect(() => {
         if (!isLoggedIn) {
             setGenerateCount(5);
         }
     }, [isLoggedIn]);
-    // Function to handle key down event for adding tags
+
+    const handleInputChange = (e) => {
+        const { value } = e.target;
+        setInput(value);
+
+        const delimiters = [',', '.'];
+        const parts = value.split(new RegExp(`[${delimiters.join('')}]`)).map(part => part.trim()).filter(part => part);
+        
+        if (parts.length > 1) {
+            const newTags = [...tags, ...parts];
+            setTags(newTags);
+            setInput("");
+        }
+    };
+
     const handleKeyDown = (event) => {
-        if (event.key === "Enter" || event.key === ",") {
+        if (event.key === "Enter" || event.key === "," || event.key === ".") {
             event.preventDefault();
             const newTag = input.trim();
-            if (newTag && !tags.includes(newTag)) {
-                setTags([...tags, newTag]);
+            if (newTag) {
+                const newTags = [...tags, ...newTag.split(/[,\.]/).map(tag => tag.trim()).filter(tag => tag)];
+                setTags(newTags);
                 setInput("");
             }
         }
     };
 
-    // Function to handle select all checkbox
     const handleSelectAll = () => {
         const newSelection = !selectAll;
         setSelectAll(newSelection);
@@ -82,7 +92,6 @@ const TitleGenerator = () => {
         })));
     };
 
-    // Function to share on social media
     const shareOnSocialMedia = (socialNetwork) => {
         const url = encodeURIComponent(window.location.href);
         const socialMediaUrls = {
@@ -99,12 +108,10 @@ const TitleGenerator = () => {
         }
     };
 
-    // Function to handle share button click
     const handleShareClick = () => {
         setShowShareIcons(!showShareIcons);
     };
 
-    // Function to toggle title selection
     const toggleTitleSelect = index => {
         const newTitles = [...generatedTitles];
         newTitles[index].selected = !newTitles[index].selected;
@@ -112,7 +119,6 @@ const TitleGenerator = () => {
         setSelectAll(newTitles.every(title => title.selected));
     };
 
-    // Function to copy text to clipboard
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text).then(() => {
             alert(`Copied: "${text}"`);
@@ -120,8 +126,7 @@ const TitleGenerator = () => {
             console.error('Failed to copy text: ', err);
         });
     };
-    
-    // Function to copy selected titles
+
     const copySelectedTitles = () => {
         const selectedTitlesText = generatedTitles
             .filter(title => title.selected)
@@ -130,7 +135,6 @@ const TitleGenerator = () => {
         copyToClipboard(selectedTitlesText);
     };
 
-    // Function to download selected titles
     const downloadSelectedTitles = () => {
         const selectedTitlesText = generatedTitles
             .filter(title => title.selected)
@@ -140,12 +144,11 @@ const TitleGenerator = () => {
         const file = new Blob([selectedTitlesText], { type: 'text/plain' });
         element.href = URL.createObjectURL(file);
         element.download = "selected_titles.txt";
-        document.body.appendChild(element); // Required for this to work in FireFox
+        document.body.appendChild(element);
         element.click();
         document.body.removeChild(element);
     };
 
-    // Function to generate titles
     const generateTitles = async () => {
         setIsLoading(true);
         setShowCaptcha(true);
@@ -187,31 +190,34 @@ const TitleGenerator = () => {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
             <Head>
-            {/* Open Graph meta tags */}
-            <meta property="og:title" content="YouTube Tag Generator" />
-            <meta property="og:description" content="Generate SEO-friendly YouTube video Tag based on your keyword." />
-            {typeof window !== 'undefined' && (
-                <meta property="og:url" content={window.location.href} />
-            )}
-        </Head>
-            {/* Component title */}
+                <meta property="og:title" content="YouTube Tag Generator" />
+                <meta property="og:description" content="Generate SEO-friendly YouTube video Tag based on your keyword." />
+                {typeof window !== 'undefined' && (
+                    <meta property="og:url" content={window.location.href} />
+                )}
+            </Head>
             <h2 className="text-3xl">YouTube Tag Generator</h2>
-            {/* Logged in status */}
-            <div className="text-center pt-4 pb-4">
-        {isLoggedIn ? (
-          <p className="text-center p-3 alert-warning">
-            You are logged in and can generate unlimited tags.
-          </p>
-        ) : (
-          <p className="text-center p-3 alert-warning">
-            You are not logged in. You can generate tags {5 - generateCount}{" "}
-            more times.<button className="btn btn-warning">Registration</button>
-          </p>
-        )}
-      </div>
-            {/* Tags input */}
-            <div className="keywords-input center rounded">
-                <div className="tags">
+            <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
+                <div className="flex">
+                    <div className="py-1">
+                        <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
+                    </div>
+                    <div>
+                        {isLoggedIn ? (
+                            <p className="text-center p-3 alert-warning">
+                                You are logged in and can generate unlimited tags.
+                            </p>
+                        ) : (
+                            <p className="text-center p-3 alert-warning">
+                                You are not logged in. You can generate tags {5 - generateCount}{" "}
+                                more times.<Link href="/register" className="btn btn-warning ms-3">Registration</Link>
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </div>
+            <div className="keywords-input-container">
+                <div className="tags-container">
                     {tags.map((tag, index) => (
                         <span className="tag" key={index}>
                             {tag}
@@ -224,36 +230,31 @@ const TitleGenerator = () => {
                 <input
                     type="text"
                     placeholder="Add a keyword"
-                    className="rounded w-100"
+                    className="input-box"
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
+                    onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
                     required
                 />
             </div>
-            {/* Buttons section */}
             <div className="center">
                 <div className="d-flex pt-5">
-                    <button className="btn btn-danger" onClick={generateTitles} disabled={isLoading|| tags.length === 0 }>
+                    <button className="btn btn-danger" onClick={generateTitles} disabled={isLoading || tags.length === 0}>
                         {isLoading ? "Generating..." : "Generate Title"}
                     </button>
                     <button className="btn btn-danger ms-5" onClick={handleShareClick}>
-                        <FaShareAlt/> 
+                        <FaShareAlt /> 
                     </button>
                     {showShareIcons && (
                         <div className="share-icons ms-2">
                             <FaFacebook className="facebook-icon" onClick={() => shareOnSocialMedia('facebook')} />
-                            <FaInstagram
-                                className="instagram-icon"
-                                onClick={() => shareOnSocialMedia('instagram')}
-                            />
+                            <FaInstagram className="instagram-icon" onClick={() => shareOnSocialMedia('instagram')} />
                             <FaTwitter className="twitter-icon" onClick={() => shareOnSocialMedia('twitter')} />
                             <FaLinkedin className="linkedin-icon" onClick={() => shareOnSocialMedia('linkedin')} />
                         </div>
                     )}
                 </div>
             </div>
-            {/* ReCAPTCHA component */}
             {showCaptcha && (
                 <ReCAPTCHA
                     ref={recaptchaRef}
@@ -261,17 +262,17 @@ const TitleGenerator = () => {
                     onChange={value => setShowCaptcha(!value)}
                 />
             )}
-            {/* Container for generated titles */}
             <div className="generated-titles-container">
-                <div className="select-all-checkbox">
-                    <input type="checkbox" checked={selectAll} onChange={handleSelectAll} />
-                    <span>Select All</span>
-                </div>
-                {/* Display generated titles */}
+                {generatedTitles.length > 0 && (
+                    <div className="select-all-checkbox">
+                        <input type="checkbox" checked={selectAll} onChange={handleSelectAll} />
+                        <span>Select All</span>
+                    </div>
+                )}
                 {generatedTitles.map((title, index) => (
                     <div key={index} className="title-checkbox">
                         <input
-                        className="me-2"
+                            className="me-2"
                             type="checkbox"
                             checked={title.selected}
                             onChange={() => toggleTitleSelect(index)}
@@ -280,111 +281,103 @@ const TitleGenerator = () => {
                         <FaCopy className="copy-icon" onClick={() => copyToClipboard(title.text)} />
                     </div>
                 ))}
-                {/* Button to copy selected titles */}
                 {generatedTitles.some(title => title.selected) && (
                     <button className="btn btn-primary" onClick={copySelectedTitles}>
-                        Copy  <FaCopy />
+                        Copy <FaCopy />
                     </button>
                 )}
-                {/* Button to download selected titles */}
                 {generatedTitles.some(title => title.selected) && (
                     <button className="btn btn-primary ms-2" onClick={downloadSelectedTitles}>
-                        Download  <FaDownload />
+                        Download <FaDownload />
                     </button>
                 )}
             </div>
-          <div>
-          <div className="content pt-6 pb-5">
-          <div dangerouslySetInnerHTML={{ __html: content }}></div>
-  </div>
-          </div>
-            {/* Inline CSS */}
+            <div>
+                <div className="content pt-6 pb-5">
+                    <div dangerouslySetInnerHTML={{ __html: content }}></div>
+                </div>
+            </div>
             <style jsx>{styles}</style>
-          
         </div>
     );
 };
 
-// CSS styles
 const styles = `
-    .keywords-input {
+    .keywords-input-container {
         border: 2px solid #ccc;
-        padding: 5px;
+        padding: 10px;
         border-radius: 10px;
         display: flex;
         align-items: flex-start;
         flex-wrap: wrap;
         min-height: 100px;
         margin: auto;
-        width: 50%;
+        width: 100%;
+        max-width: 600px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
     }
 
-    .keywords-input input {
-        flex: 1;
-        border: none;
-        height: 100px;
-        font-size: 14px;
-        padding: 4px 8px;
-        width: 50%;
-    }
-    .keywords-input .tag {
-        width: auto;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff!important;
-        padding: 0 8px;
-        font-size: 14px;
-        list-style: none;
-        border-radius: 6px;
-        background-color: #0d6efd;
-        margin-right: 8px;
-        margin-bottom: 8px;
-    }
-    .tags {
+    .tags-container {
         display: flex;
         flex-wrap: wrap;
-        margin-right: 8px;
+        margin-bottom: 8px;
     }
 
-    .tag, .generated-tag {
+    .tag {
         display: flex;
         align-items: center;
-
-        color: #000000!important;
+        color: #fff;
+        background-color: #0d6efd;
         border-radius: 6px;
         padding: 5px 10px;
-        margin-right: 5px;
-        margin-bottom: 5px;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        font-size: 14px;
     }
 
     .remove-btn {
         margin-left: 8px;
         cursor: pointer;
+        font-weight: bold;
     }
 
-    input:focus {
+    .input-box {
+        flex: 1;
+        border: none;
+        height: 40px;
+        font-size: 16px;
+        padding: 8px;
+        border-radius: 6px;
+        width: 100%;
+        box-sizing: border-box;
         outline: none;
+        margin-top: 8px;
+    }
+
+    .input-box::placeholder {
+        color: #aaa;
     }
 
     @media (max-width: 600px) {
-        .keywords-input, .center {
+        .keywords-input-container {
             width: 100%;
+            padding: 8px;
         }
 
-        .btn {
-            width: 100%;
-            margin-top: 10px.
+        .input-box {
+            height: 35px;
+            font-size: 14px;
+            padding: 6px;
         }
     }
 
     .generated-tags-display {
         background-color: #f2f2f2;
         border-radius: 8px;
-        padding: 10px.
-        margin-top: 20px.
+        padding: 10px;
+        margin-top: 20px;
     }
-`; 
+`;
 
-export default TitleGenerator;
+export default TagGenerator;

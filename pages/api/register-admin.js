@@ -28,18 +28,9 @@ export default async function handler(req, res) {
         return res.status(500).json({ message: 'Unknown error' });
       }
 
-      const { username, email, password, role, adminAnswer } = req.body;
+      const { username, email, password } = req.body;
       const profileImageBuffer = req.file ? req.file.buffer : null;
       const profileImageBase64 = profileImageBuffer ? profileImageBuffer.toString('base64') : null;
-
-      // Validate role and admin answer
-      let finalRole = 'user';
-      if (role === 'admin') {
-        if (adminAnswer !== 'nazmul hasan') {
-          return res.status(400).json({ message: 'Incorrect answer to the admin question' });
-        }
-        finalRole = 'admin';
-      }
 
       // Hash the password
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -51,27 +42,27 @@ export default async function handler(req, res) {
       const { db } = await connectToDatabase();
 
       // Insert user data into the database
-      const result = await db.collection('user').insertOne({
+      const result = await db.collection('users').insertOne({
         username,
         email,
         password: hashedPassword,
         profileImage: profileImageBase64,
         verificationToken,
         verified: false,
-        role: finalRole, // Set role based on the verification
+        role: 'admin', // Set role to 'admin'
         createdAt: new Date(),
       });
 
       // Log to confirm insertion
-      console.log(`User ${username} with role ${finalRole} registered successfully`);
+      console.log(`Admin ${username} registered successfully`);
 
       // Send verification email
       await sendVerificationEmail(email, username, verificationToken);
 
-      res.status(201).json({ message: 'Registration successful! Please check your email to verify.' });
+      res.status(201).json({ message: 'Admin registration successful! Please check your email to verify.' });
     });
   } catch (error) {
-    console.error('Registration failed:', error);
+    console.error('Admin registration failed:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 }

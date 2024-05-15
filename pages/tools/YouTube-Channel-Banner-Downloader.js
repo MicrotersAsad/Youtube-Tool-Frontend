@@ -3,13 +3,18 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { FaDownload, FaFacebook, FaInstagram, FaLinkedin, FaShareAlt, FaTwitter } from 'react-icons/fa';
 import Image from 'next/image';
+import { useAuth } from '../../contexts/AuthContext';
+import Link from 'next/link';
 
 const YtChannelDw = () => {
+    const { isLoggedIn } = useAuth();
     const [loading, setLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // Loading state for API requests
     const [error, setError] = useState('');
     const [channelUrl, setChannelUrl] = useState('');
     const [bannerUrl, setBannerUrl] = useState('');
     const [showShareIcons, setShowShareIcons] = useState(false);
+    const [generateCount, setGenerateCount] = useState(false);
 
     const handleUrlChange = (e) => {
         setChannelUrl(e.target.value);
@@ -108,6 +113,25 @@ const YtChannelDw = () => {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
             <h2 className='text-3xl pt-5'>YouTube Channel Banner Downloader</h2>
+            <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
+                <div className="flex">
+                    <div className="py-1">
+                        <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
+                    </div>
+                    <div>
+                        {isLoggedIn ? (
+                            <p className="text-center p-3 alert-warning">
+                                You are logged in and can generate unlimited tags.
+                            </p>
+                        ) : (
+                            <p className="text-center p-3 alert-warning">
+                                You are not logged in. You can generate tags {5 - generateCount}{" "}
+                                more times.<Link href="/register" className="btn btn-warning ms-3">Registration</Link>
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </div>
             <div className="row justify-content-center pt-5">
                 <div className="col-md-6">
                     <div className="input-group mb-3">

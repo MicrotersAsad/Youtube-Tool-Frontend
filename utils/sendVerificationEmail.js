@@ -1,21 +1,25 @@
-// utils/sendVerificationEmail.js
 import nodemailer from 'nodemailer';
 
 export async function sendVerificationEmail(email, username, token) {
-  let transporter = nodemailer.createTransport({
-    service: 'Gmail',
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
     auth: {
       user: process.env.NEXT_PUBLIC_EMAIL_USER,
       pass: process.env.NEXT_PUBLIC_EMAIL_PASS,
     },
   });
 
-  let mailOptions = {
-    from: process.env.NEXT_PUBLIC_EMAIL_USER,
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
     to: email,
-    subject: 'Email Verification',
-    text: `Hello ${username},\n\nPlease verify your email by verify?token=${token}\n\nThank you!`,
+    subject: 'Verify your email',
+    text: `Hello ${username},\n\nPlease verify your email by verify-email?token=${token}\n\nThank you!`,
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('Verification email sent');
+  } catch (error) {
+    console.error('Error sending verification email:', error);
+  }
 }

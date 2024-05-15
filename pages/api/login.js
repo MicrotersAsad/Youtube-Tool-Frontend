@@ -22,7 +22,7 @@ export default async function handler(req, res) {
   try {
     const { db } = await connectToDatabase();
     const user = await db.collection("user").findOne({ email });
-    console.log(user);
+
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
@@ -33,7 +33,7 @@ export default async function handler(req, res) {
     }
 
     const token = jwt.sign(
-      { id: user._id, email: user.email },
+      { id: user._id, email: user.email, role: user.role }, // Add role to the token
       process.env.NEXT_PUBLIC_JWT_SECRET,
       { expiresIn: "1y" }
     );

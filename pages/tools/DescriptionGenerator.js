@@ -1,307 +1,142 @@
-/* eslint-disable react/no-unescaped-entities */
-import React, { useState, useRef, useEffect } from 'react';
-import Head from 'next/head';
-import { FaShareAlt, FaFacebook, FaLinkedin, FaInstagram, FaTwitter, FaCog, FaCopy, FaDownload } from 'react-icons/fa';
-import { useAuth } from '../../contexts/AuthContext'; // Importing custom AuthContext
-import ReCAPTCHA from 'react-google-recaptcha';
-import Link from 'next/link';
+import React, { useState } from 'react';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
-const DescriptionGenerator = () => {
-    const { isLoggedIn } = useAuth(); // Using custom AuthContext hook
-    const [tags, setTags] = useState([]); // State for tags
-    const [input, setInput] = useState(''); // State for input field
-    const [generateDescription, setGenerateDescription] = useState([]); // State for generated descriptions
-    const [isLoading, setIsLoading] = useState(false); // State for loading indicator
-    const [showCaptcha, setShowCaptcha] = useState(false); // State for showing captcha
-    const [showShareIcons, setShowShareIcons] = useState(false); // State for showing share icons
-    const recaptchaRef = useRef(null); // Ref for reCAPTCHA component
-    const apiKey = process.env.NEXT_PUBLIC_API_KEY; // API key
-    const [generateCount, setGenerateCount] = useState(0);
-    useEffect(() => {
-        if (!isLoggedIn) {
-            setGenerateCount(5);
-        }
-    }, [isLoggedIn]);
-    // Effect to set meta tags on component mount
-    useEffect(() => {
-        // Set document title for better SEO
-        document.title = "YouTube Description Generator";
-        // Add meta description for better SEO
-        const metaDesc = document.createElement('meta');
-        metaDesc.name = 'description';
-        metaDesc.content = 'Generate SEO-friendly YouTube video descriptions based on your tags.';
-        document.querySelector('head').appendChild(metaDesc);
-        // Add Open Graph meta tags for social sharing
-        const ogTitle = document.createElement('meta');
-        ogTitle.property = 'og:title';
-        ogTitle.content = 'YouTube Description Generator';
-        document.querySelector('head').appendChild(ogTitle);
-        const ogDesc = document.createElement('meta');
-        ogDesc.property = 'og:description';
-        ogDesc.content = 'Generate SEO-friendly YouTube video descriptions based on your tags.';
-        document.querySelector('head').appendChild(ogDesc);
-        const ogUrl = document.createElement('meta');
-        ogUrl.property = 'og:url';
-        ogUrl.content = window.location.href;
-        document.querySelector('head').appendChild(ogUrl);
-    }, []);
+const YouTubeDescriptionGenerator = () => {
+  const [videoInfo, setVideoInfo] = useState({
+    aboutVideo: `Welcome to [Your Channel Name]!\n\nIn this video, we're diving deep into the world of Full Stack Development. Whether you're a beginner or an experienced developer, these tips and guidelines will help you enhance your skills and stay ahead in the tech industry.`,
+    timestamps: `00:00 - Introduction\n01:00 - First Topic\n02:00 - Second Topic\n03:00 - Third Topic`,
+    aboutChannel: `Our channel is all about [Channel's Niche]. We cover a lot of cool stuff like [Topics Covered]. Make sure to subscribe for more awesome content!`,
+    recommendedVideos: `Check Out Our Other Videos:\n- [Video 1 Title](#)\n- [Video 2 Title](#)\n- [Video 3 Title](#)`,
+    aboutCompany: `Check out our company and our products at [Company Website]. We offer [Products/Services Offered].`,
+    website: `Find us at:\n[Website URL]`,
+    contactSocial: `Get in Touch with Us:\nEmail: [Your Email]\nFollow us on Social Media:\nTwitter: [Your Twitter Handle]\nLinkedIn: [Your LinkedIn Profile]\nGitHub: [Your GitHub Repository]`,
+    keywords: 'full stack development, coding, programming, web development'
+  });
 
-    // Function to handle key down event for adding tags
-    const handleKeyDown = (event) => {
-        if (event.key === 'Enter' || event.key === ',') {
-            event.preventDefault();
-            const newTag = input.trim();
-            if (newTag && !tags.includes(newTag)) {
-                setTags([...tags, newTag]);
-                setInput('');
-            }
-        }
-    };
+  const [sections, setSections] = useState([
+    { id: 'aboutVideo', title: 'About the Video', visible: true },
+    { id: 'timestamps', title: 'Timestamps', visible: true },
+    { id: 'aboutChannel', title: 'About the Channel', visible: true },
+    { id: 'recommendedVideos', title: 'Recommended Videos/Playlists', visible: true },
+    { id: 'aboutCompany', title: 'About Our Company & Products', visible: true },
+    { id: 'website', title: 'Our Website', visible: true },
+    { id: 'contactSocial', title: 'Contact & Social', visible: true },
+    { id: 'keywords', title: 'Keywords to Target (Optional)', visible: true }
+  ]);
 
-    // Function to share on social media
-    const shareOnSocialMedia = (socialNetwork) => {
-        const url = encodeURIComponent(window.location.href);
-        const socialMediaUrls = {
-            facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
-            twitter: `https://twitter.com/intent/tweet?url=${url}`,
-            instagram: 'You can share this page on Instagram through the Instagram app on your mobile device.',
-            linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
-        };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setVideoInfo((prevInfo) => ({
+      ...prevInfo,
+      [name]: value
+    }));
+  };
 
-        if (socialNetwork === 'instagram') {
-            alert(socialMediaUrls[socialNetwork]);
-        } else {
-            window.open(socialMediaUrls[socialNetwork], '_blank');
-        }
-    };
+  const generateDescription = () => {
+    const { aboutVideo, timestamps, aboutChannel, recommendedVideos, aboutCompany, website, contactSocial, keywords } = videoInfo;
+    return `
+${aboutVideo}
 
-    // Function to handle share icon click
-    const handleShareClick = () => {
-        setShowShareIcons(!showShareIcons);
-    };
+📌 **Timestamps:**
+${timestamps}
 
-    // Function to copy text to clipboard
-    const copyToClipboard = (text) => {
-        navigator.clipboard.writeText(text).then(() => {
-            alert(`Copied: "${text}"`);
-        }, (err) => {
-            console.error('Failed to copy text: ', err);
-        });
-    };
+📌 **About the Channel:**
+${aboutChannel}
 
-    // Function to generate titles
-    const generateTitles = async () => {
-        setIsLoading(true);
-        setShowCaptcha(true);
-        try {
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${apiKey}`,
-                },
-                body: JSON.stringify({
-                    model: 'gpt-3.5-turbo-16k',
-                    messages: [
-                        { role: 'system', content: `Generate a Youtube Video description SEO-friendly for all keywords "${tags.join(', ')}".` },
-                        { role: 'user', content: tags.join(', ') },
-                    ],
-                    temperature: 0.7,
-                    max_tokens: 3500,
-                    top_p: 1,
-                    frequency_penalty: 0,
-                    presence_penalty: 0,
-                }),
-            });
+📌 **Recommended Videos/Playlists:**
+${recommendedVideos}
 
-            const data = await response.json();
-            const titles = data.choices[0].message.content.trim().split('\n').map(title => ({
-                text: title,
-                selected: false,
-            }));
-            setGenerateDescription(titles);
-        } catch (error) {
-            console.error('Error generating titles:', error);
-            setGenerateDescription([]);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Head>
-            {/* Open Graph meta tags */}
-            <meta property="og:title" content="YouTube Title Generator" />
-            <meta property="og:description" content="Generate SEO-friendly YouTube video titles based on your tags." />
-            {typeof window !== 'undefined' && (
-                <meta property="og:url" content={window.location.href} />
-            )}
-        </Head>
-            <h2 className='text-3xl'>YouTube Description Generator</h2>
-            <div className="text-center pt-4 pb-4">
-        {isLoggedIn ? (
-          <p className="text-center p-3 alert-warning">
-            You are logged in and can generate unlimited tags.
-          </p>
-        ) : (
-          <p className="text-center p-3 alert-warning">
-            You’re using free version of Ytubetool ||
-            You can generate tags {5 - generateCount}{" "}
-            more times.<button className="btn btn-warning ms-2"><Link href='/register'>Registration</Link></button>
-          </p>
-        )}
-      </div>
-            <div className="keywords-input center rounded">
-                <div className="tags">
-                    {tags.map((tag, index) => (
-                        <div className="tag" key={index}>
-                            {tag}
-                            <button aria-label={`Remove ${tag}`} className="remove-btn" onClick={() => setTags(tags.filter((_, i) => i !== index))}>
-                                ×
-                            </button>
-                        </div>
-                    ))}
-                </div>
-                <input
-                    type="text"
-                    placeholder="Add a keyword"
-                    className="rounded w-100"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    required
-                />
-            </div>
-            <div className="center">
-                <button className="btn btn-danger" onClick={generateTitles} disabled={isLoading || tags.length === 0}>
-                    {isLoading ? 'Generating...' : 'Generate Description'} 
-                </button>
-                <button className="btn btn-danger ms-3" onClick={handleShareClick}>
-                    <FaShareAlt />
-                </button>
-                {showShareIcons && (
-                    <div className="share-icons ms-2">
-                        <FaFacebook className="facebook-icon" onClick={() => shareOnSocialMedia('facebook')} />
-                        <FaInstagram className="instagram-icon" onClick={() => shareOnSocialMedia('instagram')} />
-                        <FaTwitter className="twitter-icon" onClick={() => shareOnSocialMedia('twitter')} />
-                        <FaLinkedin className="linkedin-icon" onClick={() => shareOnSocialMedia('linkedin')} />
-                    </div>
-                )}
-            </div>
-            {showCaptcha && (
-                <ReCAPTCHA
-                    ref={recaptchaRef}
-                    sitekey={process.env.NEXT_PUBLIC_CAPTCHA_KEY}
-                    onChange={(value) => setShowCaptcha(!value)}
-                />
-            )}
-            <div className="generated-titles-container border">
-                {generateDescription.map((title, index) => (
-                    <div key={index}>
-                        {title.text}
-                        <br />
-                        <button className="btn btn-primary" onClick={() => copyToClipboard(title.text)}>
-                            Copy <FaCopy />
-                        </button>
-                        <button className="btn btn-primary ms-2" onClick={() => {
-                            const element = document.createElement("a");
-                            const file = new Blob([title.text], { type: 'text/plain' });
-                            element.href = URL.createObjectURL(file);
-                            element.download = "GeneratedDescription.txt";
-                            document.body.appendChild(element);
-                            element.click();
-                            document.body.removeChild(element);
-                        }}>
-                            Download <FaDownload />
-                        </button>
-                    </div>
-                ))}
-            </div>
-          
-            <style jsx>{styles}</style>
-          
-        </div>
+📌 **About Our Company & Products:**
+${aboutCompany}
+
+📌 **Our Website:**
+${website}
+
+📌 **Contact & Social:**
+${contactSocial}
+
+🔍 **Keywords to Target:**
+${keywords}
+    `;
+  };
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const newSections = Array.from(sections);
+    const [movedSection] = newSections.splice(result.source.index, 1);
+    newSections.splice(result.destination.index, 0, movedSection);
+
+    setSections(newSections);
+  };
+
+  const toggleVisibility = (id) => {
+    setSections((prevSections) =>
+      prevSections.map((section) =>
+        section.id === id ? { ...section, visible: !section.visible } : section
+      )
     );
+  };
+
+  return (
+    <div className="container mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-4">YouTube Description Generator</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="sections">
+              {(provided) => (
+                <div {...provided.droppableProps} ref={provided.innerRef}>
+                  {sections.map(({ id, title, visible }, index) => (
+                    <Draggable key={id} draggableId={id} index={index}>
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          className="mb-4 border p-4 rounded shadow"
+                        >
+                          <div className="flex justify-between items-center">
+                            <label className="block font-semibold mb-1" htmlFor={id}>{title}</label>
+                            <button onClick={() => toggleVisibility(id)} className="text-gray-600">
+                              {visible ? <FaEyeSlash /> : <FaEye />}
+                            </button>
+                          </div>
+                          {visible && (
+                            <textarea
+                              name={id}
+                              value={videoInfo[id]}
+                              onChange={handleChange}
+                              className="w-full p-2 border border-gray-300 rounded"
+                              rows="4"
+                            ></textarea>
+                          )}
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        </div>
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Generated Video Description</h2>
+          <div className="p-4 border border-gray-300 rounded bg-gray-100 whitespace-pre-wrap">
+            {generateDescription()}
+          </div>
+          <button
+            onClick={() => navigator.clipboard.writeText(generateDescription())}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Copy to Clipboard
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
-const styles = `
-    .keywords-input {
-        border: 2px solid #ccc;
-        padding: 5px;
-        border-radius: 10px;
-        display: flex;
-        align-items: flex-start;
-        flex-wrap: wrap;
-        min-height: 100px;
-        margin: auto;
-        width: 50%;
-    }
-
-    .keywords-input input {
-        flex: 1;
-        border: none;
-        height: 100px;
-        font-size: 14px;
-        padding: 4px 8px;
-        width: 50%;
-    }
-    .keywords-input .tag {
-        width: auto;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff!important;
-        padding: 0 8px;
-        font-size: 14px;
-        list-style: none;
-        border-radius: 6px;
-        background-color: #0d6efd;
-        margin-right: 8px;
-        margin-bottom: 8px;
-    }
-    .tags {
-        display: flex;
-        flex-wrap: wrap;
-        margin-right: 8px;
-    }
-
-    .tag, .generated-tag {
-        display: flex;
-        align-items: center;
-
-        color: #000000!important;
-        border-radius: 6px;
-        padding: 5px 10px;
-        margin-right: 5px;
-        margin-bottom: 5px;
-    }
-
-    .remove-btn {
-        margin-left: 8px;
-        cursor: pointer;
-    }
-
-    input:focus {
-        outline: none;
-    }
-
-    @media (max-width: 600px) {
-        .keywords-input, .center {
-            width: 100%;
-        }
-
-        .btn {
-            width: 100%;
-            margin-top: 10px.
-        }
-    }
-
-    .generated-tags-display {
-        background-color: #f2f2f2;
-        border-radius: 8px;
-        padding: 10px.
-        margin-top: 20px.
-    }
-`; 
-export default DescriptionGenerator;
+export default YouTubeDescriptionGenerator;

@@ -248,19 +248,25 @@ console.log(content);
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <h2 className="text-3xl pt-5">YouTube Hashtag Generator</h2>
       <div className="text-center pt-4 pb-4">
-      <p className="text-center p-3 alert-warning">
-  {isLoggedIn ? (
-    "You are logged in and can generate unlimited tags."
-  ) : (
-    <span>
-      You are not logged in. You can generate tags{" "}
-      {isLoggedIn ? "unlimited" : `${5 - generateCount}`} more times.{" "}
-      <button className="btn btn-warning">
-        <Link href="/register">Register</Link>
-      </button>
-    </span>
-  )}
-</p>
+      <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
+                <div className="flex">
+                    <div className="py-1">
+                        <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
+                    </div>
+                    <div>
+                        {isLoggedIn ? (
+                            <p className="text-center p-3 alert-warning">
+                                You are logged in and can generate unlimited tags.
+                            </p>
+                        ) : (
+                            <p className="text-center p-3 alert-warning">
+                                You are not logged in. You can generate tags {5 - generateCount}{" "}
+                                more times.<Link href="/register" className="btn btn-warning ms-3">Registration</Link>
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </div>
       </div>
       <div className="keywords-input center rounded">
         <div className="tags">

@@ -7,13 +7,14 @@ import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import logo from "../public/yt icon.png"
 import Image from 'next/image';
+
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 
 const navigation = [
   { name: 'Home', href: '/', current: true },
-  { name: 'Tools', href: '#', current: false, dropdown: true, children: [
+  { name: 'Youtube Tools', href: '#', current: false, dropdown: true, children: [
       { name: 'Tag Generator', href: '/tools/tagGenerator' },
       { name: 'Tag Extractor', href: '/tools/tagExtractor' },
       { name: 'Title & Description Generator', href: '/tools/youtube-title-and-description-generator' },
@@ -24,13 +25,14 @@ const navigation = [
       { name: 'YouTube Channel Banner Downloader', href: '/tools/YouTube-Channel-Banner-Downloader' },
       { name: 'YouTube Channel Logo Downloader', href: '/tools/YouTube-Channel-Logo-Downloader' }
     ] },
-  { name: 'About', href: '/about', current: false },
-  { name: 'Privacy & Policy', href: '/privacy', current: false },
-
+  { name: 'Pricing', href: '/pricing', current: false },
+  { name: 'Blog', href: '/blog', current: false },
+  { name: 'About Us', href: '/about', current: false },
+  { name: 'Contact Us', href: '/contact', current: false },
 ];
 
 function Navbar() {
-  const { isLoggedIn, login, logout } = useAuth(); // Use the authentication context
+  const { user, login, logout } = useAuth(); // Use the authentication context
 
   return (
     <>
@@ -50,13 +52,14 @@ function Navbar() {
                 </div>
                 <div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
                   <div className="flex-shrink-0 flex items-center">
-                  <Image 
-                    src={logo}
-                    alt="GFG logo served with static path of public directory"
-                    height="70"
-                    width="150"
-                /> 
-                    {/* Logo */}
+                    <Link href='/'>  
+                      <Image 
+                        src={logo}
+                        alt="GFG logo served with static path of public directory"
+                        height="70"
+                        width="150"
+                      />
+                    </Link>
                   </div>
                   <div className="hidden sm:block sm:ml-6 mx-auto">
                     <div className="flex space-x-4">
@@ -91,27 +94,35 @@ function Navbar() {
                           </Menu>
                         ) : (
                           <Link key={item.name} href={item.href} aria-current={item.current ? 'page' : undefined} className={classNames(
-                              item.current ?  'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                              'px-3 py-2 rounded-md text-sm font-medium'
-                            )}>
+                            item.current ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                            'px-3 py-2 rounded-md text-sm font-medium'
+                          )}>
                             {item.name}
                           </Link>
                         )
                       ))}
+                      {user && (
+                        <Link href="/dashboard/dashboard" aria-current="page" className={classNames(
+                          'text-gray-300 hover:bg-gray-700 hover:text-white',
+                          'px-3 py-2 rounded-md text-sm font-medium'
+                        )}>
+                          Dashboard
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>
                 {/* Login/Logout buttons */}
                 <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-                  {isLoggedIn ? (
+                  {user ? (
                     // Render Logout button if logged in
-                    <button onClick={logout} className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium btn btn-danger">
+                    <button onClick={logout} className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
                       Logout
                     </button>
                   ) : (
                     // Render Login button if not logged in
-                    <Link href="/login"> {/* Navigate to the login page */}
-                      <button className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium btn btn-success">
+                    <Link href="/login">
+                      <button className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
                         Login
                       </button>
                     </Link>
@@ -153,13 +164,21 @@ function Navbar() {
                     </Menu>
                   ) : (
                     <Link key={item.name} href={item.href} className={classNames(
-                      item.current ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                      item.current ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                       'block px-3 py-2 rounded-md text-base font-medium'
                     )}>
                       {item.name}
                     </Link>
                   )
                 ))}
+                {user && (
+                  <Link href="/dashboard/dashboard" aria-current="page" className={classNames(
+                    'text-gray-300 hover:bg-gray-700 hover:text-white',
+                    'block px-3 py-2 rounded-md text-base font-medium'
+                  )}>
+                    Dashboard
+                  </Link>
+                )}
               </div>
             </Disclosure.Panel>
           </>
