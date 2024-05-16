@@ -1,7 +1,8 @@
 // pages/profile.js
 import { useAuth } from "../../contexts/AuthContext";
 import Layout from "../dashboard/layout";
-import UpdateProfileForm from "../../components/edit-profile";
+import UpdateProfileForm from "./edit-profile";
+
 
 const ProfilePage = () => {
   const { user } = useAuth();
