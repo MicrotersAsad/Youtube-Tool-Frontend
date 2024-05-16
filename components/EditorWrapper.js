@@ -1,74 +1,51 @@
-import React, { useEffect, useRef } from 'react';
-import EditorJS from '@editorjs/editorjs';
+import React, { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
+import 'react-quill/dist/quill.snow.css';
 
-const EditorWrapper = ({ data, onChange }) => {
-  const editorInstance = useRef(null);
+// Dynamically import react-quill with no SSR
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+
+const QuillWrapper = ({ initialContent, onChange }) => {
+  const [content, setContent] = useState(initialContent || '');
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      import('@editorjs/header').then((Header) => {
-        import('@editorjs/image').then((ImageTool) => {
-          import('@editorjs/simple-image').then((SimpleImage) => {
-            import('@editorjs/list').then((List) => {
-              import('@editorjs/embed').then((Embed) => {
-                import('@editorjs/table').then((Table) => {
-                  import('@editorjs/code').then((CodeTool) => {
-                    import('@editorjs/link').then((LinkTool) => {
-                      import('@editorjs/marker').then((Marker) => {
-                        import('@editorjs/paragraph').then((Paragraph) => {
-                          editorInstance.current = new EditorJS({
-                            holder: 'editorjs',
-                            autofocus: true,
-                            data: data,
-                            tools: {
-                              header: Header.default,
-                              image: {
-                                class: ImageTool.default,
-                                config: {
-                                  endpoints: {
-                                    byFile: 'your-image-upload-endpoint', // Your backend file upload endpoint
-                                    byUrl: 'your-image-fetch-endpoint', // Your endpoint to fetch image by URL
-                                  },
-                                  additionalRequestHeaders: {
-                                    Authorization: 'Bearer <your-token>', // If you need any authorization headers
-                                  },
-                                },
-                              },
-                              simpleImage: SimpleImage.default,
-                              list: List.default,
-                              embed: Embed.default,
-                              table: Table.default,
-                              code: CodeTool.default,
-                              linkTool: LinkTool.default,
-                              marker: Marker.default,
-                              paragraph: Paragraph.default,
-                            },
-                            onChange: async () => {
-                              const savedData = await editorInstance.current.save();
-                              onChange(savedData);
-                            },
-                          });
-                        });
-                      });
-                    });
-                  });
-                });
-              });
-            });
-          });
-        });
-      });
+    setContent(initialContent);
+  }, [initialContent]);
 
-      return () => {
-        if (editorInstance.current && typeof editorInstance.current.destroy === 'function') {
-          editorInstance.current.destroy();
-        }
-        editorInstance.current = null;
-      };
-    }
-  }, [data, onChange]);
+  const handleChange = (value) => {
+    setContent(value);
+    onChange(value);
+  };
 
-  return <div id="editorjs" className="bg-white p-5 rounded border"></div>;
+  const modules = {
+    toolbar: [
+      [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+      [{ 'code-block': 'code' }],
+      ['link', 'image', 'video'],
+      [{ 'align': [] }],
+      ['clean']
+    ],
+  };
+
+  const formats = [
+    'header', 'font',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet',
+    'code-block',
+    'link', 'image', 'video', 'align'
+  ];
+
+  return (
+    <ReactQuill
+      value={content}
+      onChange={handleChange}
+      modules={modules}
+      formats={formats}
+      theme="snow"
+    />
+  );
 };
 
-export default EditorWrapper;
+export default QuillWrapper;

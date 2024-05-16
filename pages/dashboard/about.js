@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import Layout from './layout';
 
-const EditorWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
+// Dynamically import the QuillWrapper component with SSR disabled
+const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
 
 function About() {
-  const [content, setContent] = useState({});
+  const [quillContent, setQuillContent] = useState('');
   const [existingContent, setExistingContent] = useState('');
   const [error, setError] = useState(null);
 
@@ -17,7 +18,8 @@ function About() {
           throw new Error('Failed to fetch content');
         }
         const data = await response.json();
-        setContent(data?.content || {}); // Ensure content is not undefined
+        console.log("Fetched Data:", data); // Add debugging
+        setQuillContent(data?.content || ''); // Ensure content is not undefined
         setExistingContent(data?.content || ''); // Ensure existing content is not undefined
       } catch (error) {
         console.error('Error fetching content:', error.message);
@@ -28,14 +30,15 @@ function About() {
     fetchContent();
   }, []);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     try {
+      console.log("Submitting Data:", quillContent); // Add debugging
       const response = await fetch('/api/about', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content: quillContent }),
       });
 
       if (!response.ok) {
@@ -46,19 +49,23 @@ function About() {
       // Handle success
       console.log('Content posted successfully');
       setError(null);
-      setExistingContent(content); // Update the displayed existing content
+      setExistingContent(quillContent); // Update the displayed existing content
     } catch (error) {
       console.error('Error posting content:', error.message);
       setError(error.message);
     }
-  };
+  }, [quillContent]);
+
+  const handleQuillChange = useCallback((newContent) => {
+    setQuillContent(newContent);
+  }, []);
 
   return (
     <Layout>
       <div className='container p-5'>
         <h2>Content Add For About Us Page</h2>
         {error && <div className="text-red-500">Error: {error}</div>}
-        <EditorWrapper data={content} onChange={setContent} />
+        <QuillWrapper initialContent={quillContent} onChange={handleQuillChange} />
         <button className='btn btn-primary p-2 mt-3' onClick={handleSubmit}>Submit Content</button>
         
         <div className='mt-10'>

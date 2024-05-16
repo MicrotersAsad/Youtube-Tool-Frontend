@@ -18,24 +18,17 @@ const About = () => {
 
         // Check if data contains content
         if (data && data.content) {
-          // Process blocks
-          const blocks = data.content.blocks.map(block => {
-            if (block.type === 'code') {
-              // If the block type is code, use it directly as it is HTML
-              return block.data.code;
-            } else {
-              // Otherwise, sanitize the content allowing certain tags
-              return sanitizeHtml(block.data.text || '', {
-                allowedTags: ['h1', 'h2', 'h3', 'p', 'li',"ul",'ol', 'a', 'div', 'span', 'strong', 'em', 'br', 'ul', 'ol', 'pre', 'code'],
-                allowedAttributes: {
-                  'a': ['href', 'target'],
-                  '*': ['style', 'class', 'id']
-                }
-              });
+          // Sanitize the content allowing certain tags
+          const sanitizedContent = sanitizeHtml(data.content, {
+            allowedTags: ['h1', 'h2', 'h3', 'p', 'li', 'ul', 'ol', 'a', 'div', 'span', 'strong', 'em', 'br', 'blockquote', 'pre', 'code', 'img'],
+            allowedAttributes: {
+              'a': ['href', 'target'],
+              'img': ['src', 'alt'],
+              '*': ['style', 'class', 'id']
             }
           });
 
-          setContent(blocks.join(''));
+          setContent(sanitizedContent);
         } else {
           // Handle the case when data or data.content is not available
           console.error("Content data is invalid:", data);
