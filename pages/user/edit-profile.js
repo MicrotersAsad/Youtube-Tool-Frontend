@@ -1,24 +1,30 @@
-// components/edit-profile.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { FaEnvelope, FaUserAlt } from 'react-icons/fa';
 import Image from 'next/image';
 
 const UpdateProfileForm = ({ user }) => {
   const { updateUserProfile } = useAuth();
-
-  // Add debugging statement to check the user object
-  console.log('UpdateProfileForm - User: ', user);
-
   const [formData, setFormData] = useState({
-    userId: user._id || '',
-    username: user.username || '',
-    email: user.email || '',
-    profileImage: user.profileImage || '',
+    userId: user ? user._id : '',
+    username: user ? user.username : '',
+    email: user ? user.email : '',
+    profileImage: user ? user.profileImage : '',
   });
 
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        userId: user._id,
+        username: user.username,
+        email: user.email,
+        profileImage: user.profileImage,
+      });
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -56,9 +62,13 @@ const UpdateProfileForm = ({ user }) => {
       alert('Profile updated successfully');
       setMessage('Profile updated successfully');
     } catch (error) {
-      console.log(error);;
+      console.log(error);
     }
   };
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
