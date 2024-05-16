@@ -167,7 +167,7 @@ function Navbar() {
                     </Menu>
                   ) : (
                     <Link href="/login">
-                      <button className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                      <button className="text-gray-300 bg-red-700 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
                         Login
                       </button>
                     </Link>

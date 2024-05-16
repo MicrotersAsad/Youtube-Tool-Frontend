@@ -35,6 +35,13 @@ const Layout = ({ children }) => {
               </p>
             </Link>
           )}
+          {user && user.role === 'admin' && (
+            <Link href="/dashboard/about">
+              <p className="flex items-center mt-4 py-2 px-6 text-gray-600 hover:bg-gray-200 hover:text-gray-700">
+                <span className="mx-3">About</span>
+              </p>
+            </Link>
+          )}
          
           {user && (
             <Link href="/user/profile">
