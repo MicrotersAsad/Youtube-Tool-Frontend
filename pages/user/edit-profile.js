@@ -1,3 +1,4 @@
+// components/edit-profile.js
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { FaEnvelope, FaUserAlt } from 'react-icons/fa';
@@ -5,8 +6,12 @@ import Image from 'next/image';
 
 const UpdateProfileForm = ({ user }) => {
   const { updateUserProfile } = useAuth();
+
+  // Add debugging statement to check the user object
+  console.log('UpdateProfileForm - User: ', user);
+
   const [formData, setFormData] = useState({
-    userId: user._id,
+    userId: user._id || '',
     username: user.username || '',
     email: user.email || '',
     profileImage: user.profileImage || '',
