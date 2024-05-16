@@ -9,7 +9,6 @@ export default async function handler(req, res) {
 
   const { email, password } = req.body;
 
-  // Simple validation
   if (!email || !password) {
     return res.status(400).json({ message: "Email and password are required" });
   }
@@ -33,7 +32,7 @@ export default async function handler(req, res) {
     }
 
     const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role }, // Add role to the token
+      { id: user._id, email: user.email, username: user.username, profileImage: user.profileImage, role: user.role },
       process.env.NEXT_PUBLIC_JWT_SECRET,
       { expiresIn: "1y" }
     );
