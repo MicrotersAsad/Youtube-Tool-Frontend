@@ -17,7 +17,7 @@ export default async function handler(req, res) {
         }
 
         const result = await deal.insertOne(doc);
-        console.log('Insertion result:', result);
+     
 
         if (!result || !result.ops || result.ops.length === 0) {
           return res.status(500).json({ message: 'Failed to insert document' });
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
 
         res.status(201).json(result.ops[0]); // Return the inserted document
       } catch (error) {
-        console.error('Error inserting document:', error);
+   
         res.status(500).json({ message: 'Internal server error' });
       }
       break;
@@ -34,11 +34,11 @@ export default async function handler(req, res) {
       if (req.query.id) {
         try {
           const id = req.query.id;
-          console.log('ID:', id);
+
 
           const query = { apiExtension: id };
           const result = await deal.findOne(query);
-          console.log('Result:', result);
+
 
           if (!result) {
             return res.status(404).send('Resource not found');
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
 
           res.send(result);
         } catch (error) {
-          console.error('Error:', error);
+    
           res.status(500).send('Internal server error');
         }
       } else {
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
           const result = await deal.find({}).toArray();
           res.status(200).json(result);
         } catch (error) {
-          console.error(error);
+
           res.status(500).json({ message: 'Internal server error' });
         }
       }
@@ -79,7 +79,7 @@ export default async function handler(req, res) {
           res.status(404).json({ message: 'Data not found' });
         }
       } catch (error) {
-        console.error(error);
+  
         res.status(500).json({ message: 'Internal server error' });
       }
       break;
@@ -89,7 +89,7 @@ export default async function handler(req, res) {
         const id = req.query.id;
 
         const result = await deal.deleteOne({ _id: new ObjectId(id) });
-        console.log(result);
+     
 
         if (result.deletedCount === 1) {
           res.status(200).json({ message: 'Data deleted successfully' });
@@ -97,7 +97,7 @@ export default async function handler(req, res) {
           res.status(404).json({ message: 'Data not found' });
         }
       } catch (error) {
-        console.error(error);
+    
         res.status(500).json({ message: 'Internal server error' });
       }
       break;

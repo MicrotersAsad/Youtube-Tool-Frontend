@@ -23,7 +23,7 @@ export default async function handler(req, res) {
         res.status(200).json(updatedDocument);
       }
     } catch (error) {
-      console.error('Error updating or inserting document:', error);
+      // console.error('Error updating or inserting document:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   } else if (req.method === 'GET') {
@@ -37,7 +37,7 @@ export default async function handler(req, res) {
 
       res.status(200).json(result);
     } catch (error) {
-      console.error('Error fetching document:', error);
+      // console.error('Error fetching document:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   } else {

@@ -12,7 +12,7 @@ export default async function handler(req, res) {
       const { db } = await connectToDatabase();
       const result = await db.collection('privacy').insertOne(doc);
 
-      console.log('Insertion result:', result);
+      // console.log('Insertion result:', result);
 
       if (!result || !result.ops || result.ops.length === 0) {
         return res.status(500).json({ message: 'Failed to insert document' });
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
 
       res.status(201).json(result.ops[0]); // Return the inserted document
     } catch (error) {
-      console.error('Error inserting document:', error);
+      // console.error('Error inserting document:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   } else if (req.method === 'GET') {
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
 
       res.status(200).json(result);
     } catch (error) {
-      console.error('Error fetching documents:', error);
+      // console.error('Error fetching documents:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   } else {

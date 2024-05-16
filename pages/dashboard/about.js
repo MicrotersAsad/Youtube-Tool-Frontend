@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
-import { CKEditor } from '@ckeditor/ckeditor5-react';
+import dynamic from 'next/dynamic';
 import Layout from './layout';
 
+const EditorWrapper = dynamic(() => import('../EditorWrapper'), { ssr: false });
+
 function About() {
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState({});
   const [existingContent, setExistingContent] = useState('');
   const [error, setError] = useState(null);
 
@@ -16,7 +17,7 @@ function About() {
           throw new Error('Failed to fetch content');
         }
         const data = await response.json();
-        setContent(data?.content || ''); // Ensure content is not undefined
+        setContent(data?.content || {}); // Ensure content is not undefined
         setExistingContent(data?.content || ''); // Ensure existing content is not undefined
       } catch (error) {
         console.error('Error fetching content:', error.message);
@@ -26,11 +27,6 @@ function About() {
 
     fetchContent();
   }, []);
-
-  const handleChange = (event, editor) => {
-    const data = editor.getData();
-    setContent(data);
-  };
 
   const handleSubmit = async () => {
     try {
@@ -62,11 +58,7 @@ function About() {
       <div className='container p-5'>
         <h2>Content Add For About Us Page</h2>
         {error && <div className="text-red-500">Error: {error}</div>}
-        <CKEditor
-          editor={ClassicEditor}
-          data={content} // Make sure content is a string
-          onChange={handleChange}
-        />
+        <EditorWrapper data={content} onChange={setContent} />
         <button className='btn btn-primary p-2 mt-3' onClick={handleSubmit}>Submit Content</button>
         
         <div className='mt-10'>

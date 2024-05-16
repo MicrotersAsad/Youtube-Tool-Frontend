@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   }
 
   if (!process.env.NEXT_PUBLIC_JWT_SECRET) {
-    console.error("JWT_SECRET is not defined in environment variables");
+    // console.error("JWT_SECRET is not defined in environment variables");
     return res.status(500).json({ message: "Server configuration error" });
   }
 
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ message: "Login successful", token });
   } catch (error) {
-    console.error("Login error:", error);
+    // console.error("Login error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }

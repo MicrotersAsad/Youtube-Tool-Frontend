@@ -54,7 +54,7 @@ export default async function handler(req, res) {
       });
 
       // Log to confirm insertion
-      console.log(`Admin ${username} registered successfully`);
+      // console.log(`Admin ${username} registered successfully`);
 
       // Send verification email
       await sendVerificationEmail(email, username, verificationToken);
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
       res.status(201).json({ message: 'Admin registration successful! Please check your email to verify.' });
     });
   } catch (error) {
-    console.error('Admin registration failed:', error);
+    // console.error('Admin registration failed:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 }

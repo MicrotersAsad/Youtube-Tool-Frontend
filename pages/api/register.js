@@ -63,7 +63,7 @@ export default async function handler(req, res) {
       });
 
       // Log to confirm insertion
-      console.log(`User ${username} with role ${finalRole} registered successfully`);
+      // console.log(`User ${username} with role ${finalRole} registered successfully`);
 
       // Send verification email
       await sendVerificationEmail(email, username, verificationToken);
@@ -71,7 +71,7 @@ export default async function handler(req, res) {
       res.status(201).json({ message: 'Registration successful! Please check your email to verify.' });
     });
   } catch (error) {
-    console.error('Registration failed:', error);
+    // console.error('Registration failed:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 }

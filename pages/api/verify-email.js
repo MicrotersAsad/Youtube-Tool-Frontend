@@ -26,7 +26,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({ message: 'Email verified successfully' });
   } catch (error) {
-    console.error('Email verification failed:', error);
+    // console.error('Email verification failed:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 }
