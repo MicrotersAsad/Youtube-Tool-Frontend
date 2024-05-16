@@ -6,7 +6,7 @@ import Image from 'next/image';
 const UpdateProfileForm = ({ user }) => {
   const { updateUserProfile } = useAuth();
   const [formData, setFormData] = useState({
-    userId: user.id,
+    userId: user._id,
     username: user.username || '',
     email: user.email || '',
     profileImage: user.profileImage || '',
