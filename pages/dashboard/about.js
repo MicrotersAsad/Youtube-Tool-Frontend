@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Layout from './layout';
 
-const EditorWrapper = dynamic(() => import('../EditorWrapper'), { ssr: false });
+const EditorWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
 
 function About() {
   const [content, setContent] = useState({});
