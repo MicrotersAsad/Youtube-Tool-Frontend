@@ -5,6 +5,7 @@ import { FaDownload, FaFacebook, FaInstagram, FaLinkedin, FaShareAlt, FaTwitter 
 import Image from 'next/image';
 import { useAuth } from '../../contexts/AuthContext';
 import Link from 'next/link';
+import { ToastContainer, toast } from 'react-toastify';
 
 const YouTubeChannelLogoDownloader = () => {
     const { isLoggedIn } = useAuth();
@@ -48,7 +49,7 @@ const YouTubeChannelLogoDownloader = () => {
             const logoUrl = response.data.items[0].snippet.thumbnails.default.url;
             setLogoUrl(logoUrl);
         } catch (error) {
-            console.error('Failed to fetch channel logo:', error);
+            toast.error('Failed to fetch channel logo:', error);
             setError('Failed to fetch data. Check console for more details.');
         } finally {
             setLoading(false);
@@ -84,6 +85,7 @@ const YouTubeChannelLogoDownloader = () => {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
             <h2 className='text-3xl pt-5'>YouTube Channel Logo Downloader</h2>
+            <ToastContainer/>
             <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
                 <div className="flex">
                     <div className="py-1">

@@ -1,14 +1,21 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useAuth } from '../../contexts/AuthContext';
+import { FaTachometerAlt, FaUsers, FaInfoCircle, FaLock, FaFileAlt, FaUser } from 'react-icons/fa'; // Import icons
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    console.log("Layout component - User: ", user); // Debugging
+    console.log("Layout component - User: ", user);
   }, [user]);
+
+  const isActiveRoute = (route) => {
+    return router.pathname === route;
+  };
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -24,29 +31,49 @@ const Layout = ({ children }) => {
         </div>
         <nav className="mt-10">
           <Link href="/dashboard/dashboard">
-            <p className="flex items-center mt-4 py-2 px-6 text-gray-700 bg-gray-200">
-              <span className="mx-3">Dashboard</span>
+            <p className={`flex items-center mt-4 py-2 px-6 ${isActiveRoute('/dashboard/dashboard') ? 'bg-gray-300 text-gray-700' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'}`}>
+              <FaTachometerAlt className="mr-3" /> <span className="mx-3">Dashboard</span>
             </p>
           </Link>
           {user && user.role === 'admin' && (
             <Link href="/dashboard/users">
-              <p className="flex items-center mt-4 py-2 px-6 text-gray-600 hover:bg-gray-200 hover:text-gray-700">
-                <span className="mx-3">Users</span>
+              <p className={`flex items-center mt-4 py-2 px-6 ${isActiveRoute('/dashboard/users') ? 'bg-gray-300 text-gray-700' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'}`}>
+                <FaUsers className="mr-3" /> <span className="mx-3">Users</span>
               </p>
             </Link>
           )}
           {user && user.role === 'admin' && (
             <Link href="/dashboard/about">
-              <p className="flex items-center mt-4 py-2 px-6 text-gray-600 hover:bg-gray-200 hover:text-gray-700">
-                <span className="mx-3">About</span>
+              <p className={`flex items-center mt-4 py-2 px-6 ${isActiveRoute('/dashboard/about') ? 'bg-gray-300 text-gray-700' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'}`}>
+                <FaInfoCircle className="mr-3" /> <span className="mx-3">About</span>
               </p>
             </Link>
           )}
-         
+          {user && user.role === 'admin' && (
+            <Link href="/dashboard/privacy">
+              <p className={`flex items-center mt-4 py-2 px-6 ${isActiveRoute('/dashboard/privacy') ? 'bg-gray-300 text-gray-700' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'}`}>
+                <FaLock className="mr-3" /> <span className="mx-3">Privacy</span>
+              </p>
+            </Link>
+          )}
+          {user && user.role === 'admin' && (
+            <Link href="/dashboard/terms">
+              <p className={`flex items-center mt-4 py-2 px-6 ${isActiveRoute('/dashboard/terms') ? 'bg-gray-300 text-gray-700' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'}`}>
+                <FaFileAlt className="mr-3" /> <span className="mx-3">Terms of Service</span>
+              </p>
+            </Link>
+          )}
+          {user && user.role === 'admin' && (
+            <Link href="/dashboard/content">
+              <p className={`flex items-center mt-4 py-2 px-6 ${isActiveRoute('/dashboard/content') ? 'bg-gray-300 text-gray-700' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'}`}>
+                <FaFileAlt className="mr-3" /> <span className="mx-3">Tools Content</span>
+              </p>
+            </Link>
+          )}
           {user && (
             <Link href="/user/profile">
-              <p className="flex items-center mt-4 py-2 px-6 text-gray-600 hover:bg-gray-200 hover:text-gray-700">
-                <span className="mx-3">Change Profile</span>
+              <p className={`flex items-center mt-4 py-2 px-6 ${isActiveRoute('/user/profile') ? 'bg-gray-300 text-gray-700' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'}`}>
+                <FaUser className="mr-3" /> <span className="mx-3">Change Profile</span>
               </p>
             </Link>
           )}

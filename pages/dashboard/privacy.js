@@ -5,7 +5,7 @@ import Layout from './layout';
 // Dynamically import the QuillWrapper component with SSR disabled
 const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
 
-function About() {
+function Privacy() {
   const [quillContent, setQuillContent] = useState('');
   const [existingContent, setExistingContent] = useState('');
   const [error, setError] = useState(null);
@@ -13,7 +13,7 @@ function About() {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch('/api/about');
+        const response = await fetch('/api/privacy');
         if (!response.ok) {
           throw new Error('Failed to fetch content');
         }
@@ -33,7 +33,7 @@ function About() {
   const handleSubmit = useCallback(async () => {
     try {
       console.log("Submitting Data:", quillContent); // Add debugging
-      const response = await fetch('/api/about', {
+      const response = await fetch('/api/privacy', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,13 +63,13 @@ function About() {
   return (
     <Layout>
       <div className='container p-5'>
-        <h2>Content Add For About Us Page</h2>
+        <h2>Content Add For Privacy Policy</h2>
         {error && <div className="text-red-500">Error: {error}</div>}
         <QuillWrapper initialContent={quillContent} onChange={handleQuillChange} />
         <button className='btn btn-primary p-2 mt-3' onClick={handleSubmit}>Submit Content</button>
         
         <div className='mt-10'>
-          <h2>About Us Content</h2>
+          <h2>Privacy Policy</h2>
           <div dangerouslySetInnerHTML={{ __html: existingContent }}></div>
         </div>
       </div>
@@ -77,4 +77,4 @@ function About() {
   );
 }
 
-export default About;
+export default Privacy;

@@ -5,6 +5,7 @@ import { FaDownload, FaFacebook, FaInstagram, FaLinkedin, FaShareAlt, FaTwitter 
 import { useAuth } from '../../contexts/AuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
+import { ToastContainer } from 'react-toastify';
 
 const YtThumbnailDw = () => {
     const { isLoggedIn } = useAuth();
@@ -26,11 +27,11 @@ const YtThumbnailDw = () => {
             setLoading(true);
             setError('');
             const videoId = extractVideoId(videoUrl);
-            console.log('Video ID:', videoId); // Log videoId
+          
             const response = await axios.get(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${process.env.NEXT_PUBLIC_YOUTUBE_API_KEY}`);
-            console.log('API Response:', response.data); // Log API response
+          
             const thumbnailData = response.data.items[0].snippet.thumbnails;
-            console.log('Thumbnail Data:', thumbnailData); // Log thumbnail data
+         
             setThumbnails(thumbnailData);
         } catch (error) {
             console.error('Error fetching YouTube data:', error); // Log error
@@ -84,6 +85,7 @@ const YtThumbnailDw = () => {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
             <h2 className='text-3xl pt-5'>Youtube Thumbnails Generator</h2>
+            <ToastContainer/>
             <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
                 <div className="flex">
                     <div className="py-1">

@@ -5,6 +5,7 @@ import { FaDownload, FaFacebook, FaInstagram, FaLinkedin, FaShareAlt, FaTwitter 
 import Image from 'next/image';
 import { useAuth } from '../../contexts/AuthContext';
 import Link from 'next/link';
+import { ToastContainer, toast } from 'react-toastify';
 
 const YtChannelDw = () => {
     const { isLoggedIn } = useAuth();
@@ -87,7 +88,7 @@ const YtChannelDw = () => {
                 document.body.removeChild(anchor);
             })
             .catch(error => {
-                console.error('Error downloading image:', error);
+                toast.error('Error downloading image:', error);
                 // Handle error
             });
     };
@@ -112,6 +113,7 @@ const YtChannelDw = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
+            <ToastContainer/>
             <h2 className='text-3xl pt-5'>YouTube Channel Banner Downloader</h2>
             <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
                 <div className="flex">

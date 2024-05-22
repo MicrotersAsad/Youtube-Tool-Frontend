@@ -35,34 +35,34 @@ const Footer = () => {
               </h5>
               <ul className="mt-4 space-y-2">
                 <li>
-                  <a href="#" className="text-gray-300 hover:text-white">
+                  <Link href="/pricing" className="text-gray-300 hover:text-white">
                     Pricing
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-300 hover:text-white">
+                  <Link href="/refund" className="text-gray-300 hover:text-white">
                     Refund Policy
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-300 hover:text-white">
+                  <Link href="/contact" className="text-gray-300 hover:text-white">
                     Contact Us
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-300 hover:text-white">
+                  <Link href="/terms" className="text-gray-300 hover:text-white">
                     Terms of Service
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-300 hover:text-white">
+                  <Link href="/privacy" className="text-gray-300 hover:text-white">
                     Privacy Policy
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-300 hover:text-white">
+                  <Link href="/blog" className="text-gray-300 hover:text-white">
                     Blog
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>

@@ -15,6 +15,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
 import Link from "next/link";
 import sanitizeHtml from 'sanitize-html';
+import { ToastContainer, toast } from "react-toastify";
 
 
 const YouTubeHashtagGenerator = () => {
@@ -76,7 +77,7 @@ useEffect(() => {
         throw new Error('Failed to fetch content');
       }
       const data = await response.json();
-      console.log("Content data:", data); // Check the fetched data
+   
       
       // Check if data is an array and contains content
       if (Array.isArray(data) && data.length > 0 && data[0].content) {
@@ -91,10 +92,10 @@ useEffect(() => {
         setContent(sanitizedContent);
       } else {
         // Handle the case when data or data[0].content is not available
-        console.error("Content data is invalid:", data);
+        toast.error("Content data is invalid:", data);
       }
     } catch (error) {
-      console.error("Error fetching content:", error);
+      toast.error("Error fetching content:", error);
       setError(error.message);
     }
   };
@@ -103,7 +104,7 @@ useEffect(() => {
 }, []);
 
 
-console.log(content);
+
   // Function to handle user input for adding tags
   const handleKeyDown = (event) => {
     if (event.key === "Enter" || event.key === ",") {
@@ -140,7 +141,7 @@ console.log(content);
     };
 
     if (socialNetwork === "instagram") {
-      alert(socialMediaUrls[socialNetwork]);
+      toast.success(socialMediaUrls[socialNetwork]);
     } else {
       window.open(socialMediaUrls[socialNetwork], "_blank");
     }
@@ -163,10 +164,10 @@ console.log(content);
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(
       () => {
-        alert(`Copied: "${text}"`);
+        toast.success(`Copied: "${text}"`);
       },
       (err) => {
-        console.error("Failed to copy text: ", err);
+        toast.error("Failed to copy text: ", err);
       }
     );
   };
@@ -237,7 +238,7 @@ console.log(content);
         }));
       setgenerateHashTag(titles);
     } catch (error) {
-      console.error("Error generating titles:", error);
+      toast.error("Error generating titles:", error);
       setgenerateHashTag([]);
     } finally {
       setIsLoading(false);
@@ -247,6 +248,7 @@ console.log(content);
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <h2 className="text-3xl pt-5">YouTube Hashtag Generator</h2>
+      <ToastContainer/>
       <div className="text-center pt-4 pb-4">
       <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
                 <div className="flex">

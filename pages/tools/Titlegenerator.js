@@ -5,6 +5,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 import Head from 'next/head';
 import sanitizeHtml from 'sanitize-html';
 import Link from "next/link";
+import { ToastContainer, toast } from "react-toastify";
 
 const TitleGenerator = () => {
     const { isLoggedIn } = useAuth();
@@ -18,20 +19,19 @@ const TitleGenerator = () => {
     const apiKey = process.env.NEXT_PUBLIC_API_KEY;
     const [selectAll, setSelectAll] = useState(false);
     const [generateCount, setGenerateCount] = useState(0);
-    const [content, setContent] = useState([]);
+  
     const [loading, setLoading] = useState([]);
+    const [content, setContent] = useState('');
 
     useEffect(() => {
         const fetchContent = async () => {
             try {
-                const response = await fetch('/api/content');
+                const response = await fetch(`/api/content?category=Titlegenerator`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch content');
                 }
                 const data = await response.json();
-                console.log("Content data:", data);
-                
-                if (Array.isArray(data) && data.length > 0 && data[0].content) {
+                if (data && data.length > 0 && data[0].content) {
                     const sanitizedContent = sanitizeHtml(data[0].content, {
                         allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
                         allowedAttributes: {
@@ -40,16 +40,16 @@ const TitleGenerator = () => {
                     });
                     setContent(sanitizedContent);
                 } else {
-                    console.error("Content data is invalid:", data);
+                    toast.error("Content data is invalid");
                 }
             } catch (error) {
-                console.error("Error fetching content:", error);
-                setError(error.message);
+                toast.error("Error fetching content");
             }
         };
 
         fetchContent();
     }, []);
+
 
     useEffect(() => {
         if (!isLoggedIn) {
@@ -180,7 +180,7 @@ const TitleGenerator = () => {
             }));
             setGeneratedTitles(titles);
         } catch (error) {
-            console.error("Error generating titles:", error);
+            toast.error("Error generating titles:", error);
             setGeneratedTitles([]);
         } finally {
             setIsLoading(false);
@@ -196,6 +196,7 @@ const TitleGenerator = () => {
                     <meta property="og:url" content={window.location.href} />
                 )}
             </Head>
+            <ToastContainer/>
             <h2 className="text-3xl">YouTube Tag Generator</h2>
             <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
                 <div className="flex">

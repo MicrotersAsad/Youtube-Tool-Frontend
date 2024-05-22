@@ -240,3 +240,24 @@ h3{
   font-size: 1.2em;
   font-weight: bold;
 }
+/* Style for unordered list */
+ul {
+  list-style-type: disc; /* Use disc style for bullet points */
+  margin-bottom: 20px; /* Add some spacing between lists */
+}
+
+/* Style for ordered list */
+ol {
+  list-style-type: decimal; /* Use decimal numbering for ordered lists */
+  margin-bottom: 20px; /* Add some spacing between lists */
+}
+
+/* Style for list items */
+li {
+  margin-bottom: 5px; /* Add spacing between list items */
+}
+
+/* Style for anchor tags */
+a {
+  color: blue; /* Change anchor color as needed */
+}

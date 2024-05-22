@@ -5,6 +5,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 import Head from 'next/head';
 import sanitizeHtml from 'sanitize-html';
 import Link from "next/link";
+import { ToastContainer, toast } from "react-toastify";
 
 const TagGenerator = () => {
     const { isLoggedIn } = useAuth();
@@ -18,20 +19,17 @@ const TagGenerator = () => {
     const apiKey = process.env.NEXT_PUBLIC_API_KEY;
     const [selectAll, setSelectAll] = useState(false);
     const [generateCount, setGenerateCount] = useState(0);
-    const [content, setContent] = useState([]);
-    const [loading, setLoading] = useState([]);
+    const [content, setContent] = useState('');
 
     useEffect(() => {
         const fetchContent = async () => {
             try {
-                const response = await fetch('/api/content');
+                const response = await fetch(`/api/content?category=tagGenerator`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch content');
                 }
                 const data = await response.json();
-                console.log("Content data:", data);
-                
-                if (Array.isArray(data) && data.length > 0 && data[0].content) {
+                if (data && data.length > 0 && data[0].content) {
                     const sanitizedContent = sanitizeHtml(data[0].content, {
                         allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
                         allowedAttributes: {
@@ -40,11 +38,10 @@ const TagGenerator = () => {
                     });
                     setContent(sanitizedContent);
                 } else {
-                    console.error("Content data is invalid:", data);
+                    toast.error("Content data is invalid");
                 }
             } catch (error) {
-                console.error("Error fetching content:", error);
-                setError(error.message);
+                toast.error("Error fetching content");
             }
         };
 
@@ -121,9 +118,9 @@ const TagGenerator = () => {
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text).then(() => {
-            alert(`Copied: "${text}"`);
+            toast.success(`Copied: "${text}"`);
         }, (err) => {
-            console.error('Failed to copy text: ', err);
+            toast.error('Failed to copy text: ', err);
         });
     };
 
@@ -180,7 +177,7 @@ const TagGenerator = () => {
             }));
             setGeneratedTitles(titles);
         } catch (error) {
-            console.error("Error generating titles:", error);
+            toast.error("Error generating titles:", error);
             setGeneratedTitles([]);
         } finally {
             setIsLoading(false);
@@ -197,6 +194,7 @@ const TagGenerator = () => {
                 )}
             </Head>
             <h2 className="text-3xl">YouTube Tag Generator</h2>
+            <ToastContainer/>
             <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
                 <div className="flex">
                     <div className="py-1">
@@ -297,87 +295,85 @@ const TagGenerator = () => {
                     <div dangerouslySetInnerHTML={{ __html: content }}></div>
                 </div>
             </div>
-            <style jsx>{styles}</style>
+            <style jsx>{`
+              .keywords-input-container {
+                border: 2px solid #ccc;
+                padding: 10px;
+                border-radius: 10px;
+                display: flex;
+                align-items: flex-start;
+                flex-wrap: wrap;
+                min-height: 100px;
+                margin: auto;
+                width: 100%;
+                max-width: 600px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                background-color: #fff;
+            }
+        
+            .tags-container {
+                display: flex;
+                flex-wrap: wrap;
+                margin-bottom: 8px;
+            }
+        
+            .tag {
+                display: flex;
+                align-items: center;
+                color: #fff;
+                background-color: #0d6efd;
+                border-radius: 6px;
+                padding: 5px 10px;
+                margin-right: 8px;
+                margin-bottom: 8px;
+                font-size: 14px;
+            }
+        
+            .remove-btn {
+                margin-left: 8px;
+                cursor: pointer;
+                font-weight: bold;
+            }
+        
+            .input-box {
+                flex: 1;
+                border: none;
+                height: 40px;
+                font-size: 16px;
+                padding: 8px;
+                border-radius: 6px;
+                width: 100%;
+                box-sizing: border-box;
+                outline: none;
+                margin-top: 8px;
+            }
+        
+            .input-box::placeholder {
+                color: #aaa;
+            }
+        
+            @media (max-width: 600px) {
+                .keywords-input-container {
+                    width: 100%;
+                    padding: 8px;
+                }
+        
+                .input-box {
+                    height: 35px;
+                    font-size: 14px;
+                    padding: 6px;
+                }
+            }
+        
+            .generated-tags-display {
+                background-color: #f2f2f2;
+                border-radius: 8px;
+                padding: 10px;
+                margin-top: 20px;
+            }
+            `}</style>
         </div>
     );
 };
-
-const styles = `
-    .keywords-input-container {
-        border: 2px solid #ccc;
-        padding: 10px;
-        border-radius: 10px;
-        display: flex;
-        align-items: flex-start;
-        flex-wrap: wrap;
-        min-height: 100px;
-        margin: auto;
-        width: 100%;
-        max-width: 600px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        background-color: #fff;
-    }
-
-    .tags-container {
-        display: flex;
-        flex-wrap: wrap;
-        margin-bottom: 8px;
-    }
-
-    .tag {
-        display: flex;
-        align-items: center;
-        color: #fff;
-        background-color: #0d6efd;
-        border-radius: 6px;
-        padding: 5px 10px;
-        margin-right: 8px;
-        margin-bottom: 8px;
-        font-size: 14px;
-    }
-
-    .remove-btn {
-        margin-left: 8px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-
-    .input-box {
-        flex: 1;
-        border: none;
-        height: 40px;
-        font-size: 16px;
-        padding: 8px;
-        border-radius: 6px;
-        width: 100%;
-        box-sizing: border-box;
-        outline: none;
-        margin-top: 8px;
-    }
-
-    .input-box::placeholder {
-        color: #aaa;
-    }
-
-    @media (max-width: 600px) {
-        .keywords-input-container {
-            width: 100%;
-            padding: 8px;
-        }
-
-        .input-box {
-            height: 35px;
-            font-size: 14px;
-            padding: 6px;
-        }
-    }
-
-    .generated-tags-display {
-        background-color: #f2f2f2;
-        border-radius: 8px;
-        padding: 10px;
-        margin-top: 20px;
-    }
-`;
 
 export default TagGenerator;

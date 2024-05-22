@@ -1,9 +1,10 @@
-/* eslint-disable react/no-unescaped-entities */
-import React, { useEffect, useState } from 'react';
-import sanitizeHtml from 'sanitize-html';
+import React, { useState, useEffect, useCallback } from 'react';
+import ClipLoader from 'react-spinners/ClipLoader'; // Importing the spinner
 
-const About = () => {
-  const [content, setContent] = useState('');
+function About() {
+  const [quillContent, setQuillContent] = useState('');
+  const [existingContent, setExistingContent] = useState('');
+  const [loading, setLoading] = useState(true); // State to track loading
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -14,42 +15,42 @@ const About = () => {
           throw new Error('Failed to fetch content');
         }
         const data = await response.json();
-        console.log("Content data:", data); // Check the fetched data
-
-        // Check if data contains content
-        if (data && data.content) {
-          // Sanitize the content allowing certain tags
-          const sanitizedContent = sanitizeHtml(data.content, {
-            allowedTags: ['h1', 'h2', 'h3', 'p', 'li', 'ul', 'ol', 'a', 'div', 'span', 'strong', 'em', 'br', 'blockquote', 'pre', 'code', 'img'],
-            allowedAttributes: {
-              'a': ['href', 'target'],
-              'img': ['src', 'alt'],
-              '*': ['style', 'class', 'id']
-            }
-          });
-
-          setContent(sanitizedContent);
-        } else {
-          // Handle the case when data or data.content is not available
-          console.error("Content data is invalid:", data);
-        }
+        console.log("Fetched Data:", data); // Add debugging
+        setQuillContent(data?.content || ''); // Ensure content is not undefined
+        setExistingContent(data?.content || ''); // Ensure existing content is not undefined
+        setLoading(false); // Set loading to false after fetching data
       } catch (error) {
-        console.error("Error fetching content:", error);
+        console.error('Error fetching content:', error.message);
         setError(error.message);
+        setLoading(false); // Set loading to false in case of an error
       }
     };
 
     fetchContent();
   }, []);
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="content pt-6 pb-5">
-        {error && <div className="text-red-500">Error: {error}</div>}
-        <div dangerouslySetInnerHTML={{ __html: content }} />
+  const handleQuillChange = useCallback((newContent) => {
+    setQuillContent(newContent);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <ClipLoader size={50} color={"#123abc"} loading={loading} />
       </div>
+    ); // Display spinner while loading
+  }
+
+  return (
+    <div className='container p-5'>
+      <div className='mt-10'>
+        <h2>About Us Content</h2>
+        {/* Apply CSS styles to ensure proper display of list and anchor tags */}
+        <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
+      </div>
+      {error && <div className="text-red-500 mt-4">{error}</div>}
     </div>
   );
-};
+}
 
 export default About;

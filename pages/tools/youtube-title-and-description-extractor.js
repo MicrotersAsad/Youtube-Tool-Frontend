@@ -6,6 +6,7 @@ import { FaShareAlt, FaFacebook, FaInstagram, FaTwitter, FaLinkedin, FaCopy, FaD
 import { useAuth } from '../../contexts/AuthContext';
 import Link from 'next/link';
 import { TextEncoder } from 'text-encoding';
+import { ToastContainer, toast } from 'react-toastify';
 
 const TitleDescriptionExtractor = () => {
     const { isLoggedIn } = useAuth();
@@ -54,9 +55,9 @@ const TitleDescriptionExtractor = () => {
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text).then(() => {
-            alert('Copied to clipboard!');
+            toast.success('Copied to clipboard!');
         }, (err) => {
-            console.error('Failed to copy:', err);
+            toast.error('Failed to copy:', err);
         });
     };
 
@@ -72,7 +73,7 @@ const TitleDescriptionExtractor = () => {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
             <h2 className='text-3xl pt-5'>Youtube Tile & Description Extractor</h2>
-
+            <ToastContainer/>
             <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
                 <div className="flex">
                     <div className="py-1">

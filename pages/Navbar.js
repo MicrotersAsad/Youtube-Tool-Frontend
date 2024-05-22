@@ -22,7 +22,10 @@ const navigation = [
       { name: 'YouTube Hashtag Generator', href: '/tools/YouTube-Hashtag-Generator' },
       { name: 'YouTube Embed Code Generator', href: '/tools/YouTube-Embed-Code-Generator' },
       { name: 'YouTube Channel Banner Downloader', href: '/tools/YouTube-Channel-Banner-Downloader' },
-      { name: 'YouTube Channel Logo Downloader', href: '/tools/YouTube-Channel-Logo-Downloader' }
+      { name: 'YouTube Channel Logo Downloader', href: '/tools/YouTube-Channel-Logo-Downloader' },
+      { name: 'Channel Id Finder', href: '/tools/channel-id-finder' },
+      { name: 'Video data viewer', href: '/tools/video-data-viewer' },
+      { name: 'Monetization Checker', href: '/tools/monetization-checker' }
     ]
   },
   { name: 'Pricing', href: '/pricing', current: false },
