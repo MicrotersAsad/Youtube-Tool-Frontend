@@ -70,6 +70,7 @@ const Layout = ({ children }) => {
               </p>
             </Link>
           )}
+         
           {user && (
             <Link href="/user/profile">
               <p className={`flex items-center mt-4 py-2 px-6 ${isActiveRoute('/user/profile') ? 'bg-gray-300 text-gray-700' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'}`}>

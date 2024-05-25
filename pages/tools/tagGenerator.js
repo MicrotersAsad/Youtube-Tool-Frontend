@@ -6,6 +6,7 @@ import Head from 'next/head';
 import sanitizeHtml from 'sanitize-html';
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 const TagGenerator = () => {
     const { isLoggedIn } = useAuth();
@@ -20,6 +21,7 @@ const TagGenerator = () => {
     const [selectAll, setSelectAll] = useState(false);
     const [generateCount, setGenerateCount] = useState(0);
     const [content, setContent] = useState('');
+    const [meta, setMeta] = useState({ title: '', description: '', image: '' });
 
     useEffect(() => {
         const fetchContent = async () => {
@@ -29,6 +31,7 @@ const TagGenerator = () => {
                     throw new Error('Failed to fetch content');
                 }
                 const data = await response.json();
+                console.log(data);
                 if (data && data.length > 0 && data[0].content) {
                     const sanitizedContent = sanitizeHtml(data[0].content, {
                         allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
@@ -37,6 +40,11 @@ const TagGenerator = () => {
                         }
                     });
                     setContent(sanitizedContent);
+                    setMeta({
+                        title: data[0].title || 'YouTube Tag Generator',
+                        description: data[0].description || 'Generate YouTube tags instantly with our Tag Generator. Boost your video\'s visibility and engagement by finding the best tags. Try it now for free!',
+                        image: data[0].image || 'https://yourwebsite.com/og-image.png'
+                    });
                 } else {
                     toast.error("Content data is invalid");
                 }
@@ -159,7 +167,7 @@ const TagGenerator = () => {
                 body: JSON.stringify({
                     model: "gpt-3.5-turbo-16k",
                     messages: [
-                        { role: "system", content: `Generate a list of at least 20 SEO-friendly tag for all keywords "${tags.join(", ")}".` },
+                        { role: "system", content: `Generate a list of at least 20 SEO-friendly tags for all keywords "${tags.join(", ")}".` },
                         { role: "user", content: tags.join(", ") }
                     ],
                     temperature: 0.7,
@@ -187,11 +195,18 @@ const TagGenerator = () => {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
             <Head>
-                <meta property="og:title" content="YouTube Tag Generator" />
-                <meta property="og:description" content="Generate SEO-friendly YouTube video Tag based on your keyword." />
-                {typeof window !== 'undefined' && (
-                    <meta property="og:url" content={window.location.href} />
-                )}
+                <title>{meta.title}</title>
+                <meta name="description" content={meta.description} />
+                <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+                <meta property="og:title" content={meta.title} />
+                <meta property="og:description" content={meta.description} />
+                <meta property="og:image" content={meta.image} />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta property="twitter:domain" content="yourwebsite.com" />
+                <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+                <meta name="twitter:title" content={meta.title} />
+                <meta name="twitter:description" content={meta.description} />
+                <meta name="twitter:image" content={meta.image} />
             </Head>
             <h2 className="text-3xl">YouTube Tag Generator</h2>
             <ToastContainer/>
@@ -208,7 +223,7 @@ const TagGenerator = () => {
                         ) : (
                             <p className="text-center p-3 alert-warning">
                                 You are not logged in. You can generate tags {5 - generateCount}{" "}
-                                more times.<Link href="/register" className="btn btn-warning ms-3">Registration</Link>
+                                more times.<Link href="/register" className="btn btn-warning ms-3">Register</Link>
                             </p>
                         )}
                     </div>
@@ -238,7 +253,7 @@ const TagGenerator = () => {
             <div className="center">
                 <div className="d-flex pt-5">
                     <button className="btn btn-danger" onClick={generateTitles} disabled={isLoading || tags.length === 0}>
-                        {isLoading ? "Generating..." : "Generate Title"}
+                        {isLoading ? "Generating..." : "Generate Titles"}
                     </button>
                     <button className="btn btn-danger ms-5" onClick={handleShareClick}>
                         <FaShareAlt /> 

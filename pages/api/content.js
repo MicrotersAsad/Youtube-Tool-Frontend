@@ -1,61 +1,103 @@
-
 import { connectToDatabase } from '../../utils/mongodb';
-import { ObjectId } from 'mongodb';
+import uploadMiddleware from '../../middleware/uploadMiddleware';
 
-export default async function handler(req, res) {
+export const config = {
+  api: {
+    bodyParser: false, // Disallow body parsing, let multer handle it
+  },
+};
+
+const handler = async (req, res) => {
+  const { method } = req;
+
+  switch (method) {
+    case 'GET':
+      await handleGet(req, res);
+      break;
+    case 'POST':
+      await handlePost(req, res);
+      break;
+    case 'PUT':
+      await handlePut(req, res);
+      break;
+    default:
+      res.setHeader('Allow', ['GET', 'POST', 'PUT']);
+      res.status(405).end(`Method ${method} Not Allowed`);
+  }
+};
+
+const handleGet = async (req, res) => {
   const { category } = req.query;
 
   if (!category) {
     return res.status(400).json({ message: 'Category is required' });
   }
 
-  if (req.method === 'POST' || req.method === 'PUT') {
-    try {
-      const doc = req.body;
-      if (!doc) {
-        return res.status(400).json({ message: 'Invalid request body' });
-      }
+  const { db } = await connectToDatabase();
+  const result = await db.collection('content').find({ category }).toArray();
 
-      const { db } = await connectToDatabase();
+  res.status(200).json(result);
+};
 
-      if (req.method === 'POST') {
-        doc.category = category; // Add category to document
-        const result = await db.collection('content').insertOne(doc);
+const handlePost = async (req, res) => {
+  uploadMiddleware(req, res, async () => {
+    const { category } = req.query;
+    const { content, title, description } = req.body;
+    const image = req.file;
 
-        if (!result || !result.insertedId) {
-          return res.status(500).json({ message: 'Failed to insert document' });
-        }
-
-        res.status(201).json({ _id: result.insertedId, ...doc });
-      } else if (req.method === 'PUT') {
-        const filter = { category };
-        const updateDoc = {
-          $set: doc,
-        };
-        const result = await db.collection('content').updateOne(filter, updateDoc, { upsert: true });
-
-        if (!result.matchedCount && !result.upsertedCount) {
-          return res.status(500).json({ message: 'Failed to update document' });
-        }
-
-        res.status(200).json({ message: 'Document updated successfully' });
-      }
-    } catch (error) {
-      console.error('Error handling document:', error);
-      res.status(500).json({ message: 'Internal server error' });
+    if (!category || !content || !title || !description) {
+      return res.status(400).json({ message: 'Missing required fields' });
     }
-  } else if (req.method === 'GET') {
-    try {
-      const { db } = await connectToDatabase();
-      const result = await db.collection('content').find({ category }).toArray();
 
-      res.status(200).json(result);
-    } catch (error) {
-      console.error('Error fetching documents:', error);
-      res.status(500).json({ message: 'Internal server error' });
+    const doc = {
+      content,
+      title,
+      description,
+      image: image ? image.buffer.toString('base64') : null,
+      category,
+    };
+
+    const { db } = await connectToDatabase();
+    const result = await db.collection('content').insertOne(doc);
+
+    if (!result.insertedId) {
+      return res.status(500).json({ message: 'Failed to insert document' });
     }
-  } else {
-    res.setHeader('Allow', ['POST', 'PUT', 'GET']);
-    res.status(405).end(`Method ${req.method} not allowed`);
-  }
-}
+
+    res.status(201).json({ _id: result.insertedId, ...doc });
+  });
+};
+
+const handlePut = async (req, res) => {
+  uploadMiddleware(req, res, async () => {
+    const { category } = req.query;
+    const { content, title, description } = req.body;
+    const image = req.file;
+
+    if (!category || !content || !title || !description) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    const doc = {
+      content,
+      title,
+      description,
+      image: image ? image.buffer.toString('base64') : null,
+    };
+
+    const { db } = await connectToDatabase();
+    const filter = { category };
+    const updateDoc = {
+      $set: doc,
+    };
+    const result = await db.collection('content').updateOne(filter, updateDoc, { upsert: true });
+
+    if (!result.matchedCount && !result.upsertedCount) {
+      return res.status(500).json({ message: 'Failed to update document' });
+    }
+
+    res.status(200).json({ message: 'Document updated successfully' });
+  });
+};
+
+export default handler;

@@ -11,6 +11,9 @@ function Content() {
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('tagGenerator'); // Default category
   const [isEditing, setIsEditing] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [image, setImage] = useState(null);
 
   useEffect(() => {
     fetchContent();
@@ -38,12 +41,19 @@ function Content() {
     try {
       console.log("Submitting Data:", quillContent);
       const method = isEditing ? 'PUT' : 'POST';
+      
+      // Prepare form data
+      const formData = new FormData();
+      formData.append('content', quillContent);
+      formData.append('title', title);
+      formData.append('description', description);
+      if (image) {
+        formData.append('image', image);
+      }
+
       const response = await fetch(`/api/content?category=${selectedCategory}`, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ content: quillContent }),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -59,7 +69,7 @@ function Content() {
       console.error('Error posting content:', error.message);
       setError(error.message);
     }
-  }, [quillContent, selectedCategory, isEditing]);
+  }, [quillContent, selectedCategory, isEditing, title, description, image]);
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
@@ -68,6 +78,10 @@ function Content() {
   const handleCategoryChange = useCallback((e) => {
     setSelectedCategory(e.target.value);
   }, []);
+
+  const handleImageChange = (e) => {
+    setImage(e.target.files[0]);
+  };
 
   const renderHeader = () => {
     switch(selectedCategory) {
@@ -87,6 +101,12 @@ function Content() {
         return 'YouTube Embed Code Generator';
       case 'youtube-title-and-description-extractor':
         return 'YouTube Title and Description Extractor';
+      case 'channel-id-finder':
+        return 'YouTube Channel ID Finder';
+      case 'video-data-viewer':
+        return 'YouTube Video Data Viewer';
+      case 'monetization-checker':
+        return 'YouTube Monetization Checker';
       default:
         return 'Unknown Category';
     }
@@ -113,7 +133,7 @@ function Content() {
               <option value="YouTube-Channel-Logo-Downloader">YouTube Channel Logo Downloader</option>
               <option value="YouTube-Embed-Code-Generator">YouTube Embed Code Generator</option>
               <option value="youtube-title-and-description-extractor">YouTube Title and Description Extractor</option>
-              <option value="channel-id-finder">YouTube Channel id Finder</option>
+              <option value="channel-id-finder">YouTube Channel ID Finder</option>
               <option value="video-data-viewer">YouTube Video Data Viewer</option>
               <option value="monetization-checker">YouTube Monetization Checker</option>
             </select>
@@ -132,12 +152,45 @@ function Content() {
             </div>
           </div>
         </div>
+        <div className="flex flex-wrap -mx-3 mb-6">
+          <div className="w-full px-3">
+            <label htmlFor="title" className="block text-sm font-medium">Meta Title:</label>
+            <input 
+              className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-300 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
+              id="title"
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+            <p className="text-gray-600 text-xs italic">Recommended length: 60 characters</p>
+          </div>
+        </div>
+        <div className="mb-3">
+          <label htmlFor="description" className="block text-sm font-medium">Description:</label>
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-300 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
+          />
+          <p className="text-gray-600 text-xs italic">Recommended length: 155-160 characters</p>
+        </div>
+        <div className="mb-5">
+          <label htmlFor="image" className="block text-sm font-medium text-gray-700">Upload Image:</label>
+          <input
+            type="file"
+            id="image"
+            onChange={handleImageChange}
+            className="mt-1 block w-full text-gray-700"
+          />
+          <p className="text-gray-600 text-xs italic">Recommended dimension: 1200 x 630</p>
+        </div>
         {error && <div className="text-red-500">Error: {error}</div>}
         <QuillWrapper initialContent={quillContent} onChange={handleQuillChange} />
         <button className='btn btn-primary p-2 mt-3' onClick={handleSubmit}>Submit Content</button>
         
         <div className='mt-10'>
-        <h2>{renderHeader()} Content</h2>
+          <h2>{renderHeader()} Content</h2>
           <div dangerouslySetInnerHTML={{ __html: existingContent }}></div>
         </div>
       </div>
