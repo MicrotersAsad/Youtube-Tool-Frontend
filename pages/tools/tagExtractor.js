@@ -15,7 +15,34 @@ const TagExtractor = () => {
     const [error, setError] = useState('');
     const [showShareIcons, setShowShareIcons] = useState(false);
     const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false);
+    const [content, setContent] = useState('');
 
+    useEffect(() => {
+        const fetchContent = async () => {
+            try {
+                const response = await fetch(`/api/content?category=tagGenerator`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch content');
+                }
+                const data = await response.json();
+                if (data && data.length > 0 && data[0].content) {
+                    const sanitizedContent = sanitizeHtml(data[0].content, {
+                        allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
+                        allowedAttributes: {
+                            'a': ['href']
+                        }
+                    });
+                    setContent(sanitizedContent);
+                } else {
+                    toast.error("Content data is invalid");
+                }
+            } catch (error) {
+                toast.error("Error fetching content");
+            }
+        };
+
+        fetchContent();
+    }, []);
     const handleUrlChange = (e) => {
         setVideoUrl(e.target.value);
     };
@@ -128,15 +155,15 @@ const TagExtractor = () => {
                     <div>
                         {user?.hasUnlimitedAccess ? (
                             <p className="text-center p-3 alert-warning">
-                                You are logged in and can generate unlimited tags.
+                                You are upgrade in and can generate unlimited tags.
                             </p>
                         ) : fetchLimitExceeded ? (
                             <p className="text-center p-3 alert-warning">
-                                Fetch limit exceeded. Please try again later or <Link href="/price" className="btn btn-warning ms-3">Update for unlimited access</Link>.
+                                Fetch limit exceeded. Please try again later or <Link href="/pricing" className="btn btn-warning ms-3">Update for unlimited access</Link>.
                             </p>
                         ) : (
                             <p className="text-center p-3 alert-warning">
-                                You are not logged in. You can generate tags twice. <Link href="/register" className="btn btn-warning ms-3">Register</Link> for unlimited access.
+                                You are not upgrade Package. You can generate tags twice. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link> for unlimited access.
                             </p>
                         )}
                     </div>
