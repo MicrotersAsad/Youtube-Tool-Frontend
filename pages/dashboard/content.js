@@ -113,6 +113,9 @@ function Content() {
               <option value="YouTube-Channel-Logo-Downloader">YouTube Channel Logo Downloader</option>
               <option value="YouTube-Embed-Code-Generator">YouTube Embed Code Generator</option>
               <option value="youtube-title-and-description-extractor">YouTube Title and Description Extractor</option>
+              <option value="channel-id-finder">YouTube Channel id Finder</option>
+              <option value="video-data-viewer">YouTube Video Data Viewer</option>
+              <option value="monetization-checker">YouTube Monetization Checker</option>
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
               <svg

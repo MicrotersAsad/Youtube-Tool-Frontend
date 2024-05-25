@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import Modal from 'react-modal';
+import { loadStripe } from '@stripe/stripe-js';
 import { FaCheck, FaTimes, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
 Modal.setAppElement('#__next'); // Set the app element for accessibility purposes
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 const Pricing = () => {
   const [selectedPlan, setSelectedPlan] = useState('yearly'); // Default selected plan is yearly
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(true); // Assume user is logged in for this example
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
-  const [paymentLink, setPaymentLink] = useState('');
   const [openFAQ, setOpenFAQ] = useState(null);
 
   const handlePurchaseClick = () => {
@@ -23,16 +25,27 @@ const Pricing = () => {
 
   const handlePaymentMethodSelect = (method) => {
     setSelectedPaymentMethod(method);
-    if (method === 'stripe') {
-      // Set your Stripe Payment Link here
-      const successUrl = `${window.location.origin}/payment-success?payment_intent={CHECKOUT_SESSION_ID}`;
-      setPaymentLink(`https://buy.stripe.com/test_4gw3dp1se6iV4rm288?success_url=${successUrl}`);
-    }
   };
 
-  const handleContinue = () => {
-    if (selectedPaymentMethod === 'stripe' && paymentLink) {
-      window.location.href = paymentLink;
+  const handleContinue = async () => {
+    if (selectedPaymentMethod === 'stripe') {
+      const stripe = await stripePromise;
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          priceId: selectedPlan === 'yearly' ? 'price_1PKDms09wBOdwPD6qdgyjavf' : 'price_1PKDoy09wBOdwPD6iRcRkskF', // Replace with your price IDs
+        }),
+      });
+
+      const { sessionId } = await response.json();
+
+      const { error } = await stripe.redirectToCheckout({ sessionId });
+      if (error) {
+        console.error(error);
+      }
     } else {
       alert('Please select a payment method.');
     }
@@ -49,39 +62,39 @@ const Pricing = () => {
         <div className="flex flex-col md:flex-row justify-center items-start md:space-x-8 space-y-8 md:space-y-0">
           {/* Features List */}
           <div className="bg-white p-6 rounded-lg shadow-lg w-full">
-          <h2 className="text-2xl font-semibold mb-4">Features</h2>
-          <table className="w-full text-sm text-left text-gray-500">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3">Feature</th>
-                <th scope="col" className="px-6 py-3">Free Features</th>
-                <th scope="col" className="px-6 py-3">Pro Features</th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* Map over your features here */}
-              {[
-                { name: "YouTube Title and Description Generator", free: false, pro: true },
-                { name: "YouTube Keyword Explorer", free: false, pro: true },
-                { name: "YouTube Money Calculator", free: false, pro: true },
-                { name: "YouTube Video Ideas Generator", free: false, pro: true },
-                { name: "YouTube Video Stats", free: false, pro: true },
-                { name: "Ads Free", free: true, pro: true },
-                { name: "YouTube Tag Generator", free: true, pro: true },
-                { name: "YouTube Thumbnail Generator", free: true, pro: true },
-                { name: "YouTube Video Player", free: true, pro: true },
-                { name: "YouTube Comment Picker", free: true, pro: true },
-                // Add more features as needed
-              ].map((feature, index) => (
-                <tr key={index} className="bg-white border-b">
-                  <td className="px-6 py-4 font-medium text-gray-900">{feature.name}</td>
-                  <td className="px-6 py-4">{feature.free ? <FaCheck className="text-green-500" /> : <FaTimes className="text-red-500" />}</td>
-                  <td className="px-6 py-4">{feature.pro ? <FaCheck className="text-green-500" /> : <FaTimes className="text-red-500" />}</td>
+            <h2 className="text-2xl font-semibold mb-4">Features</h2>
+            <table className="w-full text-sm text-left text-gray-500">
+              <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3">Feature</th>
+                  <th scope="col" className="px-6 py-3">Free Features</th>
+                  <th scope="col" className="px-6 py-3">Pro Features</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {/* Map over your features here */}
+                {[
+                  { name: "YouTube Title and Description Generator", free: false, pro: true },
+                  { name: "YouTube Keyword Explorer", free: false, pro: true },
+                  { name: "YouTube Money Calculator", free: false, pro: true },
+                  { name: "YouTube Video Ideas Generator", free: false, pro: true },
+                  { name: "YouTube Video Stats", free: false, pro: true },
+                  { name: "Ads Free", free: true, pro: true },
+                  { name: "YouTube Tag Generator", free: true, pro: true },
+                  { name: "YouTube Thumbnail Generator", free: true, pro: true },
+                  { name: "YouTube Video Player", free: true, pro: true },
+                  { name: "YouTube Comment Picker", free: true, pro: true },
+                  // Add more features as needed
+                ].map((feature, index) => (
+                  <tr key={index} className="bg-white border-b">
+                    <td className="px-6 py-4 font-medium text-gray-900">{feature.name}</td>
+                    <td className="px-6 py-4">{feature.free ? <FaCheck className="text-green-500" /> : <FaTimes className="text-red-500" />}</td>
+                    <td className="px-6 py-4">{feature.pro ? <FaCheck className="text-green-500" /> : <FaTimes className="text-red-500" />}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {/* Pricing Plans */}
           <div className="bg-white p-6 rounded-lg shadow-lg w-full md:w-1/2">
             <div className="space-y-6">
@@ -90,14 +103,12 @@ const Pricing = () => {
                 onClick={() => setSelectedPlan('yearly')}
               >
                 <div className='flex justify-between items-center'>
-                {selectedPlan === 'yearly' && (
-                    <span className="bg-red-500 text-white px-2  py-1 text-xs rounded">MOST POPULAR</span>
+                  {selectedPlan === 'yearly' && (
+                    <span className="bg-red-500 text-white px-2 py-1 text-xs rounded">MOST POPULAR</span>
                   )}
-                  </div>
+                </div>
                 <div className="flex justify-between items-center mb-4">
-                
                   <h3 className="text-xl font-semibold">Yearly Unlimited Plan</h3>
-                 
                 </div>
                 <div className="text-4xl font-bold text-red-500 mb-4">$5.00</div>
                 <p className="text-gray-600 mb-4">Per month, charged yearly at $60.00</p>
@@ -180,6 +191,9 @@ const Pricing = () => {
         {/* Payment Method Modal */}
         <Modal isOpen={isModalOpen} onRequestClose={() => setIsModalOpen(false)} className="flex items-center justify-center min-h-screen">
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-gray-700 float-right">
+              Close
+            </button>
             <h2 className="text-2xl mb-4">Choose a payment method</h2>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <button

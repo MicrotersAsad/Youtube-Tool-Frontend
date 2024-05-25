@@ -1,0 +1,50 @@
+import Stripe from 'stripe';
+import { buffer } from 'micro';
+
+const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY);
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+const webhookSecret = process.env.NEXT_PUBLIC_STRIPE_WEBHOOK_SECRET;
+
+export default async (req, res) => {
+  if (req.method === 'POST') {
+    const buf = await buffer(req);
+    const sig = req.headers['stripe-signature'];
+
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
+    } catch (err) {
+      console.error('Webhook Error:', err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    // Handle the event
+    switch (event.type) {
+      case 'checkout.session.completed':
+        const session = event.data.object;
+        // Handle successful checkout session completion
+        console.log('Checkout session completed:', session);
+        break;
+      case 'invoice.payment_succeeded':
+        const invoice = event.data.object;
+        // Handle successful payment
+        console.log('Payment succeeded for invoice:', invoice);
+        break;
+      // Add more cases to handle other events as needed
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+
+    res.status(200).json({ received: true });
+  } else {
+    res.setHeader('Allow', 'POST');
+    res.status(405).end('Method Not Allowed');
+  }
+};
