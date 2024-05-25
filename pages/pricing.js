@@ -40,11 +40,16 @@ const Pricing = () => {
         }),
       });
 
-      const { sessionId } = await response.json();
+      const { sessionId, error } = await response.json();
 
-      const { error } = await stripe.redirectToCheckout({ sessionId });
       if (error) {
-        console.error(error);
+        console.error('Error creating Stripe checkout session:', error);
+        return;
+      }
+
+      const result = await stripe.redirectToCheckout({ sessionId });
+      if (result.error) {
+        console.error(result.error.message);
       }
     } else {
       alert('Please select a payment method.');

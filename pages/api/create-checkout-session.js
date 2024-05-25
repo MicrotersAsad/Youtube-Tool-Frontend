@@ -4,7 +4,7 @@ const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY);
 
 export default async (req, res) => {
   if (req.method === 'POST') {
-    const { planId } = req.body; // Get the plan ID from the request body
+    const { priceId } = req.body; // Get the price ID from the request body
 
     try {
       const session = await stripe.checkout.sessions.create({
@@ -12,7 +12,7 @@ export default async (req, res) => {
         mode: 'subscription',
         line_items: [
           {
-            price: planId,
+            price: priceId,
             quantity: 1,
           },
         ],
