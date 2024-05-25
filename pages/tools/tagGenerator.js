@@ -202,7 +202,7 @@ const TagGenerator = () => {
                 <meta property="og:description" content={meta.description} />
                 <meta property="og:image" content={meta.image} />
                 <meta name="twitter:card" content="summary_large_image" />
-                <meta property="twitter:domain" content="yourwebsite.com" />
+                <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
                 <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
                 <meta name="twitter:title" content={meta.title} />
                 <meta name="twitter:description" content={meta.description} />
