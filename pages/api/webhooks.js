@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import getRawBody from 'raw-body';
+import { updateUserAccess } from '../../utils/db';
 
 const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY);
 
@@ -29,15 +30,18 @@ export default async (req, res) => {
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data.object;
-        // Handle successful checkout session completion
-        console.log('Checkout session completed:', session);
+        const customerId = session.customer;
+        try {
+          await updateUserAccess(customerId, true);
+          console.log('User access updated successfully');
+        } catch (err) {
+          console.error('Error updating user access:', err.message);
+        }
         break;
       case 'invoice.payment_succeeded':
         const invoice = event.data.object;
-        // Handle successful payment
         console.log('Payment succeeded for invoice:', invoice);
         break;
-      // Add more cases to handle other events as needed
       default:
         console.log(`Unhandled event type ${event.type}`);
     }

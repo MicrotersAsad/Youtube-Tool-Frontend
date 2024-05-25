@@ -1,23 +1,20 @@
-/* eslint-disable react/no-unescaped-entities */
-import React, { useEffect, useRef, useState } from 'react';
-import { FaCopy, FaDownload, FaFacebook, FaInstagram, FaLinkedin, FaSearch, FaShareAlt, FaTimes, FaTwitter } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaCopy, FaDownload, FaFacebook, FaInstagram, FaLinkedin, FaShareAlt, FaTimes, FaTwitter } from 'react-icons/fa';
 import { FaGrip } from 'react-icons/fa6';
 import { useAuth } from '../../contexts/AuthContext';
 import Link from 'next/link';
 import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import sanitizeHtml from 'sanitize-html';
 
 const TagExtractor = () => {
-    const { isLoggedIn } = useAuth();
+    const { user } = useAuth(); // Get the user object from the AuthContext
     const [videoUrl, setVideoUrl] = useState('');
     const [tags, setTags] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [showShareIcons, setShowShareIcons] = useState(false);
-    const [generateCount, setGenerateCount] = useState(0);
-    const [content, setContent] = useState('');
-
-      
+    const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false);
 
     const handleUrlChange = (e) => {
         setVideoUrl(e.target.value);
@@ -48,10 +45,19 @@ const TagExtractor = () => {
                 },
                 body: JSON.stringify({ videoUrl }),
             });
+
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to fetch tags');
+                if (response.status === 429) {
+                    setFetchLimitExceeded(true);
+                    setError('Fetch limit exceeded. Please try again later or register for unlimited access.');
+                    toast.error('Fetch limit exceeded. Please try again later or register for unlimited access.');
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to fetch tags');
+                }
+                return;
             }
+
             const data = await response.json();
             setTags(data.tags || []);
         } catch (err) {
@@ -104,6 +110,12 @@ const TagExtractor = () => {
         setShowShareIcons(!showShareIcons);
     };
 
+    useEffect(() => {
+        if (user) {
+            setFetchLimitExceeded(false); // Reset the fetch limit flag if the user has unlimited access
+        }
+    }, [user]);
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
             <h2 className='text-3xl pt-5'>YouTube Tag Extractor</h2>
@@ -114,14 +126,17 @@ const TagExtractor = () => {
                         <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
                     </div>
                     <div>
-                        {isLoggedIn ? (
+                        {user?.hasUnlimitedAccess ? (
                             <p className="text-center p-3 alert-warning">
                                 You are logged in and can generate unlimited tags.
                             </p>
+                        ) : fetchLimitExceeded ? (
+                            <p className="text-center p-3 alert-warning">
+                                Fetch limit exceeded. Please try again later or <Link href="/price" className="btn btn-warning ms-3">Update for unlimited access</Link>.
+                            </p>
                         ) : (
                             <p className="text-center p-3 alert-warning">
-                                You are not logged in. You can generate tags {5 - generateCount}{" "}
-                                more times. <Link href="/register" className="btn btn-warning ms-3">Register</Link>
+                                You are not logged in. You can generate tags twice. <Link href="/register" className="btn btn-warning ms-3">Register</Link> for unlimited access.
                             </p>
                         )}
                     </div>
@@ -144,7 +159,7 @@ const TagExtractor = () => {
                             type="button"
                             id="button-addon2"
                             onClick={fetchTags}
-                            disabled={loading}
+                            disabled={loading || fetchLimitExceeded}
                         >
                             {loading ? 'Loading...' : 'Generate Tags'}
                         </button>
@@ -189,10 +204,9 @@ const TagExtractor = () => {
                     )}
                 </div>
                 <div className="content pt-6 pb-5">
-                    <div dangerouslySetInnerHTML={{ __html: content }}></div>
+                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}></div>
                 </div>
             </div>
-
         </div>
     );
 };
