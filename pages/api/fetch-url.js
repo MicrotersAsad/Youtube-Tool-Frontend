@@ -1,7 +1,6 @@
 import fetch from 'node-fetch';
 import { connectToDatabase } from '../../utils/mongodb';
 import { getUserIp } from '../../utils/getUserIp';
-import FetchLimit from '../../models/FetchLimit';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
