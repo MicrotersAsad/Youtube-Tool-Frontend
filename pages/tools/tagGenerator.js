@@ -200,13 +200,13 @@ const TagGenerator = () => {
                 <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
                 <meta property="og:title" content={meta.title} />
                 <meta property="og:description" content={meta.description} />
-                <meta property="og:image" content={meta.image} />
-                <meta name="twitter:card" content="summary_large_image" />
+                <meta property="og:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta name="twitter:card" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
                 <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
                 <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
                 <meta name="twitter:title" content={meta.title} />
                 <meta name="twitter:description" content={meta.description} />
-                <meta name="twitter:image" content={meta.image} />
+                <meta name="twitter:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
             </Head>
             <h2 className="text-3xl">YouTube Tag Generator</h2>
             <ToastContainer/>
