@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import sanitizeHtml from 'sanitize-html';
+import Head from 'next/head';
 
 const TagExtractor = () => {
     const { user } = useAuth(); // Get the user object from the AuthContext
@@ -16,15 +17,16 @@ const TagExtractor = () => {
     const [showShareIcons, setShowShareIcons] = useState(false);
     const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false);
     const [content, setContent] = useState('');
-
+    const [meta,setMeta]=useState('')
     useEffect(() => {
         const fetchContent = async () => {
             try {
-                const response = await fetch(`/api/content?category=tagGenerator`);
+                const response = await fetch(`/api/content?category=tagExtractor`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch content');
                 }
                 const data = await response.json();
+                console.log(data);
                 if (data && data.length > 0 && data[0].content) {
                     const sanitizedContent = sanitizeHtml(data[0].content, {
                         allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
@@ -33,6 +35,11 @@ const TagExtractor = () => {
                         }
                     });
                     setContent(sanitizedContent);
+                    setMeta({
+                        title: data[0].title || 'YouTube Tag Extractor',
+                        description: data[0].description || 'Effortlessly extract tags from any YouTube video for enhanced SEO and better content visibility. Boost your video marketing strategy with our easy-to-use YouTube Tag Extractor tool',
+                        image: data[0].image || 'https://yourwebsite.com/og-image.png'
+                    });
                 } else {
                     toast.error("Content data is invalid");
                 }
@@ -145,6 +152,20 @@ const TagExtractor = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
+             <Head>
+                <title>{meta.title}</title>
+                <meta name="description" content={meta.description} />
+                <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+                <meta property="og:title" content={meta.title} />
+                <meta property="og:description" content={meta.description} />
+                <meta property="og:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta name="twitter:card" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
+                <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+                <meta name="twitter:title" content={meta.title} />
+                <meta name="twitter:description" content={meta.description} />
+                <meta name="twitter:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+            </Head>
             <h2 className='text-3xl pt-5'>YouTube Tag Extractor</h2>
             <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
                 <ToastContainer/>

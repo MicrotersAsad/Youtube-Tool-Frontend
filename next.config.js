@@ -1,8 +1,16 @@
+// next.config.js
 
 module.exports = {
   reactStrictMode: true,
   images: {
-    domains: ['i.ytimg.com'],
-},
- 
-}
+    domains: ['yt3.ggpht.com'],
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/uploads/:path*',
+        destination: '/public/uploads/:path*',
+      },
+    ];
+  },
+};

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import Layout from './layout';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Dynamically import the QuillWrapper component with SSR disabled
 const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
@@ -65,6 +67,7 @@ function Content() {
       console.log('Content posted successfully');
       setError(null);
       setExistingContent(quillContent);
+      toast.success('Content uploaded successfully!');
     } catch (error) {
       console.error('Error posting content:', error.message);
       setError(error.message);
@@ -99,6 +102,10 @@ function Content() {
         return 'YouTube Channel Logo Downloader';
       case 'YouTube-Embed-Code-Generator':
         return 'YouTube Embed Code Generator';
+      case 'YouTube-Hashtag-Generator':
+        return 'YouTube Hashtag Generator';
+      case 'Youtube-Thumbnails-Generator':
+        return 'Youtube Thumbnaile Generator';
       case 'youtube-title-and-description-extractor':
         return 'YouTube Title and Description Extractor';
       case 'channel-id-finder':
@@ -132,8 +139,10 @@ function Content() {
               <option value="YouTube-Channel-Banner-Downloader">YouTube Channel Banner Downloader</option>
               <option value="YouTube-Channel-Logo-Downloader">YouTube Channel Logo Downloader</option>
               <option value="YouTube-Embed-Code-Generator">YouTube Embed Code Generator</option>
+              <option value="YouTube-Hashtag-Generator">YouTube Hashtag Generator</option>
               <option value="youtube-title-and-description-extractor">YouTube Title and Description Extractor</option>
               <option value="channel-id-finder">YouTube Channel ID Finder</option>
+              <option value="Youtube-Thumbnails-Generator">Youtube Thumbnails Generator</option>
               <option value="video-data-viewer">YouTube Video Data Viewer</option>
               <option value="monetization-checker">YouTube Monetization Checker</option>
             </select>
@@ -194,6 +203,7 @@ function Content() {
           <div dangerouslySetInnerHTML={{ __html: existingContent }}></div>
         </div>
       </div>
+      <ToastContainer />
     </Layout>
   );
 }

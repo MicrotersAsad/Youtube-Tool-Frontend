@@ -191,7 +191,7 @@ const TagGenerator = () => {
             setIsLoading(false);
         }
     };
-
+console.log(meta.description);
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
             <Head>

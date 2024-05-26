@@ -1,6 +1,7 @@
+// pages/api/webhook.js
 import Stripe from 'stripe';
 import getRawBody from 'raw-body';
-import { updateUserAccess } from '../../utils/db';
+import { updateUserAccess } from '../../utils/db'; // Ensure this function updates the user access in your database
 
 const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY);
 
@@ -32,15 +33,22 @@ export default async (req, res) => {
         const session = event.data.object;
         const customerId = session.customer;
         try {
-          await updateUserAccess(customerId, true);
+          await updateUserAccess(customerId, true); // Grant access
           console.log('User access updated successfully');
         } catch (err) {
           console.error('Error updating user access:', err.message);
         }
         break;
-      case 'invoice.payment_succeeded':
-        const invoice = event.data.object;
-        console.log('Payment succeeded for invoice:', invoice);
+      case 'customer.subscription.deleted':
+      case 'customer.subscription.updated':
+        const subscription = event.data.object;
+        const isActive = subscription.status === 'active';
+        try {
+          await updateUserAccess(subscription.customer, isActive); // Update access based on subscription status
+          console.log('User subscription updated successfully');
+        } catch (err) {
+          console.error('Error updating user subscription:', err.message);
+        }
         break;
       default:
         console.log(`Unhandled event type ${event.type}`);

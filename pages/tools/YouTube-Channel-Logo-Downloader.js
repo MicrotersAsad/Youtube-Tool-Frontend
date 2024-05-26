@@ -1,11 +1,13 @@
 /* eslint-disable react/no-unescaped-entities */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { FaDownload, FaFacebook, FaInstagram, FaLinkedin, FaShareAlt, FaTwitter } from 'react-icons/fa';
 import Image from 'next/image';
 import { useAuth } from '../../contexts/AuthContext';
 import Link from 'next/link';
 import { ToastContainer, toast } from 'react-toastify';
+import sanitizeHtml from 'sanitize-html';
+import Head from 'next/head';
 
 const YouTubeChannelLogoDownloader = () => {
     const { isLoggedIn } = useAuth();
@@ -15,7 +17,41 @@ const YouTubeChannelLogoDownloader = () => {
     const [logoUrl, setLogoUrl] = useState('');
     const [showShareIcons, setShowShareIcons] = useState(false);
     const [generateCount, setGenerateCount] = useState(5);
+    const [content, setContent] = useState('');
 
+    const [meta,setMeta]=useState('')
+    useEffect(() => {
+        const fetchContent = async () => {
+            try {
+                const response = await fetch(`/api/content?category=YouTube-Channel-Logo-Downloader`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch content');
+                }
+                const data = await response.json();
+                console.log(data);
+                if (data && data.length > 0 && data[0].content) {
+                    const sanitizedContent = sanitizeHtml(data[0].content, {
+                        allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
+                        allowedAttributes: {
+                            'a': ['href']
+                        }
+                    });
+                    setContent(sanitizedContent);
+                    setMeta({
+                        title: data[0].title || 'YouTube Channel  Logo Downloader',
+                        description: data[0].description || "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
+                        image: data[0].image || 'https://yourwebsite.com/og-image.png'
+                    });
+                } else {
+                    toast.error("Content data is invalid");
+                }
+            } catch (error) {
+                toast.error("Error fetching content");
+            }
+        };
+
+        fetchContent();
+    }, []);
     const handleUrlChange = (e) => {
         setChannelUrl(e.target.value);
     };
@@ -84,8 +120,23 @@ const YouTubeChannelLogoDownloader = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
-            <h2 className='text-3xl pt-5'>YouTube Channel Logo Downloader</h2>
+             <Head>
+                <title>{meta.title}</title>
+                <meta name="description" content={meta.description} />
+                <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+                <meta property="og:title" content={meta.title} />
+                <meta property="og:description" content={meta.description} />
+                <meta property="og:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta name="twitter:card" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
+                <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+                <meta name="twitter:title" content={meta.title} />
+                <meta name="twitter:description" content={meta.description} />
+                <meta name="twitter:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+            </Head>
             <ToastContainer/>
+            <h2 className='text-3xl pt-5'>YouTube Channel Logo Downloader</h2>
+         
             <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
                 <div className="flex">
                     <div className="py-1">
@@ -126,12 +177,13 @@ const YouTubeChannelLogoDownloader = () => {
                         </button>
                     </div>
                     <small className="text-muted">
-                        Example: https://www.youtube.com/channel/UC-lHJZR3Gqxm24_Vd_AJ5Yw
+                        Example:  https://www.youtube.com/channel/UCnUe75Y9iRieacBvWvn61fA
                     </small>
                     {error && <div className="alert alert-danger mt-3" role="alert">{error}</div>}
                     {logoUrl && (
                         <div className="text-center mt-3">
-                            <Image src={logoUrl} alt="Channel Logo" style={{ maxWidth: '100%' }} />
+                          <Image src={logoUrl} alt="Channel Logo" width={100} height={100} />
+
                             <button className="btn btn-danger mt-3" onClick={downloadLogo}>
                                 <FaDownload /> Download Logo
                             </button>
@@ -152,6 +204,9 @@ const YouTubeChannelLogoDownloader = () => {
                             <FaLinkedin className="linkedin-icon" onClick={() => shareOnSocialMedia('linkedin')} />
                         </div>
                     )}
+                </div>
+                <div className="content pt-6 pb-5">
+                    <div dangerouslySetInnerHTML={{ __html: content }}></div>
                 </div>
             </div>
         </div>

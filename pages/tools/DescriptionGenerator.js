@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import Head from 'next/head';
+import React, { useEffect, useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-
+import { ToastContainer, toast } from 'react-toastify';
+import sanitizeHtml from 'sanitize-html';
 const YouTubeDescriptionGenerator = () => {
   const [videoInfo, setVideoInfo] = useState({
     aboutVideo: `Welcome to [Your Channel Name]!\n\nIn this video, we're diving deep into the world of Full Stack Development. Whether you're a beginner or an experienced developer, these tips and guidelines will help you enhance your skills and stay ahead in the tech industry.`,
@@ -24,7 +26,41 @@ const YouTubeDescriptionGenerator = () => {
     { id: 'contactSocial', title: 'Contact & Social', visible: true },
     { id: 'keywords', title: 'Keywords to Target (Optional)', visible: true }
   ]);
+  const [content, setContent] = useState('');
 
+  const [meta,setMeta]=useState('')
+  useEffect(() => {
+      const fetchContent = async () => {
+          try {
+              const response = await fetch(`/api/content?category=DescriptionGenerator`);
+              if (!response.ok) {
+                  throw new Error('Failed to fetch content');
+              }
+              const data = await response.json();
+              console.log(data);
+              if (data && data.length > 0 && data[0].content) {
+                  const sanitizedContent = sanitizeHtml(data[0].content, {
+                      allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
+                      allowedAttributes: {
+                          'a': ['href']
+                      }
+                  });
+                  setContent(sanitizedContent);
+                  setMeta({
+                      title: data[0].title || 'YouTube Title  Generator',
+                      description: data[0].description || "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
+                      image: data[0].image || 'https://yourwebsite.com/og-image.png'
+                  });
+              } else {
+                  toast.error("Content data is invalid");
+              }
+          } catch (error) {
+              toast.error("Error fetching content");
+          }
+      };
+
+      fetchContent();
+  }, []);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setVideoInfo((prevInfo) => ({
@@ -81,6 +117,21 @@ ${keywords}
 
   return (
     <div className="container mx-auto p-6">
+        <Head>
+                <title>{meta.title}</title>
+                <meta name="description" content={meta.description} />
+                <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+                <meta property="og:title" content={meta.title} />
+                <meta property="og:description" content={meta.description} />
+                <meta property="og:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta name="twitter:card" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
+                <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+                <meta name="twitter:title" content={meta.title} />
+                <meta name="twitter:description" content={meta.description} />
+                <meta name="twitter:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+            </Head>
+           <ToastContainer/>
       <h1 className="text-2xl font-bold mb-4">YouTube Description Generator</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -135,6 +186,9 @@ ${keywords}
           </button>
         </div>
       </div>
+      <div className="content pt-6 pb-5">
+                    <div dangerouslySetInnerHTML={{ __html: content }}></div>
+                </div>
     </div>
   );
 };

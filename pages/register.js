@@ -1,13 +1,10 @@
-/* eslint-disable react/no-unescaped-entities */
-import Link from "next/link";
-import { useRouter } from "next/router";
 import React, { useState, useEffect } from "react";
 import { FaEnvelope, FaEye, FaEyeSlash, FaImage, FaKey, FaUser } from "react-icons/fa";
 import Image from "next/image";
 import signup from "../public/singup.svg";
+import Link from "next/link";
 
 function Register() {
-  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -56,9 +53,16 @@ function Register() {
   };
 
   const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file && file.size > 100 * 1024) {
+      alert("Profile image size should be less than 100 KB");
+      // Reset the file input value
+      event.target.value = "";
+      return;
+    }
     setFormData((prevState) => ({
       ...prevState,
-      profileImage: event.target.files[0],
+      profileImage: file,
     }));
   };
 
@@ -215,33 +219,8 @@ function Register() {
                   {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                 </span>
               </div>
-              <div className="mb-4">
-                <label htmlFor="role" className="block text-gray-600 mb-2">Role</label>
-                <select
-                  id="role"
-                  name="role"
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                  value={formData.role}
-                  onChange={handleChange}
-                >
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-              {formData.role === 'admin' && (
-                <div className="mb-4">
-                  <label htmlFor="adminAnswer" className="block text-gray-600 mb-2">Who is the owner of YTubeTool?</label>
-                  <input
-                    type="text"
-                    id="adminAnswer"
-                    name="adminAnswer"
-                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                    value={formData.adminAnswer}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              )}
+              
+              
               <div className="mb-6">
                 <label htmlFor="profileImage" className="block text-gray-600 mb-2">
                   <FaImage className="inline-block text-red-500 mr-2" /> Profile Image:
@@ -254,9 +233,14 @@ function Register() {
                   onChange={handleFileChange}
                   required
                 />
+                <small className="text-muted">Profile image size should be less than 100 KB</small>
               </div>
               <div className="flex justify-center mb-6">
-                <button className="bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 transition duration-200" type="submit">
+                <button
+                  className="bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 transition duration-200"
+                  type="submit"
+                  disabled={!formData.profileImage} // Disable the button if profileImage is not set
+                >
                   Register
                 </button>
               </div>

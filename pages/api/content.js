@@ -40,7 +40,11 @@ const handleGet = async (req, res) => {
 };
 
 const handlePost = async (req, res) => {
-  uploadMiddleware(req, res, async () => {
+  uploadMiddleware(req, res, async (err) => {
+    if (err) {
+      return res.status(500).json({ message: 'File upload failed', error: err.message });
+    }
+
     const { category } = req.query;
     const { content, title, description } = req.body;
     const image = req.file;
@@ -49,11 +53,13 @@ const handlePost = async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
+    const imageUrl = image ? `/uploads/${image.filename}` : null; // Save the relative URL to the image
+
     const doc = {
       content,
       title,
       description,
-      image: image ? image.buffer.toString('base64') : null,
+      image: imageUrl,
       category,
     };
 
@@ -69,7 +75,11 @@ const handlePost = async (req, res) => {
 };
 
 const handlePut = async (req, res) => {
-  uploadMiddleware(req, res, async () => {
+  uploadMiddleware(req, res, async (err) => {
+    if (err) {
+      return res.status(500).json({ message: 'File upload failed', error: err.message });
+    }
+
     const { category } = req.query;
     const { content, title, description } = req.body;
     const image = req.file;
@@ -78,11 +88,13 @@ const handlePut = async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
+    const imageUrl = image ? `/uploads/${image.filename}` : null; // Save the relative URL to the image
+
     const doc = {
       content,
       title,
       description,
-      image: image ? image.buffer.toString('base64') : null,
+      image: imageUrl,
     };
 
     const { db } = await connectToDatabase();

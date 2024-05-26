@@ -4,7 +4,7 @@ import Head from 'next/head'
 import Navbar from './Navbar'
 import { AuthProvider } from '../contexts/AuthContext'
 import Footer from './Footer'
-
+import 'react-toastify/dist/ReactToastify.css';
 
 
 

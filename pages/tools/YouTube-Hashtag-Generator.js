@@ -16,6 +16,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 import Link from "next/link";
 import sanitizeHtml from 'sanitize-html';
 import { ToastContainer, toast } from "react-toastify";
+import Head from "next/head";
 
 
 const YouTubeHashtagGenerator = () => {
@@ -33,35 +34,45 @@ const YouTubeHashtagGenerator = () => {
   const [selectAll, setSelectAll] = useState(false); // Whether all titles are selected
 const [prompt,setPromot]=useState('')
 const [content,setContent]=useState('')
-
+const [meta, setMeta] = useState("");
 
   useEffect(() => {
-    // Update document title for better SEO
-    document.title = "YouTube Tag Generator";
-    // Add meta description for better SEO
-    const metaDesc = document.createElement("meta");
-    metaDesc.name = "description";
-    metaDesc.content = "Generate SEO-friendly tags for your YouTube videos.";
-    document.querySelector("head").appendChild(metaDesc);
-    // Add Open Graph meta tags for social sharing
-    const ogTitle = document.createElement("meta");
-    ogTitle.property = "og:title";
-    ogTitle.content = "YouTube Tag Generator";
-    document.querySelector("head").appendChild(ogTitle);
-    const ogDesc = document.createElement("meta");
-    ogDesc.property = "og:description";
-    ogDesc.content = "Generate SEO-friendly tags for your YouTube videos.";
-    document.querySelector("head").appendChild(ogDesc);
-    const ogUrl = document.createElement("meta");
-    ogUrl.property = "og:url";
-    ogUrl.content = window.location.href;
-    document.querySelector("head").appendChild(ogUrl);
-  
-    // Update generate count if user is not logged in
-    if (!isLoggedIn) {
-      setGenerateCount(5);
-    }
-  }, [isLoggedIn]);
+    const fetchContent = async () => {
+      try {
+        const response = await fetch(
+          `/api/content?category=YouTube-Hashtag-Generator`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch content");
+        }
+        const data = await response.json();
+        console.log(data);
+        if (data && data.length > 0 && data[0].content) {
+          const sanitizedContent = sanitizeHtml(data[0].content, {
+            allowedTags: ["h2", "h3", "p", "li", "a"],
+            allowedAttributes: {
+              a: ["href"],
+            },
+          });
+          setContent(sanitizedContent);
+          setMeta({
+            title: data[0].title || "YouTube Hashtag Generator",
+            description:
+              data[0].description ||
+              "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
+            image: data[0].image || "https://yourwebsite.com/og-image.png",
+          });
+        } else {
+          toast.error("Content data is invalid");
+        }
+      } catch (error) {
+        toast.error("Error fetching content");
+      }
+    };
+
+    fetchContent();
+  }, []);
+
   
 useEffect(()=>{
   fetch('/api/deal')
@@ -69,39 +80,7 @@ useEffect(()=>{
   .then(data=>setPromot(data[0]))
 },[])
 
-useEffect(() => {
-  const fetchContent = async () => {
-    try {
-      const response = await fetch('/api/content');
-      if (!response.ok) {
-        throw new Error('Failed to fetch content');
-      }
-      const data = await response.json();
-   
-      
-      // Check if data is an array and contains content
-      if (Array.isArray(data) && data.length > 0 && data[0].content) {
-        // Sanitize the content while allowing certain tags
-        const sanitizedContent = sanitizeHtml(data[0].content, {
-          allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
-          allowedAttributes: {
-            'a': ['href']
-          }
-        });
 
-        setContent(sanitizedContent);
-      } else {
-        // Handle the case when data or data[0].content is not available
-        toast.error("Content data is invalid:", data);
-      }
-    } catch (error) {
-      toast.error("Error fetching content:", error);
-      setError(error.message);
-    }
-  };
-
-  fetchContent();
-}, []);
 
 
 
@@ -247,6 +226,38 @@ useEffect(() => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <Head>
+        <title>{meta.title}</title>
+        <meta name="description" content={meta.description} />
+        <meta
+          property="og:url"
+          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
+        />
+        <meta property="og:title" content={meta.title} />
+        <meta property="og:description" content={meta.description} />
+        <meta
+          property="og:image"
+          content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8"
+        />
+        <meta
+          name="twitter:card"
+          content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8"
+        />
+        <meta
+          property="twitter:domain"
+          content="https://youtube-tool-frontend.vercel.app/"
+        />
+        <meta
+          property="twitter:url"
+          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
+        />
+        <meta name="twitter:title" content={meta.title} />
+        <meta name="twitter:description" content={meta.description} />
+        <meta
+          name="twitter:image"
+          content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8"
+        />
+      </Head>
       <h2 className="text-3xl pt-5">YouTube Hashtag Generator</h2>
       <ToastContainer/>
       <div className="text-center pt-4 pb-4">

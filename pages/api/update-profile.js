@@ -3,7 +3,10 @@ import { ObjectId } from 'mongodb';
 import multer from 'multer';
 
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 100 * 1024 } // Set maximum file size to 100 KB
+});
 
 export const config = {
   api: {

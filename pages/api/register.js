@@ -6,7 +6,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 // Set up multer storage engine to store file in memory
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 100 * 1024 } // Limit file size to 100 KB
+});
 
 export const config = {
   api: {

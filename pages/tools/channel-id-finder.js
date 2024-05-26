@@ -1,21 +1,25 @@
+import Head from 'next/head';
 import React, { useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import sanitizeHtml from 'sanitize-html';
 const ChannelIdFinder = () => {
     const [videoUrl, setVideoUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const [channelData, setChannelData] = useState(null);
     const [error, setError] = useState('');
     const [content, setContent] = useState('');
+
+    const [meta,setMeta]=useState('')
     useEffect(() => {
         const fetchContent = async () => {
             try {
-                const response = await fetch(`/api/content?category=tagExtractor`);
+                const response = await fetch(`/api/content?category=channel-id-finder`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch content');
                 }
                 const data = await response.json();
+                console.log(data);
                 if (data && data.length > 0 && data[0].content) {
                     const sanitizedContent = sanitizeHtml(data[0].content, {
                         allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
@@ -24,6 +28,11 @@ const ChannelIdFinder = () => {
                         }
                     });
                     setContent(sanitizedContent);
+                    setMeta({
+                        title: data[0].title || 'YouTube Channel id Finder',
+                        description: data[0].description || "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
+                        image: data[0].image || 'https://yourwebsite.com/og-image.png'
+                    });
                 } else {
                     toast.error("Content data is invalid");
                 }
@@ -34,6 +43,8 @@ const ChannelIdFinder = () => {
 
         fetchContent();
     }, []);
+
+   
     const fetchVideoData = async (videoUrl) => {
         try {
             const response = await fetch('/api/fetch-channel-details', {
@@ -73,7 +84,23 @@ const ChannelIdFinder = () => {
     };
 
     return (
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
+
+<Head>
+                <title>{meta.title}</title>
+                <meta name="description" content={meta.description} />
+                <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+                <meta property="og:title" content={meta.title} />
+                <meta property="og:description" content={meta.description} />
+                <meta property="og:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta name="twitter:card" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
+                <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+                <meta name="twitter:title" content={meta.title} />
+                <meta name="twitter:description" content={meta.description} />
+                <meta name="twitter:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+            </Head>
+            <ToastContainer/>
             <h1 className="text-3xl font-bold text-center mb-6">YouTube Channel Data Fetcher</h1>
             <div className="max-w-md mx-auto">
                 <div className="input-group mb-4">
@@ -113,7 +140,9 @@ const ChannelIdFinder = () => {
                     </div>
                 </div>
             )}
-            <ToastContainer autoClose={5000} />
+            <div className="content pt-6 pb-5">
+                    <div dangerouslySetInnerHTML={{ __html: content }}></div>
+                </div>
         </div>
     );
 };

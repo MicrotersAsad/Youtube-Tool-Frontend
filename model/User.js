@@ -1,22 +1,15 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
-const UserSchema = new mongoose.Schema({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  hasUnlimitedAccess: {
-    type: Boolean,
-    default: false,
-  },
-  stripeCustomerId: {
-    type: String,
-    required: true,
-  },
-  // Other fields as needed
+const userSchema = new mongoose.Schema({
+  // existing fields
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  // new fields
+  hasUnlimitedAccess: { type: Boolean, default: false },
+  fetchCount: { type: Number, default: 0 },
+  subscriptionExpiryDate: { type: Date, default: null },
 });
 
-const User = mongoose.models.User || mongoose.model('User', UserSchema);
+const User = mongoose.model('User', userSchema);
 
-export default User;
+module.exports = User;

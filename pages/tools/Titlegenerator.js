@@ -23,6 +23,7 @@ const TitleGenerator = () => {
     const [loading, setLoading] = useState([]);
     const [content, setContent] = useState('');
 
+    const [meta,setMeta]=useState('')
     useEffect(() => {
         const fetchContent = async () => {
             try {
@@ -31,6 +32,7 @@ const TitleGenerator = () => {
                     throw new Error('Failed to fetch content');
                 }
                 const data = await response.json();
+                console.log(data);
                 if (data && data.length > 0 && data[0].content) {
                     const sanitizedContent = sanitizeHtml(data[0].content, {
                         allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
@@ -39,6 +41,11 @@ const TitleGenerator = () => {
                         }
                     });
                     setContent(sanitizedContent);
+                    setMeta({
+                        title: data[0].title || 'YouTube Title  Generator',
+                        description: data[0].description || "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
+                        image: data[0].image || 'https://yourwebsite.com/og-image.png'
+                    });
                 } else {
                     toast.error("Content data is invalid");
                 }
@@ -49,7 +56,6 @@ const TitleGenerator = () => {
 
         fetchContent();
     }, []);
-
 
     useEffect(() => {
         if (!isLoggedIn) {
@@ -190,19 +196,24 @@ const TitleGenerator = () => {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
             <Head>
-                <meta property="og:title" content="YouTube Title Generator" />
-                <meta property="og:description" content="Generate SEO-friendly YouTube video Title based on your keyword." />
-                {typeof window !== 'undefined' && (
-                    <meta property="og:url" content={window.location.href} />
-                )}
+                <title>{meta.title}</title>
+                <meta name="description" content={meta.description} />
+                <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+                <meta property="og:title" content={meta.title} />
+                <meta property="og:description" content={meta.description} />
+                <meta property="og:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta name="twitter:card" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
+                <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+                <meta name="twitter:title" content={meta.title} />
+                <meta name="twitter:description" content={meta.description} />
+                <meta name="twitter:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
             </Head>
             <ToastContainer/>
-            <h2 className="text-3xl">YouTube Tag Generator</h2>
+            <h2 className="text-3xl">YouTube Title  Generator</h2>
             <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
                 <div className="flex">
-                    <div className="py-1">
-                        <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
-                    </div>
+                  
                     <div>
                         {isLoggedIn ? (
                             <p className="text-center p-3 alert-warning">
@@ -293,10 +304,11 @@ const TitleGenerator = () => {
                     </button>
                 )}
             </div>
-            <div>
-                <div className="content pt-6 pb-5">
+            <div className="content pt-6 pb-5">
                     <div dangerouslySetInnerHTML={{ __html: content }}></div>
                 </div>
+            <div>
+               
             </div>
             <style jsx>{styles}</style>
         </div>

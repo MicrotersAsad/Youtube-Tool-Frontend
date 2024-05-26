@@ -1,17 +1,19 @@
-import multer from 'multer';
+// middleware/uploadMiddleware.js
 
-const storage = multer.memoryStorage();
+import multer from 'multer';
+import path from 'path';
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public/uploads/'); // Directory to save the uploaded images
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
+
 const upload = multer({ storage });
 
-const uploadMiddleware = (req, res, next) => {
-  upload.single('image')(req, res, (err) => {
-    if (err instanceof multer.MulterError) {
-      return res.status(500).json({ message: 'File upload failed' });
-    } else if (err) {
-      return res.status(500).json({ message: 'An unknown error occurred during file upload' });
-    }
-    next();
-  });
-};
+const uploadMiddleware = upload.single('image');
 
 export default uploadMiddleware;

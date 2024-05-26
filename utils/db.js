@@ -1,18 +1,12 @@
-import { connectToDatabase } from "./mongodb";
+// utils/db.js
+import { connectToDatabase } from './mongodb'; // Ensure you have a function to connect to your MongoDB
 
-
-export const updateUserAccess = async (customerId, hasUnlimitedAccess) => {
+export async function updateUserAccess(customerId, hasAccess) {
   const { db } = await connectToDatabase();
 
-  // Find the user by customer ID (or email, or any other unique identifier)
-  const result = await db.collection('user').updateOne(
-    { stripeCustomerId: customerId }, // Assuming you store the Stripe customer ID in the user document
-    { $set: { hasUnlimitedAccess } }
+  // Assuming your user collection has a field `customerId` to link Stripe customer with your user
+  await db.collection('user').updateOne(
+    { customerId: customerId },
+    { $set: { hasAccess: hasAccess } }
   );
-
-  if (result.matchedCount === 0) {
-    throw new Error('User not found');
-  }
-
-  return result;
-};
+}
