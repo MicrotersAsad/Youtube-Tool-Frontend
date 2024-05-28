@@ -19,7 +19,6 @@ const BlogPost = () => {
   const router = useRouter();
   const { id } = router.query;
   const [blog, setBlog] = useState(null);
-  const [relatedArticles, setRelatedArticles] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -30,8 +29,7 @@ const BlogPost = () => {
           if (response.status === 200) {
             const blogData = response.data;
             setBlog(blogData);
-            console.log(blogData.relatedArticles);
-            setRelatedArticles(blogData.relatedArticles || []);
+            
           } else {
             throw new Error('Failed to fetch the blog post');
           }
@@ -117,27 +115,8 @@ const BlogPost = () => {
         <section>
           <div dangerouslySetInnerHTML={{ __html: blog.content }}></div>
         </section>
-        {relatedArticles.length > 0 && (
-          <section className="mt-10">
-            <h2 className="text-2xl font-bold mb-6">Related Articles</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {relatedArticles.map((article) => (
-                <div key={article._id} className="bg-white shadow-md rounded-lg overflow-hidden">
-                  <Image src={article.image || '/default-image.jpg'} alt={article.Blogtitle} width={400} height={250} className="object-cover" />
-                  <div className="p-6">
-                    <h3 className="text-xl font-semibold mb-2">
-                      <Link href={`/blog/${article._id}`} className="text-blue-500 hover:underline">
-                        {article.Blogtitle}
-                      </Link>
-                    </h3>
-                    <p className="text-gray-600 mb-4">{article.description}</p>
-                    <p className="text-gray-500 text-sm">By {article.author} · {new Date(article.createdAt).toLocaleDateString()}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+       
+            
       </article>
     </div>
   );

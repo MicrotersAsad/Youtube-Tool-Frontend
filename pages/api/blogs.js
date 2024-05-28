@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { connectToDatabase } from '../../utils/mongodb';
 import uploadMiddleware from '../../middleware/uploadMiddleware';
+import path from 'path';
 
 export const config = {
   api: {
@@ -22,13 +23,7 @@ const runMiddleware = (req, res, fn) => {
 
 export default async function handler(req, res) {
   const { method } = req;
-  let db, client;
-  try {
-    ({ db, client } = await connectToDatabase());
-  } catch (error) {
-    console.error('Database connection error:', error);
-    return res.status(500).json({ message: 'Database connection error' });
-  }
+  const { db } = await connectToDatabase();
   const blogs = db.collection('blogs');
 
   switch (method) {
@@ -60,7 +55,6 @@ export default async function handler(req, res) {
 
         res.status(201).json(doc);
       } catch (error) {
-        console.error('POST error:', error);
         res.status(500).json({ message: 'Internal server error' });
       }
       break;
@@ -69,62 +63,36 @@ export default async function handler(req, res) {
       if (req.query.id) {
         try {
           const id = req.query.id;
-          console.log(`Fetching blog post with id: ${id}`); // Debug log
           const query = { _id: new ObjectId(id) };
           const result = await blogs.findOne(query);
-          console.log(`Fetched blog post: ${JSON.stringify(result)}`); // Debug log
 
           if (!result) {
             return res.status(404).send('Resource not found');
           }
 
-          // Ensure categories is an array
-          const categoriesArray = Array.isArray(result.categories) ? result.categories : [result.categories];
-          console.log(`Categories Array: ${JSON.stringify(categoriesArray)}`); // Debug log
-
-          // Fetch related articles by category excluding the current article
-          const relatedArticles = await blogs
-            .find({
-              categories: { $in: categoriesArray },
-              _id: { $ne: new ObjectId(id) }
-            })
-            .limit(3)
-            .toArray();
-          console.log(`Fetched related articles: ${JSON.stringify(relatedArticles)}`); // Debug log
-
-          res.send({ ...result, relatedArticles });
+          res.send(result);
         } catch (error) {
-          console.error('GET by ID error:', error);
           res.status(500).send('Internal server error');
         }
       } else if (req.query.type === 'categories') {
         try {
-          console.log('Fetching categories'); // Debug log
           const categories = await blogs.distinct('categories');
-          console.log(`Fetched categories: ${JSON.stringify(categories)}`); // Debug log
           res.status(200).json(categories);
         } catch (error) {
-          console.error('GET categories error:', error);
           res.status(500).json({ message: 'Internal server error' });
         }
       } else if (req.query.category) {
         try {
-          console.log(`Fetching blogs with category: ${req.query.category}`); // Debug log
           const result = await blogs.find({ categories: req.query.category }).toArray();
-          console.log(`Fetched blogs by category: ${JSON.stringify(result)}`); // Debug log
           res.status(200).json(result);
         } catch (error) {
-          console.error('GET by category error:', error);
           res.status(500).json({ message: 'Internal server error' });
         }
       } else {
         try {
-          console.log('Fetching all blogs'); // Debug log
           const result = await blogs.find({}).toArray();
-          console.log(`Fetched all blogs: ${JSON.stringify(result)}`); // Debug log
           res.status(200).json(result);
         } catch (error) {
-          console.error('GET all error:', error);
           res.status(500).json({ message: 'Internal server error' });
         }
       }
@@ -158,7 +126,6 @@ export default async function handler(req, res) {
           res.status(404).json({ message: 'Data not found' });
         }
       } catch (error) {
-        console.error('PUT error:', error);
         res.status(500).json({ message: 'Internal server error' });
       }
       break;
@@ -174,7 +141,6 @@ export default async function handler(req, res) {
           res.status(404).json({ message: 'Data not found' });
         }
       } catch (error) {
-        console.error('DELETE error:', error);
         res.status(500).json({ message: 'Internal server error' });
       }
       break;
