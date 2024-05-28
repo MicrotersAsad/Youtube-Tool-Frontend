@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-
+import { ClipLoader } from 'react-spinners';
 
 function Search() {
   const router = useRouter();
@@ -31,25 +31,25 @@ function Search() {
   };
 
   return (
-   
-      <div className="container mx-auto px-6 py-8">
-        <h2 className="text-2xl font-semibold mb-4">Search Results for "{query}"</h2>
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <ul>
-            {searchResults.map((result) => (
-              <li key={result.id} className="mb-4">
-                <a href={result.href} className="text-blue-500 hover:underline">
-                  {result.title}
-                </a>
-                <p>{result.description}</p>
-              </li>
-            ))}
-          </ul>
-        )}
+    <div className="container mx-auto px-6 py-8">
+      <h2 className="text-2xl font-semibold mb-4">Search Results for &quot;{query}&quot;</h2>
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+        <ClipLoader size={50} color={"#123abc"} loading={loading} />
       </div>
-   
+      ) : (
+        <ul>
+          {searchResults.map((result) => (
+            <li key={result.id} className="mb-4">
+              <a href={result.href} className="text-blue-500 hover:underline">
+                {result.title}
+              </a>
+              <p>{result.description}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
