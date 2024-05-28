@@ -59,7 +59,7 @@ const BlogPost = () => {
 
   if (!blog) {
     return   <div className="flex justify-center items-center h-64">
-    <ClipLoader size={50} color={"#123abc"} loading={loading} />
+    <ClipLoader size={50} color={"#123abc"} />
   </div>;
   }
 
