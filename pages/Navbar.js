@@ -12,9 +12,9 @@ function classNames(...classes) {
 }
 
 const navigation = [
-  { name: 'Home', href: '/', current: true },
+  { name: 'Home', href: '/', dropdown: false },
   {
-    name: 'Youtube Tools', href: '#', current: false, dropdown: true, children: [
+    name: 'Youtube Tools', href: '#', dropdown: true, children: [
       { name: 'Tag Generator', href: '/tools/tagGenerator' },
       { name: 'Tag Extractor', href: '/tools/tagExtractor' },
       { name: 'Title & Description Generator', href: '/tools/youtube-title-and-description-generator' },
@@ -29,10 +29,10 @@ const navigation = [
       { name: 'Monetization Checker', href: '/tools/monetization-checker' }
     ]
   },
-  { name: 'Pricing', href: '/pricing', current: false },
-  { name: 'Blog', href: '/blog', current: false },
-  { name: 'About Us', href: '/about', current: false },
-  { name: 'Contact Us', href: '/contact', current: false },
+  { name: 'Pricing', href: '/pricing', dropdown: false },
+  { name: 'Blog', href: '/blog', dropdown: false },
+  { name: 'About Us', href: '/about', dropdown: false },
+  { name: 'Contact Us', href: '/contact', dropdown: false },
 ];
 
 function Navbar() {
@@ -82,7 +82,10 @@ function Navbar() {
                       {navigation.map((item) => (
                         item.dropdown ? (
                           <Menu as="div" key={item.name} className="relative">
-                            <Menu.Button className="flex items-center text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                            <Menu.Button className={classNames(
+                              router.pathname.startsWith('/tools') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                              'flex items-center px-3 py-2 rounded-md text-sm font-medium'
+                            )}>
                               {item.name} <ChevronDownIcon className="ml-2 h-5 w-5" aria-hidden="true"/>
                             </Menu.Button>
                             <Transition
@@ -94,7 +97,7 @@ function Navbar() {
                               leaveFrom="opacity-100 translate-y-0"
                               leaveTo="opacity-0 translate-y-1"
                             >
-                              <Menu.Items className="absolute z-10 mt-2 w-80  origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                              <Menu.Items className="absolute z-10 mt-2 w-80 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                                 {item.children.map((subItem) => (
                                   <Menu.Item key={subItem.name}>
                                     {({ active }) => (
@@ -108,8 +111,8 @@ function Navbar() {
                             </Transition>
                           </Menu>
                         ) : (
-                          <Link key={item.name} href={item.href} aria-current={item.current ? 'page' : undefined} className={classNames(
-                            item.current ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                          <Link key={item.name} href={item.href} className={classNames(
+                            router.pathname === item.href ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                             'px-3 py-2 rounded-md text-sm font-medium'
                           )}>
                             {item.name}
@@ -117,8 +120,8 @@ function Navbar() {
                         )
                       ))}
                       {user && (
-                        <Link href="/dashboard/dashboard" aria-current="page" className={classNames(
-                          'text-gray-300 hover:bg-gray-700 hover:text-white',
+                        <Link href="/dashboard/dashboard" className={classNames(
+                          router.pathname === '/dashboard/dashboard' ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                           'px-3 py-2 rounded-md text-sm font-medium'
                         )}>
                           Dashboard
@@ -231,7 +234,7 @@ function Navbar() {
                     </Menu>
                   ) : (
                     <Link key={item.name} href={item.href} className={classNames(
-                      item.current ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                      router.pathname === item.href ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                       'block px-3 py-2 rounded-md text-base font-medium'
                     )}>
                       {item.name}
@@ -239,8 +242,8 @@ function Navbar() {
                   )
                 ))}
                 {user && (
-                  <Link href="/dashboard/dashboard" aria-current="page" className={classNames(
-                    'text-gray-300 hover:bg-gray-700 hover:text-white',
+                  <Link href="/dashboard/dashboard" className={classNames(
+                    router.pathname === '/dashboard/dashboard' ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                     'block px-3 py-2 rounded-md text-base font-medium'
                   )}>
                     Dashboard

@@ -20,6 +20,7 @@ const BlogPost = () => {
   const { id } = router.query;
   const [blog, setBlog] = useState(null);
   const [error, setError] = useState(null);
+  const [toc, setToc] = useState([]);
 
   useEffect(() => {
     if (id) {
@@ -29,7 +30,7 @@ const BlogPost = () => {
           if (response.status === 200) {
             const blogData = response.data;
             setBlog(blogData);
-            
+            generateToc(blogData.content);
           } else {
             throw new Error('Failed to fetch the blog post');
           }
@@ -43,6 +44,23 @@ const BlogPost = () => {
     }
   }, [id]);
 
+  const generateToc = (content) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(content, 'text/html');
+    const headings = Array.from(doc.querySelectorAll('h1, h2'));
+    const tocItems = headings.map((heading) => {
+      if (!heading.id) {
+        heading.id = heading.innerText.replace(/\s+/g, '-').toLowerCase();
+      }
+      return {
+        id: heading.id,
+        text: heading.innerText,
+        level: heading.tagName.toLowerCase(),
+      };
+    });
+    setToc(tocItems);
+  };
+
   const handleCopyLink = () => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(window.location.href).then(() => {
@@ -51,14 +69,21 @@ const BlogPost = () => {
     }
   };
 
+  const handleTocClick = (event, id) => {
+    event.preventDefault();
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   if (error) {
     return <div>{error}</div>;
   }
 
   if (!blog) {
-    return   <div className="flex justify-center items-center h-64">
-    <ClipLoader size={50} color={"#123abc"} />
-  </div>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <ClipLoader size={50} color={"#123abc"} />
+      </div>
+    );
   }
 
   const shareUrl = `https://your-domain.com/blog/${id}`;
@@ -108,15 +133,14 @@ const BlogPost = () => {
               </div>
             </div>
             <div className="col-md-6">
-              <Image width={800} height={560}  src={`data:image/jpeg;base64,${blog.image}`} alt={blog.Blogtitle} />
+              <Image width={800} height={560} src={`data:image/jpeg;base64,${blog.image}`} alt={blog.Blogtitle} />
             </div>
           </div>
         </header>
+        
         <section>
           <div dangerouslySetInnerHTML={{ __html: blog.content }}></div>
         </section>
-       
-            
       </article>
     </div>
   );
