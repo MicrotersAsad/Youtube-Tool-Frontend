@@ -1,19 +1,28 @@
-// middleware/uploadMiddleware.js
-
 import multer from 'multer';
 import path from 'path';
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'public/uploads/'); // Directory to save the uploaded images
+  destination: function (req, file, cb) {
+    cb(null, 'public/uploads');
   },
-  filename: (req, file, cb) => {
+  filename: function (req, file, cb) {
     cb(null, `${Date.now()}-${file.originalname}`);
   },
 });
 
-const upload = multer({ storage });
+const upload = multer({
+  storage: storage,
+  fileFilter: function (req, file, cb) {
+    const fileTypes = /jpeg|jpg|png/;
+    const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = fileTypes.test(file.mimetype);
 
-const uploadMiddleware = upload.single('image');
+    if (extname && mimetype) {
+      return cb(null, true);
+    } else {
+      cb('Error: Images Only!');
+    }
+  },
+});
 
-export default uploadMiddleware;
+export default upload.single('image');

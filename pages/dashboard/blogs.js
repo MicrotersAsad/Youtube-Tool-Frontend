@@ -225,7 +225,7 @@ function Blogs() {
                 onChange={handleImageChange}
                 className="mt-1 block w-full text-gray-700"
               />
-              <p className="text-gray-600 text-xs italic">Recommended dimension: 1200 x 630</p>
+              <p className="text-gray-600 text-xs italic">Recommended dimension: 1200 x 630 & file format jpg/jpeg/png</p>
             </div>
             {error && <div className="text-red-500">Error: {error}</div>}
             <QuillWrapper initialContent={quillContent} onChange={handleQuillChange} />

@@ -1,7 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { connectToDatabase } from '../../utils/mongodb';
 import uploadMiddleware from '../../middleware/uploadMiddleware';
-import path from 'path';
 
 export const config = {
   api: {
@@ -23,7 +22,13 @@ const runMiddleware = (req, res, fn) => {
 
 export default async function handler(req, res) {
   const { method } = req;
-  const { db } = await connectToDatabase();
+  let db, client;
+  try {
+    ({ db, client } = await connectToDatabase());
+  } catch (error) {
+    console.error('Database connection error:', error);
+    return res.status(500).json({ message: 'Database connection error' });
+  }
   const blogs = db.collection('blogs');
 
   switch (method) {
@@ -31,10 +36,10 @@ export default async function handler(req, res) {
       try {
         await runMiddleware(req, res, uploadMiddleware);
 
-        const { content, title, description, Blogtitle, categories } = req.body;
+        const { content, title, description, Blogtitle, categories, author, authorProfile } = req.body;
         const image = req.file ? `/uploads/${req.file.filename}` : null;
 
-        if (!content || !title || !description || !Blogtitle || !categories) {
+        if (!content || !title || !description || !Blogtitle || !categories || !author) {
           return res.status(400).json({ message: 'Invalid request body' });
         }
 
@@ -45,6 +50,9 @@ export default async function handler(req, res) {
           Blogtitle,
           categories: JSON.parse(categories),
           image,
+          author,
+          authorProfile,
+          createdAt: new Date(),
         };
 
         const result = await blogs.insertOne(doc);
@@ -55,6 +63,7 @@ export default async function handler(req, res) {
 
         res.status(201).json(doc);
       } catch (error) {
+        console.error('POST error:', error);
         res.status(500).json({ message: 'Internal server error' });
       }
       break;
@@ -70,8 +79,21 @@ export default async function handler(req, res) {
             return res.status(404).send('Resource not found');
           }
 
-          res.send(result);
+          // Ensure categories is an array
+          const categoriesArray = Array.isArray(result.categories) ? result.categories : [];
+
+          // Fetch related articles by category excluding the current article
+          const relatedArticles = await blogs
+            .find({
+              categories: { $in: categoriesArray },
+              _id: { $ne: new ObjectId(id) }
+            })
+            .limit(3)
+            .toArray();
+
+          res.send({ ...result, relatedArticles });
         } catch (error) {
+          console.error('GET by ID error:', error);
           res.status(500).send('Internal server error');
         }
       } else if (req.query.type === 'categories') {
@@ -79,6 +101,7 @@ export default async function handler(req, res) {
           const categories = await blogs.distinct('categories');
           res.status(200).json(categories);
         } catch (error) {
+          console.error('GET categories error:', error);
           res.status(500).json({ message: 'Internal server error' });
         }
       } else if (req.query.category) {
@@ -86,6 +109,7 @@ export default async function handler(req, res) {
           const result = await blogs.find({ categories: req.query.category }).toArray();
           res.status(200).json(result);
         } catch (error) {
+          console.error('GET by category error:', error);
           res.status(500).json({ message: 'Internal server error' });
         }
       } else {
@@ -93,6 +117,7 @@ export default async function handler(req, res) {
           const result = await blogs.find({}).toArray();
           res.status(200).json(result);
         } catch (error) {
+          console.error('GET all error:', error);
           res.status(500).json({ message: 'Internal server error' });
         }
       }
@@ -126,6 +151,7 @@ export default async function handler(req, res) {
           res.status(404).json({ message: 'Data not found' });
         }
       } catch (error) {
+        console.error('PUT error:', error);
         res.status(500).json({ message: 'Internal server error' });
       }
       break;
@@ -141,6 +167,7 @@ export default async function handler(req, res) {
           res.status(404).json({ message: 'Data not found' });
         }
       } catch (error) {
+        console.error('DELETE error:', error);
         res.status(500).json({ message: 'Internal server error' });
       }
       break;
