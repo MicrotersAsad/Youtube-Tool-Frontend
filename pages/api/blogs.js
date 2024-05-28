@@ -37,7 +37,7 @@ export default async function handler(req, res) {
         await runMiddleware(req, res, uploadMiddleware);
 
         const { content, title, description, Blogtitle, categories, author, authorProfile } = req.body;
-        const image = req.file ? `/uploads/${req.file.filename}` : null;
+        const image = req.file ? req.file.buffer.toString('base64') : null;
 
         if (!content || !title || !description || !Blogtitle || !categories || !author) {
           return res.status(400).json({ message: 'Invalid request body' });
@@ -123,7 +123,7 @@ export default async function handler(req, res) {
         const updatedData = req.body;
 
         if (req.file) {
-          updatedData.image = `/uploads/${req.file.filename}`;
+          updatedData.image = req.file.buffer.toString('base64');
         }
 
         delete updatedData._id;

@@ -3,6 +3,7 @@ import axios from 'axios';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ClipLoader } from 'react-spinners'; // Import ClipLoader from react-spinners
+
 const BlogSection = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,10 +35,31 @@ const BlogSection = () => {
     }
   };
 
+  const getImageUrl = (url) => {
+    console.log(`Original URL: ${url}`); // Debug log
+    if (url) {
+      if (url.startsWith('//')) {
+        const resolvedUrl = `https:${url}`;
+        console.log(`Resolved URL (//): ${resolvedUrl}`); // Debug log
+        return resolvedUrl;
+      }
+      if (!url.startsWith('/') && !url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('data:image')) {
+        const resolvedUrl = `/${url}`;
+        console.log(`Resolved URL (relative): ${resolvedUrl}`); // Debug log
+        return resolvedUrl;
+      }
+      console.log(`Resolved URL: ${url}`); // Debug log
+      return url;
+    }
+    return '/default-image.jpg'; // Default image path
+  };
+
   if (loading) {
-    return <div className="flex justify-center items-center h-64">
-    <ClipLoader size={50} color={"#123abc"} loading={loading} />
-  </div>; // Display loader while fetching data
+    return (
+      <div className="flex justify-center items-center h-64">
+        <ClipLoader size={50} color={"#123abc"} loading={loading} />
+      </div>
+    ); // Display loader while fetching data
   }
 
   if (blogs.length === 0) {
@@ -51,7 +73,12 @@ const BlogSection = () => {
           {blogs.slice(0, 1).map((blog, index) => (
             <div key={index} className="md:col-span-2 lg:col-span-2">
               <div className="bg-white shadow-md rounded-lg overflow-hidden">
-                <Image src={blog.image || '/default-image.jpg'} alt={blog.Blogtitle} width={600} height={400} />
+                <Image
+                  src={getImageUrl(blog.image)}
+                  alt={blog.Blogtitle}
+                  width={600}
+                  height={400}
+                />
                 <div className="p-6">
                   <h3 className="text-3xl font-semibold mb-2">
                     <Link href={`/blog/${blog._id}`} className="text-blue-500 hover:underline">{blog.Blogtitle}</Link>
@@ -70,7 +97,13 @@ const BlogSection = () => {
           <div className="space-y-4 md:col-span-2 lg:col-span-2">
             {blogs.slice(1, 4).map((blog, index) => (
               <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden flex">
-                <Image src={blog.image || '/default-image.jpg'} alt={blog.Blogtitle} width={200} height={100} className="object-cover rounded-lg" />
+                <Image
+                  src={getImageUrl(blog.image)}
+                  alt={blog.Blogtitle}
+                  width={200}
+                  height={100}
+                  className="object-cover rounded-lg"
+                />
                 <div className="p-4">
                   <h4 className="text-lg font-semibold">
                     <Link href={`/blog/${blog._id}`} className="text-blue-500 hover:underline">{blog.Blogtitle}</Link>
@@ -85,6 +118,29 @@ const BlogSection = () => {
               </div>
             ))}
           </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+          {blogs.slice(4).map((blog, index) => (
+            <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
+              <Image
+                src={getImageUrl(blog.image)}
+                alt={blog.Blogtitle}
+                width={600}
+                height={400}
+              />
+              <div className="p-4">
+                <h4 className="text-lg font-semibold">
+                  <Link href={`/blog/${blog._id}`} className="text-blue-500 hover:underline">{blog.Blogtitle}</Link>
+                </h4>
+                <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
+                <div className="mt-2">
+                  {parseCategories(blog.categories).map((category, i) => (
+                    <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

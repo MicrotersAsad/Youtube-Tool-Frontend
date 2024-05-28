@@ -98,11 +98,11 @@ function Blogs() {
     }
   }, [quillContent, selectedCategory, isEditing, title, description, Blogtitle, image, existingContents, user]);
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = async () => {
     try {
       const method = isEditing ? 'PUT' : 'POST';
       const id = isEditing ? existingContents[0]._id : '';
-
+  
       const formData = new FormData();
       formData.append('content', quillContent);
       formData.append('title', title);
@@ -116,17 +116,17 @@ function Blogs() {
       formData.append('authorProfile', user.profileImage);
       formData.append('createdAt', new Date().toISOString());
       formData.append('isDraft', JSON.stringify(false));
-
+  
       const response = await fetch(`/api/blogs${isEditing ? `?id=${id}` : ''}`, {
         method,
         body: formData,
       });
-
+  
       if (!response.ok) {
         const errorMessage = await response.text();
         throw new Error(`Failed to post content: ${errorMessage}`);
       }
-
+  
       setError(null);
       setExistingContents([...existingContents, { content: quillContent, title, description, Blogtitle, categories: [selectedCategory], author: user.username, authorProfile: user.profileImage, createdAt: new Date().toISOString(), isDraft: false }]);
       toast.success('Content uploaded successfully!');
@@ -134,7 +134,8 @@ function Blogs() {
       console.error('Error posting content:', error.message);
       setError(error.message);
     }
-  }, [quillContent, selectedCategory, isEditing, title, description, Blogtitle, image, existingContents, user]);
+  };
+  
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
