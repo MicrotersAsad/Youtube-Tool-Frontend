@@ -1,7 +1,8 @@
-import { Fragment, useEffect } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 import logo from "../public/yt icon.png";
 import Image from 'next/image';
@@ -36,10 +37,21 @@ const navigation = [
 
 function Navbar() {
   const { user, logout } = useAuth();
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     console.log("User object: ", user); // Debugging
   }, [user]);
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    router.push(`/search?query=${searchQuery}`);
+  };
 
   return (
     <>
@@ -116,6 +128,15 @@ function Navbar() {
                   </div>
                 </div>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+                  <form onSubmit={handleSearchSubmit} className="hidden sm:block">
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      className="px-3 py-2 rounded-md bg-gray-700 text-black border-transparent focus:border-gray-500 focus:bg-white focus:ring-0 text-sm"
+                    />
+                  </form>
                   {user ? (
                     <Menu as="div" className="relative ml-3">
                       <div>

@@ -3,10 +3,13 @@ import dynamic from 'next/dynamic';
 import Layout from './layout';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
 
 function Blogs() {
+  const { user } = useAuth();
   const [quillContent, setQuillContent] = useState('');
   const [existingContents, setExistingContents] = useState([]);
   const [error, setError] = useState(null);
@@ -16,9 +19,8 @@ function Blogs() {
   const [Blogtitle, setBlogtitle] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
-  const [isNewCategoryModalOpen, setIsNewCategoryModalOpen] = useState(false);
-  const [newCategory, setNewCategory] = useState('');
   const [categories, setCategories] = useState([]);
+  const [isDraft, setIsDraft] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -32,7 +34,7 @@ function Blogs() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/blogs?type=categories');
+      const response = await fetch('/api/categories');
       if (!response.ok) {
         throw new Error('Failed to fetch categories');
       }
@@ -58,6 +60,44 @@ function Blogs() {
     }
   };
 
+  const saveDraft = useCallback(async () => {
+    try {
+      const method = isEditing ? 'PUT' : 'POST';
+      const id = isEditing ? existingContents[0]._id : '';
+
+      const formData = new FormData();
+      formData.append('content', quillContent);
+      formData.append('title', title);
+      formData.append('description', description);
+      if (image) {
+        formData.append('image', image);
+      }
+      formData.append('Blogtitle', Blogtitle);
+      formData.append('categories', JSON.stringify([selectedCategory]));
+      formData.append('author', user.username);
+      formData.append('authorProfile', user.profileImage);
+      formData.append('createdAt', new Date().toISOString());
+      formData.append('isDraft', JSON.stringify(true));
+
+      const response = await fetch(`/api/blogs${isEditing ? `?id=${id}` : ''}`, {
+        method,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        throw new Error(`Failed to save draft: ${errorMessage}`);
+      }
+
+      setError(null);
+      setExistingContents([...existingContents, { content: quillContent, title, description, Blogtitle, categories: [selectedCategory], author: user.username, authorProfile: user.profileImage, createdAt: new Date().toISOString(), isDraft: true }]);
+      toast.success('Draft saved successfully!');
+    } catch (error) {
+      console.error('Error saving draft:', error.message);
+      setError(error.message);
+    }
+  }, [quillContent, selectedCategory, isEditing, title, description, Blogtitle, image, existingContents, user]);
+
   const handleSubmit = useCallback(async () => {
     try {
       const method = isEditing ? 'PUT' : 'POST';
@@ -72,8 +112,12 @@ function Blogs() {
       }
       formData.append('Blogtitle', Blogtitle);
       formData.append('categories', JSON.stringify([selectedCategory]));
+      formData.append('author', user.username);
+      formData.append('authorProfile', user.profileImage);
+      formData.append('createdAt', new Date().toISOString());
+      formData.append('isDraft', JSON.stringify(false));
 
-      const response = await fetch(`/api/blogs?category=${selectedCategory}${isEditing ? `&id=${id}` : ''}`, {
+      const response = await fetch(`/api/blogs${isEditing ? `?id=${id}` : ''}`, {
         method,
         body: formData,
       });
@@ -84,50 +128,31 @@ function Blogs() {
       }
 
       setError(null);
-      setExistingContents([...existingContents, { content: quillContent, title, description, Blogtitle, categories: [selectedCategory] }]);
+      setExistingContents([...existingContents, { content: quillContent, title, description, Blogtitle, categories: [selectedCategory], author: user.username, authorProfile: user.profileImage, createdAt: new Date().toISOString(), isDraft: false }]);
       toast.success('Content uploaded successfully!');
     } catch (error) {
       console.error('Error posting content:', error.message);
       setError(error.message);
     }
-  }, [quillContent, selectedCategory, isEditing, title, description, Blogtitle, image, existingContents]);
+  }, [quillContent, selectedCategory, isEditing, title, description, Blogtitle, image, existingContents, user]);
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
   }, []);
 
   const handleCategoryChange = (e) => {
-    const value = e.target.value;
-    if (value === 'newCategory') {
-      setIsNewCategoryModalOpen(true);
-    } else {
-      setSelectedCategory(value);
-    }
+    setSelectedCategory(e.target.value);
   };
 
   const handleImageChange = (e) => {
     setImage(e.target.files[0]);
   };
 
-  const openNewCategoryModal = () => {
-    setIsNewCategoryModalOpen(true);
-  };
-
-  const closeNewCategoryModal = () => {
-    setIsNewCategoryModalOpen(false);
-  };
-
-  const handleSaveNewCategory = () => {
-    if (newCategory && !categories.includes(newCategory)) {
-      setCategories([...categories, newCategory]);
-      setSelectedCategory(newCategory);
-      setNewCategory('');
-      closeNewCategoryModal();
+  const handleDraftChange = (e) => {
+    setIsDraft(e.target.checked);
+    if (e.target.checked) {
+      saveDraft();
     }
-  };
-
-  const handleChange = (e) => {
-    setNewCategory(e.target.value);
   };
 
   return (
@@ -144,36 +169,15 @@ function Blogs() {
               className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-2 px-4 text-sm leading-tight focus:outline-none focus:border-blue-500"
             >
               <option value="" disabled>Select a category</option>
-              {categories.map((category, index) => (
-                <option key={index} value={category}>{category}</option>
+              {categories.map((category) => (
+                <option key={category._id} value={category.name}>{category.name}</option>
               ))}
-              <option value="newCategory">Add New Category</option>
             </select>
           </div>
-          <button onClick={openNewCategoryModal} className="ml-2 btn btn-primary">Add New Category</button>
+          <Link href="/categories">
+            <button className="ml-2 btn btn-primary">Manage Categories</button>
+          </Link>
         </div>
-        
-        {isNewCategoryModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-smoke-light">
-            <div className="bg-white p-6 rounded-lg shadow-lg">
-              <h2 className="text-lg font-semibold mb-4">Add New Category</h2>
-              <div className="mb-4">
-                <label htmlFor="newCategory" className="block text-sm font-medium text-gray-700">New Category:</label>
-                <input
-                  type="text"
-                  id="newCategory"
-                  value={newCategory}
-                  onChange={handleChange}
-                  className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-300 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
-                />
-              </div>
-              <div className="flex justify-end">
-                <button onClick={handleSaveNewCategory} className="btn btn-primary mr-2">Save</button>
-                <button onClick={closeNewCategoryModal} className="btn btn-secondary">Cancel</button>
-              </div>
-            </div>
-          </div>
-        )}
         
         {selectedCategory && (
           <>
@@ -202,7 +206,7 @@ function Blogs() {
             </div>
             <div className="flex flex-wrap -mx-3 mb-6">
               <div className="w-full px-3">
-                <label htmlFor="title" className="block text-sm font-medium">Blog Title:</label>
+                <label htmlFor="Blogtitle" className="block text-sm font-medium">Blog Title:</label>
                 <input 
                   className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-300 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
                   id="Blogtitle"
@@ -225,8 +229,19 @@ function Blogs() {
             </div>
             {error && <div className="text-red-500">Error: {error}</div>}
             <QuillWrapper initialContent={quillContent} onChange={handleQuillChange} />
-            <button className='btn btn-primary p-2 mt-3' onClick={handleSubmit}>Submit Content</button>
-            
+            <div className="flex items-center mb-4">
+              <input
+                type="checkbox"
+                id="isDraft"
+                checked={isDraft}
+                onChange={handleDraftChange}
+                className="mr-2"
+              />
+              <label htmlFor="isDraft" className="text-sm font-medium">Save as Draft</label>
+            </div>
+            {!isDraft && (
+              <button className='btn btn-primary p-2 mt-3' onClick={handleSubmit}>Submit Content</button>
+            )}
           </>
         )}
       </div>

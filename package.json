@@ -58,6 +58,7 @@
     "react-icons": "^5.2.1",
     "react-modal": "^3.16.1",
     "react-quill": "^2.0.0",
+    "react-share": "^5.1.0",
     "react-simple-code-editor": "^0.13.1",
     "react-slick": "^0.29.0",
     "react-spinners": "^0.13.8",
