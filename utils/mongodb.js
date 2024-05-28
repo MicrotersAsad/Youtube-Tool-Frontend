@@ -27,7 +27,7 @@ if (process.env.NODE_ENV === 'development') {
   clientPromise = client.connect();
 }
 
-export default async function connectToDatabase() {
+export async function connectToDatabase() {
   if (!clientPromise) {
     client = new MongoClient(uri, {
       useNewUrlParser: true,
