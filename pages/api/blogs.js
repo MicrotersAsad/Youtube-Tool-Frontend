@@ -79,19 +79,7 @@ export default async function handler(req, res) {
             return res.status(404).send('Resource not found');
           }
 
-          // Ensure categories is an array
-          const categoriesArray = Array.isArray(result.categories) ? result.categories : [];
-
-          // Fetch related articles by category excluding the current article
-          const relatedArticles = await blogs
-            .find({
-              categories: { $in: categoriesArray },
-              _id: { $ne: new ObjectId(id) }
-            })
-            .limit(3)
-            .toArray();
-
-          res.send({ ...result, relatedArticles });
+          res.send(result);
         } catch (error) {
           console.error('GET by ID error:', error);
           res.status(500).send('Internal server error');

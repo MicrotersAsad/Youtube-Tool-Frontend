@@ -4,7 +4,7 @@ import path from 'path';
 // Define storage for the images
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'public/uploads'); // specify the destination directory
+    cb(null, path.join(process.cwd(), 'public/uploads'));
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);
