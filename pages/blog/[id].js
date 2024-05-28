@@ -71,13 +71,13 @@ const BlogPost = () => {
         <meta property="og:url" content={shareUrl} />
         <meta property="og:title" content={blog.Blogtitle} />
         <meta property="og:description" content={blog.description} />
-        <meta property="og:image" content={blog.image} />
-        <meta name="twitter:card" content="summary_large_image" />
+        <meta property="og:image" content={`data:image/jpeg;base64,${blog.image}`} />
+        <meta name="twitter:card" content={`data:image/jpeg;base64,${blog.image}`} />
         <meta property="twitter:domain" content="your-domain.com" />
         <meta property="twitter:url" content={shareUrl} />
         <meta name="twitter:title" content={blog.Blogtitle} />
         <meta name="twitter:description" content={blog.description} />
-        <meta name="twitter:image" content={blog.image} />
+        <meta name="twitter:image" content={`data:image/jpeg;base64,${blog.image}`} />
       </Head>
       <Breadcrumb blogTitle={blog.Blogtitle} />
       <article>
@@ -108,7 +108,7 @@ const BlogPost = () => {
               </div>
             </div>
             <div className="col-md-6">
-              <Image width={800} height={560} src={blog?.image} alt={blog.Blogtitle} />
+              <Image width={800} height={560}  src={`data:image/jpeg;base64,${blog.image}`} alt={blog.Blogtitle} />
             </div>
           </div>
         </header>
