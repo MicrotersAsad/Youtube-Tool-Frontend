@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Layout from './layout';
-import ProtectedRoute from '../ProtectedRoute';
 import { useAuth } from '../../contexts/AuthContext';
 import ChartComponent from './ChartComponent';
 
@@ -42,7 +41,7 @@ const Dashboard = () => {
   };
 
   return (
-    <ProtectedRoute>
+
       <Layout>
         <h1 className="text-2xl font-bold">Hi, {user?.username}</h1>
         <div className="mt-4">
@@ -60,7 +59,7 @@ const Dashboard = () => {
           <ChartComponent data={chartData} labels={labels} />
         </div>
       </Layout>
-    </ProtectedRoute>
+ 
   );
 };
 
