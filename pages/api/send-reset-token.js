@@ -37,7 +37,7 @@ export default async function handler(req, res) {
       },
     });
 
-    const resetLink = `reset-password?token=${token}`;
+    const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
     const mailOptions = {
       to: email,
       from: process.env.NEXT_PUBLIC_EMAIL_USER,

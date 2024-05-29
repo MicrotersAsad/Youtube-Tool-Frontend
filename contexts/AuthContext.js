@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import jwt from 'jsonwebtoken';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -46,8 +47,23 @@ export const AuthProvider = ({ children }) => {
     router.push('/login');
   };
 
+  const updateUserProfile = async (formData) => {
+    try {
+      const response = await axios.post('/api/edit-profile', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      setUser(response.data.user);
+      return response.data.user;
+    } catch (error) {
+      console.error('Failed to update profile:', error.response ? error.response.data : error.message);
+      throw new Error('Failed to update profile');
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUserProfile }}>
       {children}
     </AuthContext.Provider>
   );

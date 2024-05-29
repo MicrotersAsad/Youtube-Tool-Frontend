@@ -3,10 +3,7 @@ import { ObjectId } from 'mongodb';
 import multer from 'multer';
 
 const storage = multer.memoryStorage();
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 100 * 1024 } // Set maximum file size to 100 KB
-});
+const upload = multer({ storage: storage });
 
 export const config = {
   api: {
@@ -52,7 +49,7 @@ export default async function handler(req, res) {
       }
     });
   } catch (error) {
-    // console.error('Profile update error:', error);
+    console.error('Profile update error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 }

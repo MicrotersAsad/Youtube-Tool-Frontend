@@ -69,7 +69,7 @@ const Layout = ({ children }) => {
               <FaTachometerAlt className="mr-3" /> <span className="mx-3">Dashboard</span>
             </p>
           </Link>
-          {user && user.role === 'admin' && (
+           {user && (user.role === 'admin') && (
             <Link href="/dashboard/users" passHref>
               <p
                 className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
@@ -82,7 +82,7 @@ const Layout = ({ children }) => {
               </p>
             </Link>
           )}
-          {user && user.role === 'admin' && (
+          {user && (user.role === 'admin' || user.role === 'moderator') && (
             <div>
               <div
                 onClick={toggleContentManagement}
@@ -134,7 +134,7 @@ const Layout = ({ children }) => {
               )}
             </div>
           )}
-          {user && user.role === 'admin' && (
+           {user && (user.role === 'admin' || user.role === 'moderator') && (
             <Link href="/dashboard/about" passHref>
               <p
                 className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
@@ -147,7 +147,7 @@ const Layout = ({ children }) => {
               </p>
             </Link>
           )}
-          {user && user.role === 'admin' && (
+           {user && (user.role === 'admin' || user.role === 'moderator') && (
             <Link href="/dashboard/privacy" passHref>
               <p
                 className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
@@ -160,7 +160,7 @@ const Layout = ({ children }) => {
               </p>
             </Link>
           )}
-          {user && user.role === 'admin' && (
+           {user && (user.role === 'admin' || user.role === 'moderator') && (
             <Link href="/dashboard/terms" passHref>
               <p
                 className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
@@ -170,6 +170,19 @@ const Layout = ({ children }) => {
                 }`}
               >
                 <FaFileAlt className="mr-3" /> <span className="mx-3">Terms of Service</span>
+              </p>
+            </Link>
+          )}
+           {user && (user.role === 'admin' || user.role === 'moderator') && (
+            <Link href="/dashboard/content" passHref>
+              <p
+                className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
+                  isActiveRoute('/dashboard/content')
+                    ? 'bg-gray-300 text-gray-700'
+                    : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
+                }`}
+              >
+                <FaFileAlt className="mr-3" /> <span className="mx-3">Content</span>
               </p>
             </Link>
           )}

@@ -3,8 +3,12 @@ import { FaEnvelope, FaEye, FaEyeSlash, FaImage, FaKey, FaUser } from "react-ico
 import Image from "next/image";
 import signup from "../public/singup.svg";
 import Link from "next/link";
+import { useRouter } from "next/router";
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 function Register() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -55,8 +59,7 @@ function Register() {
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file && file.size > 100 * 1024) {
-      alert("Profile image size should be less than 100 KB");
-      // Reset the file input value
+      toast.error("Profile image size should be less than 100 KB");
       event.target.value = "";
       return;
     }
@@ -69,7 +72,7 @@ function Register() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
+      toast.error("Passwords do not match!");
       return;
     }
 
@@ -95,10 +98,11 @@ function Register() {
       }
       const result = await response.json();
       console.log(result);
-      alert("Registration successful! Please check your email to verify.");
+      toast.success("Registration successful! Please check your email to verify.");
       setShowVerification(true);
     } catch (error) {
       console.error("Registration failed:", error);
+      toast.error(error.message || "Registration failed");
       setError(error.message || "Registration failed");
     }
   };
@@ -106,7 +110,7 @@ function Register() {
   const handleVerification = async (event) => {
     event.preventDefault();
     if (!verificationCode.trim()) {
-      alert("Please enter the verification code.");
+      toast.error("Please enter the verification code.");
       return;
     }
 
@@ -122,21 +126,25 @@ function Register() {
       const data = await response.json();
       if (response.ok) {
         console.log("Verification successful:", data);
-        alert("Email verified successfully!");
+        toast.success("Email verified successfully!");
         setShowVerification(false);
         setSuccess("Email verified successfully! You can now login.");
-        router.push("/login"); // Navigate to the login page
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000);
       } else {
         throw new Error(data.message || "Failed to verify email");
       }
     } catch (error) {
       console.error("Verification failed:", error);
+      toast.error(error.message || "Verification failed");
       setError(error.message || "Verification failed");
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 pt-5 pb-5">
+      <ToastContainer />
       <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-4xl">
         {/* Illustration Section */}
         <div className="hidden md:block md:w-1/2">
