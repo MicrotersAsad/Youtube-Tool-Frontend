@@ -4,9 +4,31 @@ import Head from 'next/head'
 import Navbar from './Navbar'
 import { AuthProvider } from '../contexts/AuthContext'
 import Footer from './Footer'
-import 'react-toastify/dist/ReactToastify.css';
+import 'react-toastify/dist/ReactToastify.css'
+import { useEffect, useState } from 'react'
 
 function MyApp({ Component, pageProps }) {
+  const [showButton, setShowButton] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowButton(true);
+      } else {
+        setShowButton(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <>
       <div className=''>
@@ -29,9 +51,34 @@ function MyApp({ Component, pageProps }) {
           <Component {...pageProps} />
           <Footer />
         </AuthProvider>
+
+        {showButton && (
+          <button
+            onClick={scrollToTop}
+            style={{
+              position: 'fixed',
+              bottom: '50px',
+              right: '50px',
+              width: '50px',
+              height: '50px',
+              backgroundColor: 'red',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '50%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              fontSize: '20px',
+              cursor: 'pointer',
+              boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+            }}
+          >
+            ↑
+          </button>
+        )}
       </div>
     </>
   );
 }
 
-export default MyApp
+export default MyApp;
