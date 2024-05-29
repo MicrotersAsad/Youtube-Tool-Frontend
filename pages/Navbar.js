@@ -6,6 +6,9 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 import logo from "../public/yt icon.png";
 import Image from 'next/image';
+import {
+  FaTags, FaSearch, FaPenAlt, FaFileAlt, FaImage, FaHashtag, FaCode, FaFlag, FaIdCard, FaVideo, FaDollarSign
+} from 'react-icons/fa';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -15,18 +18,18 @@ const navigation = [
   { name: 'Home', href: '/', dropdown: false },
   {
     name: 'Youtube Tools', href: '#', dropdown: true, children: [
-      { name: 'Tag Generator', href: '/tools/tagGenerator' },
-      { name: 'Tag Extractor', href: '/tools/tagExtractor' },
-      { name: 'Title & Description Generator', href: '/tools/youtube-title-and-description-generator' },
-      { name: 'Title & Description Extractor', href: '/tools/youtube-title-and-description-extractor' },
-      { name: 'Youtube Thumbnails Generator', href: '/tools/youtube-thumbnail' },
-      { name: 'YouTube Hashtag Generator', href: '/tools/YouTube-Hashtag-Generator' },
-      { name: 'YouTube Embed Code Generator', href: '/tools/YouTube-Embed-Code-Generator' },
-      { name: 'YouTube Channel Banner Downloader', href: '/tools/YouTube-Channel-Banner-Downloader' },
-      { name: 'YouTube Channel Logo Downloader', href: '/tools/YouTube-Channel-Logo-Downloader' },
-      { name: 'Channel Id Finder', href: '/tools/channel-id-finder' },
-      { name: 'Video data viewer', href: '/tools/video-data-viewer' },
-      { name: 'Monetization Checker', href: '/tools/monetization-checker' }
+      { name: 'Tag Generator', href: '/tools/tagGenerator', icon: <FaTags /> },
+      { name: 'Tag Extractor', href: '/tools/tagExtractor', icon: <FaSearch /> },
+      { name: 'Title & Description Generator', href: '/tools/youtube-title-and-description-generator', icon: <FaPenAlt /> },
+      { name: 'Title & Description Extractor', href: '/tools/youtube-title-and-description-extractor', icon: <FaFileAlt /> },
+      { name: 'Youtube Thumbnails Generator', href: '/tools/youtube-thumbnail', icon: <FaImage /> },
+      { name: 'YouTube Hashtag Generator', href: '/tools/YouTube-Hashtag-Generator', icon: <FaHashtag /> },
+      { name: 'YouTube Embed Code Generator', href: '/tools/YouTube-Embed-Code-Generator', icon: <FaCode /> },
+      { name: 'YouTube Channel Banner Downloader', href: '/tools/YouTube-Channel-Banner-Downloader', icon: <FaFlag /> },
+      { name: 'YouTube Channel Logo Downloader', href: '/tools/YouTube-Channel-Logo-Downloader', icon: <FaIdCard /> },
+      { name: 'Channel Id Finder', href: '/tools/channel-id-finder', icon: <FaIdCard /> },
+      { name: 'Video data viewer', href: '/tools/video-data-viewer', icon: <FaVideo /> },
+      { name: 'Monetization Checker', href: '/tools/monetization-checker', icon: <FaDollarSign /> }
     ]
   },
   { name: 'Pricing', href: '/pricing', dropdown: false },
@@ -61,7 +64,7 @@ function Navbar() {
             <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
               <div className="relative flex h-16 items-center justify-between">
                 <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
-                  <Disclosure.Button className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                  <Disclosure.Button className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-red-500 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
                     <span className="sr-only">Open main menu</span>
                     {open ? <XMarkIcon className="block h-6 w-6" aria-hidden="true" /> : <Bars3Icon className="block h-6 w-6" aria-hidden="true" />}
                   </Disclosure.Button>
@@ -83,7 +86,7 @@ function Navbar() {
                         item.dropdown ? (
                           <Menu as="div" key={item.name} className="relative">
                             <Menu.Button className={classNames(
-                              router.pathname.startsWith('/tools') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                              router.pathname.startsWith('/tools') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:text-red-500 hover:bg-gray-700',
                               'flex items-center px-3 py-2 rounded-md text-sm font-medium'
                             )}>
                               {item.name} <ChevronDownIcon className="ml-2 h-5 w-5" aria-hidden="true"/>
@@ -101,8 +104,11 @@ function Navbar() {
                                 {item.children.map((subItem) => (
                                   <Menu.Item key={subItem.name}>
                                     {({ active }) => (
-                                      <Link href={subItem.href} className={classNames(active ? 'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700 border')}>
-                                        {subItem.name}
+                                      <Link href={subItem.href} className={classNames(active ? 'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700 border hover:text-red-500')}>
+                                        <span className="flex items-center">
+                                          {subItem.icon}
+                                          <span className="ml-2">{subItem.name}</span>
+                                        </span>
                                       </Link>
                                     )}
                                   </Menu.Item>
@@ -112,7 +118,7 @@ function Navbar() {
                           </Menu>
                         ) : (
                           <Link key={item.name} href={item.href} className={classNames(
-                            router.pathname === item.href ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                            router.pathname === item.href ? 'bg-gray-700 text-white' : 'text-gray-300 hover:text-red-500 hover:bg-gray-700',
                             'px-3 py-2 rounded-md text-sm font-medium'
                           )}>
                             {item.name}
@@ -121,7 +127,7 @@ function Navbar() {
                       ))}
                       {user && (
                         <Link href="/dashboard/dashboard" className={classNames(
-                          router.pathname === '/dashboard/dashboard' ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                          router.pathname === '/dashboard/dashboard' ? 'bg-gray-700 text-white' : 'text-gray-300 hover:text-red-500 hover:bg-gray-700',
                           'px-3 py-2 rounded-md text-sm font-medium'
                         )}>
                           Dashboard
@@ -194,7 +200,7 @@ function Navbar() {
                     </Menu>
                   ) : (
                     <Link href="/login">
-                      <button className="text-gray-300 bg-red-700 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                      <button className="text-gray-300 bg-red-700 hover:text-red-500 hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium">
                         Login
                       </button>
                     </Link>
@@ -207,7 +213,7 @@ function Navbar() {
                 {navigation.map((item) => (
                   item.dropdown ? (
                     <Menu as="div" key={item.name} className="px-2 py-3 space-y-1">
-                      <Menu.Button className="w-full text-left flex items-center text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-base font-medium">
+                      <Menu.Button className="w-full text-left flex items-center text-gray-300 hover:text-red-500 hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium">
                         {item.name} <ChevronDownIcon className="ml-auto h-5 w-5" aria-hidden="true"/>
                       </Menu.Button>
                       <Transition
@@ -223,8 +229,11 @@ function Navbar() {
                           {item.children.map((subItem) => (
                             <Menu.Item key={subItem.name}>
                               {({ active }) => (
-                                <Link href={subItem.href} className={classNames(active ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white')}>
-                                  {subItem.name}
+                                <Link href={subItem.href} className={classNames(active ? 'text-gray-300 hover:text-red-500 hover:bg-gray-700' : 'text-gray-300 hover:text-red-500 hover:bg-gray-700')}>
+                                  <span className="flex items-center">
+                                    {subItem.icon}
+                                    <span className="ml-2">{subItem.name}</span>
+                                  </span>
                                 </Link>
                               )}
                             </Menu.Item>
@@ -234,7 +243,7 @@ function Navbar() {
                     </Menu>
                   ) : (
                     <Link key={item.name} href={item.href} className={classNames(
-                      router.pathname === item.href ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                      router.pathname === item.href ? 'bg-gray-700 text-white' : 'text-gray-300 hover:text-red-500 hover:bg-gray-700',
                       'block px-3 py-2 rounded-md text-base font-medium'
                     )}>
                       {item.name}
@@ -243,7 +252,7 @@ function Navbar() {
                 ))}
                 {user && (
                   <Link href="/dashboard/dashboard" className={classNames(
-                    router.pathname === '/dashboard/dashboard' ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                    router.pathname === '/dashboard/dashboard' ? 'bg-gray-700 text-white' : 'text-gray-300 hover:text-red-500 hover:bg-gray-700',
                     'block px-3 py-2 rounded-md text-base font-medium'
                   )}>
                     Dashboard

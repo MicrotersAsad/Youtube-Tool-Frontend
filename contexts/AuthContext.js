@@ -49,16 +49,17 @@ export const AuthProvider = ({ children }) => {
 
   const updateUserProfile = async (formData) => {
     try {
-      const response = await axios.post('/api/edit-profile', formData, {
+      const token = localStorage.getItem('token');
+      const response = await axios.patch('/pages/api/users', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`,
         },
       });
-      setUser(response.data.user);
-      return response.data.user;
+      setUser(response.data); // Update the user state with the new profile data
     } catch (error) {
-      console.error('Failed to update profile:', error.response ? error.response.data : error.message);
-      throw new Error('Failed to update profile');
+      console.error('Failed to update profile:', error);
+      throw new Error(error.response?.data?.message || 'Failed to update profile');
     }
   };
 
