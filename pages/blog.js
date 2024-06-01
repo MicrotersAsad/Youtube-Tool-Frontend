@@ -286,18 +286,18 @@ const BlogSection = () => {
           ))}
         </div>
         <div className="flex justify-center mt-6">
-          <ul className="inline-flex items-center -space-x-px">
+          <div className="inline-flex items-center -space-x-px">
             {Array.from({ length: totalPages }, (_, index) => (
-              <li key={index}>
+              <span key={index}>
                 <button
                   onClick={() => paginate(index + 1)}
                   className={`px-3 py-2 ml-0 leading-tight ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white border border-gray-300 text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
                 >
                   {index + 1}
                 </button>
-              </li>
+              </span>
             ))}
-          </ul>
+          </div>
         </div>
       </div>
     </div>

@@ -206,7 +206,7 @@ const BlogPost = () => {
                 <h1 className="text-6xl font-bold mb-2 mt-5">{blog?.Blogtitle}</h1>
                 <div className="text-gray-500 mb-4 mt-4">
                   <span>By {blog.author} | </span>
-                  <span>{new Date(blog.createdAt).toLocaleDateString()}</span>
+                  <span>Published:{new Date(blog.createdAt).toLocaleDateString()}</span>
                   <div className="flex space-x-4 mt-8">
                     <FacebookShareButton url={shareUrl} quote={blog.Blogtitle}>
                       <FacebookIcon size={32} round />
