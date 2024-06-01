@@ -19,13 +19,14 @@ const QuillWrapper = ({ initialContent, onChange }) => {
 
   const modules = {
     toolbar: [
-      [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+      [{ 'header': '1' }, { 'header': '2' },{ 'header': [3, 4, 5, 6] }, { 'font': [] }],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       ['bold', 'italic', 'underline', 'strike', 'blockquote'],
       [{ 'code-block': 'code' }],
       ['link', 'image', 'video'],
       [{ 'align': [] }],
       ['clean']
+      ['table'] 
     ],
   };
 

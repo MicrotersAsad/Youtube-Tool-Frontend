@@ -30,7 +30,7 @@ const Footer = () => {
             </div>
             {/* <!-- Support Column --> */}
             <div>
-              <h5 className="text-sm font-semibold uppercase">
+              <h5 className="text-sm font-semibold uppercase text-white">
                 Help & Support
               </h5>
               <ul className="mt-4 space-y-2">
@@ -68,7 +68,7 @@ const Footer = () => {
             </div>
             {/* <!-- Company Column --> */}
             <div>
-              <h5 className="text-sm font-semibold uppercase">Our Tools</h5>
+              <h5 className="text-sm font-semibold uppercase text-white">Our Tools</h5>
               <ul className="mt-4 space-y-2">
                 <li>
                   <Link href="#" className="text-gray-300 hover:text-white">
@@ -115,10 +115,10 @@ const Footer = () => {
             
             {/* <!-- Newsletter Column --> */}
             <div className="sm:col-span-2 md:col-span-4 lg:col-span-1">
-              <h5 className="text-sm font-semibold uppercase">
+              <h5 className="text-sm font-semibold uppercase text-white">
               Contact
               </h5>
-              <h6 className="mt-2 text-white-400 fw-bold">
+              <h6 className="mt-2 text-white-400 fw-bold text-white">
                 USA: <span className="text-gray-400 ">30 N Gould St Ste R Sheridan WY 82801,United States</span>
 
               </h6>

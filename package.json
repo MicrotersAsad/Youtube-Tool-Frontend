@@ -49,6 +49,8 @@
     "path": "^0.12.7",
     "prismjs": "^1.29.0",
     "quill": "^2.0.2",
+    "quill-better-table": "^1.2.10",
+    "quill-table": "^1.0.0",
     "raw-body": "^2.5.2",
     "react": "18.2.0",
     "react-beautiful-dnd": "^13.1.1",

@@ -14,35 +14,55 @@ import {
   LinkedinIcon,
 } from 'react-share';
 import { ClipLoader } from 'react-spinners';
+import { useAuth } from '../../contexts/AuthContext';
 
 const BlogPost = () => {
   const router = useRouter();
   const { id } = router.query;
+  const { user } = useAuth();
   const [blog, setBlog] = useState(null);
   const [error, setError] = useState(null);
   const [toc, setToc] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
+  const [replyComment, setReplyComment] = useState('');
+  const [replyTo, setReplyTo] = useState(null);
 
   useEffect(() => {
     if (id) {
-      const fetchBlog = async () => {
-        try {
-          const response = await axios.get(`/api/blogs?id=${id}`);
-          if (response.status === 200) {
-            const blogData = response.data;
-            setBlog(blogData);
-            generateToc(blogData.content);
-          } else {
-            throw new Error('Failed to fetch the blog post');
-          }
-        } catch (error) {
-          console.error('Error fetching blog post:', error);
-          setError('Error fetching blog post');
-        }
-      };
-
       fetchBlog();
+      fetchComments();
     }
   }, [id]);
+
+  const fetchBlog = async () => {
+    try {
+      const response = await axios.get(`/api/blogs?id=${id}`);
+      if (response.status === 200) {
+        const blogData = response.data;
+        setBlog(blogData);
+        generateToc(blogData.content);
+      } else {
+        throw new Error('Failed to fetch the blog post');
+      }
+    } catch (error) {
+      console.error('Error fetching blog post:', error);
+      setError('Error fetching blog post');
+    }
+  };
+
+  const fetchComments = async () => {
+    try {
+      const response = await axios.get(`/api/comments/${id}`);
+      if (response.status === 200) {
+        setComments(response.data);
+      } else {
+        throw new Error('Failed to fetch comments');
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
+  };
 
   const generateToc = (content) => {
     const parser = new DOMParser();
@@ -61,6 +81,89 @@ const BlogPost = () => {
       navigator.clipboard.writeText(window.location.href).then(() => {
         alert('Link copied to clipboard');
       });
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+
+    if (!user) {
+      alert('You must be logged in to add a comment.');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      console.log('Token:', token);
+
+      if (!token) {
+        throw new Error('No token found');
+      }
+
+      const headers = { Authorization: `Bearer ${token}` };
+      console.log('Headers:', headers);
+
+      const response = await axios.post(
+        `/api/comments/${id}`,
+        { content: newComment, parentId: null },
+        { headers }
+      );
+
+      if (response.status === 201) {
+        setComments([...comments, response.data]);
+        setNewComment('');
+      } else {
+        throw new Error('Failed to add comment');
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      if (error.response) {
+        console.error('Response:', error.response);
+      }
+    }
+  };
+
+  const handleReplyToComment = (commentId) => {
+    setReplyTo(commentId);
+  };
+
+  const handleAddReply = async (parentId) => {
+    if (!replyComment.trim()) return;
+
+    if (!user) {
+      alert('You must be logged in to reply.');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      console.log('Token:', token);
+
+      if (!token) {
+        throw new Error('No token found');
+      }
+
+      const headers = { Authorization: `Bearer ${token}` };
+      console.log('Headers:', headers);
+
+      const response = await axios.post(
+        `/api/comments/${id}`,
+        { content: replyComment, parentId },
+        { headers }
+      );
+
+      if (response.status === 201) {
+        setComments([...comments, response.data]);
+        setReplyComment('');
+        setReplyTo(null);
+      } else {
+        throw new Error('Failed to add reply');
+      }
+    } catch (error) {
+      console.error('Error adding reply:', error);
+      if (error.response) {
+        console.error('Response:', error.response);
+      }
     }
   };
 
@@ -128,20 +231,97 @@ const BlogPost = () => {
               </div>
             </div>
           </header>
-          <aside>
-            <nav className="toc">
-              <h2 className="text-xl font-bold mb-4">Table of Contents</h2>
-              <ul className="space-y-2">
-                {toc.map((item, index) => (
-                  <li key={index} className={`ml-${item.level === 'h2' ? '4' : '0'}`}>
-                    <a href={`#${item.id}`} className="text-blue-500 hover:underline">{item.text}</a>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </aside>
-          <section>
+          
+          <section className="flex justify-center items-center p-20">
             <div dangerouslySetInnerHTML={{ __html: blog.content }}></div>
+          </section>
+          <section className="comments mt-12">
+            <h2 className="text-2xl font-bold mb-4">Comments</h2>
+            {comments.map((comment) => (
+              <div key={comment._id} className="mb-6">
+                <div className="flex items-start mb-2">
+                  <div className="flex-shrink-0 mr-3">
+                    <Image
+                      width={50}
+                      height={50}
+                      src={`data:image/jpeg;base64,${comment.authorProfile}`}
+                      alt={comment.author}
+                      className="w-10 h-10 rounded-full"
+                    />
+                  </div>
+                  <div className="flex-grow">
+                    <div className="bg-gray-100 p-4 rounded-lg">
+                      <div className="text-sm font-semibold">{comment.author}</div>
+                      <div className="text-sm text-gray-700 mt-2">{comment.content}</div>
+                    </div>
+                    <button
+                      onClick={() => handleReplyToComment(comment._id)}
+                      className="text-blue-500 hover:underline text-sm mt-2"
+                    >
+                      Reply
+                    </button>
+                    {replyTo === comment._id && (
+                      <div className="mt-4">
+                        <textarea
+                          value={replyComment}
+                          onChange={(e) => setReplyComment(e.target.value)}
+                          className="w-full bg-gray-100 border border-gray-300 rounded-lg p-2"
+                          rows="3"
+                        ></textarea>
+                        <button
+                          onClick={() => handleAddReply(comment._id)}
+                          className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-2"
+                        >
+                          Add Reply
+                        </button>
+                      </div>
+                    )}
+                    {comment.replies && comment.replies.map((reply) => (
+                      <div key={reply._id} className="ml-10 mt-4">
+                        <div className="flex items-start mb-2">
+                          <div className="flex-shrink-0 mr-3">
+                            <Image
+                              width={50}
+                              height={50}
+                              src={`data:image/jpeg;base64,${reply.authorProfile}`}
+                              alt={reply.author}
+                              className="w-10 h-10 rounded-full"
+                            />
+                          </div>
+                          <div className="flex-grow">
+                            <div className="bg-gray-100 p-4 rounded-lg">
+                              <div className="text-sm font-semibold">{reply.author}</div>
+                              <div className="text-sm text-gray-700 mt-2">{reply.content}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold mb-4">Add a Comment</h3>
+              {user ? (
+                <>
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    className="w-full bg-gray-100 border border-gray-300 rounded-lg p-2"
+                    rows="5"
+                  ></textarea>
+                  <button
+                    onClick={handleAddComment}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-2"
+                  >
+                    Add Comment
+                  </button>
+                </>
+              ) : (
+                <p className="text-gray-600">You must be <Link href="/login"><span className="text-blue-500">logged in</span></Link> to add a comment.</p>
+              )}
+            </div>
           </section>
         </article>
       </div>

@@ -135,7 +135,6 @@ function Blogs() {
       setError(error.message);
     }
   };
-  
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);

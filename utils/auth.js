@@ -1,9 +1,27 @@
-import jwt from 'jsonwebtoken';
+const jwt = require('jsonwebtoken');
 
-export function verifyToken(token) {
-  try {
-    return jwt.verify(token, process.env.JWT_SECRET);
-  } catch (error) {
-    throw new Error('Invalid token');
-  }
+function generateToken(user) {
+  const payload = {
+    id: user._id,
+    role: user.role,
+    username: user.username, // or any other essential info
+    profileImage: user.profileImage,
+  };
+
+  const token = jwt.sign(payload, process.env.NEXT_PUBLIC_JWT_SECRET, {
+    expiresIn: '1hy' // set appropriate expiration time
+  });
+
+  return token;
 }
+
+// Example usage:
+const user = {
+  _id: '12345',
+  role: 'admin', // or 'user'
+  username: 'microtersDev',
+  profileImage: 'short-base64-encoded-image-data'
+};
+
+const token = generateToken(user);
+console.log(token);

@@ -68,8 +68,8 @@ function Categories() {
 
   return (
     <Layout>
-      <div className='container p-5'>
-        <h2>Manage Categories</h2>
+      <div className='container p-5 category-container'>
+        <h2 className='category-title'>Manage Categories</h2>
         <button onClick={openNewCategoryModal} className="btn btn-primary mb-3">Add New Category</button>
 
         {isNewCategoryModalOpen && (
@@ -94,9 +94,9 @@ function Categories() {
           </div>
         )}
 
-        <ul className="list-disc pl-5">
+        <ul className="category-list">
           {categories.map((category) => (
-            <li key={category._id} className="mb-2">{category.name}</li>
+            <li key={category._id} className="category-item">{category.name}</li>
           ))}
         </ul>
 
