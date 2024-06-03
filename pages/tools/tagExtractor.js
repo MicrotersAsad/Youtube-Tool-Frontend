@@ -17,7 +17,9 @@ const TagExtractor = () => {
     const [showShareIcons, setShowShareIcons] = useState(false);
     const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false);
     const [content, setContent] = useState('');
-    const [meta,setMeta]=useState('')
+    const [meta, setMeta] = useState('')
+
+    // Fetch content from API on component mount
     useEffect(() => {
         const fetchContent = async () => {
             try {
@@ -50,10 +52,13 @@ const TagExtractor = () => {
 
         fetchContent();
     }, []);
+
+    // Handle URL input change
     const handleUrlChange = (e) => {
         setVideoUrl(e.target.value);
     };
 
+    // Copy all tags to clipboard
     const copyAllTagsToClipboard = () => {
         const textToCopy = tags.join(', ');
         navigator.clipboard.writeText(textToCopy).then(() => {
@@ -63,6 +68,7 @@ const TagExtractor = () => {
         });
     };
 
+    // Fetch tags from the API
     const fetchTags = async () => {
         if (!videoUrl) {
             setError('Please enter a valid YouTube URL');
@@ -102,6 +108,7 @@ const TagExtractor = () => {
         }
     };
 
+    // Copy a single tag to clipboard
     const copyToClipboard = (tag) => {
         navigator.clipboard.writeText(tag).then(() => {
             toast.success(`Copied: "${tag}"`);
@@ -110,6 +117,7 @@ const TagExtractor = () => {
         });
     };
 
+    // Download tags as a text file
     const downloadTags = () => {
         const element = document.createElement("a");
         const file = new Blob([tags.join('\n')], { type: 'text/plain' });
@@ -120,10 +128,12 @@ const TagExtractor = () => {
         document.body.removeChild(element);
     };
 
+    // Remove a tag from the list
     const removeTag = (index) => {
         setTags(tags.filter((_, i) => i !== index));
     };
 
+    // Share on social media
     const shareOnSocialMedia = (socialNetwork) => {
         const url = encodeURIComponent(window.location.href);
         const socialMediaUrls = {
@@ -140,35 +150,38 @@ const TagExtractor = () => {
         }
     };
 
+    // Handle share button click
     const handleShareClick = () => {
         setShowShareIcons(!showShareIcons);
     };
 
+    // Reset fetch limit if user has unlimited access
     useEffect(() => {
         if (user) {
-            setFetchLimitExceeded(false); // Reset the fetch limit flag if the user has unlimited access
+            setFetchLimitExceeded(false);
         }
     }, [user]);
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
-             <Head>
+            {/* Page head metadata */}
+            <Head>
                 <title>{meta.title}</title>
                 <meta name="description" content={meta.description} />
                 <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
                 <meta property="og:title" content={meta.title} />
                 <meta property="og:description" content={meta.description} />
-                <meta property="og:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
-                <meta name="twitter:card" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta property="og:image" content={meta.image} />
+                <meta name="twitter:card" content={meta.image} />
                 <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
                 <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
                 <meta name="twitter:title" content={meta.title} />
                 <meta name="twitter:description" content={meta.description} />
-                <meta name="twitter:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta name="twitter:image" content={meta.image} />
             </Head>
             <h2 className='text-3xl pt-5'>YouTube Tag Extractor</h2>
             <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
-                <ToastContainer/>
+                <ToastContainer />
                 <div className="flex">
                     <div className="py-1">
                         <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
@@ -215,7 +228,7 @@ const TagExtractor = () => {
                     <small className="text-muted">
                         Example: https://youtu.be/eUDKzw0gLg
                     </small>
-                    <br/>
+                    <br />
                     <div className='ms-5'>
                         <button className="btn btn-danger mt-3" onClick={handleShareClick}>
                             <FaShareAlt />
@@ -236,8 +249,8 @@ const TagExtractor = () => {
                             <div className="d-flex flex-wrap">
                                 {tags.map((tag, index) => (
                                     <div key={index} className="bg-light m-1 p-2 rounded-pill d-flex align-items-center extract">
-                                        <FaGrip className='text-muted'/>    
-                                        <span onClick={() => copyToClipboard(tag)} style={{ cursor: 'pointer' }}>{tag}</span> 
+                                        <FaGrip className='text-muted' />
+                                        <span onClick={() => copyToClipboard(tag)} style={{ cursor: 'pointer' }}>{tag}</span>
                                         <FaTimes className="ms-2 text-danger" onClick={() => removeTag(index)} />
                                     </div>
                                 ))}

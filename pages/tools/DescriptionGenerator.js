@@ -4,7 +4,10 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import sanitizeHtml from 'sanitize-html';
+import 'react-toastify/dist/ReactToastify.css';
+
 const YouTubeDescriptionGenerator = () => {
+  // Initial video information state
   const [videoInfo, setVideoInfo] = useState({
     aboutVideo: `Welcome to [Your Channel Name]!\n\nIn this video, we're diving deep into the world of Full Stack Development. Whether you're a beginner or an experienced developer, these tips and guidelines will help you enhance your skills and stay ahead in the tech industry.`,
     timestamps: `00:00 - Introduction\n01:00 - First Topic\n02:00 - Second Topic\n03:00 - Third Topic`,
@@ -16,6 +19,7 @@ const YouTubeDescriptionGenerator = () => {
     keywords: 'full stack development, coding, programming, web development'
   });
 
+  // Sections for the draggable interface
   const [sections, setSections] = useState([
     { id: 'aboutVideo', title: 'About the Video', visible: true },
     { id: 'timestamps', title: 'Timestamps', visible: true },
@@ -26,41 +30,46 @@ const YouTubeDescriptionGenerator = () => {
     { id: 'contactSocial', title: 'Contact & Social', visible: true },
     { id: 'keywords', title: 'Keywords to Target (Optional)', visible: true }
   ]);
+
+  // State for meta and content
   const [content, setContent] = useState('');
+  const [meta, setMeta] = useState('');
 
-  const [meta,setMeta]=useState('')
+  // Fetch content on component mount
   useEffect(() => {
-      const fetchContent = async () => {
-          try {
-              const response = await fetch(`/api/content?category=DescriptionGenerator`);
-              if (!response.ok) {
-                  throw new Error('Failed to fetch content');
-              }
-              const data = await response.json();
-              console.log(data);
-              if (data && data.length > 0 && data[0].content) {
-                  const sanitizedContent = sanitizeHtml(data[0].content, {
-                      allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
-                      allowedAttributes: {
-                          'a': ['href']
-                      }
-                  });
-                  setContent(sanitizedContent);
-                  setMeta({
-                      title: data[0].title || 'YouTube Title  Generator',
-                      description: data[0].description || "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
-                      image: data[0].image || 'https://yourwebsite.com/og-image.png'
-                  });
-              } else {
-                  toast.error("Content data is invalid");
-              }
-          } catch (error) {
-              toast.error("Error fetching content");
-          }
-      };
+    const fetchContent = async () => {
+      try {
+        const response = await fetch(`/api/content?category=DescriptionGenerator`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch content');
+        }
+        const data = await response.json();
+        console.log(data);
+        if (data && data.length > 0 && data[0].content) {
+          const sanitizedContent = sanitizeHtml(data[0].content, {
+            allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
+            allowedAttributes: {
+              'a': ['href']
+            }
+          });
+          setContent(sanitizedContent);
+          setMeta({
+            title: data[0].title || 'YouTube Title Generator',
+            description: data[0].description || "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
+            image: data[0].image || 'https://yourwebsite.com/og-image.png'
+          });
+        } else {
+          toast.error("Content data is invalid");
+        }
+      } catch (error) {
+        toast.error("Error fetching content");
+      }
+    };
 
-      fetchContent();
+    fetchContent();
   }, []);
+
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setVideoInfo((prevInfo) => ({
@@ -69,6 +78,7 @@ const YouTubeDescriptionGenerator = () => {
     }));
   };
 
+  // Generate description based on the current state
   const generateDescription = () => {
     const { aboutVideo, timestamps, aboutChannel, recommendedVideos, aboutCompany, website, contactSocial, keywords } = videoInfo;
     return `
@@ -97,6 +107,7 @@ ${keywords}
     `;
   };
 
+  // Handle drag and drop functionality
   const handleDragEnd = (result) => {
     if (!result.destination) return;
 
@@ -107,6 +118,7 @@ ${keywords}
     setSections(newSections);
   };
 
+  // Toggle visibility of sections
   const toggleVisibility = (id) => {
     setSections((prevSections) =>
       prevSections.map((section) =>
@@ -117,23 +129,28 @@ ${keywords}
 
   return (
     <div className="container mx-auto p-6">
-        <Head>
-                <title>{meta.title}</title>
-                <meta name="description" content={meta.description} />
-                <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
-                <meta property="og:title" content={meta.title} />
-                <meta property="og:description" content={meta.description} />
-                <meta property="og:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
-                <meta name="twitter:card" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
-                <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
-                <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
-                <meta name="twitter:title" content={meta.title} />
-                <meta name="twitter:description" content={meta.description} />
-                <meta name="twitter:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
-            </Head>
-           <ToastContainer/>
-      <h1 className="text-2xl font-bold mb-4">YouTube Description Generator</h1>
+      {/* Page head metadata */}
+      <Head>
+        <title>{meta.title}</title>
+        <meta name="description" content={meta.description} />
+        <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+        <meta property="og:title" content={meta.title} />
+        <meta property="og:description" content={meta.description} />
+        <meta property="og:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+        <meta name="twitter:card" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+        <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
+        <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+        <meta name="twitter:title" content={meta.title} />
+        <meta name="twitter:description" content={meta.description} />
+        <meta name="twitter:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+      </Head>
+      {/* Toast container for notifications */}
+      <ToastContainer />
+      {/* Page title */}
+      <h1 className="text-2xl font-bold mb-4 text-center">YouTube Description Generator</h1>
+      {/* Grid layout for input and output sections */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Draggable sections input */}
         <div>
           <DragDropContext onDragEnd={handleDragEnd}>
             <Droppable droppableId="sections">
@@ -173,22 +190,24 @@ ${keywords}
             </Droppable>
           </DragDropContext>
         </div>
+        {/* Generated description output */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Generated Video Description</h2>
+          <h2 className="text-xl font-semibold mb-4 text-center">Generated Video Description</h2>
           <div className="p-4 border border-gray-300 rounded bg-gray-100 whitespace-pre-wrap">
             {generateDescription()}
           </div>
           <button
             onClick={() => navigator.clipboard.writeText(generateDescription())}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 w-full"
           >
             Copy to Clipboard
           </button>
         </div>
       </div>
+      {/* Render content from API */}
       <div className="content pt-6 pb-5">
-                    <div dangerouslySetInnerHTML={{ __html: content }}></div>
-                </div>
+        <div dangerouslySetInnerHTML={{ __html: content }}></div>
+      </div>
     </div>
   );
 };

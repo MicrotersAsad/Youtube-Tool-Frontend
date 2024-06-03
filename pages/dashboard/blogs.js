@@ -53,9 +53,7 @@ function Blogs() {
         throw new Error('Failed to fetch content');
       }
       const data = await response.json();
-      console.log(data);
       setExistingContents(data);
-      console.log(existingContents);
       setIsEditing(data.length > 0);
     } catch (error) {
       console.error('Error fetching content:', error.message);
@@ -63,19 +61,16 @@ function Blogs() {
     }
   };
 
-  
-
   const handleSubmit = async () => {
-    // Check if  fields are empty
     if (!title || !quillContent || !metaDescription || !metaTitle || !image || !description || !selectedCategory) {
-      setError('Please fill in all  fields.');
+      setError('Please fill in all the fields.');
       return;
     }
-  
+
     try {
       const method = isEditing ? 'PUT' : 'POST';
       const id = isEditing ? existingContents[0]._id : '';
-  
+
       const formData = new FormData();
       formData.append('content', quillContent);
       formData.append('title', title);
@@ -91,26 +86,37 @@ function Blogs() {
       formData.append('slug', slug);
       formData.append('createdAt', new Date().toISOString());
       formData.append('isDraft', JSON.stringify(false));
-  
+
       const response = await fetch(`/api/blogs${isEditing ? `?id=${id}` : ''}`, {
         method,
         body: formData,
       });
-  
+
       if (!response.ok) {
         const errorMessage = await response.text();
         throw new Error(`Failed to post content: ${errorMessage}`);
       }
-  
+
       setError(null);
-      setExistingContents([...existingContents, { content: quillContent, title, metaTitle, description, metaDescription,  categories: [selectedCategory], author: user.username, authorProfile: user.profileImage, slug, createdAt: new Date().toISOString(), isDraft: false }]);
+      setExistingContents([...existingContents, {
+        content: quillContent,
+        title,
+        metaTitle,
+        description,
+        metaDescription,
+        categories: [selectedCategory],
+        author: user.username,
+        authorProfile: user.profileImage,
+        slug,
+        createdAt: new Date().toISOString(),
+        isDraft: false,
+      }]);
       toast.success('Content uploaded successfully!');
     } catch (error) {
       console.error('Error posting content:', error.message);
       setError(error.message);
     }
   };
-  
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
@@ -135,77 +141,73 @@ function Blogs() {
   return (
     <Layout>
       <div className="container mx-auto p-5">
-        <h2 className="text-2xl font-bold mb-4">Add Post - {selectedCategory ? selectedCategory : 'Select a category'}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <h2 className="text-3xl font-semibold mb-6">Add Post - {selectedCategory ? selectedCategory : 'Select a category'}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="col-span-2">
-            <div className="mb-4">
-              <label htmlFor="metaTitle" className="block mb-1 font-medium">Meta Title</label>
+            <div className="mb-6">
+              <label htmlFor="metaTitle" className="block mb-2 text-lg font-medium">Meta Title</label>
               <input
                 id="metaTitle"
                 type="text"
                 value={metaTitle}
                 onChange={(e) => setMetaTitle(e.target.value)}
-                className="w-full border border-gray-300 rounded p-2"
-                
+                className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
               />
             </div>
-            <div className="mb-4">
-              <label htmlFor="metaDescription" className="block mb-1 font-medium">Meta Description</label>
+            <div className="mb-6">
+              <label htmlFor="metaDescription" className="block mb-2 text-lg font-medium">Meta Description</label>
               <textarea
                 id="metaDescription"
                 value={metaDescription}
                 onChange={(e) => setMetaDescription(e.target.value)}
-                className="w-full border border-gray-300 rounded p-2"
-                
+                className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
               />
             </div>
-            <div className="mb-4">
-              <label htmlFor="title" className="block mb-1 font-medium">Title*</label>
+            <div className="mb-6">
+              <label htmlFor="title" className="block mb-2 text-lg font-medium">Title*</label>
               <input
                 id="title"
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full border border-gray-300 rounded p-2"
-                
+                className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
               />
             </div>
-            <div className="mb-4">
-              <label htmlFor="slug" className="block mb-1 font-medium">Slug</label>
+            <div className="mb-6">
+              <label htmlFor="slug" className="block mb-2 text-lg font-medium">Slug</label>
               <input
                 id="slug"
                 type="text"
                 value={slug}
                 readOnly
-                className="w-full border border-gray-300 rounded p-2 bg-gray-100"
-                
+                className="w-full border border-gray-300 rounded-lg p-3 bg-gray-100 shadow-sm"
               />
             </div>
-            <div className="mb-4">
-              <label htmlFor="description" className="block mb-1 font-medium">Description*</label>
+            <div className="mb-6">
+              <label htmlFor="description" className="block mb-2 text-lg font-medium">Description*</label>
               <textarea
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full border border-gray-300 rounded p-2"
-                
+                className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
               />
-              <p className="text-gray-600 text-sm">Description max 200 characters</p>
+              <p className="text-gray-600 text-sm mt-1">Description max 200 characters</p>
             </div>
-            <div className="mb-4">
-              <label htmlFor="content" className="block mb-1 font-medium">Content*</label>
-              <QuillWrapper initialContent={quillContent} onChange={handleQuillChange} />
+            <div className="mb-6">
+              <label htmlFor="content" className="block mb-2 text-lg font-medium">Content*</label>
+              <div className="border border-gray-300 rounded-lg shadow-sm p-3">
+                <QuillWrapper initialContent={quillContent} onChange={handleQuillChange} />
+              </div>
             </div>
           </div>
           <div>
-            <div className="mb-4">
-              <label htmlFor="category" className="block mb-1 font-medium">Categories*</label>
+            <div className="mb-6">
+              <label htmlFor="category" className="block mb-2 text-lg font-medium">Categories*</label>
               <select
                 id="category"
                 value={selectedCategory}
                 onChange={handleCategoryChange}
-                className="w-full border border-gray-300 rounded p-2"
-                
+                className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
               >
                 <option value="" disabled>Select a category</option>
                 {categories.map((category) => (
@@ -213,37 +215,36 @@ function Blogs() {
                 ))}
               </select>
             </div>
-            <div className="mb-4">
-              <label htmlFor="status" className="block mb-1 font-medium">Status*</label>
+            <div className="mb-6">
+              <label htmlFor="status" className="block mb-2 text-lg font-medium">Status*</label>
               <select
                 id="status"
                 value={isDraft ? 'Draft' : 'Publish'}
                 onChange={handleDraftChange}
-                className="w-full border border-gray-300 rounded p-2"
-                
+                className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
               >
                 <option value="Publish">Publish</option>
                 <option value="Draft">Draft</option>
               </select>
             </div>
-            <div className="mb-4">
-              <label htmlFor="image" className="block mb-1 font-medium">Image</label>
+            <div className="mb-6">
+              <label htmlFor="image" className="block mb-2 text-lg font-medium">Image</label>
               <input
                 type="file"
                 id="image"
                 onChange={handleImageChange}
                 className="block w-full text-gray-700"
               />
-              <p className="text-gray-600 text-sm">Valid image type: jpg/jpeg/png/svg</p>
+              <p className="text-gray-600 text-sm mt-1">Valid image type: jpg/jpeg/png/svg</p>
             </div>
             <button
-              className="bg-blue-500 text-white p-2 rounded w-full mb-2"
+              className="bg-blue-500 text-white p-3 rounded-lg w-full mb-4 shadow-md"
               onClick={handleSubmit}
             >
               Save & Edit
             </button>
             <button
-              className="bg-green-500 text-white p-2 rounded w-full"
+              className="bg-green-500 text-white p-3 rounded-lg w-full shadow-md"
               onClick={handleSubmit}
             >
               Save

@@ -315,6 +315,10 @@ const TitleGenerator = () => {
     );
 };
 
+
+
+export default TitleGenerator;
+
 const styles = `
     .keywords-input-container {
         border: 2px solid #ccc;
@@ -392,5 +396,3 @@ const styles = `
         margin-top: 20px;
     }
 `;
-
-export default TitleGenerator;

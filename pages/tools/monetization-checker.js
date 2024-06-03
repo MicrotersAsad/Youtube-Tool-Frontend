@@ -6,8 +6,9 @@ import Head from 'next/head';
 import { useAuth } from '../../contexts/AuthContext';
 import Link from 'next/link';
 import sanitizeHtml from 'sanitize-html';
+
 const MonetizationChecker = () => {
-    const { isLoggedIn } = useAuth();
+    const { isLoggedIn } = useAuth(); // Custom hook for authentication
     const [url, setUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState(null);
@@ -96,6 +97,7 @@ const MonetizationChecker = () => {
             setLoading(false);
         }
     };
+
     const convertDuration = (duration) => {
         const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
         const hours = (parseInt(match[1], 10) || 0);
@@ -107,6 +109,7 @@ const MonetizationChecker = () => {
 
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            {/* Page head metadata */}
             <Head>
                 <title>{meta.title}</title>
                 <meta name="description" content={meta.description} />
@@ -121,8 +124,11 @@ const MonetizationChecker = () => {
                 <meta name="twitter:description" content={meta.description} />
                 <meta name="twitter:image" content={meta.image} />
             </Head>
+            {/* Toast container for notifications */}
             <ToastContainer />
+            {/* Page title */}
             <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">YouTube Monetization Checker</h1>
+            {/* Alert message for logged in/out users */}
             <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
                 <div className="flex">
                     <div className="py-1">
@@ -136,12 +142,13 @@ const MonetizationChecker = () => {
                         ) : (
                             <p className="text-center p-3 alert-warning">
                                 You are not logged in. You can generate Title {5 - generateCount}{" "}
-                                more times.<Link href="/register" className="btn btn-warning ms-3">Registration</Link>
+                                more times.<Link href="/register" className="btn btn-warning ms-3">Register</Link>
                             </p>
                         )}
                     </div>
                 </div>
             </div>
+            {/* Input field and button */}
             <div className="max-w-lg mx-auto bg-white rounded-lg shadow-md p-6">
                 <div className="mb-4">
                     <input
@@ -160,7 +167,9 @@ const MonetizationChecker = () => {
                     {loading ? 'Loading...' : 'Check Monetization'}
                 </button>
             </div>
+            {/* Error message */}
             {error && <div className="alert alert-danger text-red-500 text-center mt-4">{error}</div>}
+            {/* Display fetched data */}
             {data && (
                 <div className="mt-8 bg-white rounded-lg shadow-md p-6">
                     {data.type === 'video' && (
@@ -285,13 +294,12 @@ const MonetizationChecker = () => {
                             </table>
                         </>
                     )}
-                  
                 </div>
-                
             )}
-              <div className="content pt-6 pb-5">
-                        <div dangerouslySetInnerHTML={{ __html: content }}></div>
-                    </div>
+            {/* Render content from API */}
+            <div className="content pt-6 pb-5">
+                <div dangerouslySetInnerHTML={{ __html: content }}></div>
+            </div>
             <ToastContainer autoClose={5000} position="top-right" />
         </div>
     );

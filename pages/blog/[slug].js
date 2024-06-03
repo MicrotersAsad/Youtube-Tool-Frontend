@@ -186,7 +186,7 @@ const BlogPost = () => {
   return (
     <>
       <Head>
-        <title>{blog.title}</title>
+        {/* <title>{blog.title}</title>
         <meta name="description" content={blog.description} />
         <meta property="og:url" content={shareUrl} />
         <meta property="og:title" content={blog.title} />
@@ -197,7 +197,28 @@ const BlogPost = () => {
         <meta property="twitter:url" content={shareUrl} />
         <meta name="twitter:title" content={blog.title} />
         <meta name="twitter:description" content={blog.description} />
-        <meta name="twitter:image" content={blog.image} />
+        <meta name="twitter:image" content={blog.image} /> */}
+        
+
+<title>{blog?.metaTitle}</title>
+<meta name="description" content={blog?.metaDescription}/>
+
+
+<meta property="og:url" content={`${BASE_URL}${blog.slug}`}/>
+<meta property="og:title"  content={blog?.metaTitle}/>
+<meta property="og:description"  content={blog?.metaDescription}/>
+<meta property="og:image" content={`${BASE_URL}${blog.image}`}/>
+
+
+<meta name="twitter:card" content={`${BASE_URL}${blog.image}`}/>
+<meta property="twitter:domain" content="youtube-tool-frontend.vercel.app"/>
+<meta property="twitter:url" content={`${BASE_URL}${blog.slug}`}/>
+<meta name="twitter:title" content={blog?.metaTitle}/>
+<meta name="twitter:description" content={blog?.metaDescription}/>
+<meta name="twitter:image" content={`${BASE_URL}${blog.image}`}/>
+
+
+
       </Head>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
         <Breadcrumb blogTitle={blog.title} />

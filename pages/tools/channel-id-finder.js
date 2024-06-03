@@ -3,14 +3,17 @@ import React, { useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import sanitizeHtml from 'sanitize-html';
+
 const ChannelIdFinder = () => {
+    // State variables
     const [videoUrl, setVideoUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const [channelData, setChannelData] = useState(null);
     const [error, setError] = useState('');
     const [content, setContent] = useState('');
+    const [meta, setMeta] = useState('');
 
-    const [meta,setMeta]=useState('')
+    // Fetch content on component mount
     useEffect(() => {
         const fetchContent = async () => {
             try {
@@ -44,7 +47,7 @@ const ChannelIdFinder = () => {
         fetchContent();
     }, []);
 
-   
+    // Fetch video data from the server
     const fetchVideoData = async (videoUrl) => {
         try {
             const response = await fetch('/api/fetch-channel-details', {
@@ -63,6 +66,7 @@ const ChannelIdFinder = () => {
         }
     };
 
+    // Handle fetch button click
     const handleFetch = async () => {
         if (!videoUrl) {
             toast.error('Please enter a YouTube video URL.');
@@ -85,8 +89,8 @@ const ChannelIdFinder = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
-
-<Head>
+            {/* Page head metadata */}
+            <Head>
                 <title>{meta.title}</title>
                 <meta name="description" content={meta.description} />
                 <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
@@ -100,8 +104,11 @@ const ChannelIdFinder = () => {
                 <meta name="twitter:description" content={meta.description} />
                 <meta name="twitter:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
             </Head>
-            <ToastContainer/>
+            {/* Toast container for notifications */}
+            <ToastContainer />
+            {/* Page title */}
             <h1 className="text-3xl font-bold text-center mb-6">YouTube Channel Data Fetcher</h1>
+            {/* Input and button for fetching data */}
             <div className="max-w-md mx-auto">
                 <div className="input-group mb-4">
                     <input
@@ -123,11 +130,13 @@ const ChannelIdFinder = () => {
                     {loading ? 'Loading...' : 'Fetch Data'}
                 </button>
             </div>
+            {/* Error message */}
             {error && <div className="alert alert-danger text-red-500 text-center mt-4">{error}</div>}
+            {/* Display fetched channel data */}
             {channelData && (
                 <div className="mt-8">
                     <p><strong>Channel ID:</strong>{channelData.channelId}</p>
-                    <p className="text-2xl font-semibold"><strong>channel Name :</strong> {channelData.channelName}</p>
+                    <p className="text-2xl font-semibold"><strong>Channel Name:</strong> {channelData.channelName}</p>
                     <p><strong>Channel URL:</strong> <a href={channelData.channelUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">{channelData.channelUrl}</a></p>
                     <p><strong>Description:</strong> {channelData.channelDescription}</p>
                     <p><strong>Subscribers:</strong> {channelData.subscribers}</p>
@@ -140,9 +149,10 @@ const ChannelIdFinder = () => {
                     </div>
                 </div>
             )}
+            {/* Render content from API */}
             <div className="content pt-6 pb-5">
-                    <div dangerouslySetInnerHTML={{ __html: content }}></div>
-                </div>
+                <div dangerouslySetInnerHTML={{ __html: content }}></div>
+            </div>
         </div>
     );
 };
