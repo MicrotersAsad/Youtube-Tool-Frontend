@@ -1,15 +1,11 @@
-// pages/api/comments/[id].js
-import { connectToDatabase, ObjectId } from '../../../utils/mongodb';
+import { connectToDatabase } from '../../../utils/mongodb';
 import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
   const { method } = req;
-  const blogId = req.query.id;
+  const blogSlug = req.query.id; // Using 'id' as the slug here
 
-  if (!ObjectId.isValid(blogId)) {
-    res.status(400).json({ error: 'Invalid blog ID' });
-    return;
-  }
+  console.log('API called with blogSlug:', blogSlug);
 
   const { db } = await connectToDatabase();
   const commentsCollection = db.collection('comments');
@@ -18,7 +14,7 @@ export default async function handler(req, res) {
     case 'GET':
       try {
         const comments = await commentsCollection
-          .find({ blogId: new ObjectId(blogId), parentId: null })
+          .find({ blogSlug: blogSlug, parentId: null })
           .toArray();
 
         for (let comment of comments) {
@@ -55,6 +51,7 @@ export default async function handler(req, res) {
         }
 
         const { content, parentId } = req.body;
+        console.log('Request body:', req.body);
 
         if (!content) {
           res.status(400).json({ error: 'Content is required' });
@@ -62,9 +59,9 @@ export default async function handler(req, res) {
         }
 
         const newComment = {
-          blogId: new ObjectId(blogId),
+          blogSlug: blogSlug, // Using slug here
           content,
-          parentId: parentId ? new ObjectId(parentId) : null,
+          parentId: parentId ? parentId : null,
           author: decoded.username,
           authorProfile: decoded.profileImage,
           createdAt: new Date(),

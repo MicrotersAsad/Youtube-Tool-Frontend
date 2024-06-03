@@ -18,7 +18,7 @@ function EditBlog() {
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [title, setTitle] = useState('');
-  const [Blogtitle, setBlogtitle] = useState('');
+  const [metaTitle, setMetaTitle] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -54,7 +54,7 @@ function EditBlog() {
       setQuillContent(data.content);
       setSelectedCategory(data.categories[0]);
       setTitle(data.title);
-      setBlogtitle(data.Blogtitle);
+      setMetaTitle(data.metaTitle);
       setDescription(data.description);
       setIsDraft(data.isDraft);
     } catch (error) {
@@ -69,12 +69,12 @@ function EditBlog() {
 
       const formData = new FormData();
       formData.append('content', quillContent);
-      formData.append('title', title);
+      formData.append('title', metaTitle);
       formData.append('description', description);
       if (image) {
         formData.append('image', image);
       }
-      formData.append('Blogtitle', Blogtitle);
+      formData.append('Blogtitle', title);
       formData.append('categories', JSON.stringify([selectedCategory]));
       formData.append('author', user.username);
       formData.append('authorProfile', user.profileImage);
@@ -93,12 +93,12 @@ function EditBlog() {
 
       setError(null);
       toast.success('Content updated successfully!');
-      router.push('/dashboard');
+  
     } catch (error) {
       console.error('Error updating content:', error.message);
       setError(error.message);
     }
-  }, [quillContent, selectedCategory, title, description, Blogtitle, image, user, isDraft, id, router]);
+  }, [quillContent, selectedCategory, metaTitle, description, title, image, user, isDraft, id, router]);
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
@@ -149,8 +149,8 @@ function EditBlog() {
                   className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-300 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
                   id="title"
                   type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  value={metaTitle}
+                  onChange={(e) => setMetaTitle(e.target.value)}
                 />
                 <p className="text-gray-600 text-xs italic">Recommended length: 60 characters</p>
               </div>
@@ -172,8 +172,8 @@ function EditBlog() {
                   className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-300 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
                   id="Blogtitle"
                   type="text"
-                  value={Blogtitle}
-                  onChange={(e) => setBlogtitle(e.target.value)}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                 />
                 <p className="text-gray-600 text-xs italic">Recommended length: 60 characters</p>
               </div>

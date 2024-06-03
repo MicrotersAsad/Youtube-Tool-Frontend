@@ -1,32 +1,31 @@
-// Breadcrumb.js
 import Link from 'next/link';
 
 const Breadcrumb = ({ blogTitle }) => {
   return (
     <nav aria-label="breadcrumb">
-      <ol className="breadcrumb">
+      <ol className="breadcrumb flex items-center text-sm md:text-base lg:text-lg">
         <li className="breadcrumb-item">
           <Link href="/blog">
-            <p>Blog</p>
+            <span className="text-blue-500 hover:underline whitespace-nowrap">Blog</span>
           </Link>
         </li>
         {blogTitle && (
           <li className="breadcrumb-item active" aria-current="page">
-            {blogTitle}
+            <span className="text-gray-500 whitespace-nowrap"> / {blogTitle}</span>
           </li>
         )}
       </ol>
       <style jsx>{`
         .breadcrumb {
-          display: flex;
           list-style: none;
           padding: 0;
+          white-space: nowrap; /* Ensure the breadcrumb items stay in one line */
         }
         .breadcrumb-item {
           margin-right: 0.5rem;
         }
         .breadcrumb-item + .breadcrumb-item::before {
-          content: "/";
+          content: "";
           margin-right: 0.5rem;
         }
       `}</style>

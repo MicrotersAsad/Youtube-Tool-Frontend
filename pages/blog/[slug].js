@@ -15,10 +15,10 @@ import {
 } from 'react-share';
 import { ClipLoader } from 'react-spinners';
 import { useAuth } from '../../contexts/AuthContext';
-
+const BASE_URL = "https://youtube-tool-frontend.vercel.app/";
 const BlogPost = () => {
   const router = useRouter();
-  const { id } = router.query;
+  const { slug } = router.query;
   const { user } = useAuth();
   const [blog, setBlog] = useState(null);
   const [error, setError] = useState(null);
@@ -29,19 +29,19 @@ const BlogPost = () => {
   const [replyTo, setReplyTo] = useState(null);
 
   useEffect(() => {
-    if (id) {
+    if (slug) {
       fetchBlog();
       fetchComments();
     }
-  }, [id]);
+  }, [slug]);
 
   const fetchBlog = async () => {
     try {
-      const response = await axios.get(`/api/blogs?id=${id}`);
+      const response = await axios.get(`/api/blogs?slug=${slug}`);
       if (response.status === 200) {
         const blogData = response.data;
-        setBlog(blogData);
-        generateToc(blogData.content);
+        setBlog(blogData[0]);
+        generateToc(blogData[0].content);
       } else {
         throw new Error('Failed to fetch the blog post');
       }
@@ -51,18 +51,7 @@ const BlogPost = () => {
     }
   };
 
-  const fetchComments = async () => {
-    try {
-      const response = await axios.get(`/api/comments/${id}`);
-      if (response.status === 200) {
-        setComments(response.data);
-      } else {
-        throw new Error('Failed to fetch comments');
-      }
-    } catch (error) {
-      console.error('Error fetching comments:', error);
-    }
-  };
+  
 
   const generateToc = (content) => {
     const parser = new DOMParser();
@@ -84,31 +73,48 @@ const BlogPost = () => {
     }
   };
 
+  const fetchComments = async () => {
+    try {
+      console.log('Fetching comments for slug:', slug);
+      const response = await axios.get(`/api/comments/${slug}`);
+      if (response.status === 200) {
+        setComments(response.data);
+      } else {
+        throw new Error('Failed to fetch comments');
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+      }
+    }
+  };
+  
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
-
+  
     if (!user) {
       alert('You must be logged in to add a comment.');
       return;
     }
-
+  
     try {
       const token = localStorage.getItem('token');
       console.log('Token:', token);
-
+  
       if (!token) {
         throw new Error('No token found');
       }
-
+  
       const headers = { Authorization: `Bearer ${token}` };
       console.log('Headers:', headers);
-
+  
       const response = await axios.post(
-        `/api/comments/${id}`,
+        `/api/comments/${slug}`,
         { content: newComment, parentId: null },
         { headers }
       );
-
+  
       if (response.status === 201) {
         setComments([...comments, response.data]);
         setNewComment('');
@@ -118,10 +124,11 @@ const BlogPost = () => {
     } catch (error) {
       console.error('Error adding comment:', error);
       if (error.response) {
-        console.error('Response:', error.response);
+        console.error('Response data:', error.response.data);
       }
     }
   };
+  
 
   const handleReplyToComment = (commentId) => {
     setReplyTo(commentId);
@@ -137,17 +144,15 @@ const BlogPost = () => {
 
     try {
       const token = localStorage.getItem('token');
-      console.log('Token:', token);
 
       if (!token) {
         throw new Error('No token found');
       }
 
       const headers = { Authorization: `Bearer ${token}` };
-      console.log('Headers:', headers);
 
       const response = await axios.post(
-        `/api/comments/${id}`,
+        `/api/comments/${slug}`,
         { content: replyComment, parentId },
         { headers }
       );
@@ -161,9 +166,6 @@ const BlogPost = () => {
       }
     } catch (error) {
       console.error('Error adding reply:', error);
-      if (error.response) {
-        console.error('Response:', error.response);
-      }
     }
   };
 
@@ -179,42 +181,42 @@ const BlogPost = () => {
     );
   }
 
-  const shareUrl = `https://your-domain.com/blog/${id}`;
+  const shareUrl = `https://your-domain.com/blog/${slug}`;
 
   return (
     <>
       <Head>
-        <title>{blog.Blogtitle}</title>
+        <title>{blog.title}</title>
         <meta name="description" content={blog.description} />
         <meta property="og:url" content={shareUrl} />
-        <meta property="og:title" content={blog.Blogtitle} />
+        <meta property="og:title" content={blog.title} />
         <meta property="og:description" content={blog.description} />
-        <meta property="og:image" content={`data:image/jpeg;base64,${blog.image}`} />
-        <meta name="twitter:card" content={`data:image/jpeg;base64,${blog.image}`} />
+        <meta property="og:image" content={`${BASE_URL}${blog.image}`} />
+        <meta name="twitter:card" content={`${BASE_URL}${blog.image}`} />
         <meta property="twitter:domain" content="your-domain.com" />
         <meta property="twitter:url" content={shareUrl} />
-        <meta name="twitter:title" content={blog.Blogtitle} />
+        <meta name="twitter:title" content={blog.title} />
         <meta name="twitter:description" content={blog.description} />
-        <meta name="twitter:image" content={`data:image/jpeg;base64,${blog.image}`} />
+        <meta name="twitter:image" content={blog.image} />
       </Head>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
-        <Breadcrumb blogTitle={blog.Blogtitle} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+        <Breadcrumb blogTitle={blog.title} />
         <article>
           <header className="mb-8">
-            <div className="row">
-              <div className="col-md-6">
-                <h1 className="text-6xl font-bold mb-2 mt-5">{blog?.Blogtitle}</h1>
+            <div className="flex flex-col md:flex-row">
+              <div className="md:w-1/2">
+                <h1 className="text-3xl md:text-6xl font-bold mb-2 mt-5">{blog.title}</h1>
                 <div className="text-gray-500 mb-4 mt-4">
                   <span>By {blog.author} | </span>
-                  <span>Published:{new Date(blog.createdAt).toLocaleDateString()}</span>
+                  <span>Published: {new Date(blog.createdAt).toLocaleDateString()}</span>
                   <div className="flex space-x-4 mt-8">
-                    <FacebookShareButton url={shareUrl} quote={blog.Blogtitle}>
+                    <FacebookShareButton url={shareUrl} quote={blog.title}>
                       <FacebookIcon size={32} round />
                     </FacebookShareButton>
-                    <TwitterShareButton url={shareUrl} title={blog.Blogtitle}>
+                    <TwitterShareButton url={shareUrl} title={blog.title}>
                       <TwitterIcon size={32} round />
                     </TwitterShareButton>
-                    <LinkedinShareButton url={shareUrl} title={blog.Blogtitle} summary={blog.description}>
+                    <LinkedinShareButton url={shareUrl} title={blog.title} summary={blog.description}>
                       <LinkedinIcon size={32} round />
                     </LinkedinShareButton>
                     <button onClick={handleCopyLink} className="flex items-center px-3 py-2 bg-gray-200 rounded-full">
@@ -226,13 +228,13 @@ const BlogPost = () => {
                   </div>
                 </div>
               </div>
-              <div className="col-md-6">
-                <Image width={800} height={560} src={`data:image/jpeg;base64,${blog.image}`} alt={blog.Blogtitle} />
+              <div className="md:w-1/2">
+                <Image width={800} height={560} src={blog.image} alt={blog.title} className="w-full h-auto object-cover" />
               </div>
             </div>
           </header>
           
-          <section className="flex justify-center items-center p-20">
+          <section className="prose max-w-none">
             <div dangerouslySetInnerHTML={{ __html: blog.content }}></div>
           </section>
           <section className="comments mt-12">

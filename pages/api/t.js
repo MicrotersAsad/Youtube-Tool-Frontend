@@ -55,13 +55,20 @@ export default async function handler(req, res) {
       try {
         await runMiddleware(req, res, upload.single('image'));
 
-        const { content, title, metaTitle, description, metaDescription, categories, author, authorProfile, id } = req.body;
+        // Debugging: Print the request body and file details
+       
+
+        // Destructure and validate the request body fields
+        const { content, title, metaTitle, description, metaDescription,  categories, author, authorProfile, slug } = req.body;
         const image = req.file ? `/uploads/${req.file.filename}` : null;
 
-        if (!content || !title || !metaTitle || !description || !metaDescription || !categories || !author || !id) {
+        // Check for required fields
+        if (!content || !title || !metaTitle || !description || !metaDescription  || !categories || !author || !slug) {
+          console.log('Invalid request body');
           return res.status(400).json({ message: 'Invalid request body' });
         }
 
+        // Convert categories to an array if it's a JSON string
         let parsedCategories;
         try {
           parsedCategories = JSON.parse(categories);
@@ -79,13 +86,14 @@ export default async function handler(req, res) {
           image,
           author,
           authorProfile,
-          id,
+          slug,
           createdAt: new Date(),
         };
 
         const result = await blogs.insertOne(doc);
 
         if (!result.insertedId) {
+          console.log('Failed to insert document');
           return res.status(500).json({ message: 'Failed to insert document' });
         }
 
@@ -95,34 +103,31 @@ export default async function handler(req, res) {
         res.status(500).json({ message: 'Internal server error' });
       }
       break;
+     
 
-    case 'GET':
-      if (query.id) {
+      case 'GET':
         try {
-          const id = query.id;
-          console.log(id);
-          const result = await blogs.findOne({ id: id });
-          console.log(result);
-
-          if (!result) {
-            return res.status(404).json({ message: 'Resource not found' });
+          if (query.slug) { // Use query.slug instead of req.query.id
+            const slug = query.slug;
+            const result = await blogs.findOne({ slug: slug });
+  
+            if (!result) {
+              return res.status(404).send('Resource not found');
+            }
+  
+            res.send(result);
+          } else if (req.query.category) {
+            // Handle category query
+          } else {
+            // Handle other cases
           }
+        } catch (error) {
+          console.error('GET by Slug error:', error);
+          res.status(500).send('Internal server error');
+        }
+        break;
 
-          res.status(200).json(result);
-        } catch (error) {
-          console.error('GET by id error:', error);
-          res.status(500).json({ message: 'Internal server error' });
-        }
-      } else {
-        try {
-          const result = await blogs.find({}).toArray();
-          res.status(200).json(result);
-        } catch (error) {
-          console.error('GET all error:', error);
-          res.status(500).json({ message: 'Internal server error' });
-        }
-      }
-      break;
+      
 
     case 'PUT':
       try {

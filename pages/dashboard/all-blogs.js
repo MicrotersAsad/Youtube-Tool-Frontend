@@ -156,7 +156,7 @@ function AllBlogs() {
               <tbody>
                 {currentBlogs.map((blog) => (
                   <tr key={blog._id}>
-                    <td className="py-2 px-4 border-b">{blog.Blogtitle}</td>
+                    <td className="py-2 px-4 border-b">{blog.title}</td>
                     <td className="py-2 px-4 border-b">
                       {getCategoriesArray(blog.categories).map((category, i) => (
                         <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
