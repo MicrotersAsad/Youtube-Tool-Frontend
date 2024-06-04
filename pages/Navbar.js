@@ -42,10 +42,19 @@ function Navbar() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
 
   useEffect(() => {
-    console.log("User object: ", user); // Debugging
-  }, [user]);
+    if (searchQuery) {
+      // Fetch search results from your API
+      fetch(`/api/search?query=${searchQuery}`)
+        .then(response => response.json())
+        .then(data => setSearchResults(data.results))
+        .catch(error => console.error('Error fetching search results:', error));
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchQuery]);
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -137,7 +146,7 @@ function Navbar() {
                   </div>
                 </div>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-                  <form onSubmit={handleSearchSubmit} className="hidden sm:block">
+                  <form onSubmit={handleSearchSubmit} className="hidden sm:block relative">
                     <input
                       type="text"
                       placeholder="Search..."
@@ -145,6 +154,15 @@ function Navbar() {
                       onChange={handleSearchChange}
                       className="px-3 py-2 rounded-md bg-gray-700 text-black border-transparent focus:border-gray-500 focus:bg-white focus:ring-0 text-sm"
                     />
+                    {searchQuery && searchResults.length > 0 && (
+                      <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10">
+                        {searchResults.map(result => (
+                          <Link key={result.id} href={result.href}>
+                            <span className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{result.title}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </form>
                   {user ? (
                     <Menu as="div" className="relative ml-3">
@@ -200,7 +218,7 @@ function Navbar() {
                     </Menu>
                   ) : (
                     <Link href="/login">
-                      <button className="text-gray-300 bg-red-700 hover:text-red-500 hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium">
+                      <button className="text-gray-300 bg-red-700 hover:text-red-500 hover:bg-gray-700 px-3 py-2 ms-3 rounded-md text-sm font-medium">
                         Login
                       </button>
                     </Link>

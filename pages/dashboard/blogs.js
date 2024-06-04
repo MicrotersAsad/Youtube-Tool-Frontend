@@ -23,16 +23,19 @@ function Blogs() {
   const [categories, setCategories] = useState([]);
   const [isDraft, setIsDraft] = useState(false);
 
+  // Fetch categories on component mount
   useEffect(() => {
     fetchCategories();
   }, []);
 
+  // Fetch content whenever a category is selected
   useEffect(() => {
     if (selectedCategory) {
       fetchContent();
     }
   }, [selectedCategory]);
 
+  // Fetch categories from API
   const fetchCategories = async () => {
     try {
       const response = await fetch('/api/categories');
@@ -46,6 +49,7 @@ function Blogs() {
     }
   };
 
+  // Fetch content based on selected category
   const fetchContent = async () => {
     try {
       const response = await fetch(`/api/blogs?category=${selectedCategory}`);
@@ -54,22 +58,22 @@ function Blogs() {
       }
       const data = await response.json();
       setExistingContents(data);
-      setIsEditing(data.length > 0);
+      setIsEditing(false);
     } catch (error) {
       console.error('Error fetching content:', error.message);
       setError(error.message);
     }
   };
 
+  // Handle form submission
   const handleSubmit = async () => {
-    if (!title || !quillContent || !metaDescription || !metaTitle || !image || !description || !selectedCategory) {
+    if (!title || !quillContent || !metaDescription || !metaTitle || !description || !selectedCategory) {
       setError('Please fill in all the fields.');
       return;
     }
 
     try {
-      const method = isEditing ? 'PUT' : 'POST';
-      const id = isEditing ? existingContents[0]._id : '';
+      const method = 'POST';
 
       const formData = new FormData();
       formData.append('content', quillContent);
@@ -87,7 +91,7 @@ function Blogs() {
       formData.append('createdAt', new Date().toISOString());
       formData.append('isDraft', JSON.stringify(false));
 
-      const response = await fetch(`/api/blogs${isEditing ? `?id=${id}` : ''}`, {
+      const response = await fetch('/api/blogs', {
         method,
         body: formData,
       });
@@ -98,19 +102,7 @@ function Blogs() {
       }
 
       setError(null);
-      setExistingContents([...existingContents, {
-        content: quillContent,
-        title,
-        metaTitle,
-        description,
-        metaDescription,
-        categories: [selectedCategory],
-        author: user.username,
-        authorProfile: user.profileImage,
-        slug,
-        createdAt: new Date().toISOString(),
-        isDraft: false,
-      }]);
+      fetchContent(); // Refresh the content list after posting
       toast.success('Content uploaded successfully!');
     } catch (error) {
       console.error('Error posting content:', error.message);
@@ -118,25 +110,40 @@ function Blogs() {
     }
   };
 
+  // Handle Quill editor content change
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
   }, []);
 
+  // Handle category change
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
   };
 
+  // Handle image change
   const handleImageChange = (e) => {
     setImage(e.target.files[0]);
   };
 
+  // Handle draft status change
   const handleDraftChange = (e) => {
     setIsDraft(e.target.value === 'Draft');
   };
 
-  useEffect(() => {
-    setSlug(title.toLowerCase().split(' ').join('-'));
-  }, [title]);
+  
+ // Generate slug from title
+// Generate slug from title without question marks or symbols
+useEffect(() => {
+  const generateSlug = (str) => {
+    // Remove question marks and symbols
+    const cleanedTitle = str.replace(/[^\w\s]/gi, '');
+    return cleanedTitle.toLowerCase().split(' ').join('-');
+  };
+
+  setSlug(generateSlug(title));
+}, [title]);
+
+
 
   return (
     <Layout>

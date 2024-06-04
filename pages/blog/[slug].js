@@ -15,7 +15,10 @@ import {
 } from 'react-share';
 import { ClipLoader } from 'react-spinners';
 import { useAuth } from '../../contexts/AuthContext';
+import { FaEye } from 'react-icons/fa';
+
 const BASE_URL = "https://youtube-tool-frontend.vercel.app/";
+
 const BlogPost = () => {
   const router = useRouter();
   const { slug } = router.query;
@@ -30,18 +33,23 @@ const BlogPost = () => {
 
   useEffect(() => {
     if (slug) {
-      fetchBlog();
-      fetchComments();
+      fetchBlog(slug);
+      incrementViewCount(slug); // Increment view count
+      fetchComments(slug); // Pass slug to fetchComments
     }
   }, [slug]);
 
-  const fetchBlog = async () => {
+  const fetchBlog = async (slug) => {
     try {
-      const response = await axios.get(`/api/blogs?slug=${slug}`);
+      const response = await axios.get('/api/blogs', { params: { slug } });
       if (response.status === 200) {
         const blogData = response.data;
-        setBlog(blogData[0]);
-        generateToc(blogData[0].content);
+        if (blogData) {
+          setBlog(blogData);
+          generateToc(blogData.content);
+        } else {
+          setError('No blog found with this slug.');
+        }
       } else {
         throw new Error('Failed to fetch the blog post');
       }
@@ -51,7 +59,13 @@ const BlogPost = () => {
     }
   };
 
-  
+  const incrementViewCount = async (slug) => {
+    try {
+      await axios.post(`/api/incrementView`, { params: { slug } });
+    } catch (error) {
+      console.error('Error incrementing view count:', error);
+    }
+  };
 
   const generateToc = (content) => {
     const parser = new DOMParser();
@@ -73,9 +87,8 @@ const BlogPost = () => {
     }
   };
 
-  const fetchComments = async () => {
+  const fetchComments = async (slug) => {
     try {
-      console.log('Fetching comments for slug:', slug);
       const response = await axios.get(`/api/comments/${slug}`);
       if (response.status === 200) {
         setComments(response.data);
@@ -84,37 +97,31 @@ const BlogPost = () => {
       }
     } catch (error) {
       console.error('Error fetching comments:', error);
-      if (error.response) {
-        console.error('Response data:', error.response.data);
-      }
     }
   };
-  
+
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
-  
+
     if (!user) {
       alert('You must be logged in to add a comment.');
       return;
     }
-  
+
     try {
       const token = localStorage.getItem('token');
-      console.log('Token:', token);
-  
       if (!token) {
         throw new Error('No token found');
       }
-  
+
       const headers = { Authorization: `Bearer ${token}` };
-      console.log('Headers:', headers);
-  
+
       const response = await axios.post(
         `/api/comments/${slug}`,
         { content: newComment, parentId: null },
         { headers }
       );
-  
+
       if (response.status === 201) {
         setComments([...comments, response.data]);
         setNewComment('');
@@ -123,12 +130,8 @@ const BlogPost = () => {
       }
     } catch (error) {
       console.error('Error adding comment:', error);
-      if (error.response) {
-        console.error('Response data:', error.response.data);
-      }
     }
   };
-  
 
   const handleReplyToComment = (commentId) => {
     setReplyTo(commentId);
@@ -144,7 +147,6 @@ const BlogPost = () => {
 
     try {
       const token = localStorage.getItem('token');
-
       if (!token) {
         throw new Error('No token found');
       }
@@ -186,39 +188,18 @@ const BlogPost = () => {
   return (
     <>
       <Head>
-        {/* <title>{blog.title}</title>
-        <meta name="description" content={blog.description} />
-        <meta property="og:url" content={shareUrl} />
-        <meta property="og:title" content={blog.title} />
-        <meta property="og:description" content={blog.description} />
+        <title>{blog?.metaTitle}</title>
+        <meta name="description" content={blog?.metaDescription} />
+        <meta property="og:url" content={`${BASE_URL}${blog.slug}`} />
+        <meta property="og:title" content={blog?.metaTitle} />
+        <meta property="og:description" content={blog?.metaDescription} />
         <meta property="og:image" content={`${BASE_URL}${blog.image}`} />
         <meta name="twitter:card" content={`${BASE_URL}${blog.image}`} />
-        <meta property="twitter:domain" content="your-domain.com" />
-        <meta property="twitter:url" content={shareUrl} />
-        <meta name="twitter:title" content={blog.title} />
-        <meta name="twitter:description" content={blog.description} />
-        <meta name="twitter:image" content={blog.image} /> */}
-        
-
-<title>{blog?.metaTitle}</title>
-<meta name="description" content={blog?.metaDescription}/>
-
-
-<meta property="og:url" content={`${BASE_URL}${blog.slug}`}/>
-<meta property="og:title"  content={blog?.metaTitle}/>
-<meta property="og:description"  content={blog?.metaDescription}/>
-<meta property="og:image" content={`${BASE_URL}${blog.image}`}/>
-
-
-<meta name="twitter:card" content={`${BASE_URL}${blog.image}`}/>
-<meta property="twitter:domain" content="youtube-tool-frontend.vercel.app"/>
-<meta property="twitter:url" content={`${BASE_URL}${blog.slug}`}/>
-<meta name="twitter:title" content={blog?.metaTitle}/>
-<meta name="twitter:description" content={blog?.metaDescription}/>
-<meta name="twitter:image" content={`${BASE_URL}${blog.image}`}/>
-
-
-
+        <meta property="twitter:domain" content="youtube-tool-frontend.vercel.app" />
+        <meta property="twitter:url" content={`${BASE_URL}${blog.slug}`} />
+        <meta name="twitter:title" content={blog?.metaTitle} />
+        <meta name="twitter:description" content={blog?.metaDescription} />
+        <meta name="twitter:image" content={`${BASE_URL}${blog.image}`} />
       </Head>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
         <Breadcrumb blogTitle={blog.title} />
@@ -230,6 +211,9 @@ const BlogPost = () => {
                 <div className="text-gray-500 mb-4 mt-4">
                   <span>By {blog.author} | </span>
                   <span>Published: {new Date(blog.createdAt).toLocaleDateString()}</span>
+                  <span className="flex items-center ml-4">
+                    <FaEye className="mr-1" /> {blog.viewCount} Views
+                  </span>
                   <div className="flex space-x-4 mt-8">
                     <FacebookShareButton url={shareUrl} quote={blog.title}>
                       <FacebookIcon size={32} round />
@@ -254,7 +238,6 @@ const BlogPost = () => {
               </div>
             </div>
           </header>
-          
           <section className="prose max-w-none">
             <div dangerouslySetInnerHTML={{ __html: blog.content }}></div>
           </section>

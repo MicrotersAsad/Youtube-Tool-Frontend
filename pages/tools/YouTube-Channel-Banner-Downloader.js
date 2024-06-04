@@ -8,18 +8,22 @@ import Link from 'next/link';
 import { ToastContainer, toast } from 'react-toastify';
 import sanitizeHtml from 'sanitize-html';
 import Head from 'next/head';
-const YtChannelDw = () => {
-    const { isLoggedIn } = useAuth();
-    const [loading, setLoading] = useState(false);
-    const [isLoading, setIsLoading] = useState(false); // Loading state for API requests
-    const [error, setError] = useState('');
-    const [channelUrl, setChannelUrl] = useState('');
-    const [bannerUrl, setBannerUrl] = useState('');
-    const [showShareIcons, setShowShareIcons] = useState(false);
-    const [generateCount, setGenerateCount] = useState(false);
-    const [content, setContent] = useState('');
 
-    const [meta,setMeta]=useState('')
+const YtChannelDw = () => {
+    const { isLoggedIn } = useAuth(); // Destructure authentication state from context
+    const [loading, setLoading] = useState(false); // Loading state for API requests
+    const [error, setError] = useState(''); // Error state
+    const [channelUrl, setChannelUrl] = useState(''); // State for input URL
+    const [bannerUrl, setBannerUrl] = useState(''); // State for fetched banner URL
+    const [showShareIcons, setShowShareIcons] = useState(false); // State to toggle share icons visibility
+    const [generateCount, setGenerateCount] = useState(false); // Count for how many times data is fetched
+    const [content, setContent] = useState(''); // Content state for fetched HTML content
+    const [meta, setMeta] = useState({ // Meta information for the page
+        title: 'YouTube Channel Banner Downloader',
+        description: "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
+        image: 'https://yourwebsite.com/og-image.png',
+    });
+
     useEffect(() => {
         const fetchContent = async () => {
             try {
@@ -38,9 +42,9 @@ const YtChannelDw = () => {
                     });
                     setContent(sanitizedContent);
                     setMeta({
-                        title: data[0].title || 'YouTube Channel Banner  Downloader',
-                        description: data[0].description || "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
-                        image: data[0].image || 'https://yourwebsite.com/og-image.png'
+                        title: data[0].title || 'YouTube Channel Banner Downloader',
+                        description: data[0].description || meta.description,
+                        image: data[0].image || meta.image
                     });
                 } else {
                     toast.error("Content data is invalid");
@@ -51,7 +55,7 @@ const YtChannelDw = () => {
         };
 
         fetchContent();
-    }, []);
+    }, [meta.description, meta.image]);
 
     const handleUrlChange = (e) => {
         setChannelUrl(e.target.value);
@@ -92,8 +96,7 @@ const YtChannelDw = () => {
             setLoading(false);
         }
     };
-    
-    
+
     const extractChannelId = (url) => {
         const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^/]+\/){1,2}|(?:youtube\.com\/)?(?:channel|c)\/)([^/?]+)/i;
         const match = url.match(regex);
@@ -102,23 +105,23 @@ const YtChannelDw = () => {
 
     const downloadChannelBanner = () => {
         if (!bannerUrl) return;
-    
+
         const fileName = 'YouTube_Channel_Banner.jpg';
-    
+
         // Fetch the image data
         fetch(bannerUrl)
             .then(response => response.blob())
             .then(blob => {
                 // Create a temporary URL for the image blob
                 const url = window.URL.createObjectURL(new Blob([blob]));
-    
+
                 // Create a temporary anchor element to trigger the download
                 const anchor = document.createElement('a');
                 anchor.href = url;
                 anchor.download = fileName;
                 document.body.appendChild(anchor);
                 anchor.click();
-    
+
                 // Clean up
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(anchor);
@@ -128,7 +131,7 @@ const YtChannelDw = () => {
                 // Handle error
             });
     };
-    
+
     // Function to share on social media
     const shareOnSocialMedia = (socialNetwork) => {
         const url = encodeURIComponent(window.location.href);
@@ -146,10 +149,9 @@ const YtChannelDw = () => {
         }
     };
 
-
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
-      <Head>
+            <Head>
                 <title>{meta.title}</title>
                 <meta name="description" content={meta.description} />
                 <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
@@ -161,9 +163,9 @@ const YtChannelDw = () => {
                 <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
                 <meta name="twitter:title" content={meta.title} />
                 <meta name="twitter:description" content={meta.description} />
-                <meta name="twitter:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta name="twitter:image" content={meta.image} />
             </Head>
-            <ToastContainer/>
+            <ToastContainer />
             <h2 className='text-3xl pt-5'>YouTube Channel Banner Downloader</h2>
             <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
                 <div className="flex">
@@ -209,20 +211,20 @@ const YtChannelDw = () => {
                     </small>
                     <br />
                     <div className='ms-5'>
-                    <button className="btn btn-danger ms-5 mt-2" onClick={handleShareClick}>
-                        <FaShareAlt/> 
-                    </button>
-                    {showShareIcons && (
-                        <div className="share-icons ms-2">
-                            <FaFacebook className="facebook-icon" onClick={() => shareOnSocialMedia('facebook')} />
-                            <FaInstagram
-                                className="instagram-icon"
-                                onClick={() => shareOnSocialMedia('instagram')}
-                            />
-                            <FaTwitter className="twitter-icon" onClick={() => shareOnSocialMedia('twitter')} />
-                            <FaLinkedin className="linkedin-icon" onClick={() => shareOnSocialMedia('linkedin')} />
-                        </div>
-                    )}
+                        <button className="btn btn-danger ms-5 mt-2" onClick={handleShareClick}>
+                            <FaShareAlt /> 
+                        </button>
+                        {showShareIcons && (
+                            <div className="share-icons ms-2">
+                                <FaFacebook className="facebook-icon" onClick={() => shareOnSocialMedia('facebook')} />
+                                <FaInstagram
+                                    className="instagram-icon"
+                                    onClick={() => shareOnSocialMedia('instagram')}
+                                />
+                                <FaTwitter className="twitter-icon" onClick={() => shareOnSocialMedia('twitter')} />
+                                <FaLinkedin className="linkedin-icon" onClick={() => shareOnSocialMedia('linkedin')} />
+                            </div>
+                        )}
                     </div>
 
                     {error && <div className="alert alert-danger" role="alert">{error}</div>}

@@ -3,17 +3,20 @@ import React, { useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import sanitizeHtml from 'sanitize-html';
+import { useAuth } from '../../contexts/AuthContext';
+import Link from 'next/link';
 
 const ChannelIdFinder = () => {
-    // State variables
+    const { user, updateUserProfile } = useAuth();
     const [videoUrl, setVideoUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const [channelData, setChannelData] = useState(null);
     const [error, setError] = useState('');
     const [content, setContent] = useState('');
     const [meta, setMeta] = useState('');
+    const [isUpdated, setIsUpdated] = useState(false);
+    const [generateCount, setGenerateCount] = useState(0);
 
-    // Fetch content on component mount
     useEffect(() => {
         const fetchContent = async () => {
             try {
@@ -32,8 +35,8 @@ const ChannelIdFinder = () => {
                     });
                     setContent(sanitizedContent);
                     setMeta({
-                        title: data[0].title || 'YouTube Channel id Finder',
-                        description: data[0].description || "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
+                        title: data[0].title || 'YouTube Channel ID Finder',
+                        description: data[0].description || "Find YouTube Channel IDs easily with our tool. Boost your video's reach and engagement with accurate channel details.",
                         image: data[0].image || 'https://yourwebsite.com/og-image.png'
                     });
                 } else {
@@ -47,7 +50,18 @@ const ChannelIdFinder = () => {
         fetchContent();
     }, []);
 
-    // Fetch video data from the server
+    useEffect(() => {
+        if (user && user.paymentStatus !== 'success' && !isUpdated) {
+            updateUserProfile().then(() => setIsUpdated(true));
+        }
+    }, [user, updateUserProfile, isUpdated]);
+
+    useEffect(() => {
+        if (user && user.paymentStatus !== 'success') {
+            setGenerateCount(5);
+        }
+    }, [user]);
+
     const fetchVideoData = async (videoUrl) => {
         try {
             const response = await fetch('/api/fetch-channel-details', {
@@ -66,12 +80,17 @@ const ChannelIdFinder = () => {
         }
     };
 
-    // Handle fetch button click
     const handleFetch = async () => {
         if (!videoUrl) {
             toast.error('Please enter a YouTube video URL.');
             return;
         }
+
+        if (user && user.paymentStatus !== 'success' && generateCount <= 0) {
+            toast.error("You have reached the limit of fetching channel data. Please upgrade your plan for unlimited use.");
+            return;
+        }
+
         setLoading(true);
         setError('');
         try {
@@ -79,6 +98,10 @@ const ChannelIdFinder = () => {
             setChannelData(data);
             console.log(data);
             toast.success('Channel data fetched successfully!');
+
+            if (user && user.paymentStatus !== 'success') {
+                setGenerateCount(generateCount - 1);
+            }
         } catch (err) {
             setError(err.message);
             toast.error(err.message);
@@ -89,26 +112,47 @@ const ChannelIdFinder = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
-            {/* Page head metadata */}
             <Head>
                 <title>{meta.title}</title>
                 <meta name="description" content={meta.description} />
-                <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+                <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/channel-id-finder" />
                 <meta property="og:title" content={meta.title} />
                 <meta property="og:description" content={meta.description} />
-                <meta property="og:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
-                <meta name="twitter:card" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta property="og:image" content={meta.image} />
+                <meta name="twitter:card" content={meta.image} />
                 <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
-                <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+                <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/channel-id-finder" />
                 <meta name="twitter:title" content={meta.title} />
                 <meta name="twitter:description" content={meta.description} />
-                <meta name="twitter:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta name="twitter:image" content={meta.image} />
             </Head>
-            {/* Toast container for notifications */}
             <ToastContainer />
-            {/* Page title */}
             <h1 className="text-3xl font-bold text-center mb-6">YouTube Channel Data Fetcher</h1>
-            {/* Input and button for fetching data */}
+            <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
+                <div className="flex">
+                    <div className="py-1">
+                        <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
+                    </div>
+                    <div>
+                        {user ? (
+                            user.paymentStatus === 'success' ? (
+                                <p className="text-center p-3 alert-warning">
+                                    Congratulation!! Now You can generate unlimited tags.
+                                </p>
+                            ) : (
+                                <p className="text-center p-3 alert-warning">
+                                You are not Upgrade. You can generate Title {5 - generateCount}{" "}
+                                more times.<Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                            </p>
+                            )
+                        ) : (
+                            <p className="text-center p-3 alert-warning">
+                                Please log in to use this tool.
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </div>
             <div className="max-w-md mx-auto">
                 <div className="input-group mb-4">
                     <input
@@ -130,12 +174,10 @@ const ChannelIdFinder = () => {
                     {loading ? 'Loading...' : 'Fetch Data'}
                 </button>
             </div>
-            {/* Error message */}
             {error && <div className="alert alert-danger text-red-500 text-center mt-4">{error}</div>}
-            {/* Display fetched channel data */}
             {channelData && (
                 <div className="mt-8">
-                    <p><strong>Channel ID:</strong>{channelData.channelId}</p>
+                    <p><strong>Channel ID:</strong> {channelData.channelId}</p>
                     <p className="text-2xl font-semibold"><strong>Channel Name:</strong> {channelData.channelName}</p>
                     <p><strong>Channel URL:</strong> <a href={channelData.channelUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">{channelData.channelUrl}</a></p>
                     <p><strong>Description:</strong> {channelData.channelDescription}</p>
@@ -149,7 +191,6 @@ const ChannelIdFinder = () => {
                     </div>
                 </div>
             )}
-            {/* Render content from API */}
             <div className="content pt-6 pb-5">
                 <div dangerouslySetInnerHTML={{ __html: content }}></div>
             </div>

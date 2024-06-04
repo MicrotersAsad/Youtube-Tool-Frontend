@@ -1,4 +1,3 @@
-
 /* eslint-disable react/no-unescaped-entities */
 import React, { useState, useRef, useEffect } from "react";
 import {
@@ -21,20 +20,21 @@ import Head from "next/head";
 
 const YouTubeHashtagGenerator = () => {
   // State variables
-  const { isLoggedIn } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   const [tags, setTags] = useState([]); // Array to store entered tags
   const [keyword, setKeyword] = useState(""); // keyword value for adding new tag
-  const [generateHashTag, setgenerateHashTag] = useState([]); // Array to store generated titles
+  const [generateHashTag, setGenerateHashTag] = useState([]); // Array to store generated titles
   const [isLoading, setIsLoading] = useState(false); // Loading state for API requests
   const [showCaptcha, setShowCaptcha] = useState(false); // Whether to show ReCAPTCHA
   const [showShareIcons, setShowShareIcons] = useState(false); // Whether to show social media share icons
-  const [generateCount, setGenerateCount] = useState(0); // generated count show 
+  const [generateCount, setGenerateCount] = useState(2); // generated count show 
   const recaptchaRef = useRef(null); // Reference to ReCAPTCHA component
   const apiKey = process.env.NEXT_PUBLIC_API_KEY; // API key for OpenAI
   const [selectAll, setSelectAll] = useState(false); // Whether all titles are selected
-const [prompt,setPromot]=useState('')
-const [content,setContent]=useState('')
-const [meta, setMeta] = useState("");
+  const [prompt, setPrompt] = useState('');
+  const [content, setContent] = useState('');
+  const [meta, setMeta] = useState("");
+  const [isUpdated, setIsUpdated] = useState(false);
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -73,16 +73,23 @@ const [meta, setMeta] = useState("");
     fetchContent();
   }, []);
 
-  
-useEffect(()=>{
-  fetch('/api/deal')
-  .then(res=>res.json())
-  .then(data=>setPromot(data[0]))
-},[])
+  useEffect(() => {
+    fetch('/api/deal')
+      .then(res => res.json())
+      .then(data => setPrompt(data[0]))
+  }, []);
 
+  useEffect(() => {
+    if (user && user.paymentStatus !== 'success' && !isUpdated) {
+      updateUserProfile().then(() => setIsUpdated(true));
+    }
+  }, [user, updateUserProfile, isUpdated]);
 
-
-
+  useEffect(() => {
+    if (user && user.paymentStatus !== 'success') {
+      setGenerateCount(2);
+    }
+  }, [user]);
 
   // Function to handle user input for adding tags
   const handleKeyDown = (event) => {
@@ -100,7 +107,7 @@ useEffect(()=>{
   const handleSelectAll = () => {
     const newSelection = !selectAll;
     setSelectAll(newSelection);
-    setgenerateHashTag(
+    setGenerateHashTag(
       generateHashTag.map((title) => ({
         ...title,
         selected: newSelection,
@@ -135,7 +142,7 @@ useEffect(()=>{
   const toggleTitleSelect = (index) => {
     const newTitles = [...generateHashTag];
     newTitles[index].selected = !newTitles[index].selected;
-    setgenerateHashTag(newTitles);
+    setGenerateHashTag(newTitles);
     setSelectAll(newTitles.every((title) => title.selected));
   };
 
@@ -176,10 +183,15 @@ useEffect(()=>{
   };
 
   // Function to generate titles
-  const generatedHashTag = async () => {
+  const generateHashTags = async () => {
+    if (user && user.paymentStatus !== 'success' && generateCount <= 0) {
+      toast.error("You have reached the limit of generating hashtags. Please upgrade your plan for unlimited use.");
+      return;
+    }
+
     setIsLoading(true);
     setShowCaptcha(true);
-    console.log(tags.join(", ") );
+    console.log(tags.join(", "));
     try {
       const response = await fetch(
         "https://api.openai.com/v1/chat/completions",
@@ -215,10 +227,14 @@ useEffect(()=>{
           text: title,
           selected: false,
         }));
-      setgenerateHashTag(titles);
+      setGenerateHashTag(titles);
+
+      if (user && user.paymentStatus !== 'success') {
+        setGenerateCount(generateCount - 1);
+      }
     } catch (error) {
       toast.error("Error generating titles:", error);
-      setgenerateHashTag([]);
+      setGenerateHashTag([]);
     } finally {
       setIsLoading(false);
     }
@@ -259,27 +275,40 @@ useEffect(()=>{
         />
       </Head>
       <h2 className="text-3xl pt-5">YouTube Hashtag Generator</h2>
-      <ToastContainer/>
+      <ToastContainer />
       <div className="text-center pt-4 pb-4">
-      <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
-                <div className="flex">
-                    <div className="py-1">
-                        <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
-                    </div>
-                    <div>
-                        {isLoggedIn ? (
-                            <p className="text-center p-3 alert-warning">
-                                You are logged in and can generate unlimited tags.
-                            </p>
-                        ) : (
-                            <p className="text-center p-3 alert-warning">
-                                You are not logged in. You can generate tags {5 - generateCount}{" "}
-                                more times.<Link href="/register" className="btn btn-warning ms-3">Registration</Link>
-                            </p>
-                        )}
-                    </div>
-                </div>
+        <div
+          className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
+          role="alert"
+        >
+          <div className="flex">
+            <div className="py-1">
+              <svg
+                className="fill-current h-6 w-6 text-yellow-500 mr-4"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+              ></svg>
             </div>
+            <div>
+              {user ? (
+                user.paymentStatus === 'success' ? (
+                  <p className="text-center p-3 alert-warning">
+                   Congratulation!! Now You Got Full Access.
+                  </p>
+                ) : (
+                  <p className="text-center p-3 alert-warning">
+                    You are not Upgrade. You can generate HashTag {5 - generateCount}{" "}
+                    more times.<Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                  </p>
+                )
+              ) : (
+                <p className="text-center p-3 alert-warning">
+                  Please log in to use this tool.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
       <div className="keywords-input center rounded">
         <div className="tags">
@@ -310,17 +339,16 @@ useEffect(()=>{
         <div className="d-flex justify-between items-center pt-5">
           <button
             className="btn btn-danger"
-            onClick={generatedHashTag}
+            onClick={generateHashTags}
             disabled={isLoading || tags.length === 0}
           >
             <span>
               {" "}
-              {isLoading ? "Generating..." : "Generate HashTag"} 
+              {isLoading ? "Generating..." : "Generate HashTag"}
             </span>
           </button>
           <div className="share-button-container">
             <button className="btn btn-danger ms-5" onClick={handleShareClick}>
-           
               <FaShareAlt className="share-button-icon" />
             </button>
             {showShareIcons && (
@@ -370,7 +398,7 @@ useEffect(()=>{
               checked={title.selected}
               onChange={() => toggleTitleSelect(index)}
             />
-           <span className="ms-2"> {title.text}</span>
+            <span className="ms-2"> {title.text}</span>
             <FaCopy
               className="copy-icon"
               onClick={() => copyToClipboard(title.text)}
@@ -392,11 +420,11 @@ useEffect(()=>{
         )}
       </div>
       <div>
-      
-</div>
-<div className="content pt-6 pb-5">
-    <div dangerouslySetInnerHTML={{ __html: content }} />
-  </div>
+
+      </div>
+      <div className="content pt-6 pb-5">
+        <div dangerouslySetInnerHTML={{ __html: content }} />
+      </div>
 
       <style jsx>{styles}</style>
     </div>

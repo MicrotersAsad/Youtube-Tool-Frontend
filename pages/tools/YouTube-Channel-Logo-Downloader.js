@@ -10,16 +10,20 @@ import sanitizeHtml from 'sanitize-html';
 import Head from 'next/head';
 
 const YouTubeChannelLogoDownloader = () => {
-    const { isLoggedIn } = useAuth();
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [channelUrl, setChannelUrl] = useState('');
-    const [logoUrl, setLogoUrl] = useState('');
-    const [showShareIcons, setShowShareIcons] = useState(false);
-    const [generateCount, setGenerateCount] = useState(5);
-    const [content, setContent] = useState('');
+    const { isLoggedIn } = useAuth(); // Destructure authentication state from context
+    const [loading, setLoading] = useState(false); // Loading state for API requests
+    const [error, setError] = useState(''); // Error state
+    const [channelUrl, setChannelUrl] = useState(''); // State for input URL
+    const [logoUrl, setLogoUrl] = useState(''); // State for fetched logo URL
+    const [showShareIcons, setShowShareIcons] = useState(false); // State to toggle share icons visibility
+    const [generateCount, setGenerateCount] = useState(5); // Count for how many times data is fetched
+    const [content, setContent] = useState(''); // Content state for fetched HTML content
+    const [meta, setMeta] = useState({ // Meta information for the page
+        title: 'YouTube Channel Logo Downloader',
+        description: "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
+        image: 'https://yourwebsite.com/og-image.png',
+    });
 
-    const [meta,setMeta]=useState('')
     useEffect(() => {
         const fetchContent = async () => {
             try {
@@ -38,9 +42,9 @@ const YouTubeChannelLogoDownloader = () => {
                     });
                     setContent(sanitizedContent);
                     setMeta({
-                        title: data[0].title || 'YouTube Channel  Logo Downloader',
-                        description: data[0].description || "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
-                        image: data[0].image || 'https://yourwebsite.com/og-image.png'
+                        title: data[0].title || 'YouTube Channel Logo Downloader',
+                        description: data[0].description || meta.description,
+                        image: data[0].image || meta.image
                     });
                 } else {
                     toast.error("Content data is invalid");
@@ -51,7 +55,8 @@ const YouTubeChannelLogoDownloader = () => {
         };
 
         fetchContent();
-    }, []);
+    }, [meta.description, meta.image]);
+
     const handleUrlChange = (e) => {
         setChannelUrl(e.target.value);
     };
@@ -118,9 +123,25 @@ const YouTubeChannelLogoDownloader = () => {
             });
     };
 
+    const shareOnSocialMedia = (socialNetwork) => {
+        const url = encodeURIComponent(window.location.href);
+        const socialMediaUrls = {
+            facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+            twitter: `https://twitter.com/intent/tweet?url=${url}`,
+            instagram: "You can share this page on Instagram through the Instagram app on your mobile device.",
+            linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
+        };
+
+        if (socialNetwork === 'instagram') {
+            alert(socialMediaUrls[socialNetwork]);
+        } else {
+            window.open(socialMediaUrls[socialNetwork], "_blank");
+        }
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
-             <Head>
+            <Head>
                 <title>{meta.title}</title>
                 <meta name="description" content={meta.description} />
                 <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
@@ -134,9 +155,8 @@ const YouTubeChannelLogoDownloader = () => {
                 <meta name="twitter:description" content={meta.description} />
                 <meta name="twitter:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
             </Head>
-            <ToastContainer/>
+            <ToastContainer />
             <h2 className='text-3xl pt-5'>YouTube Channel Logo Downloader</h2>
-         
             <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
                 <div className="flex">
                     <div className="py-1">
@@ -182,14 +202,13 @@ const YouTubeChannelLogoDownloader = () => {
                     {error && <div className="alert alert-danger mt-3" role="alert">{error}</div>}
                     {logoUrl && (
                         <div className="text-center mt-3">
-                          <Image src={logoUrl} alt="Channel Logo" width={100} height={100} />
-
+                            <Image src={logoUrl} alt="Channel Logo" width={100} height={100} />
                             <button className="btn btn-danger mt-3" onClick={downloadLogo}>
                                 <FaDownload /> Download Logo
                             </button>
                         </div>
                     )}
-                    <br/>
+                    <br />
                     <button className="btn btn-danger mt-2" onClick={handleShareClick}>
                         <FaShareAlt />
                     </button>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Layout from './layout';
 import { useAuth } from '../../contexts/AuthContext';
 import ChartComponent from './ChartComponent';
+import UserProfile from '../../components/UserProfile';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -39,11 +40,12 @@ const Dashboard = () => {
     setFilter(filter);
     fetchData(filter);
   };
-
+console.log(user);
   return (
 
       <Layout>
         <h1 className="text-2xl font-bold">Hi, {user?.username}</h1>
+        <UserProfile/>
         <div className="mt-4">
           <select
             onChange={(e) => handleFilterChange(e.target.value)}

@@ -8,70 +8,76 @@ import Image from 'next/image';
 import { ToastContainer, toast } from 'react-toastify';
 import Head from 'next/head';
 import sanitizeHtml from 'sanitize-html';
+
 const YtThumbnailDw = () => {
-    const { isLoggedIn } = useAuth();
+    const { isLoggedIn, user, updateUserProfile } = useAuth(); // Added user and updateUserProfile
     const [videoUrl, setVideoUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [thumbnails, setThumbnails] = useState(null);
     const [selectedThumbnailUrl, setSelectedThumbnailUrl] = useState('');
-    const [generateCount, setgenerateCount] = useState(0);
+    const [generateCount, setGenerateCount] = useState(0);
     const [showShareIcons, setShowShareIcons] = useState(false);
     const [content, setContent] = useState("");
-  const [meta, setMeta] = useState("");
+    const [meta, setMeta] = useState("");
 
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const response = await fetch(
-          `/api/content?category=Youtube-Thumbnails-Generator`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch content");
-        }
-        const data = await response.json();
-        console.log(data);
-        if (data && data.length > 0 && data[0].content) {
-          const sanitizedContent = sanitizeHtml(data[0].content, {
-            allowedTags: ["h2", "h3", "p", "li", "a"],
-            allowedAttributes: {
-              a: ["href"],
-            },
-          });
-          setContent(sanitizedContent);
-          setMeta({
-            title: data[0].title || "Youtube Thumbnails Generator",
-            description:
-              data[0].description ||
-              "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
-            image: data[0].image || "https://yourwebsite.com/og-image.png",
-          });
-        } else {
-          toast.error("Content data is invalid");
-        }
-      } catch (error) {
-        toast.error("Error fetching content");
-      }
-    };
+    useEffect(() => {
+        const fetchContent = async () => {
+            try {
+                const response = await fetch(`/api/content?category=Youtube-Thumbnails-Generator`);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch content");
+                }
+                const data = await response.json();
+                console.log(data);
+                if (data && data.length > 0 && data[0].content) {
+                    const sanitizedContent = sanitizeHtml(data[0].content, {
+                        allowedTags: ["h2", "h3", "p", "li", "a"],
+                        allowedAttributes: {
+                            a: ["href"],
+                        },
+                    });
+                    setContent(sanitizedContent);
+                    setMeta({
+                        title: data[0].title || "Youtube Thumbnails Generator",
+                        description: data[0].description || "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
+                        image: data[0].image || "https://yourwebsite.com/og-image.png",
+                    });
+                } else {
+                    toast.error("Content data is invalid");
+                }
+            } catch (error) {
+                toast.error("Error fetching content");
+            }
+        };
 
-    fetchContent();
-  }, []);
+        fetchContent();
+    }, []);
+
+    useEffect(() => {
+        if (user && user.paymentStatus !== 'success') {
+          updateUserProfile().then(() => setGenerateCount(5)); // Update generate count if user is not paid
+        }
+      }, [user, updateUserProfile]);
+
     const handleUrlChange = (e) => {
         setVideoUrl(e.target.value);
     };
+
     const handleShareClick = () => {
         setShowShareIcons(!showShareIcons);
     };
+
     const fetchYouTubeData = async () => {
         try {
             setLoading(true);
             setError('');
             const videoId = extractVideoId(videoUrl);
-          
+
             const response = await axios.get(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${process.env.NEXT_PUBLIC_YOUTUBE_API_KEY}`);
-          
+
             const thumbnailData = response.data.items[0].snippet.thumbnails;
-         
+
             setThumbnails(thumbnailData);
         } catch (error) {
             console.error('Error fetching YouTube data:', error); // Log error
@@ -83,34 +89,31 @@ const YtThumbnailDw = () => {
         }
     };
 
-    
-
     const extractVideoId = (url) => {
         const regex = /^(?:https?:\/\/)?(?:www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})$/;
         const match = url.match(regex);
         return match ? match[2] : null;
     };
 
-
     const downloadThumbnail = () => {
         if (!selectedThumbnailUrl) return;
-    
+
         const fileName = 'YouTube_thumbnail.jpg';
-    
+
         // Fetch the thumbnail image data
         fetch(selectedThumbnailUrl)
             .then(response => response.blob())
             .then(blob => {
                 // Create a temporary URL for the image blob
                 const url = window.URL.createObjectURL(new Blob([blob]));
-    
+
                 // Create a temporary anchor element to trigger the download
                 const anchor = document.createElement('a');
                 anchor.href = url;
                 anchor.download = fileName;
                 document.body.appendChild(anchor);
                 anchor.click();
-    
+
                 // Clean up
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(anchor);
@@ -120,64 +123,60 @@ const YtThumbnailDw = () => {
                 // Handle error
             });
     };
-    
-    
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
-             <Head>
-        <title>{meta.title}</title>
-        <meta name="description" content={meta.description} />
-        <meta
-          property="og:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta property="og:title" content={meta.title} />
-        <meta property="og:description" content={meta.description} />
-        <meta
-          property="og:image"
-          content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8"
-        />
-        <meta
-          name="twitter:card"
-          content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8"
-        />
-        <meta
-          property="twitter:domain"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta
-          property="twitter:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta name="twitter:title" content={meta.title} />
-        <meta name="twitter:description" content={meta.description} />
-        <meta
-          name="twitter:image"
-          content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8"
-        />
-      </Head>
+            <Head>
+                <title>{meta.title}</title>
+                <meta name="description" content={meta.description} />
+                <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+                <meta property="og:title" content={meta.title} />
+                <meta property="og:description" content={meta.description} />
+                <meta property="og:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta name="twitter:card" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
+                <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+                <meta name="twitter:title" content={meta.title} />
+                <meta name="twitter:description" content={meta.description} />
+                <meta name="twitter:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+            </Head>
             <h2 className='text-3xl pt-5'>Youtube Thumbnails Generator</h2>
-            <ToastContainer/>
-            <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
-                <div className="flex">
-                    <div className="py-1">
-                        <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
-                    </div>
-                    <div>
-                        {isLoggedIn ? (
-                            <p className="text-center p-3 alert-warning">
-                                You are logged in and can generate unlimited tags.
-                            </p>
-                        ) : (
-                            <p className="text-center p-3 alert-warning">
-                                You are not logged in. You can generate tags {5 - generateCount}{" "}
-                                more times.<Link href="/register" className="btn btn-warning ms-3">Registration</Link>
-                            </p>
-                        )}
-                    </div>
-                </div>
+            <ToastContainer />
+            <div className="text-center pt-4 pb-4">
+        <div
+          className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
+          role="alert"
+        >
+          <div className="flex">
+            <div className="py-1">
+              <svg
+                className="fill-current h-6 w-6 text-yellow-500 mr-4"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+              ></svg>
             </div>
-<div className="row justify-content-center pt-5">
+            <div>
+              {user ? (
+                user.paymentStatus === 'success' ? (
+                  <p className="text-center p-3 alert-warning">
+                    Congratulation!! Now You Got Full Access.
+                  </p>
+                ) : (
+                  <p className="text-center p-3 alert-warning">
+                    You are not Upgrade. You can downlaod thumbnail {5 - generateCount}{" "}
+                    more times.<Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                  </p>
+                )
+              ) : (
+                <p className="text-center p-3 alert-warning">
+                  Please log in to use this tool.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+            <div className="row justify-content-center pt-5">
                 <div className="col-md-6">
                     <div className="input-group mb-3">
                         <input
@@ -196,8 +195,8 @@ const YtThumbnailDw = () => {
                         >
                             {loading ? 'Loading...' : 'Fetch Thumbnail'}
                         </button>
-                        </div>
-                        <small className="text-muted">
+                    </div>
+                    <small className="text-muted">
                         Example: https://www.youtube.com/watch?v=j6X9tH9y_cs
                     </small>
                     <br />
@@ -214,15 +213,14 @@ const YtThumbnailDw = () => {
                             </div>
                         )}
                     </div>
-                 
                     {error && <div className="alert alert-danger" role="alert">{error}</div>}
                     <div className="d-flex flex-wrap justify-content-center">
                         {thumbnails && Object.entries(thumbnails).map(([resolution, { url }]) => (
                             <div key={resolution} className={`p-2 ${url === selectedThumbnailUrl ? 'selected' : ''}`} onClick={() => setSelectedThumbnailUrl(url)}>
-                                <Image 
-                                    src={url} 
-                                    alt={`Thumbnail ${resolution}`} 
-                                    className="img-thumbnail" 
+                                <Image
+                                    src={url}
+                                    alt={`Thumbnail ${resolution}`}
+                                    className="img-thumbnail"
                                     style={{ border: url === selectedThumbnailUrl ? '3px solid blue' : 'none', cursor: 'pointer' }}
                                 />
                                 <p className="text-center">{resolution}</p>
@@ -231,13 +229,13 @@ const YtThumbnailDw = () => {
                     </div>
                     {selectedThumbnailUrl && (
                         <button className="btn btn-danger mt-3" onClick={downloadThumbnail}>
-                            <FaDownload /> 
+                            <FaDownload />
                         </button>
                     )}
                 </div>
                 <div className="content pt-6 pb-5">
-          <div dangerouslySetInnerHTML={{ __html: content }}></div>
-        </div>
+                    <div dangerouslySetInnerHTML={{ __html: content }}></div>
+                </div>
             </div>
         </div>
     );

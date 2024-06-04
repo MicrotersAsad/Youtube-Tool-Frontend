@@ -27,8 +27,10 @@ export const AuthProvider = ({ children }) => {
     }
   }, [router]);
 
-  const login = (token) => {
+  const login = async (email, password) => {
     try {
+      const response = await axios.post('/api/login', { email, password });
+      const token = response.data.token;
       const decoded = jwt.decode(token);
       if (decoded) {
         setUser(decoded);
@@ -37,7 +39,7 @@ export const AuthProvider = ({ children }) => {
         console.error("Token decoding failed on login");
       }
     } catch (error) {
-      console.error("Token verification failed on login:", error);
+      console.error("Login failed:", error);
     }
   };
 
@@ -47,19 +49,17 @@ export const AuthProvider = ({ children }) => {
     router.push('/login');
   };
 
-  const updateUserProfile = async (formData) => {
+  const updateUserProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.patch('/pages/api/users', formData, {
+      const response = await axios.get('/api/user', {
         headers: {
-          'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`,
         },
       });
       setUser(response.data); // Update the user state with the new profile data
     } catch (error) {
       console.error('Failed to update profile:', error);
-      throw new Error(error.response?.data?.message || 'Failed to update profile');
     }
   };
 

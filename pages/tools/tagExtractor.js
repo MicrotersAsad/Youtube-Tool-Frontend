@@ -9,7 +9,7 @@ import sanitizeHtml from 'sanitize-html';
 import Head from 'next/head';
 
 const TagExtractor = () => {
-    const { user } = useAuth(); // Get the user object from the AuthContext
+    const { user, updateUserProfile } = useAuth(); // Get the user object from the AuthContext
     const [videoUrl, setVideoUrl] = useState('');
     const [tags, setTags] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -17,7 +17,9 @@ const TagExtractor = () => {
     const [showShareIcons, setShowShareIcons] = useState(false);
     const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false);
     const [content, setContent] = useState('');
-    const [meta, setMeta] = useState('')
+    const [meta, setMeta] = useState('');
+    const [generateCount, setGenerateCount] = useState(2);
+    const [isUpdated, setIsUpdated] = useState(false);
 
     // Fetch content from API on component mount
     useEffect(() => {
@@ -53,6 +55,13 @@ const TagExtractor = () => {
         fetchContent();
     }, []);
 
+    // Check and update user profile if needed
+    useEffect(() => {
+        if (user && user.paymentStatus !== 'success' && !isUpdated) {
+            updateUserProfile().then(() => setIsUpdated(true));
+        }
+    }, [user, updateUserProfile, isUpdated]);
+
     // Handle URL input change
     const handleUrlChange = (e) => {
         setVideoUrl(e.target.value);
@@ -75,6 +84,12 @@ const TagExtractor = () => {
             toast.error('Please enter a valid YouTube URL');
             return;
         }
+
+        if (user && user.paymentStatus !== 'success' && generateCount <= 0) {
+            toast.error("You have reached the limit of generating tags. Please upgrade your plan for unlimited use.");
+            return;
+        }
+
         setLoading(true);
         setError('');
         try {
@@ -100,6 +115,9 @@ const TagExtractor = () => {
 
             const data = await response.json();
             setTags(data.tags || []);
+            if (user && user.paymentStatus !== 'success') {
+                setGenerateCount(generateCount - 1);
+            }
         } catch (err) {
             setError(err.message);
             setTags([]);
@@ -157,7 +175,7 @@ const TagExtractor = () => {
 
     // Reset fetch limit if user has unlimited access
     useEffect(() => {
-        if (user) {
+        if (user && user.paymentStatus === 'success') {
             setFetchLimitExceeded(false);
         }
     }, [user]);
@@ -187,17 +205,23 @@ const TagExtractor = () => {
                         <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
                     </div>
                     <div>
-                        {user?.hasUnlimitedAccess ? (
-                            <p className="text-center p-3 alert-warning">
-                                You are upgrade in and can generate unlimited tags.
-                            </p>
-                        ) : fetchLimitExceeded ? (
-                            <p className="text-center p-3 alert-warning">
-                                Fetch limit exceeded. Please try again later or <Link href="/pricing" className="btn btn-warning ms-3">Update for unlimited access</Link>.
-                            </p>
+                        {user ? (
+                            user.paymentStatus === 'success' ? (
+                                <p className="text-center p-3 alert-warning">
+                                    Congratulation!! Now You Got Unlimited Access.
+                                </p>
+                            ) : fetchLimitExceeded ? (
+                                <p className="text-center p-3 alert-warning">
+                                    Fetch limit exceeded. Please try again later or <Link href="/pricing" className="btn btn-warning ms-3">Update for unlimited access</Link>.
+                                </p>
+                            ) : (
+                                <p className="text-center p-3 alert-warning">
+                                    You are not upgrade Package. You can extractor tags {generateCount} more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link> for unlimited access.
+                                </p>
+                            )
                         ) : (
                             <p className="text-center p-3 alert-warning">
-                                You are not upgrade Package. You can generate tags twice. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link> for unlimited access.
+                                Please log in to use this tool.
                             </p>
                         )}
                     </div>

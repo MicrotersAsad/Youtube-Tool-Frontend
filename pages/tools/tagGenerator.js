@@ -9,7 +9,7 @@ import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
 const TagGenerator = () => {
-    const { isLoggedIn } = useAuth();
+    const { user, updateUserProfile } = useAuth();
     const [tags, setTags] = useState([]);
     const [input, setInput] = useState("");
     const [generatedTitles, setGeneratedTitles] = useState([]);
@@ -22,7 +22,7 @@ const TagGenerator = () => {
     const [generateCount, setGenerateCount] = useState(0);
     const [content, setContent] = useState('');
     const [meta, setMeta] = useState({ title: '', description: '', image: '' });
-
+    const [isUpdated, setIsUpdated] = useState(false);
     useEffect(() => {
         const fetchContent = async () => {
             try {
@@ -55,12 +55,16 @@ const TagGenerator = () => {
 
         fetchContent();
     }, []);
-
     useEffect(() => {
-        if (!isLoggedIn) {
+        if (user && user.paymentStatus !== 'success' && !isUpdated) {
+          updateUserProfile().then(() => setIsUpdated(true));
+        }
+      }, [user, updateUserProfile, isUpdated]);
+    useEffect(() => {
+        if (user && user.paymentStatus !== 'success') {
             setGenerateCount(5);
         }
-    }, [isLoggedIn]);
+    }, [user]);
 
     const handleInputChange = (e) => {
         const { value } = e.target;
@@ -155,6 +159,11 @@ const TagGenerator = () => {
     };
 
     const generateTitles = async () => {
+        if (user && user.paymentStatus !== 'success' && generateCount <= 0) {
+            toast.error("You have reached the limit of generating tags. Please upgrade your plan for unlimited use.");
+            return;
+        }
+
         setIsLoading(true);
         setShowCaptcha(true);
         try {
@@ -184,6 +193,10 @@ const TagGenerator = () => {
                 selected: false
             }));
             setGeneratedTitles(titles);
+
+            if (user && user.paymentStatus !== 'success') {
+                setGenerateCount(generateCount - 1);
+            }
         } catch (error) {
             toast.error("Error generating titles:", error);
             setGeneratedTitles([]);
@@ -191,7 +204,7 @@ const TagGenerator = () => {
             setIsLoading(false);
         }
     };
-console.log(meta.description);
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
             <Head>
@@ -216,14 +229,20 @@ console.log(meta.description);
                         <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
                     </div>
                     <div>
-                        {isLoggedIn ? (
-                            <p className="text-center p-3 alert-warning">
-                                You are logged in and can generate unlimited tags.
+                        {user ? (
+                            user.paymentStatus === 'success' ? (
+                                <p className="text-center p-3 alert-warning">
+                                    Congratulation!! Now You can generate unlimited tags.
+                                </p>
+                            ) : (
+                                <p className="text-center p-3 alert-warning">
+                                You are not Upgrade. You can generate Title {5 - generateCount}{" "}
+                                more times.<Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
                             </p>
+                            )
                         ) : (
                             <p className="text-center p-3 alert-warning">
-                                You are not logged in. You can generate tags {5 - generateCount}{" "}
-                                more times.<Link href="/register" className="btn btn-warning ms-3">Register</Link>
+                                Please log in to use this tool.
                             </p>
                         )}
                     </div>
@@ -251,15 +270,15 @@ console.log(meta.description);
                 />
             </div>
             <div className="center">
-                <div className="d-flex pt-5">
-                    <button className="btn btn-danger" onClick={generateTitles} disabled={isLoading || tags.length === 0}>
+                <div className="flex flex-wrap gap-2 justify-center pt-5">
+                    <button className="btn btn-danger whitespace-nowrap" onClick={generateTitles} disabled={isLoading || tags.length === 0} style={{ minWidth: '50px' }}>
                         {isLoading ? "Generating..." : "Generate Titles"}
                     </button>
-                    <button className="btn btn-danger ms-5" onClick={handleShareClick}>
-                        <FaShareAlt /> 
+                    <button className="btn btn-danger whitespace-nowrap" onClick={handleShareClick} style={{ minWidth: '50px' }}>
+                        <FaShareAlt />
                     </button>
                     {showShareIcons && (
-                        <div className="share-icons ms-2">
+                        <div className="flex gap-2">
                             <FaFacebook className="facebook-icon" onClick={() => shareOnSocialMedia('facebook')} />
                             <FaInstagram className="instagram-icon" onClick={() => shareOnSocialMedia('instagram')} />
                             <FaTwitter className="twitter-icon" onClick={() => shareOnSocialMedia('twitter')} />
@@ -310,6 +329,9 @@ console.log(meta.description);
                     <div dangerouslySetInnerHTML={{ __html: content }}></div>
                 </div>
             </div>
+     
+
+
             <style jsx>{`
               .keywords-input-container {
                 border: 2px solid #ccc;

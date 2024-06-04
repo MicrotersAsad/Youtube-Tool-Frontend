@@ -1,28 +1,23 @@
-import { connectToDatabase } from '../../utils/mongodb';
-
-export default async function handler(req, res) {
+// pages/api/search.js
+export default function handler(req, res) {
   const { query } = req.query;
 
-  if (!query) {
-    return res.status(400).json({ message: 'Query is required' });
-  }
+  // Example static data; replace with your actual search logic
+  const data = [
+    { id: 1, title: 'Tag Generator', description: 'Generate tags for YouTube videos', href: '/tools/tagGenerator' },
+    { id: 2, title: 'Title & Description Generator', description: 'Generate titles and descriptions for YouTube videos', href: '/tools/youtube-title-and-description-generator' },
+    { id: 3, title: 'Tag Extractor', description: 'Tag Extract From Youtube Videos', href: '/tools/tagExtractor' },
+    { id: 4, title: 'Title & Description Generator', description: 'Generate titles and descriptions for YouTube videos', href: '/tools/youtube-title-and-description-generator' },
+    { id: 5, title: 'Title & Description Generator', description: 'Generate titles and descriptions for YouTube videos', href: '/tools/youtube-title-and-description-generator' },
+    { id: 6, title: 'Title & Description Generator', description: 'Generate titles and descriptions for YouTube videos', href: '/tools/youtube-title-and-description-generator' },
+    { id: 7, title: 'Title & Description Generator', description: 'Generate titles and descriptions for YouTube videos', href: '/tools/youtube-title-and-description-generator' },
+    // Add more items as needed
+  ];
 
-  try {
-    const { db } = await connectToDatabase();
-    const searchResults = await db
-      .collection('yourCollectionName')
-      .find({
-        $or: [
-          { title: { $regex: query, $options: 'i' } },
-          { description: { $regex: query, $options: 'i' } },
-          // Add more fields to search if needed
-        ],
-      })
-      .toArray();
+  const results = data.filter(item =>
+    item.title.toLowerCase().includes(query.toLowerCase()) ||
+    item.description.toLowerCase().includes(query.toLowerCase())
+  );
 
-    res.status(200).json(searchResults);
-  } catch (error) {
-    console.error('Error fetching search results:', error.message);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
+  res.status(200).json({ results });
 }

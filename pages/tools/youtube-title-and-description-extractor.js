@@ -1,28 +1,44 @@
 
 /* eslint-disable react/no-unescaped-entities */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaShareAlt, FaFacebook, FaInstagram, FaTwitter, FaLinkedin, FaCopy, FaDownload } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
 import Link from 'next/link';
-import { TextEncoder } from 'text-encoding';
 import { ToastContainer, toast } from 'react-toastify';
 
 const TitleDescriptionExtractor = () => {
-    const { isLoggedIn } = useAuth();
+    const { isLoggedIn, user, updateUserProfile } = useAuth();
     const [videoUrl, setVideoUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [showShareIcons, setShowShareIcons] = useState(false);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [generateCount, setgenerateCount] = useState(0);
+    const [generateCount, setGenerateCount] = useState(5); // Set initial count to 5
+    const [isUpdated, setIsUpdated] = useState(false);
+    useEffect(() => {
+        if (user && user.paymentStatus !== 'success' && !isUpdated) {
+          updateUserProfile().then(() => setIsUpdated(true));
+        }
+      }, [user, updateUserProfile, isUpdated]);
+    
+      useEffect(() => {
+        if (user && user.paymentStatus !== 'success') {
+          setGenerateCount(2);
+        }
+      }, [user]);
 
     const handleUrlChange = (e) => {
         setVideoUrl(e.target.value);
     };
 
     const fetchYouTubeData = async () => {
+        if (generateCount <= 0) {
+            toast.error('You have reached the limit of generating titles. Please upgrade your plan for unlimited use.');
+            return;
+        }
+
         try {
             setLoading(true);
             setError('');
@@ -31,6 +47,10 @@ const TitleDescriptionExtractor = () => {
             const { title, description } = response.data.items[0].snippet;
             setTitle(title);
             setDescription(description);
+
+            if (user && user.paymentStatus !== 'success') {
+                setGenerateCount(generateCount - 1); // Decrease count if not paid
+            }
         } catch (error) {
             setError('Failed to fetch YouTube data. Please check the video URL.');
         } finally {
@@ -70,29 +90,45 @@ const TitleDescriptionExtractor = () => {
         element.click();
         document.body.removeChild(element);
     };
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
             <h2 className='text-3xl pt-5'>Youtube Tile & Description Extractor</h2>
             <ToastContainer/>
-            <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
-                <div className="flex">
-                    <div className="py-1">
-                        <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
-                    </div>
-                    <div>
-                        {isLoggedIn ? (
-                            <p className="text-center p-3 alert-warning">
-                                You are logged in and can generate unlimited tags.
-                            </p>
-                        ) : (
-                            <p className="text-center p-3 alert-warning">
-                                You are not logged in. You can generate tags {5 - generateCount}{" "}
-                                more times.<Link href="/register" className="btn btn-warning ms-3">Registration</Link>
-                            </p>
-                        )}
-                    </div>
-                </div>
+            <div className="text-center pt-4 pb-4">
+        <div
+          className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
+          role="alert"
+        >
+          <div className="flex">
+            <div className="py-1">
+              <svg
+                className="fill-current h-6 w-6 text-yellow-500 mr-4"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+              ></svg>
             </div>
+            <div>
+              {user ? (
+                user.paymentStatus === 'success' ? (
+                  <p className="text-center p-3 alert-warning">
+                   Congratulation!! Now You Got Full Access.
+                  </p>
+                ) : (
+                  <p className="text-center p-3 alert-warning">
+                    You are not Upgrade. You can generate HashTag {5 - generateCount}{" "}
+                    more times.<Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                  </p>
+                )
+              ) : (
+                <p className="text-center p-3 alert-warning">
+                  Please log in to use this tool.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
             <div className="row justify-content-center pt-5">
                 <div className="col-md-6">
                     <div className="input-group mb-3">

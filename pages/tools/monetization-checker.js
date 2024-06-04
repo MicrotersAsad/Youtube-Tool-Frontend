@@ -8,14 +8,15 @@ import Link from 'next/link';
 import sanitizeHtml from 'sanitize-html';
 
 const MonetizationChecker = () => {
-    const { isLoggedIn } = useAuth(); // Custom hook for authentication
+    const { user, updateUserProfile } = useAuth(); // Custom hook for authentication
     const [url, setUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState(null);
     const [error, setError] = useState('');
     const [content, setContent] = useState('');
-    const [generateCount, setGenerateCount] = useState(0);
+    const [generateCount, setGenerateCount] = useState(5);
     const [meta, setMeta] = useState({}); // Ensure meta is an object
+    const [isUpdated, setIsUpdated] = useState(false);
     const recaptchaRef = useRef(null);
 
     useEffect(() => {
@@ -58,6 +59,18 @@ const MonetizationChecker = () => {
         fetchContent();
     }, []);
 
+    useEffect(() => {
+        if (user && user.paymentStatus !== 'success' && !isUpdated) {
+            updateUserProfile().then(() => setIsUpdated(true));
+        }
+    }, [user, updateUserProfile, isUpdated]);
+
+    useEffect(() => {
+        if (user && user.paymentStatus !== 'success') {
+            setGenerateCount(5);
+        }
+    }, [user]);
+
     const handleInputChange = (e) => {
         setError('');
         setUrl(e.target.value);
@@ -66,6 +79,11 @@ const MonetizationChecker = () => {
     const handleFetchClick = async () => {
         if (!url.trim()) {
             toast.error('Please enter a valid URL.');
+            return;
+        }
+
+        if (user && user.paymentStatus !== 'success' && generateCount <= 0) {
+            toast.error("You have reached the limit of fetching channel data. Please upgrade your plan for unlimited use.");
             return;
         }
 
@@ -90,6 +108,10 @@ const MonetizationChecker = () => {
             const data = await response.json();
             setData(data);
             toast.success('Data fetched successfully!');
+
+            if (user && user.paymentStatus !== 'success') {
+                setGenerateCount(generateCount - 1);
+            }
         } catch (error) {
             setError(error.message);
             toast.error(error.message);
@@ -113,13 +135,13 @@ const MonetizationChecker = () => {
             <Head>
                 <title>{meta.title}</title>
                 <meta name="description" content={meta.description} />
-                <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+                <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/monetization-checker" />
                 <meta property="og:title" content={meta.title} />
                 <meta property="og:description" content={meta.description} />
                 <meta property="og:image" content={meta.image} />
                 <meta name="twitter:card" content={meta.image} />
                 <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
-                <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
+                <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/monetization-checker" />
                 <meta name="twitter:title" content={meta.title} />
                 <meta name="twitter:description" content={meta.description} />
                 <meta name="twitter:image" content={meta.image} />
@@ -135,14 +157,19 @@ const MonetizationChecker = () => {
                         <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
                     </div>
                     <div>
-                        {isLoggedIn ? (
-                            <p className="text-center p-3 alert-warning">
-                                You are logged in and can generate unlimited Title.
-                            </p>
+                        {user ? (
+                            user.paymentStatus === 'success' ? (
+                                <p className="text-center p-3 alert-warning">
+                                    Congratulation!!.You Get Unlimited Access.
+                                </p>
+                            ) : (
+                                <p className="text-center p-3 alert-warning">
+                                    You are not Upgrade. You can check Monetization  {generateCount} more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                                </p>
+                            )
                         ) : (
                             <p className="text-center p-3 alert-warning">
-                                You are not logged in. You can generate Title {5 - generateCount}{" "}
-                                more times.<Link href="/register" className="btn btn-warning ms-3">Register</Link>
+                                Please log in to use this tool.
                             </p>
                         )}
                     </div>

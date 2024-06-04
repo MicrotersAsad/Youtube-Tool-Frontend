@@ -71,42 +71,42 @@ const Footer = () => {
               <h5 className="text-sm font-semibold uppercase text-white">Our Tools</h5>
               <ul className="mt-4 space-y-2">
                 <li>
-                  <Link href="#" className="text-gray-300 hover:text-white">
+                  <Link href="/tools/tagGenerator" className="text-gray-300 hover:text-white">
                     {" "}
                     YouTube Tag Generator
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-gray-300 hover:text-white">
+                  <Link href="/tools/tagExtractor" className="text-gray-300 hover:text-white">
                     YouTube Tag Extractor
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-gray-300 hover:text-white">
+                  <Link href="/tools/youtube-title-and-description-generator" className="text-gray-300 hover:text-white">
                     YouTube Title and Description Generator
                   </Link>
                 </li>
                 <li>
                   <Link
-                    href="/terms"
+                    href="/tools/youtube-title-and-description-extractor"
                     className="text-gray-300 hover:text-white"
                   >
                     YouTube Title and Description Extractor
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-gray-300 hover:text-white">
+                  <Link href="/tools/youtube-thumbnail" className="text-gray-300 hover:text-white">
                     YouTube Thumbnails
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-gray-300 hover:text-white">
-                    YouTube Channel Audit
+                  <Link href="tools/channel-id-finder" className="text-gray-300 hover:text-white">
+                    YouTube Channel ID Finder
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-gray-300 hover:text-white">
-                    YouTube Video Audit
+                  <Link href="/tools/video-data-viewer" className="text-gray-300 hover:text-white">
+                    YouTube Video Data Viewer
                   </Link>
                 </li>
               </ul>

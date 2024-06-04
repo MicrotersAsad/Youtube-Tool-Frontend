@@ -14,18 +14,19 @@ import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
 import sanitizeHtml from "sanitize-html";
 import Head from "next/head";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 
 const YtEmbedCode = () => {
-  const { isLoggedIn } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [generateCount, setGenerateCount] = useState(0);
+  const [generateCount, setGenerateCount] = useState(2);
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [embedCode, setEmbedCode] = useState("");
   const [content, setContent] = useState("");
   const [meta, setMeta] = useState("");
+  const [isUpdated, setIsUpdated] = useState(false);
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -63,6 +64,19 @@ const YtEmbedCode = () => {
 
     fetchContent();
   }, []);
+
+  useEffect(() => {
+    if (user && user.paymentStatus !== 'success' && !isUpdated) {
+      updateUserProfile().then(() => setIsUpdated(true));
+    }
+  }, [user, updateUserProfile, isUpdated]);
+
+  useEffect(() => {
+    if (user && user.paymentStatus !== 'success') {
+      setGenerateCount(2);
+    }
+  }, [user]);
+
   const handleUrlChange = (e) => {
     setVideoUrl(e.target.value);
   };
@@ -72,6 +86,17 @@ const YtEmbedCode = () => {
   };
 
   const fetchYouTubeData = async () => {
+    if (!videoUrl) {
+      setError('Please enter a valid YouTube URL');
+      toast.error('Please enter a valid YouTube URL');
+      return;
+    }
+
+    if (user && user.paymentStatus !== 'success' && generateCount <= 0) {
+      toast.error("You have reached the limit of generating embed codes. Please upgrade your plan for unlimited use.");
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
@@ -83,10 +108,12 @@ const YtEmbedCode = () => {
       setEmbedCode(
         `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
       );
+
+      if (user && user.paymentStatus !== 'success') {
+        setGenerateCount(generateCount - 1);
+      }
     } catch (error) {
       setError("Failed to fetch YouTube data. Please check the video URL.");
-      setThumbnails(null);
-      setSelectedThumbnailUrl("");
       setEmbedCode("");
     } finally {
       setLoading(false);
@@ -149,17 +176,19 @@ const YtEmbedCode = () => {
             ></svg>
           </div>
           <div>
-            {isLoggedIn ? (
-              <p className="text-center p-3 alert-warning">
-                You are logged in and can generate unlimited tags.
-              </p>
+            {user ? (
+              user.paymentStatus === 'success' ? (
+                <p className="text-center p-3 alert-warning">
+                  Congratulation!! Now You Got Unlimited Access.
+                </p>
+              ) : (
+                <p className="text-center p-3 alert-warning">
+                  You are not upgrade Package. You can generate embed codes {generateCount} more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link> for unlimited access.
+                </p>
+              )
             ) : (
               <p className="text-center p-3 alert-warning">
-                You are not logged in. You can generate tags {5 - generateCount}{" "}
-                more times.
-                <Link href="/register" className="btn btn-warning ms-3">
-                  Registration
-                </Link>
+                Please log in to use this tool.
               </p>
             )}
           </div>
@@ -195,10 +224,10 @@ const YtEmbedCode = () => {
             </button>
             {showShareIcons && (
               <div className="share-icons mt-3">
-                <FaFacebook className="facebook-icon" />
-                <FaInstagram className="instagram-icon" />
-                <FaTwitter className="twitter-icon" />
-                <FaLinkedin className="linkedin-icon" />
+                <FaFacebook className="facebook-icon" onClick={() => shareOnSocialMedia('facebook')} />
+                <FaInstagram className="instagram-icon" onClick={() => shareOnSocialMedia('instagram')} />
+                <FaTwitter className="twitter-icon" onClick={() => shareOnSocialMedia('twitter')} />
+                <FaLinkedin className="linkedin-icon" onClick={() => shareOnSocialMedia('linkedin')} />
               </div>
             )}
           </div>

@@ -38,7 +38,7 @@ const runMiddleware = (req, res, fn) => {
 };
 
 export default async function handler(req, res) {
-  const { method, query } = req; // Extract query from req
+  const { method, query } = req;
   let db, client;
 
   try {
@@ -55,10 +55,10 @@ export default async function handler(req, res) {
       try {
         await runMiddleware(req, res, upload.single('image'));
 
-        const { content, title, metaTitle, description, metaDescription, categories, author, authorProfile, id } = req.body;
+        const { content, title, metaTitle, description, slug, metaDescription, categories, author, authorProfile } = req.body;
         const image = req.file ? `/uploads/${req.file.filename}` : null;
 
-        if (!content || !title || !metaTitle || !description || !metaDescription || !categories || !author || !id) {
+        if (!content || !title || !slug || !metaTitle || !description || !metaDescription || !categories || !author) {
           return res.status(400).json({ message: 'Invalid request body' });
         }
 
@@ -72,6 +72,7 @@ export default async function handler(req, res) {
         const doc = {
           content,
           title,
+          slug,
           metaTitle,
           description,
           metaDescription,
@@ -79,7 +80,7 @@ export default async function handler(req, res) {
           image,
           author,
           authorProfile,
-          id,
+          viewCount: 0, // Initialize view count to 0
           createdAt: new Date(),
         };
 
@@ -100,9 +101,7 @@ export default async function handler(req, res) {
       if (query.id) {
         try {
           const id = query.id;
-          console.log(id);
-          const result = await blogs.findOne({ id: id });
-          console.log(result);
+          const result = await blogs.findOne({ _id: new ObjectId(id) });
 
           if (!result) {
             return res.status(404).json({ message: 'Resource not found' });
@@ -111,6 +110,20 @@ export default async function handler(req, res) {
           res.status(200).json(result);
         } catch (error) {
           console.error('GET by id error:', error);
+          res.status(500).json({ message: 'Internal server error' });
+        }
+      } else if (query.slug) {
+        try {
+          const slug = query.slug;
+          const result = await blogs.findOne({ slug });
+
+          if (!result) {
+            return res.status(404).json({ message: 'Resource not found' });
+          }
+
+          res.status(200).json(result);
+        } catch (error) {
+          console.error('GET by slug error:', error);
           res.status(500).json({ message: 'Internal server error' });
         }
       } else {

@@ -2,27 +2,29 @@ import React, { useState } from 'react';
 import Modal from 'react-modal';
 import { loadStripe } from '@stripe/stripe-js';
 import { FaCheck, FaTimes, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { useAuth } from '../contexts/AuthContext';
 
 Modal.setAppElement('#__next'); // Set the app element for accessibility purposes
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 const Pricing = () => {
+  const { user, login, logout } = useAuth(); // Use Auth Context
   const [selectedPlan, setSelectedPlan] = useState('yearly'); // Default selected plan is yearly
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // Assume user is logged in for this example
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Assume user is not logged in initially
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
   const [openFAQ, setOpenFAQ] = useState(null);
 
   const handlePurchaseClick = () => {
-    if (!isLoggedIn) {
+    if (!user) {
       alert('Please log in to continue.');
       // Redirect to login page or show login modal
+      window.location.href = '/login'; // Redirect to login page
     } else {
       setIsModalOpen(true);
     }
   };
-
   const handlePaymentMethodSelect = (method) => {
     setSelectedPaymentMethod(method);
   };
@@ -37,16 +39,21 @@ const Pricing = () => {
         },
         body: JSON.stringify({
           priceId: selectedPlan === 'yearly' ? 'price_1PKDms09wBOdwPD6qdgyjavf' : 'price_1PKDoy09wBOdwPD6iRcRkskF', // Replace with your price IDs
+          success_url: `${window.location.origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${window.location.origin}/payment-failure`,
+          metadata: {
+            plan: selectedPlan,
+          },
         }),
       });
-
+  
       const { sessionId, error } = await response.json();
-
+  
       if (error) {
         console.error('Error creating Stripe checkout session:', error);
         return;
       }
-
+  
       const result = await stripe.redirectToCheckout({ sessionId });
       if (result.error) {
         console.error(result.error.message);
@@ -55,6 +62,7 @@ const Pricing = () => {
       alert('Please select a payment method.');
     }
   };
+  
 
   const toggleFAQ = (index) => {
     setOpenFAQ(openFAQ === index ? null : index);

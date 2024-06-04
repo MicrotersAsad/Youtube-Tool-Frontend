@@ -6,9 +6,10 @@ import Head from 'next/head';
 import sanitizeHtml from 'sanitize-html';
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 const TitleGenerator = () => {
-    const { isLoggedIn } = useAuth();
+    const { user, updateUserProfile } = useAuth();
     const [tags, setTags] = useState([]);
     const [input, setInput] = useState("");
     const [generatedTitles, setGeneratedTitles] = useState([]);
@@ -19,11 +20,10 @@ const TitleGenerator = () => {
     const apiKey = process.env.NEXT_PUBLIC_API_KEY;
     const [selectAll, setSelectAll] = useState(false);
     const [generateCount, setGenerateCount] = useState(0);
-  
-    const [loading, setLoading] = useState([]);
     const [content, setContent] = useState('');
+    const [meta, setMeta] = useState({ title: '', description: '', image: '' });
+    const [isUpdated, setIsUpdated] = useState(false);
 
-    const [meta,setMeta]=useState('')
     useEffect(() => {
         const fetchContent = async () => {
             try {
@@ -42,7 +42,7 @@ const TitleGenerator = () => {
                     });
                     setContent(sanitizedContent);
                     setMeta({
-                        title: data[0].title || 'YouTube Title  Generator',
+                        title: data[0].title || 'YouTube Title Generator',
                         description: data[0].description || "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
                         image: data[0].image || 'https://yourwebsite.com/og-image.png'
                     });
@@ -58,10 +58,16 @@ const TitleGenerator = () => {
     }, []);
 
     useEffect(() => {
-        if (!isLoggedIn) {
+        if (user && user.paymentStatus !== 'success' && !isUpdated) {
+            updateUserProfile().then(() => setIsUpdated(true));
+        }
+    }, [user, updateUserProfile, isUpdated]);
+
+    useEffect(() => {
+        if (user && user.paymentStatus !== 'success') {
             setGenerateCount(5);
         }
-    }, [isLoggedIn]);
+    }, [user]);
 
     const handleInputChange = (e) => {
         const { value } = e.target;
@@ -69,7 +75,7 @@ const TitleGenerator = () => {
 
         const delimiters = [',', '.'];
         const parts = value.split(new RegExp(`[${delimiters.join('')}]`)).map(part => part.trim()).filter(part => part);
-        
+
         if (parts.length > 1) {
             const newTags = [...tags, ...parts];
             setTags(newTags);
@@ -127,9 +133,9 @@ const TitleGenerator = () => {
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text).then(() => {
-            alert(`Copied: "${text}"`);
+            toast.success(`Copied: "${text}"`);
         }, (err) => {
-            console.error('Failed to copy text: ', err);
+            toast.error('Failed to copy text: ', err);
         });
     };
 
@@ -156,6 +162,11 @@ const TitleGenerator = () => {
     };
 
     const generateTitles = async () => {
+        if (user && user.paymentStatus !== 'success' && generateCount <= 0) {
+            toast.error("You have reached the limit of generating titles. Please upgrade your plan for unlimited use.");
+            return;
+        }
+
         setIsLoading(true);
         setShowCaptcha(true);
         try {
@@ -168,7 +179,7 @@ const TitleGenerator = () => {
                 body: JSON.stringify({
                     model: "gpt-3.5-turbo-16k",
                     messages: [
-                        { role: "system", content: `Generate a list of at least 20 SEO-friendly tag for all keywords "${tags.join(", ")}".` },
+                        { role: "system", content: `Generate a list of at least 20 SEO-friendly tags for all keywords "${tags.join(", ")}".` },
                         { role: "user", content: tags.join(", ") }
                     ],
                     temperature: 0.7,
@@ -185,6 +196,10 @@ const TitleGenerator = () => {
                 selected: false
             }));
             setGeneratedTitles(titles);
+
+            if (user && user.paymentStatus !== 'success') {
+                setGenerateCount(generateCount - 1);
+            }
         } catch (error) {
             toast.error("Error generating titles:", error);
             setGeneratedTitles([]);
@@ -201,28 +216,33 @@ const TitleGenerator = () => {
                 <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
                 <meta property="og:title" content={meta.title} />
                 <meta property="og:description" content={meta.description} />
-                <meta property="og:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
-                <meta name="twitter:card" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta property="og:image" content={meta.image} />
+                <meta name="twitter:card" content={meta.image} />
                 <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
                 <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
                 <meta name="twitter:title" content={meta.title} />
                 <meta name="twitter:description" content={meta.description} />
-                <meta name="twitter:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta name="twitter:image" content={meta.image} />
             </Head>
+            <h2 className="text-3xl">YouTube Title Generator</h2>
             <ToastContainer/>
-            <h2 className="text-3xl">YouTube Title  Generator</h2>
             <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
                 <div className="flex">
-                  
                     <div>
-                        {isLoggedIn ? (
-                            <p className="text-center p-3 alert-warning">
-                                You are logged in and can generate unlimited Title.
-                            </p>
+                        {user ? (
+                            user.paymentStatus === 'success' ? (
+                                <p className="text-center p-3 alert-warning">
+                                    Congratulations!! Now you can generate unlimited tags.
+                                </p>
+                            ) : (
+                                <p className="text-center p-3 alert-warning">
+                                    You are not upgraded. You can generate titles {5 - generateCount}{" "}
+                                    more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                                </p>
+                            )
                         ) : (
                             <p className="text-center p-3 alert-warning">
-                                You are not logged in. You can generate Title {5 - generateCount}{" "}
-                                more times.<Link href="/register" className="btn btn-warning ms-3">Registration</Link>
+                                Please log in to use this tool.
                             </p>
                         )}
                     </div>
@@ -250,15 +270,15 @@ const TitleGenerator = () => {
                 />
             </div>
             <div className="center">
-                <div className="d-flex pt-5">
-                    <button className="btn btn-danger" onClick={generateTitles} disabled={isLoading || tags.length === 0}>
-                        {isLoading ? "Generating..." : "Generate Title"}
+                <div className="flex flex-wrap gap-2 justify-center pt-5">
+                    <button className="btn btn-danger whitespace-nowrap" onClick={generateTitles} disabled={isLoading || tags.length === 0} style={{ minWidth: '50px' }}>
+                        {isLoading ? "Generating..." : "Generate Titles"}
                     </button>
-                    <button className="btn btn-danger ms-5" onClick={handleShareClick}>
-                        <FaShareAlt /> 
+                    <button className="btn btn-danger whitespace-nowrap" onClick={handleShareClick} style={{ minWidth: '50px' }}>
+                        <FaShareAlt />
                     </button>
                     {showShareIcons && (
-                        <div className="share-icons ms-2">
+                        <div className="flex gap-2">
                             <FaFacebook className="facebook-icon" onClick={() => shareOnSocialMedia('facebook')} />
                             <FaInstagram className="instagram-icon" onClick={() => shareOnSocialMedia('instagram')} />
                             <FaTwitter className="twitter-icon" onClick={() => shareOnSocialMedia('twitter')} />
@@ -305,94 +325,87 @@ const TitleGenerator = () => {
                 )}
             </div>
             <div className="content pt-6 pb-5">
-                    <div dangerouslySetInnerHTML={{ __html: content }}></div>
-                </div>
-            <div>
-               
+                <div dangerouslySetInnerHTML={{ __html: content }}></div>
             </div>
-            <style jsx>{styles}</style>
+            <style jsx>{`
+              .keywords-input-container {
+                border: 2px solid #ccc;
+                padding: 10px;
+                border-radius: 10px;
+                display: flex;
+                align-items: flex-start;
+                flex-wrap: wrap;
+                min-height: 100px;
+                margin: auto;
+                width: 100%;
+                max-width: 600px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                background-color: #fff;
+            }
+
+            .tags-container {
+                display: flex;
+                flex-wrap: wrap;
+                margin-bottom: 8px;
+            }
+
+            .tag {
+                display: flex;
+                align-items: center;
+                color: #fff;
+                background-color: #0d6efd;
+                border-radius: 6px;
+                padding: 5px 10px;
+                margin-right: 8px;
+                margin-bottom: 8px;
+                font-size: 14px;
+            }
+
+            .remove-btn {
+                margin-left: 8px;
+                cursor: pointer;
+                font-weight: bold;
+            }
+
+            .input-box {
+                flex: 1;
+                border: none;
+                height: 40px;
+                font-size: 16px;
+                padding: 8px;
+                border-radius: 6px;
+                width: 100%;
+                box-sizing: border-box;
+                outline: none;
+                margin-top: 8px;
+            }
+
+            .input-box::placeholder {
+                color: #aaa;
+            }
+
+            @media (max-width: 600px) {
+                .keywords-input-container {
+                    width: 100%;
+                    padding: 8px;
+                }
+
+                .input-box {
+                    height: 35px;
+                    font-size: 14px;
+                    padding: 6px;
+                }
+            }
+
+            .generated-tags-display {
+                background-color: #f2f2f2;
+                border-radius: 8px;
+                padding: 10px;
+                margin-top: 20px;
+            }
+            `}</style>
         </div>
     );
 };
 
-
-
 export default TitleGenerator;
-
-const styles = `
-    .keywords-input-container {
-        border: 2px solid #ccc;
-        padding: 10px;
-        border-radius: 10px;
-        display: flex;
-        align-items: flex-start;
-        flex-wrap: wrap;
-        min-height: 100px;
-        margin: auto;
-        width: 100%;
-        max-width: 600px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        background-color: #fff;
-    }
-
-    .tags-container {
-        display: flex;
-        flex-wrap: wrap;
-        margin-bottom: 8px;
-    }
-
-    .tag {
-        display: flex;
-        align-items: center;
-        color: #fff;
-        background-color: #0d6efd;
-        border-radius: 6px;
-        padding: 5px 10px;
-        margin-right: 8px;
-        margin-bottom: 8px;
-        font-size: 14px;
-    }
-
-    .remove-btn {
-        margin-left: 8px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-
-    .input-box {
-        flex: 1;
-        border: none;
-        height: 40px;
-        font-size: 16px;
-        padding: 8px;
-        border-radius: 6px;
-        width: 100%;
-        box-sizing: border-box;
-        outline: none;
-        margin-top: 8px;
-    }
-
-    .input-box::placeholder {
-        color: #aaa;
-    }
-
-    @media (max-width: 600px) {
-        .keywords-input-container {
-            width: 100%;
-            padding: 8px;
-        }
-
-        .input-box {
-            height: 35px;
-            font-size: 14px;
-            padding: 6px;
-        }
-    }
-
-    .generated-tags-display {
-        background-color: #f2f2f2;
-        border-radius: 8px;
-        padding: 10px;
-        margin-top: 20px;
-    }
-`;

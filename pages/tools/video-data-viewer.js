@@ -9,20 +9,20 @@ import Link from 'next/link';
 import sanitizeHtml from 'sanitize-html';
 
 const VideoDataViewer = () => {
-    const { isLoggedIn, user } = useAuth();
-    const [videoUrl, setVideoUrl] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [videoData, setVideoData] = useState(null);
-    const [error, setError] = useState('');
-    const [content, setContent] = useState('');
-    const [generateCount, setGenerateCount] = useState(0);
+    const { isLoggedIn, user } = useAuth(); // Destructure authentication state and user information from context
+    const [videoUrl, setVideoUrl] = useState(''); // State for input URL
+    const [loading, setLoading] = useState(false); // Loading state
+    const [videoData, setVideoData] = useState(null); // State for fetched video data
+    const [error, setError] = useState(''); // Error state
+    const [content, setContent] = useState(''); // Content state for fetched HTML content
+    const [generateCount, setGenerateCount] = useState(0); // Count for how many times data is fetched
     const [meta, setMeta] = useState({
         title: 'YouTube Video Data Viewer',
         description: 'Generate captivating YouTube titles instantly to boost your video\'s reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.',
         image: 'https://yourwebsite.com/og-image.png',
-    });
-    const [showShareIcons, setShowShareIcons] = useState(false);
-    const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false);
+    }); // Meta information for the page
+    const [showShareIcons, setShowShareIcons] = useState(false); // State to toggle share icons visibility
+    const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false); // State to manage fetch limit
 
     useEffect(() => {
         if (user) {
@@ -197,13 +197,13 @@ const VideoDataViewer = () => {
                     />
                 </div>
                 <button
-                    className={`btn btn-danger w-full py-2 text-white font-bold rounded transition-colors duration-200 ${loading ? 'bg-blue-300' : 'bg-blue-500 hover:bg-blue-700'} focus:outline-none focus:shadow-outline`}
+                    className={`btn btn-danger w-full py-2 text-white font-bold rounded transition-colors duration-200 ${loading ? 'bg-blue-300' : 'bg-blue-500 hover:bg-blue-700'} focus:outline-none focus:shadow-outline whitespace-nowrap`}
                     onClick={handleFetchClick}
                     disabled={loading}
                 >
                     {loading ? 'Loading...' : 'Fetch Data'}
                 </button>
-                <button className="btn btn-danger mt-5 text-center" onClick={handleShareClick}>
+                <button className="btn btn-danger mt-5 ms-5 text-center" onClick={handleShareClick}>
                     <FaShareAlt /> 
                 </button>
                 {showShareIcons && (

@@ -1,56 +1,40 @@
+// pages/search.js
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { ClipLoader } from 'react-spinners';
 
-function Search() {
+const Search = () => {
   const router = useRouter();
   const { query } = router.query;
-  const [searchResults, setSearchResults] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [results, setResults] = useState([]);
 
   useEffect(() => {
     if (query) {
-      fetchSearchResults(query);
+      // Fetch search results from your API or service
+      fetch(`/api/search?query=${query}`)
+        .then(response => response.json())
+        .then(data => setResults(data.results))
+        .catch(error => console.error('Error fetching search results:', error));
     }
   }, [query]);
 
-  const fetchSearchResults = async (query) => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/search?query=${query}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch search results');
-      }
-      const data = await response.json();
-      setSearchResults(data);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching search results:', error.message);
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="container mx-auto px-6 py-8">
-      <h2 className="text-2xl font-semibold mb-4">Search Results for &quot;{query}&quot;</h2>
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-        <ClipLoader size={50} color={"#123abc"} loading={loading} />
+    <div className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-4">Search Results for "{query}"</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {results.map((result) => (
+          <div key={result.id} className="p-4 border rounded-lg">
+            <h2 className="text-xl font-semibold">{result.title}</h2>
+            <p>{result.description}</p>
+            <Link href={result.href}>
+              <span className="text-blue-500">Read more</span>
+            </Link>
+          </div>
+        ))}
+        {results.length === 0 && <p>No results found.</p>}
       </div>
-      ) : (
-        <ul>
-          {searchResults.map((result) => (
-            <li key={result.id} className="mb-4">
-              <a href={result.href} className="text-blue-500 hover:underline">
-                {result.title}
-              </a>
-              <p>{result.description}</p>
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
-}
+};
 
 export default Search;

@@ -91,11 +91,10 @@ function AllBlogs() {
   const filteredBlogs = blogs.filter((blog) => {
     const categoryArray = getCategoriesArray(blog.categories);
     const categoryMatch = !selectedCategory || categoryArray.includes(selectedCategory);
-    const searchMatch = !search || blog.Blogtitle.toLowerCase().includes(search.toLowerCase());
+    const searchMatch = !search || blog.title.toLowerCase().includes(search.toLowerCase());
     return categoryMatch && searchMatch;
   });
 
-  // Pagination logic
   const indexOfLastBlog = currentPage * blogsPerPage;
   const indexOfFirstBlog = indexOfLastBlog - blogsPerPage;
   const currentBlogs = filteredBlogs.slice(indexOfFirstBlog, indexOfLastBlog);
@@ -108,8 +107,8 @@ function AllBlogs() {
 
   return (
     <Layout>
-      <div className="container p-5">
-        <h2>All Blogs</h2>
+      <div className="container mx-auto p-5">
+        <h2 className="text-3xl font-semibold mb-6">All Blogs</h2>
         <div className="mb-3 flex flex-wrap items-center">
           <input
             type="text"
@@ -130,7 +129,7 @@ function AllBlogs() {
               ))}
             </select>
           </div>
-          <div className="relative ml-0 md:ml-3 mb-3 md:mb-0">
+          <div className="relative ml-0 md:ml-3 mb-3 md:mb-0 flex items-center">
             <label className="mr-2">Show Drafts</label>
             <input
               type="checkbox"
@@ -164,11 +163,11 @@ function AllBlogs() {
                     </td>
                     <td className="py-2 px-4 border-b flex items-center justify-center">
                       <Link href={`/dashboard/edit-blog?id=${blog._id}`}>
-                        <button className="mr-3 text-blue-500">
+                        <button className="mr-3 text-blue-500 hover:text-blue-700">
                           <FaEdit />
                         </button>
                       </Link>
-                      <button onClick={() => handleDelete(blog._id)} className="text-red-500">
+                      <button onClick={() => handleDelete(blog._id)} className="text-red-500 hover:text-red-700">
                         <FaTrash />
                       </button>
                     </td>
@@ -181,7 +180,7 @@ function AllBlogs() {
                 <button
                   key={index}
                   onClick={(event) => handleClick(event, index + 1)}
-                  className={`mx-1 px-3 py-1 border rounded ${index + 1 === currentPage ? 'bg-blue-500 text-white' : 'bg-white text-blue-500'}`}
+                  className={`mx-1 px-3 py-1 border rounded ${index + 1 === currentPage ? 'bg-blue-500 text-white' : 'bg-white text-blue-500 hover:bg-blue-100'}`}
                 >
                   {index + 1}
                 </button>
