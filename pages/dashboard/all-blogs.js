@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from './layout';
 import Link from 'next/link';
-import { FaEdit, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaEye } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -17,6 +17,9 @@ function AllBlogs() {
 
   useEffect(() => {
     fetchCategories();
+  }, []);
+
+  useEffect(() => {
     fetchBlogs();
   }, [showDrafts]);
 
@@ -43,7 +46,6 @@ function AllBlogs() {
         throw new Error('Failed to fetch blogs');
       }
       const data = await response.json();
-      console.log('Fetched blogs:', data);
       setBlogs(data);
     } catch (error) {
       console.error('Error fetching blogs:', error.message);
@@ -149,6 +151,7 @@ function AllBlogs() {
                 <tr>
                   <th className="py-2 px-4 border-b">Title</th>
                   <th className="py-2 px-4 border-b">Category</th>
+                  <th className="py-2 px-4 border-b">Views</th>
                   <th className="py-2 px-4 border-b">Actions</th>
                 </tr>
               </thead>
@@ -160,6 +163,11 @@ function AllBlogs() {
                       {getCategoriesArray(blog.categories).map((category, i) => (
                         <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
                       ))}
+                    </td>
+                    <td className="py-2 px-4 border-b">
+                      <span className="flex items-center">
+                        <FaEye className="mr-1" /> {blog.viewCount}
+                      </span>
                     </td>
                     <td className="py-2 px-4 border-b flex items-center justify-center">
                       <Link href={`/dashboard/edit-blog?id=${blog._id}`}>

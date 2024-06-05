@@ -1,4 +1,5 @@
 // pages/profile.js
+import UserProfile from "../../components/UserProfile";
 import { useAuth } from "../../contexts/AuthContext";
 import Layout from "../dashboard/layout";
 import UpdateProfileForm from "./edit-profile";
@@ -14,7 +15,7 @@ const ProfilePage = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
-        <UpdateProfileForm user={user} />
+        <UserProfile/>
       </div>
     </Layout>
   );

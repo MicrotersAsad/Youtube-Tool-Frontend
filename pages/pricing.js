@@ -25,6 +25,7 @@ const Pricing = () => {
       setIsModalOpen(true);
     }
   };
+
   const handlePaymentMethodSelect = (method) => {
     setSelectedPaymentMethod(method);
   };
@@ -38,23 +39,18 @@ const Pricing = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          priceId: selectedPlan === 'yearly' ? 'price_1PKDms09wBOdwPD6qdgyjavf' : 'price_1PKDoy09wBOdwPD6iRcRkskF', // Replace with your price IDs
-          success_url: `${window.location.origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-          cancel_url: `${window.location.origin}/payment-failure`,
-          metadata: {
-            plan: selectedPlan,
-          },
+          selectedPlan,
         }),
       });
-  
-      const { sessionId, error } = await response.json();
-  
+
+      const { id, error } = await response.json();
+
       if (error) {
         console.error('Error creating Stripe checkout session:', error);
         return;
       }
-  
-      const result = await stripe.redirectToCheckout({ sessionId });
+
+      const result = await stripe.redirectToCheckout({ sessionId: id });
       if (result.error) {
         console.error(result.error.message);
       }
@@ -62,7 +58,6 @@ const Pricing = () => {
       alert('Please select a payment method.');
     }
   };
-  
 
   const toggleFAQ = (index) => {
     setOpenFAQ(openFAQ === index ? null : index);
@@ -123,8 +118,8 @@ const Pricing = () => {
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-xl font-semibold">Yearly Unlimited Plan</h3>
                 </div>
-                <div className="text-4xl font-bold text-red-500 mb-4">$5.00</div>
-                <p className="text-gray-600 mb-4">Per month, charged yearly at $60.00</p>
+                <div className="text-4xl font-bold text-red-500 mb-4">$60.00</div>
+                <p className="text-gray-600 mb-4">Per year</p>
                 <button
                   className={`px-6 py-2 rounded-lg w-full ${selectedPlan === 'yearly' ? 'bg-red-500 text-white' : 'bg-gray-300 text-gray-700'}`}
                   onClick={handlePurchaseClick}
@@ -140,7 +135,7 @@ const Pricing = () => {
                   <h3 className="text-xl font-semibold">Monthly Unlimited Plan</h3>
                 </div>
                 <div className="text-4xl font-bold text-gray-600 mb-4">$8.00</div>
-                <p className="text-gray-600 mb-4">Per month, cancel anytime</p>
+                <p className="text-gray-600 mb-4">Per month</p>
                 <button
                   className={`px-6 py-2 rounded-lg w-full ${selectedPlan === 'monthly' ? 'bg-red-500 text-white' : 'bg-gray-300 text-gray-700'}`}
                   onClick={handlePurchaseClick}

@@ -27,24 +27,27 @@ export default async (req, res) => {
     try {
       const { db } = await connectToDatabase();
 
-      // Fetch the session details from Stripe
       const stripeSession = await stripe.checkout.sessions.retrieve(sessionId, {
-        expand: ['line_items', 'customer'],
+        expand: ['subscription'],
       });
 
-      // Update user with payment details
+      const subscription = stripeSession.subscription;
+      const metadata = stripeSession.metadata;
+console.log(metadata);
       const updateData = {
         paymentStatus: 'success',
         stripeSessionId: sessionId,
         stripeCustomerId: stripeSession.customer,
-        subscriptionPlan: stripeSession.metadata.plan,
+        subscriptionPlan: metadata.plan,
+        metadata:stripeSession.metadata,
+        subscriptionValidUntil: new Date(subscription.current_period_end * 1000), // Subscription end date
         paymentDetails: {
           amountPaid: stripeSession.amount_total / 100,
           currency: stripeSession.currency,
           paymentMethod: stripeSession.payment_method_types[0],
         },
       };
-
+console.log(updateData);
       await db.collection('user').updateOne(
         { email: user.email },
         { $set: updateData }

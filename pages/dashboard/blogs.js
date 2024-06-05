@@ -22,6 +22,7 @@ function Blogs() {
   const [image, setImage] = useState(null);
   const [categories, setCategories] = useState([]);
   const [isDraft, setIsDraft] = useState(false);
+  const [isSlugEditable, setIsSlugEditable] = useState(false);
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -130,20 +131,23 @@ function Blogs() {
     setIsDraft(e.target.value === 'Draft');
   };
 
-  
- // Generate slug from title
-// Generate slug from title without question marks or symbols
-useEffect(() => {
-  const generateSlug = (str) => {
-    // Remove question marks and symbols
-    const cleanedTitle = str.replace(/[^\w\s]/gi, '');
-    return cleanedTitle.toLowerCase().split(' ').join('-');
+  // Generate slug from title without question marks or symbols
+  useEffect(() => {
+    if (!isSlugEditable) {
+      const generateSlug = (str) => {
+        // Remove question marks and symbols
+        const cleanedTitle = str.replace(/[^\w\s]/gi, '');
+        return cleanedTitle.toLowerCase().split(' ').join('-');
+      };
+
+      setSlug(generateSlug(title));
+    }
+  }, [title, isSlugEditable]);
+
+  // Handle slug change
+  const handleSlugChange = (e) => {
+    setSlug(e.target.value);
   };
-
-  setSlug(generateSlug(title));
-}, [title]);
-
-
 
   return (
     <Layout>
@@ -186,9 +190,20 @@ useEffect(() => {
                 id="slug"
                 type="text"
                 value={slug}
-                readOnly
-                className="w-full border border-gray-300 rounded-lg p-3 bg-gray-100 shadow-sm"
+                onChange={handleSlugChange}
+                readOnly={!isSlugEditable}
+                className={`w-full border border-gray-300 rounded-lg p-3 ${!isSlugEditable ? 'bg-gray-100' : 'bg-white'} shadow-sm`}
               />
+              <div className="flex items-center mt-2">
+                <input
+                  type="checkbox"
+                  id="editSlug"
+                  checked={isSlugEditable}
+                  onChange={(e) => setIsSlugEditable(e.target.checked)}
+                  className="mr-2"
+                />
+                <label htmlFor="editSlug" className="text-gray-700">Edit Slug</label>
+              </div>
             </div>
             <div className="mb-6">
               <label htmlFor="description" className="block mb-2 text-lg font-medium">Description*</label>

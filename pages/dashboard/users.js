@@ -9,6 +9,8 @@ const Users = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [paymentInfo, setPaymentInfo] = useState('');
 
   useEffect(() => {
     fetchUsers();
@@ -17,11 +19,14 @@ const Users = () => {
   const fetchUsers = async () => {
     try {
       const response = await fetch('/api/user');
+      console.log(response);
       if (!response.ok) {
         throw new Error('Failed to fetch users');
       }
       const data = await response.json();
+      console.log(data);
       setUsers(data);
+      console.log(users);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -33,25 +38,13 @@ const Users = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
-        console.log(`Deleting user with ID: ${id}`);
         const response = await fetch(`/api/user?id=${id}`, {
           method: 'DELETE',
         });
 
-        console.log('Delete response status:', response.status);
-        console.log('Delete response content-type:', response.headers.get('content-type'));
-
-        if (response.status === 400 || response.status === 404) {
-          const errorText = await response.text();
-          console.error('Delete error:', errorText);
-          throw new Error(errorText);
-        }
-
-        const data = await response.json();
-        console.log('Delete response data:', data);
-
         if (!response.ok) {
-          throw new Error(data.message || 'Failed to delete user');
+          const errorText = await response.text();
+          throw new Error(errorText);
         }
 
         setUsers(users.filter((user) => user._id !== id));
@@ -67,7 +60,6 @@ const Users = () => {
     const action = role === 'moderator' ? 'make this user a moderator' : 'remove this user as a moderator';
     if (window.confirm(`Are you sure you want to ${action}?`)) {
       try {
-        console.log(`Updating user with ID: ${id} to role: ${role}`);
         const response = await fetch(`/api/user?id=${id}`, {
           method: 'PATCH',
           headers: {
@@ -76,20 +68,9 @@ const Users = () => {
           body: JSON.stringify({ role }),
         });
 
-        console.log('Update role response status:', response.status);
-        console.log('Update role response content-type:', response.headers.get('content-type'));
-
-        if (response.status === 400 || response.status === 404) {
-          const errorText = await response.text();
-          console.error('Update role error:', errorText);
-          throw new Error(errorText);
-        }
-
-        const data = await response.json();
-        console.log('Update role response data:', data);
-
         if (!response.ok) {
-          throw new Error(data.message || 'Failed to update role');
+          const errorText = await response.text();
+          throw new Error(errorText);
         }
 
         fetchUsers(); // Refresh the user list after updating role
@@ -97,6 +78,36 @@ const Users = () => {
       } catch (error) {
         console.error('Error updating role:', error.message);
         toast.error('Failed to update role');
+      }
+    }
+  };
+
+  const handlePaymentInfoUpdate = async (id) => {
+    if (!paymentInfo.trim()) {
+      toast.error('Payment info cannot be empty');
+      return;
+    }
+
+    if (window.confirm('Are you sure you want to update the payment info?')) {
+      try {
+        const response = await fetch(`/api/user?id=${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ paymentInfo }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText);
+        }
+
+        fetchUsers(); // Refresh the user list after updating payment info
+        toast.success('User payment info updated successfully!');
+      } catch (error) {
+        console.error('Error updating payment info:', error.message);
+        toast.error('Failed to update payment info');
       }
     }
   };
@@ -122,6 +133,7 @@ const Users = () => {
                     <th className="py-2 px-4 border-b">Email</th>
                     <th className="py-2 px-4 border-b">Role</th>
                     <th className="py-2 px-4 border-b">Profile Image</th>
+                    <th className="py-2 px-4 border-b">Payment Info</th>
                     <th className="py-2 px-4 border-b">Actions</th>
                   </tr>
                 </thead>
@@ -142,6 +154,7 @@ const Users = () => {
                           <span className="text-gray-500">No Image</span>
                         )}
                       </td>
+                      <td className="py-2 px-4 border-b">{user.paymentInfo || 'N/A'}</td>
                       <td className="py-2 px-4 border-b text-center">
                         {user.role !== 'admin' && (
                           <>
@@ -166,6 +179,15 @@ const Users = () => {
                                 Make Moderator
                               </button>
                             )}
+                            <button
+                              className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-200 ml-2"
+                              onClick={() => {
+                                setSelectedUser(user._id);
+                                setPaymentInfo(user.paymentInfo || '');
+                              }}
+                            >
+                              Update Payment Info
+                            </button>
                           </>
                         )}
                       </td>
@@ -177,6 +199,36 @@ const Users = () => {
           )}
         </div>
       </div>
+
+      {/* Modal for updating payment info */}
+      {selectedUser && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-1/2">
+            <h2 className="text-xl font-semibold mb-4">Update Payment Info</h2>
+            <input
+              type="text"
+              value={paymentInfo}
+              onChange={(e) => setPaymentInfo(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg p-3 shadow-sm mb-4"
+              placeholder="Enter payment info"
+            />
+            <div className="flex justify-end space-x-4">
+              <button
+                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition duration-200"
+                onClick={() => setSelectedUser(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-200"
+                onClick={() => handlePaymentInfoUpdate(selectedUser)}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };

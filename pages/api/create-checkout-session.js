@@ -1,26 +1,50 @@
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY);
+const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY, {
+  apiVersion: '2020-08-27',
+});
 
 export default async (req, res) => {
   if (req.method === 'POST') {
-    const { priceId } = req.body; // Get the price ID from the request body
+    const YOUR_DOMAIN = 'http://localhost:3000'; // or your domain
+    const { selectedPlan } = req.body; // Get selected plan from the request body
+
+    const plans = {
+      yearly: {
+        priceId: 'price_1PKDms09wBOdwPD6qdgyjavf', // Replace with your actual price ID
+        plan: 'Yearly',
+        validityPeriod: '365', // days
+      },
+      monthly: {
+        priceId: 'price_1PKDoy09wBOdwPD6iRcRkskF', // Replace with your actual price ID
+        plan: 'Monthly',
+        validityPeriod: '30', // days
+      }
+    };
+
+    const selectedPlanDetails = plans[selectedPlan];
+
+    if (!selectedPlanDetails) {
+      return res.status(400).json({ error: 'Invalid plan selected' });
+    }
 
     try {
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
+        line_items: [{
+          price: selectedPlanDetails.priceId,
+          quantity: 1,
+        }],
         mode: 'subscription',
-        line_items: [
-          {
-            price: priceId,
-            quantity: 1,
-          },
-        ],
-        success_url: `${req.headers.origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${req.headers.origin}/pricing`,
+        success_url: `${YOUR_DOMAIN}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${YOUR_DOMAIN}/payment-failure`,
+        metadata: {
+          plan: selectedPlanDetails.plan,
+          validityPeriod: selectedPlanDetails.validityPeriod,
+        },
       });
 
-      res.status(200).json({ sessionId: session.id });
+      res.status(200).json({ id: session.id });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

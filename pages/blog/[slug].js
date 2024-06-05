@@ -4,7 +4,7 @@ import axios from 'axios';
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
-import Breadcrumb from '../Breadcrumb'; // Adjust the path as needed
+import Breadcrumb from '../Breadcrumb';
 import {
   FacebookShareButton,
   TwitterShareButton,
@@ -61,7 +61,7 @@ const BlogPost = () => {
 
   const incrementViewCount = async (slug) => {
     try {
-      await axios.post(`/api/incrementView`, { params: { slug } });
+      await axios.post(`/api/incrementView`, { slug });
     } catch (error) {
       console.error('Error incrementing view count:', error);
     }
