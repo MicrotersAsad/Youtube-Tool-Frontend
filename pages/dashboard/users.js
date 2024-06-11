@@ -18,7 +18,13 @@ const Users = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/user');
+      const token = localStorage.getItem('token');
+      console.log('Token size:', token.length); // Log token size
+      const response = await fetch('/api/user?all=true', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       console.log(response);
       if (!response.ok) {
         throw new Error('Failed to fetch users');
@@ -34,12 +40,17 @@ const Users = () => {
       setLoading(false);
     }
   };
+  
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`/api/user?id=${id}`, {
           method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
         });
 
         if (!response.ok) {
@@ -60,10 +71,12 @@ const Users = () => {
     const action = role === 'moderator' ? 'make this user a moderator' : 'remove this user as a moderator';
     if (window.confirm(`Are you sure you want to ${action}?`)) {
       try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`/api/user?id=${id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
           },
           body: JSON.stringify({ role }),
         });
@@ -90,10 +103,12 @@ const Users = () => {
 
     if (window.confirm('Are you sure you want to update the payment info?')) {
       try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`/api/user?id=${id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
           },
           body: JSON.stringify({ paymentInfo }),
         });

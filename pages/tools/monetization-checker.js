@@ -18,7 +18,8 @@ const MonetizationChecker = () => {
     const [meta, setMeta] = useState({}); // Ensure meta is an object
     const [isUpdated, setIsUpdated] = useState(false);
     const recaptchaRef = useRef(null);
-
+    const [quillContent, setQuillContent] = useState('');
+    const [existingContent, setExistingContent] = useState('');
     useEffect(() => {
         const fetchContent = async () => {
             try {
@@ -27,29 +28,11 @@ const MonetizationChecker = () => {
                     throw new Error('Failed to fetch content');
                 }
                 const data = await response.json();
-                console.log('Fetched data:', data);
-                if (data && data.length > 0 && data[0].content) {
-                    const sanitizedContent = sanitizeHtml(data[0].content, {
-                        allowedTags: sanitizeHtml.defaults.allowedTags.concat(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'img', 'a', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'br', 'b', 'i', 'strong', 'em', 'hr']),
-                        allowedAttributes: {
-                            '*': ['style', 'class'],
-                            'a': ['href', 'target', 'rel'],
-                            'img': ['src', 'alt', 'width', 'height']
-                        },
-                        allowedSchemes: ['http', 'https', 'mailto', 'tel'],
-                        allowedSchemesByTag: {
-                            img: ['http', 'https', 'data']
-                        }
-                    });
-                    setContent(sanitizedContent);
-                    setMeta({
-                        title: data[0].title || 'YouTube Monetization Checker',
-                        description: data[0].description || "Quickly check if your YouTube channel meets monetization requirements with our YouTube Monetization Checker. Ensure eligibility and maximize your earnings potential.",
-                        image: data[0].image || 'https://yourwebsite.com/og-image.png'
-                    });
-                } else {
-                    toast.error("Content data is invalid");
-                }
+                
+                setQuillContent(data[0]?.content || ''); // Ensure content is not undefined
+                setExistingContent(data[0]?.content || ''); // Ensure existing content is not undefined
+                setMeta(data[0])
+               
             } catch (error) {
                 toast.error("Error fetching content");
                 console.error('Error fetching content:', error);
@@ -58,18 +41,18 @@ const MonetizationChecker = () => {
 
         fetchContent();
     }, []);
-
     useEffect(() => {
         if (user && user.paymentStatus !== 'success' && !isUpdated) {
-            updateUserProfile().then(() => setIsUpdated(true));
+          updateUserProfile().then(() => setIsUpdated(true));
         }
     }, [user, updateUserProfile, isUpdated]);
 
     useEffect(() => {
-        if (user && user.paymentStatus !== 'success') {
+        if (user && user.paymentStatus !== 'success' && user.role !== 'admin') {
             setGenerateCount(5);
         }
     }, [user]);
+
 
     const handleInputChange = (e) => {
         setError('');
@@ -82,11 +65,10 @@ const MonetizationChecker = () => {
             return;
         }
 
-        if (user && user.paymentStatus !== 'success' && generateCount <= 0) {
-            toast.error("You have reached the limit of fetching channel data. Please upgrade your plan for unlimited use.");
+        if (user && user.paymentStatus !== 'success' && user.role !== 'admin' && generateCount <= 0) {
+            toast.error("You have reached the limit of generating tags. Please upgrade your plan for unlimited use.");
             return;
         }
-
         setLoading(true);
         setError('');
         setData(null);
@@ -157,19 +139,20 @@ const MonetizationChecker = () => {
                         <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
                     </div>
                     <div>
-                        {user ? (
-                            user.paymentStatus === 'success' ? (
+                    {user ? (
+                            user.paymentStatus === 'success' || user.role === 'admin' ? (
                                 <p className="text-center p-3 alert-warning">
-                                    Congratulation!!.You Get Unlimited Access.
+                                    Congratulations!! Now you can generate unlimited tags.
                                 </p>
                             ) : (
                                 <p className="text-center p-3 alert-warning">
-                                    You are not Upgrade. You can check Monetization  {generateCount} more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                                    You are not upgraded. You can generate Title {5 - generateCount}{" "}
+                                    more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
                                 </p>
                             )
                         ) : (
                             <p className="text-center p-3 alert-warning">
-                                Please log in to use this tool.
+                                Please payment in to use this tool.
                             </p>
                         )}
                     </div>
@@ -185,6 +168,7 @@ const MonetizationChecker = () => {
                         value={url}
                         onChange={handleInputChange}
                     />
+                    <small className='text-muted'>Example:https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s</small>
                 </div>
                 <button
                     className={`btn btn-danger w-full py-2 text-white font-bold rounded transition-colors duration-200 ${loading ? 'bg-blue-300' : 'bg-blue-500 hover:bg-blue-700'} focus:outline-none focus:shadow-outline`}
@@ -325,7 +309,7 @@ const MonetizationChecker = () => {
             )}
             {/* Render content from API */}
             <div className="content pt-6 pb-5">
-                <div dangerouslySetInnerHTML={{ __html: content }}></div>
+            <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
             </div>
             <ToastContainer autoClose={5000} position="top-right" />
         </div>

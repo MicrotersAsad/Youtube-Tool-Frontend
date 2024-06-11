@@ -126,7 +126,7 @@ const BlogSection = () => {
                 <li key={index}>
                   <a
                     onClick={() => paginate(index + 1)}
-                    className={`cursor-pointer relative block py-2 px-3 leading-tight border border-gray-300 bg-white ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'text-blue-500 hover:bg-gray-200'}`}
+                    className={`cursor-pointer relative block py-2 px-3 leading-tight border border-gray-300 bg-navy ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'text-blue-500 hover:bg-gray-200'}`}
                   >
                     {index + 1}
                   </a>

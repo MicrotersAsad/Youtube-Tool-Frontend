@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { FaShareAlt, FaFacebook, FaLinkedin, FaInstagram, FaTwitter, FaCopy, FaDownload } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
@@ -23,6 +23,8 @@ const TagGenerator = () => {
     const [content, setContent] = useState('');
     const [meta, setMeta] = useState({ title: '', description: '', image: '' });
     const [isUpdated, setIsUpdated] = useState(false);
+    const [quillContent, setQuillContent] = useState('');
+    const [existingContent, setExistingContent] = useState('');
     useEffect(() => {
         const fetchContent = async () => {
             try {
@@ -31,23 +33,12 @@ const TagGenerator = () => {
                     throw new Error('Failed to fetch content');
                 }
                 const data = await response.json();
-                console.log(data);
-                if (data && data.length > 0 && data[0].content) {
-                    const sanitizedContent = sanitizeHtml(data[0].content, {
-                        allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
-                        allowedAttributes: {
-                            'a': ['href']
-                        }
-                    });
-                    setContent(sanitizedContent);
-                    setMeta({
-                        title: data[0].title || 'YouTube Tag Generator',
-                        description: data[0].description || 'Generate YouTube tags instantly with our Tag Generator. Boost your video\'s visibility and engagement by finding the best tags. Try it now for free!',
-                        image: data[0].image || 'https://yourwebsite.com/og-image.png'
-                    });
-                } else {
-                    toast.error("Content data is invalid");
-                }
+               
+                setQuillContent(data[0]?.content || ''); // Ensure content is not undefined
+                setExistingContent(data[0]?.content || ''); // Ensure existing content is not undefined
+                setMeta(data[0])
+           
+                
             } catch (error) {
                 toast.error("Error fetching content");
             }
@@ -55,13 +46,18 @@ const TagGenerator = () => {
 
         fetchContent();
     }, []);
-    useEffect(() => {
+    const handleQuillChange = useCallback((newContent) => {
+        setQuillContent(newContent);
+      }, []);
+  
+      useEffect(() => {
         if (user && user.paymentStatus !== 'success' && !isUpdated) {
           updateUserProfile().then(() => setIsUpdated(true));
         }
-      }, [user, updateUserProfile, isUpdated]);
+    }, [user, updateUserProfile, isUpdated]);
+
     useEffect(() => {
-        if (user && user.paymentStatus !== 'success') {
+        if (user && user.paymentStatus !== 'success' && user.role !== 'admin') {
             setGenerateCount(5);
         }
     }, [user]);
@@ -159,7 +155,7 @@ const TagGenerator = () => {
     };
 
     const generateTitles = async () => {
-        if (user && user.paymentStatus !== 'success' && generateCount <= 0) {
+        if (user && user.paymentStatus !== 'success' && user.role !== 'admin' && generateCount <= 0) {
             toast.error("You have reached the limit of generating tags. Please upgrade your plan for unlimited use.");
             return;
         }
@@ -213,13 +209,13 @@ const TagGenerator = () => {
                 <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
                 <meta property="og:title" content={meta.title} />
                 <meta property="og:description" content={meta.description} />
-                <meta property="og:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
-                <meta name="twitter:card" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta property="og:image"  content={meta.image} />
+                <meta name="twitter:card"  content={meta.image} />
                 <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
                 <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator" />
                 <meta name="twitter:title" content={meta.title} />
                 <meta name="twitter:description" content={meta.description} />
-                <meta name="twitter:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
+                <meta name="twitter:image"  content={meta.image} />
             </Head>
             <h2 className="text-3xl">YouTube Tag Generator</h2>
             <ToastContainer/>
@@ -229,20 +225,21 @@ const TagGenerator = () => {
                         <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
                     </div>
                     <div>
-                        {user ? (
-                            user.paymentStatus === 'success' ? (
+                       
+                    {user ? (
+                            user.paymentStatus === 'success' || user.role === 'admin' ? (
                                 <p className="text-center p-3 alert-warning">
-                                    Congratulation!! Now You can generate unlimited tags.
+                                    Congratulations!! Now you can generate unlimited tags.
                                 </p>
                             ) : (
                                 <p className="text-center p-3 alert-warning">
-                                You are not Upgrade. You can generate Title {5 - generateCount}{" "}
-                                more times.<Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
-                            </p>
+                                    You are not upgraded. You can generate Title {5 - generateCount}{" "}
+                                    more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                                </p>
                             )
                         ) : (
                             <p className="text-center p-3 alert-warning">
-                                Please log in to use this tool.
+                                Please payment in to use this tool.
                             </p>
                         )}
                     </div>
@@ -326,7 +323,7 @@ const TagGenerator = () => {
             </div>
             <div>
                 <div className="content pt-6 pb-5">
-                    <div dangerouslySetInnerHTML={{ __html: content }}></div>
+                <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
                 </div>
             </div>
      

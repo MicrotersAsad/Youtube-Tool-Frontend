@@ -29,7 +29,8 @@ const navigation = [
       { name: 'YouTube Channel Logo Downloader', href: '/tools/YouTube-Channel-Logo-Downloader', icon: <FaIdCard /> },
       { name: 'Channel Id Finder', href: '/tools/channel-id-finder', icon: <FaIdCard /> },
       { name: 'Video data viewer', href: '/tools/video-data-viewer', icon: <FaVideo /> },
-      { name: 'Monetization Checker', href: '/tools/monetization-checker', icon: <FaDollarSign /> }
+      { name: 'Monetization Checker', href: '/tools/monetization-checker', icon: <FaDollarSign /> },
+      { name: 'YouTube Channel Details Finder', href: '/tools/YouTube-Channel-Details-Finder', icon: <FaDollarSign /> }
     ]
   },
   { name: 'Pricing', href: '/pricing', dropdown: false },

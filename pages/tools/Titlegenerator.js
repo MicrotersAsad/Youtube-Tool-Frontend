@@ -23,7 +23,8 @@ const TitleGenerator = () => {
     const [content, setContent] = useState('');
     const [meta, setMeta] = useState({ title: '', description: '', image: '' });
     const [isUpdated, setIsUpdated] = useState(false);
-
+    const [quillContent, setQuillContent] = useState('');
+    const [existingContent, setExistingContent] = useState('');
     useEffect(() => {
         const fetchContent = async () => {
             try {
@@ -32,23 +33,11 @@ const TitleGenerator = () => {
                     throw new Error('Failed to fetch content');
                 }
                 const data = await response.json();
-                console.log(data);
-                if (data && data.length > 0 && data[0].content) {
-                    const sanitizedContent = sanitizeHtml(data[0].content, {
-                        allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
-                        allowedAttributes: {
-                            'a': ['href']
-                        }
-                    });
-                    setContent(sanitizedContent);
-                    setMeta({
-                        title: data[0].title || 'YouTube Title Generator',
-                        description: data[0].description || "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
-                        image: data[0].image || 'https://yourwebsite.com/og-image.png'
-                    });
-                } else {
-                    toast.error("Content data is invalid");
-                }
+                setQuillContent(data[0]?.content || ''); // Ensure content is not undefined
+                setExistingContent(data[0]?.content || ''); // Ensure existing content is not undefined
+                setMeta(data[0])
+                
+               
             } catch (error) {
                 toast.error("Error fetching content");
             }
@@ -59,12 +48,12 @@ const TitleGenerator = () => {
 
     useEffect(() => {
         if (user && user.paymentStatus !== 'success' && !isUpdated) {
-            updateUserProfile().then(() => setIsUpdated(true));
+          updateUserProfile().then(() => setIsUpdated(true));
         }
     }, [user, updateUserProfile, isUpdated]);
 
     useEffect(() => {
-        if (user && user.paymentStatus !== 'success') {
+        if (user && user.paymentStatus !== 'success' && user.role !== 'admin') {
             setGenerateCount(5);
         }
     }, [user]);
@@ -162,11 +151,10 @@ const TitleGenerator = () => {
     };
 
     const generateTitles = async () => {
-        if (user && user.paymentStatus !== 'success' && generateCount <= 0) {
-            toast.error("You have reached the limit of generating titles. Please upgrade your plan for unlimited use.");
+        if (user && user.paymentStatus !== 'success' && user.role !== 'admin' && generateCount <= 0) {
+            toast.error("You have reached the limit of generating tags. Please upgrade your plan for unlimited use.");
             return;
         }
-
         setIsLoading(true);
         setShowCaptcha(true);
         try {
@@ -229,20 +217,20 @@ const TitleGenerator = () => {
             <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
                 <div className="flex">
                     <div>
-                        {user ? (
-                            user.paymentStatus === 'success' ? (
+                    {user ? (
+                            user.paymentStatus === 'success' || user.role === 'admin' ? (
                                 <p className="text-center p-3 alert-warning">
                                     Congratulations!! Now you can generate unlimited tags.
                                 </p>
                             ) : (
                                 <p className="text-center p-3 alert-warning">
-                                    You are not upgraded. You can generate titles {5 - generateCount}{" "}
+                                    You are not upgraded. You can generate Title {5 - generateCount}{" "}
                                     more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
                                 </p>
                             )
                         ) : (
                             <p className="text-center p-3 alert-warning">
-                                Please log in to use this tool.
+                                Please payment in to use this tool.
                             </p>
                         )}
                     </div>
@@ -325,7 +313,7 @@ const TitleGenerator = () => {
                 )}
             </div>
             <div className="content pt-6 pb-5">
-                <div dangerouslySetInnerHTML={{ __html: content }}></div>
+            <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
             </div>
             <style jsx>{`
               .keywords-input-container {

@@ -34,7 +34,8 @@ const YouTubeDescriptionGenerator = () => {
   // State for meta and content
   const [content, setContent] = useState('');
   const [meta, setMeta] = useState('');
-
+  const [quillContent, setQuillContent] = useState('');
+  const [existingContent, setExistingContent] = useState('');
   // Fetch content on component mount
   useEffect(() => {
     const fetchContent = async () => {
@@ -44,23 +45,11 @@ const YouTubeDescriptionGenerator = () => {
           throw new Error('Failed to fetch content');
         }
         const data = await response.json();
-        console.log(data);
-        if (data && data.length > 0 && data[0].content) {
-          const sanitizedContent = sanitizeHtml(data[0].content, {
-            allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
-            allowedAttributes: {
-              'a': ['href']
-            }
-          });
-          setContent(sanitizedContent);
-          setMeta({
-            title: data[0].title || 'YouTube Title Generator',
-            description: data[0].description || "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
-            image: data[0].image || 'https://yourwebsite.com/og-image.png'
-          });
-        } else {
-          toast.error("Content data is invalid");
-        }
+        
+        setQuillContent(data[0]?.content || ''); // Ensure content is not undefined
+        setExistingContent(data[0]?.content || ''); // Ensure existing content is not undefined
+        setMeta(data[0])
+      
       } catch (error) {
         toast.error("Error fetching content");
       }
@@ -206,7 +195,7 @@ ${keywords}
       </div>
       {/* Render content from API */}
       <div className="content pt-6 pb-5">
-        <div dangerouslySetInnerHTML={{ __html: content }}></div>
+      <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
       </div>
     </div>
   );

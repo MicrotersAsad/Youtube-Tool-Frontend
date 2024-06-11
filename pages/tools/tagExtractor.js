@@ -20,7 +20,8 @@ const TagExtractor = () => {
     const [meta, setMeta] = useState('');
     const [generateCount, setGenerateCount] = useState(2);
     const [isUpdated, setIsUpdated] = useState(false);
-
+    const [quillContent, setQuillContent] = useState('');
+    const [existingContent, setExistingContent] = useState('');
     // Fetch content from API on component mount
     useEffect(() => {
         const fetchContent = async () => {
@@ -30,23 +31,10 @@ const TagExtractor = () => {
                     throw new Error('Failed to fetch content');
                 }
                 const data = await response.json();
-                console.log(data);
-                if (data && data.length > 0 && data[0].content) {
-                    const sanitizedContent = sanitizeHtml(data[0].content, {
-                        allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
-                        allowedAttributes: {
-                            'a': ['href']
-                        }
-                    });
-                    setContent(sanitizedContent);
-                    setMeta({
-                        title: data[0].title || 'YouTube Tag Extractor',
-                        description: data[0].description || 'Effortlessly extract tags from any YouTube video for enhanced SEO and better content visibility. Boost your video marketing strategy with our easy-to-use YouTube Tag Extractor tool',
-                        image: data[0].image || 'https://yourwebsite.com/og-image.png'
-                    });
-                } else {
-                    toast.error("Content data is invalid");
-                }
+                setQuillContent(data[0]?.content || ''); // Ensure content is not undefined
+                setExistingContent(data[0]?.content || ''); // Ensure existing content is not undefined
+                setMeta(data[0])
+               
             } catch (error) {
                 toast.error("Error fetching content");
             }
@@ -55,12 +43,20 @@ const TagExtractor = () => {
         fetchContent();
     }, []);
 
-    // Check and update user profile if needed
-    useEffect(() => {
+  
+  
+      useEffect(() => {
         if (user && user.paymentStatus !== 'success' && !isUpdated) {
-            updateUserProfile().then(() => setIsUpdated(true));
+          updateUserProfile().then(() => setIsUpdated(true));
         }
     }, [user, updateUserProfile, isUpdated]);
+
+    useEffect(() => {
+        if (user && user.paymentStatus !== 'success' && user.role !== 'admin') {
+            setGenerateCount(5);
+        }
+    }, [user]);
+
 
     // Handle URL input change
     const handleUrlChange = (e) => {
@@ -205,23 +201,20 @@ const TagExtractor = () => {
                         <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
                     </div>
                     <div>
-                        {user ? (
-                            user.paymentStatus === 'success' ? (
+                    {user ? (
+                            user.paymentStatus === 'success' || user.role === 'admin' ? (
                                 <p className="text-center p-3 alert-warning">
-                                    Congratulation!! Now You Got Unlimited Access.
-                                </p>
-                            ) : fetchLimitExceeded ? (
-                                <p className="text-center p-3 alert-warning">
-                                    Fetch limit exceeded. Please try again later or <Link href="/pricing" className="btn btn-warning ms-3">Update for unlimited access</Link>.
+                                    Congratulations!! Now you can generate unlimited tags.
                                 </p>
                             ) : (
                                 <p className="text-center p-3 alert-warning">
-                                    You are not upgrade Package. You can extractor tags {generateCount} more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link> for unlimited access.
+                                    You are not upgraded. You can generate Title {5 - generateCount}{" "}
+                                    more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
                                 </p>
                             )
                         ) : (
                             <p className="text-center p-3 alert-warning">
-                                Please log in to use this tool.
+                                Please payment in to use this tool.
                             </p>
                         )}
                     </div>
@@ -250,7 +243,7 @@ const TagExtractor = () => {
                         </button>
                     </div>
                     <small className="text-muted">
-                        Example: https://youtu.be/eUDKzw0gLg
+                        Example: https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s
                     </small>
                     <br />
                     <div className='ms-5'>
@@ -289,7 +282,7 @@ const TagExtractor = () => {
                     )}
                 </div>
                 <div className="content pt-6 pb-5">
-                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}></div>
+                <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
                 </div>
             </div>
         </div>

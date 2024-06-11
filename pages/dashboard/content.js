@@ -114,6 +114,8 @@ function Content() {
         return 'YouTube Video Data Viewer';
       case 'monetization-checker':
         return 'YouTube Monetization Checker';
+      case 'YouTube-Channel-finder':
+        return 'YouTube Channel Finder';
       default:
         return 'Unknown Category';
     }
@@ -145,6 +147,7 @@ function Content() {
               <option value="Youtube-Thumbnails-Generator">Youtube Thumbnails Generator</option>
               <option value="video-data-viewer">YouTube Video Data Viewer</option>
               <option value="monetization-checker">YouTube Monetization Checker</option>
+              <option value="YouTube-Channel-finder">YouTube Channel Finder</option>
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
               <svg

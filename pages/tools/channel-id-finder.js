@@ -1,8 +1,7 @@
 import Head from 'next/head';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import sanitizeHtml from 'sanitize-html';
 import { useAuth } from '../../contexts/AuthContext';
 import Link from 'next/link';
 
@@ -16,7 +15,8 @@ const ChannelIdFinder = () => {
     const [meta, setMeta] = useState('');
     const [isUpdated, setIsUpdated] = useState(false);
     const [generateCount, setGenerateCount] = useState(0);
-
+    const [quillContent, setQuillContent] = useState('');
+    const [existingContent, setExistingContent] = useState('');
     useEffect(() => {
         const fetchContent = async () => {
             try {
@@ -25,23 +25,12 @@ const ChannelIdFinder = () => {
                     throw new Error('Failed to fetch content');
                 }
                 const data = await response.json();
-                console.log(data);
-                if (data && data.length > 0 && data[0].content) {
-                    const sanitizedContent = sanitizeHtml(data[0].content, {
-                        allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
-                        allowedAttributes: {
-                            'a': ['href']
-                        }
-                    });
-                    setContent(sanitizedContent);
-                    setMeta({
-                        title: data[0].title || 'YouTube Channel ID Finder',
-                        description: data[0].description || "Find YouTube Channel IDs easily with our tool. Boost your video's reach and engagement with accurate channel details.",
-                        image: data[0].image || 'https://yourwebsite.com/og-image.png'
-                    });
-                } else {
-                    toast.error("Content data is invalid");
-                }
+               
+                setQuillContent(data[0]?.content || ''); // Ensure content is not undefined
+                setExistingContent(data[0]?.content || ''); // Ensure existing content is not undefined
+                setMeta(data[0])
+           
+                
             } catch (error) {
                 toast.error("Error fetching content");
             }
@@ -49,15 +38,18 @@ const ChannelIdFinder = () => {
 
         fetchContent();
     }, []);
-
-    useEffect(() => {
+    const handleQuillChange = useCallback((newContent) => {
+        setQuillContent(newContent);
+      }, []);
+  
+      useEffect(() => {
         if (user && user.paymentStatus !== 'success' && !isUpdated) {
-            updateUserProfile().then(() => setIsUpdated(true));
+          updateUserProfile().then(() => setIsUpdated(true));
         }
     }, [user, updateUserProfile, isUpdated]);
 
     useEffect(() => {
-        if (user && user.paymentStatus !== 'success') {
+        if (user && user.paymentStatus !== 'success' && user.role !== 'admin') {
             setGenerateCount(5);
         }
     }, [user]);
@@ -86,22 +78,20 @@ const ChannelIdFinder = () => {
             return;
         }
 
-        if (user && user.paymentStatus !== 'success' && generateCount <= 0) {
-            toast.error("You have reached the limit of fetching channel data. Please upgrade your plan for unlimited use.");
+        if (generateCount >= 3 && user?.paymentStatus !== 'success' && user.role !== 'admin') {
+            setFetchLimitExceeded(true);
+            toast.error('Fetch limit exceeded. Please upgrade for unlimited access.');
             return;
-        }
-
+          }
         setLoading(true);
         setError('');
         try {
             const data = await fetchVideoData(videoUrl);
             setChannelData(data);
-            console.log(data);
+         
             toast.success('Channel data fetched successfully!');
 
-            if (user && user.paymentStatus !== 'success') {
-                setGenerateCount(generateCount - 1);
-            }
+           
         } catch (err) {
             setError(err.message);
             toast.error(err.message);
@@ -134,22 +124,16 @@ const ChannelIdFinder = () => {
                         <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
                     </div>
                     <div>
-                        {user ? (
-                            user.paymentStatus === 'success' ? (
-                                <p className="text-center p-3 alert-warning">
-                                    Congratulation!! Now You can generate unlimited tags.
-                                </p>
-                            ) : (
-                                <p className="text-center p-3 alert-warning">
-                                You are not Upgrade. You can generate Title {5 - generateCount}{" "}
-                                more times.<Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
-                            </p>
-                            )
-                        ) : (
-                            <p className="text-center p-3 alert-warning">
-                                Please log in to use this tool.
-                            </p>
-                        )}
+                    {user?.paymentStatus === 'success' || user?.role === 'admin' ? (
+              <p className="text-center p-3 alert-warning">
+                You are upgraded and can generate unlimited data.
+              </p>
+            ) 
+             : (
+              <p className="text-center p-3 alert-warning">
+                You are not upgraded. You can fetch data {3 - generateCount} more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link> for unlimited access.
+              </p>
+            )}
                     </div>
                 </div>
             </div>
@@ -165,6 +149,7 @@ const ChannelIdFinder = () => {
                             if (event.key === 'Enter') handleFetch();
                         }}
                     />
+                     <small className='text-muted'>Example:https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s</small>
                 </div>
                 <button
                     className={`btn btn-danger w-full text-white font-bold py-2 px-4 rounded hover:bg-red-700 focus:outline-none focus:shadow-outline ${loading ? 'bg-blue-300' : 'bg-blue-500'}`}
@@ -192,7 +177,7 @@ const ChannelIdFinder = () => {
                 </div>
             )}
             <div className="content pt-6 pb-5">
-                <div dangerouslySetInnerHTML={{ __html: content }}></div>
+            <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
             </div>
         </div>
     );

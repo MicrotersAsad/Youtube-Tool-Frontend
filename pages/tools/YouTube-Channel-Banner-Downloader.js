@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { FaDownload, FaFacebook, FaInstagram, FaLinkedin, FaShareAlt, FaTwitter } from 'react-icons/fa';
@@ -6,23 +5,25 @@ import Image from 'next/image';
 import { useAuth } from '../../contexts/AuthContext';
 import Link from 'next/link';
 import { ToastContainer, toast } from 'react-toastify';
-import sanitizeHtml from 'sanitize-html';
 import Head from 'next/head';
 
 const YtChannelDw = () => {
-    const { isLoggedIn } = useAuth(); // Destructure authentication state from context
-    const [loading, setLoading] = useState(false); // Loading state for API requests
-    const [error, setError] = useState(''); // Error state
-    const [channelUrl, setChannelUrl] = useState(''); // State for input URL
-    const [bannerUrl, setBannerUrl] = useState(''); // State for fetched banner URL
-    const [showShareIcons, setShowShareIcons] = useState(false); // State to toggle share icons visibility
-    const [generateCount, setGenerateCount] = useState(false); // Count for how many times data is fetched
-    const [content, setContent] = useState(''); // Content state for fetched HTML content
-    const [meta, setMeta] = useState({ // Meta information for the page
+    const { user, updateUserProfile } = useAuth();
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [channelUrl, setChannelUrl] = useState('');
+    const [bannerUrl, setBannerUrl] = useState('');
+    const [showShareIcons, setShowShareIcons] = useState(false);
+    const [generateCount, setGenerateCount] = useState(0);
+    const [content, setContent] = useState('');
+    const [isUpdated, setIsUpdated] = useState(false);
+    const [meta, setMeta] = useState({
         title: 'YouTube Channel Banner Downloader',
         description: "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
         image: 'https://yourwebsite.com/og-image.png',
     });
+    const [quillContent, setQuillContent] = useState('');
+    const [existingContent, setExistingContent] = useState('');
 
     useEffect(() => {
         const fetchContent = async () => {
@@ -32,23 +33,9 @@ const YtChannelDw = () => {
                     throw new Error('Failed to fetch content');
                 }
                 const data = await response.json();
-                console.log(data);
-                if (data && data.length > 0 && data[0].content) {
-                    const sanitizedContent = sanitizeHtml(data[0].content, {
-                        allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
-                        allowedAttributes: {
-                            'a': ['href']
-                        }
-                    });
-                    setContent(sanitizedContent);
-                    setMeta({
-                        title: data[0].title || 'YouTube Channel Banner Downloader',
-                        description: data[0].description || meta.description,
-                        image: data[0].image || meta.image
-                    });
-                } else {
-                    toast.error("Content data is invalid");
-                }
+                setQuillContent(data[0]?.content || '');
+                setExistingContent(data[0]?.content || '');
+                setMeta(data[0]);
             } catch (error) {
                 toast.error("Error fetching content");
             }
@@ -56,6 +43,18 @@ const YtChannelDw = () => {
 
         fetchContent();
     }, [meta.description, meta.image]);
+
+    useEffect(() => {
+        if (user && user.paymentStatus !== 'success' && !isUpdated) {
+            updateUserProfile().then(() => setIsUpdated(true));
+        }
+    }, [user, updateUserProfile, isUpdated]);
+
+    useEffect(() => {
+        if (user && user.paymentStatus !== 'success' && user.role !== 'admin') {
+            setGenerateCount(5);
+        }
+    }, [user]);
 
     const handleUrlChange = (e) => {
         setChannelUrl(e.target.value);
@@ -67,6 +66,10 @@ const YtChannelDw = () => {
 
     const fetchYouTubeData = async () => {
         try {
+            if (user && user.paymentStatus !== 'success' && user.role !== 'admin' && generateCount <= 0) {
+                toast.error("You have reached the limit of generating tags. Please upgrade your plan for unlimited use.");
+                return;
+            }
             setLoading(true);
             setError('');
             const channelId = extractChannelId(channelUrl);
@@ -128,7 +131,6 @@ const YtChannelDw = () => {
             })
             .catch(error => {
                 toast.error('Error downloading image:', error);
-                // Handle error
             });
     };
 
@@ -173,14 +175,20 @@ const YtChannelDw = () => {
                         <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
                     </div>
                     <div>
-                        {isLoggedIn ? (
-                            <p className="text-center p-3 alert-warning">
-                                You are logged in and can generate unlimited tags.
-                            </p>
+                        {user ? (
+                            user.paymentStatus === 'success' || user.role === 'admin' ? (
+                                <p className="text-center p-3 alert-warning">
+                                    Congratulations!! Now you can generate unlimited tags.
+                                </p>
+                            ) : (
+                                <p className="text-center p-3 alert-warning">
+                                    You are not upgraded. You can generate Title {5 - generateCount}{" "}
+                                    more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                                </p>
+                            )
                         ) : (
                             <p className="text-center p-3 alert-warning">
-                                You are not logged in. You can generate tags {5 - generateCount}{" "}
-                                more times.<Link href="/register" className="btn btn-warning ms-3">Registration</Link>
+                                Please log in to use this tool.
                             </p>
                         )}
                     </div>
@@ -217,10 +225,7 @@ const YtChannelDw = () => {
                         {showShareIcons && (
                             <div className="share-icons ms-2">
                                 <FaFacebook className="facebook-icon" onClick={() => shareOnSocialMedia('facebook')} />
-                                <FaInstagram
-                                    className="instagram-icon"
-                                    onClick={() => shareOnSocialMedia('instagram')}
-                                />
+                                <FaInstagram className="instagram-icon" onClick={() => shareOnSocialMedia('instagram')} />
                                 <FaTwitter className="twitter-icon" onClick={() => shareOnSocialMedia('twitter')} />
                                 <FaLinkedin className="linkedin-icon" onClick={() => shareOnSocialMedia('linkedin')} />
                             </div>
@@ -230,7 +235,7 @@ const YtChannelDw = () => {
                     {error && <div className="alert alert-danger" role="alert">{error}</div>}
                     {bannerUrl && (
                         <div className="text-center mt-3">
-                            <Image src={bannerUrl} alt="Channel Banner" style={{ maxWidth: '100%' }} />
+                            <Image src={bannerUrl} alt="Channel Banner" width={1200} height={300} />
                             <button className="btn btn-danger mt-3" onClick={downloadChannelBanner}>
                                 <FaDownload /> Download Channel Banner
                             </button>
@@ -238,7 +243,7 @@ const YtChannelDw = () => {
                     )}
                 </div>
                 <div className="content pt-6 pb-5">
-                    <div dangerouslySetInnerHTML={{ __html: content }}></div>
+                    <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
                 </div>
             </div>
         </div>
