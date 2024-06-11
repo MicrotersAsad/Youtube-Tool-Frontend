@@ -21,7 +21,7 @@ const YouTubeChannelScraper = () => {
   const [quillContent, setQuillContent] = useState('');
   const [existingContent, setExistingContent] = useState('');
 const apiKey=process.env.NEXT_PUBLIC_YOUTUBE_API_KEY
-
+const [generateCount, setGenerateCount] = useState(0);
 useEffect(() => {
   const fetchContent = async () => {
       try {
