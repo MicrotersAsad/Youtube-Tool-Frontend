@@ -4,6 +4,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../../contexts/AuthContext';
 import Head from 'next/head';
+import Link from 'next/link';
 
 const YouTubeChannelScraper = () => {
   const { user, updateUserProfile } = useAuth();
@@ -211,9 +212,9 @@ useEffect(() => {
           <div key={index} className="bg-white shadow-md rounded-lg p-4 channel-card">
             <img src={channel.snippet.thumbnails.high.url} alt={channel.snippet.title} className="w-full h-auto rounded-md mb-4" />
             <div className="channel-info">
-              <a href={`https://www.youtube.com/channel/${channel.id}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 font-bold text-xl">
+              <Link href={`https://www.youtube.com/channel/${channel.id}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 font-bold text-xl">
                 {channel.snippet.title}
-              </a>
+              </Link>
               <p className="text-gray-700">Subscribers: {channel.statistics.subscriberCount}</p>
               <p className="text-gray-700">Total Views: {channel.statistics.viewCount}</p>
               <p className="text-gray-700">Videos: {channel.statistics.videoCount}</p>
