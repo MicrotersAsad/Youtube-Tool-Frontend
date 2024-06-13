@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaCopy, FaDownload, FaFacebook, FaInstagram, FaLinkedin, FaShareAlt, FaTimes, FaTwitter } from 'react-icons/fa';
+import { FaCopy, FaDownload, FaFacebook, FaInstagram, FaLinkedin, FaShareAlt, FaStar, FaTimes, FaTwitter } from 'react-icons/fa';
 import { FaGrip } from 'react-icons/fa6';
 import { useAuth } from '../../contexts/AuthContext';
 import Link from 'next/link';
@@ -7,6 +7,10 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import sanitizeHtml from 'sanitize-html';
 import Head from 'next/head';
+import StarRating from './StarRating'; // Import StarRating component
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 
 const TagExtractor = () => {
     const { user, updateUserProfile } = useAuth(); // Get the user object from the AuthContext
@@ -22,7 +26,10 @@ const TagExtractor = () => {
     const [isUpdated, setIsUpdated] = useState(false);
     const [quillContent, setQuillContent] = useState('');
     const [existingContent, setExistingContent] = useState('');
-    // Fetch content from API on component mount
+    const [reviews, setReviews] = useState([]);
+    const [newReview, setNewReview] = useState({ name: '', rating: 0, comment: '', userProfile: '' });
+
+    // Fetch content and reviews from API on component mount
     useEffect(() => {
         const fetchContent = async () => {
             try {
@@ -33,21 +40,33 @@ const TagExtractor = () => {
                 const data = await response.json();
                 setQuillContent(data[0]?.content || ''); // Ensure content is not undefined
                 setExistingContent(data[0]?.content || ''); // Ensure existing content is not undefined
-                setMeta(data[0])
-               
+                setMeta(data[0]);
             } catch (error) {
                 toast.error("Error fetching content");
             }
         };
 
         fetchContent();
+        fetchReviews();
     }, []);
 
-  
-  
-      useEffect(() => {
+    const fetchReviews = async () => {
+        try {
+            const response = await fetch('/api/reviews?tool=tag-extractor');
+            const data = await response.json();
+            setReviews(data);
+        } catch (error) {
+            console.error('Failed to fetch reviews:', error);
+        }
+    };
+
+    const handleQuillChange = (newContent) => {
+        setQuillContent(newContent);
+    };
+
+    useEffect(() => {
         if (user && user.paymentStatus !== 'success' && !isUpdated) {
-          updateUserProfile().then(() => setIsUpdated(true));
+            updateUserProfile().then(() => setIsUpdated(true));
         }
     }, [user, updateUserProfile, isUpdated]);
 
@@ -56,7 +75,6 @@ const TagExtractor = () => {
             setGenerateCount(5);
         }
     }, [user]);
-
 
     // Handle URL input change
     const handleUrlChange = (e) => {
@@ -176,6 +194,60 @@ const TagExtractor = () => {
         }
     }, [user]);
 
+    const handleReviewSubmit = async () => {
+        if (!newReview.rating || !newReview.comment) {
+            toast.error('All fields are required.');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/reviews', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    tool: 'tag-extractor',
+                    ...newReview,
+                    userProfile: user?.profileImage || '', // Assuming user has a profileImage property
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to submit review');
+            }
+
+            toast.success('Review submitted successfully!');
+            setNewReview({ name: '', rating: 0, comment: '', userProfile: '' });
+            fetchReviews(); // Refresh the reviews
+        } catch (error) {
+            toast.error('Failed to submit review');
+        }
+    };
+
+    const calculateRatingPercentage = (rating) => {
+        const totalReviews = reviews.length;
+        const ratingCount = reviews.filter(review => review.rating === rating).length;
+        return totalReviews ? (ratingCount / totalReviews) * 100 : 0;
+    };
+
+    const settings = {
+        infinite: true,
+        speed: 500,
+        slidesToShow: 1,
+        slidesToScroll: 2,
+        responsive: [
+            {
+                breakpoint: 1024,
+                settings: {
+                    slidesToShow: 1,
+                    slidesToScroll: 1,
+                    infinite: true,
+                }
+            }
+        ]
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
             {/* Page head metadata */}
@@ -201,7 +273,7 @@ const TagExtractor = () => {
                         <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
                     </div>
                     <div>
-                    {user ? (
+                        {user ? (
                             user.paymentStatus === 'success' || user.role === 'admin' ? (
                                 <p className="text-center p-3 alert-warning">
                                     Congratulations!! Now you can generate unlimited tags.
@@ -220,6 +292,7 @@ const TagExtractor = () => {
                     </div>
                 </div>
             </div>
+            
             <div className="row justify-content-center pt-5">
                 <div className="col-md-6">
                     <div className="input-group mb-3">
@@ -281,10 +354,78 @@ const TagExtractor = () => {
                         </div>
                     )}
                 </div>
-                <div className="content pt-6 pb-5">
-                <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
-                </div>
             </div>
+            {/* Render content from API */}
+            <div className="content pt-6 pb-5">
+                <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
+            </div>
+            {/* Review Form */}
+            <div className="mt-8 review-card">
+                <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+                
+                <div className="mb-4">
+                    <StarRating rating={newReview.rating} setRating={(rating) => setNewReview({ ...newReview, rating })} />
+                </div>
+                <div className="mb-4">
+                    <textarea
+                        className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                        placeholder="Your Review"
+                        value={newReview.comment}
+                        onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                    />
+                </div>
+                <button
+                    className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                    onClick={handleReviewSubmit}
+                >
+                    Submit Review
+                </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5">
+                {[5, 4, 3, 2, 1].map((rating) => (
+                    <div key={rating} className="flex items-center">
+                        <div className="w-12 text-right mr-4">{rating}-star</div>
+                        <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
+                            <div className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0" style={{ width: `${calculateRatingPercentage(rating)}%` }}></div>
+                        </div>
+                        <div className="w-12 text-left ml-4">{calculateRatingPercentage(rating).toFixed(1)}%</div>
+                    </div>
+                ))}
+            </div>
+            {/* Reviews Section */}
+            <div className="mt-8 review-card">
+                <h2 className="text-2xl font-semibold mb-4">User Reviews</h2>
+                <Slider {...settings}>
+                    {reviews.map((review, index) => (
+                        <div key={index} className="p-4 bg-white shadow rounded-lg mt-5">
+                            <div className="flex items-center mb-2">
+                                {[...Array(5)].map((star, i) => (
+                                    <FaStar
+                                        key={i}
+                                        size={24}
+                                        color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                                    />
+                                ))}
+                                <span className="ml-2 text-xl font-bold">{review.rating.toFixed(1)}</span>
+                            </div>
+                            <div>
+                                <p className="text-gray-600 text-right me-auto">{new Date(review.createdAt).toLocaleDateString()}</p>
+                            </div>
+                            <p className="text-lg font-semibold">{review.comment}</p>
+                            <p className="text-gray-600">- {user?.username}</p>
+                            {review.userProfile && (
+                                <img
+                                    src={review.userProfile}
+                                    alt="User Profile"
+                                    className="w-12 h-12 rounded-full mt-2"
+                                />
+                            )}
+                        </div>
+                    ))}
+                </Slider>
+            </div>
+            
+            <ToastContainer autoClose={5000} position="top-right" />
         </div>
     );
 };

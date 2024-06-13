@@ -5,7 +5,11 @@ import Image from 'next/image';
 import Head from 'next/head';
 import { useAuth } from '../../contexts/AuthContext';
 import Link from 'next/link';
-import sanitizeHtml from 'sanitize-html';
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
+import { FaStar } from 'react-icons/fa';
+import StarRating from './StarRating'; // Assuming you have a StarRating component
 
 const MonetizationChecker = () => {
     const { user, updateUserProfile } = useAuth(); // Custom hook for authentication
@@ -20,6 +24,10 @@ const MonetizationChecker = () => {
     const recaptchaRef = useRef(null);
     const [quillContent, setQuillContent] = useState('');
     const [existingContent, setExistingContent] = useState('');
+    const [reviews, setReviews] = useState([]);
+    const [newReview, setNewReview] = useState({ rating: 0, comment: '', userProfile: '' });
+
+    // Fetch content and reviews on component mount
     useEffect(() => {
         const fetchContent = async () => {
             try {
@@ -28,11 +36,9 @@ const MonetizationChecker = () => {
                     throw new Error('Failed to fetch content');
                 }
                 const data = await response.json();
-                
-                setQuillContent(data[0]?.content || ''); // Ensure content is not undefined
-                setExistingContent(data[0]?.content || ''); // Ensure existing content is not undefined
-                setMeta(data[0])
-               
+                setQuillContent(data[0]?.content || '');
+                setExistingContent(data[0]?.content || '');
+                setMeta(data[0]);
             } catch (error) {
                 toast.error("Error fetching content");
                 console.error('Error fetching content:', error);
@@ -40,25 +46,41 @@ const MonetizationChecker = () => {
         };
 
         fetchContent();
+        fetchReviews();
     }, []);
+
+    // Fetch reviews from the API
+    const fetchReviews = async () => {
+        try {
+            const response = await fetch('/api/reviews?tool=monetization-checker');
+            const data = await response.json();
+            setReviews(data);
+        } catch (error) {
+            console.error('Failed to fetch reviews:', error);
+        }
+    };
+
+    // Update user profile if payment status is not success and profile is not updated
     useEffect(() => {
         if (user && user.paymentStatus !== 'success' && !isUpdated) {
-          updateUserProfile().then(() => setIsUpdated(true));
+            updateUserProfile().then(() => setIsUpdated(true));
         }
     }, [user, updateUserProfile, isUpdated]);
 
+    // Set generate count if user payment status is not success and role is not admin
     useEffect(() => {
         if (user && user.paymentStatus !== 'success' && user.role !== 'admin') {
             setGenerateCount(5);
         }
     }, [user]);
 
-
+    // Handle URL input change
     const handleInputChange = (e) => {
         setError('');
         setUrl(e.target.value);
     };
 
+    // Handle fetch button click
     const handleFetchClick = async () => {
         if (!url.trim()) {
             toast.error('Please enter a valid URL.');
@@ -102,6 +124,7 @@ const MonetizationChecker = () => {
         }
     };
 
+    // Convert duration format
     const convertDuration = (duration) => {
         const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
         const hours = (parseInt(match[1], 10) || 0);
@@ -111,8 +134,65 @@ const MonetizationChecker = () => {
         return `${hours > 0 ? hours + ' hours, ' : ''}${minutes > 0 ? minutes + ' minutes, ' : ''}${seconds > 0 ? seconds + ' seconds' : ''}`.trim();
     };
 
+    // Handle review submission
+    const handleReviewSubmit = async () => {
+        if (!newReview.rating || !newReview.comment) {
+            toast.error('All fields are required.');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/reviews', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    tool: 'monetization-checker',
+                    ...newReview,
+                    userProfile: user?.profileImage || '',
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to submit review');
+            }
+
+            toast.success('Review submitted successfully!');
+            setNewReview({ rating: 0, comment: '', userProfile: '' });
+            fetchReviews(); // Refresh the reviews
+        } catch (error) {
+            toast.error('Failed to submit review');
+        }
+    };
+
+    // Calculate rating percentage
+    const calculateRatingPercentage = (rating) => {
+        const totalReviews = reviews.length;
+        const ratingCount = reviews.filter(review => review.rating === rating).length;
+        return totalReviews ? (ratingCount / totalReviews) * 100 : 0;
+    };
+
+    // Slider settings
+    const settings = {
+        infinite: true,
+        speed: 500,
+        slidesToShow: 1,
+        slidesToScroll: 2,
+        responsive: [
+            {
+                breakpoint: 1024,
+                settings: {
+                    slidesToShow: 1,
+                    slidesToScroll: 1,
+                    infinite: true,
+                }
+            }
+        ]
+    };
+
     return (
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
             {/* Page head metadata */}
             <Head>
                 <title>{meta.title}</title>
@@ -139,7 +219,7 @@ const MonetizationChecker = () => {
                         <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
                     </div>
                     <div>
-                    {user ? (
+                        {user ? (
                             user.paymentStatus === 'success' || user.role === 'admin' ? (
                                 <p className="text-center p-3 alert-warning">
                                     Congratulations!! Now you can generate unlimited tags.
@@ -309,9 +389,71 @@ const MonetizationChecker = () => {
             )}
             {/* Render content from API */}
             <div className="content pt-6 pb-5">
-            <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
+                <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
             </div>
-            <ToastContainer autoClose={5000} position="top-right" />
+            {/* Review Form */}
+            <div className="mt-8 review-card">
+                <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+                <div className="mb-4">
+                    <StarRating rating={newReview.rating} setRating={(rating) => setNewReview({ ...newReview, rating })} />
+                </div>
+                <div className="mb-4">
+                    <textarea
+                        className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                        placeholder="Your Review"
+                        value={newReview.comment}
+                        onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                    />
+                </div>
+                <button
+                    className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                    onClick={handleReviewSubmit}
+                >
+                    Submit Review
+                </button>
+            </div>
+            {/* Reviews Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5">
+                {[5, 4, 3, 2, 1].map((rating) => (
+                    <div key={rating} className="flex items-center">
+                        <div className="w-12 text-right mr-4">{rating}-star</div>
+                        <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
+                            <div className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0" style={{ width: `${calculateRatingPercentage(rating)}%` }}></div>
+                        </div>
+                        <div className="w-12 text-left ml-4">{calculateRatingPercentage(rating).toFixed(1)}%</div>
+                    </div>
+                ))}
+            </div>
+            <div className="review-card pb-5">
+                <Slider {...settings}>
+                    {reviews.map((review, index) => (
+                        <div key={index} className="p-4 bg-white shadow rounded-lg mt-5">
+                            <div className="flex items-center mb-2">
+                                {[...Array(5)].map((star, i) => (
+                                    <FaStar
+                                        key={i}
+                                        size={24}
+                                        color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                                    />
+                                ))}
+                                <span className="ml-2 text-xl font-bold">{review.rating.toFixed(1)}</span>
+                            </div>
+                            <div>
+                                <p className="text-gray-600 text-right me-auto">{new Date(review.createdAt).toLocaleDateString()}</p>
+                            </div>
+                            <p className="text-lg font-semibold">{review.comment}</p>
+                            <p className="text-gray-600">- {user?.username}</p>
+                            {review.userProfile && (
+                                <img
+                                    src={review.userProfile}
+                                    alt="User Profile"
+                                    className="w-12 h-12 rounded-full mt-2"
+                                />
+                            )}
+                        </div>
+                    ))}
+                </Slider>
+            </div>
         </div>
     );
 };

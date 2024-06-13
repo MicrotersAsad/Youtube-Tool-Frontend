@@ -41,6 +41,7 @@ const navigation = [
 
 function Navbar() {
   const { user, logout } = useAuth();
+  console.log(user);
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);

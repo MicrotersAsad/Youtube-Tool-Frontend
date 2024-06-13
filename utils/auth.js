@@ -9,7 +9,7 @@ function generateToken(user) {
   };
 
   const token = jwt.sign(payload, process.env.NEXT_PUBLIC_JWT_SECRET, {
-    expiresIn: '1hy' // set appropriate expiration time
+    expiresIn: '1h' // set appropriate expiration time
   });
 
   return token;

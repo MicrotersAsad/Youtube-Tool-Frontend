@@ -7,7 +7,7 @@ const getStartOfPeriod = (filter) => {
     case 'daily':
       return startOfDay(now);
     case 'weekly':
-      return startOfWeek(now, { weekStartsOn: 1 });
+      return startOfWeek(now, { weekStartsOn: 1 }); // Week starts on Monday
     case 'monthly':
       return startOfMonth(now);
     case 'yearly':
@@ -27,25 +27,9 @@ export default async function handler(req, res) {
 
   try {
     const { db } = await connectToDatabase();
-    const visits = await db.collection('siteVisits').find({ timestamp: { $gte: startDate } }).toArray();
+    const visitCount = await db.collection('siteVisits').countDocuments({ timestamp: { $gte: startDate } });
 
-    // Group visits by day and count them
-    const visitCounts = visits.reduce((acc, visit) => {
-      const date = visit.timestamp.toISOString().split('T')[0]; // Get date part only
-      if (!acc[date]) {
-        acc[date] = 0;
-      }
-      acc[date]++;
-      return acc;
-    }, {});
-
-    // Convert to array format for the chart
-    const visitData = Object.keys(visitCounts).map(date => ({
-      date,
-      value: visitCounts[date],
-    }));
-
-    res.status(200).json(visitData);
+    res.status(200).json({ success: true, visitCount });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error' });
   }

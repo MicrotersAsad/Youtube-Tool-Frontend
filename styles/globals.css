@@ -483,7 +483,7 @@ blockquote {
   background-color: red;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
   .btn {
     width: auto !important;
     ;
@@ -625,3 +625,37 @@ a {
   min-height: 400px!important;
 }
 
+.slick-prev, .slick-next {
+  font-size: 0;
+  line-height: 0;
+  position: absolute;
+  top: 50%;
+  display: block;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  transform: translate(0, -50%);
+  cursor: pointer;
+  color:  white!important;
+  border: none;
+  outline: none;
+  background:white!important; 
+}
+
+.slick-prev:before,
+.slick-next:before {
+  color: red!important;
+}
+.review-card{
+  margin: auto;
+  width: 50%;
+  padding: 10px;
+}
+/* styles for mobile devices */
+@media only screen and (max-width: 767px) {
+  .review-card{
+    
+    width:100%;
+   
+  }
+}

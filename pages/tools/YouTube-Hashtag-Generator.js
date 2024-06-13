@@ -9,6 +9,7 @@ import {
   FaCog,
   FaCopy,
   FaDownload,
+  FaStar,
 } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
@@ -16,7 +17,10 @@ import Link from "next/link";
 import sanitizeHtml from 'sanitize-html';
 import { ToastContainer, toast } from "react-toastify";
 import Head from "next/head";
-
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import StarRating from "./StarRating"; // Assuming StarRating is a custom component
 
 const YouTubeHashtagGenerator = () => {
   // State variables
@@ -35,7 +39,10 @@ const YouTubeHashtagGenerator = () => {
   const [content, setContent] = useState('');
   const [meta, setMeta] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
-
+  const [reviews, setReviews] = useState([]);
+  const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
+  const [quillContent, setQuillContent] = useState('');
+    const [existingContent, setExistingContent] = useState('');
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -47,30 +54,16 @@ const YouTubeHashtagGenerator = () => {
         }
         const data = await response.json();
         console.log(data);
-        if (data && data.length > 0 && data[0].content) {
-          const sanitizedContent = sanitizeHtml(data[0].content, {
-            allowedTags: ["h2", "h3", "p", "li", "a"],
-            allowedAttributes: {
-              a: ["href"],
-            },
-          });
-          setContent(sanitizedContent);
-          setMeta({
-            title: data[0].title || "YouTube Hashtag Generator",
-            description:
-              data[0].description ||
-              "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
-            image: data[0].image || "https://yourwebsite.com/og-image.png",
-          });
-        } else {
-          toast.error("Content data is invalid");
-        }
+        setQuillContent(data[0]?.content || '');
+        setExistingContent(data[0]?.content || '');
+        setMeta(data[0]);
       } catch (error) {
         toast.error("Error fetching content");
       }
     };
 
     fetchContent();
+    fetchReviews();
   }, []);
 
   useEffect(() => {
@@ -79,17 +72,30 @@ const YouTubeHashtagGenerator = () => {
       .then(data => setPrompt(data[0]))
   }, []);
 
+
   useEffect(() => {
     if (user && user.paymentStatus !== 'success' && !isUpdated) {
       updateUserProfile().then(() => setIsUpdated(true));
     }
-  }, [user, updateUserProfile, isUpdated]);
+}, [user, updateUserProfile, isUpdated]);
 
-  useEffect(() => {
-    if (user && user.paymentStatus !== 'success') {
-      setGenerateCount(2);
+useEffect(() => {
+    if (user && user.paymentStatus !== 'success' && user.role !== 'admin') {
+        setGenerateCount(5);
     }
-  }, [user]);
+}, [user]);
+
+  const fetchReviews = async () => {
+    try {
+      const response = await fetch(
+        "/api/reviews?tool=youtube-hashtag-generator"
+      );
+      const data = await response.json();
+      setReviews(data);
+    } catch (error) {
+      console.error("Failed to fetch reviews:", error);
+    }
+  };
 
   // Function to handle user input for adding tags
   const handleKeyDown = (event) => {
@@ -184,11 +190,10 @@ const YouTubeHashtagGenerator = () => {
 
   // Function to generate titles
   const generateHashTags = async () => {
-    if (user && user.paymentStatus !== 'success' && generateCount <= 0) {
-      toast.error("You have reached the limit of generating hashtags. Please upgrade your plan for unlimited use.");
+    if (user && user.paymentStatus !== 'success' && user.role !== 'admin' && generateCount <= 0) {
+      toast.error("You have reached the limit of generating tags. Please upgrade your plan for unlimited use.");
       return;
-    }
-
+  }
     setIsLoading(true);
     setShowCaptcha(true);
     console.log(tags.join(", "));
@@ -238,6 +243,54 @@ const YouTubeHashtagGenerator = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleReviewSubmit = async () => {
+    if (!newReview.rating || !newReview.comment) {
+      toast.error("Please fill in both rating and comment.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/reviews", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tool: "youtube-hashtag-generator",
+          rating: newReview.rating,
+          comment: newReview.comment,
+          user: user.id,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success("Review submitted successfully!");
+        setNewReview({ rating: 0, comment: "" });
+        fetchReviews();
+      } else {
+        toast.error("Failed to submit review.");
+      }
+    } catch (error) {
+      console.error("Failed to submit review:", error);
+      toast.error("Failed to submit review.");
+    }
+  };
+
+  const calculateRatingPercentage = (rating) => {
+    const totalReviews = reviews.length;
+    const ratingCount = reviews.filter((review) => review.rating === rating)
+      .length;
+    return (ratingCount / totalReviews) * 100;
+  };
+
+  const settings = {
+    dots: true,
+    infinite: false,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
   };
 
   return (
@@ -290,22 +343,22 @@ const YouTubeHashtagGenerator = () => {
               ></svg>
             </div>
             <div>
-              {user ? (
-                user.paymentStatus === 'success' ? (
-                  <p className="text-center p-3 alert-warning">
-                   Congratulation!! Now You Got Full Access.
-                  </p>
-                ) : (
-                  <p className="text-center p-3 alert-warning">
-                    You are not Upgrade. You can generate HashTag {5 - generateCount}{" "}
-                    more times.<Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
-                  </p>
-                )
-              ) : (
-                <p className="text-center p-3 alert-warning">
-                  Please log in to use this tool.
-                </p>
-              )}
+            {user ? (
+                            user.paymentStatus === 'success' || user.role === 'admin' ? (
+                                <p className="text-center p-3 alert-warning">
+                                    Congratulations!! Now you can generate unlimited tags.
+                                </p>
+                            ) : (
+                                <p className="text-center p-3 alert-warning">
+                                    You are not upgraded. You can generate Title {5 - generateCount}{" "}
+                                    more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                                </p>
+                            )
+                        ) : (
+                            <p className="text-center p-3 alert-warning">
+                                Please payment in to use this tool.
+                            </p>
+                        )}
             </div>
           </div>
         </div>
@@ -423,9 +476,78 @@ const YouTubeHashtagGenerator = () => {
 
       </div>
       <div className="content pt-6 pb-5">
-        <div dangerouslySetInnerHTML={{ __html: content }} />
+                    <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
+                </div>
+      {/* Review Section */}
+      <div className="mt-8 review-card">
+        <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+        <div className="mb-4">
+          <StarRating
+            rating={newReview.rating}
+            setRating={(rating) => setNewReview({ ...newReview, rating })}
+          />
+        </div>
+        <div className="mb-4">
+          <textarea
+            className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+            placeholder="Your Review"
+            value={newReview.comment}
+            onChange={(e) =>
+              setNewReview({ ...newReview, comment: e.target.value })
+            }
+          />
+        </div>
+        <button
+          className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+          onClick={handleReviewSubmit}
+        >
+          Submit Review
+        </button>
       </div>
-
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5">
+        {[5, 4, 3, 2, 1].map((rating) => (
+          <div key={rating} className="flex items-center">
+            <div className="w-12 text-right mr-4">{rating}-star</div>
+            <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
+              <div
+                className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0"
+                style={{ width: `${calculateRatingPercentage(rating)}%` }}
+              ></div>
+            </div>
+            <div className="w-12 text-left ml-4">
+              {calculateRatingPercentage(rating).toFixed(1)}%
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-8 review-card">
+        <h2 className="text-2xl font-semibold mb-4">User Reviews</h2>
+        <Slider {...settings}>
+          {reviews.map((review, index) => (
+            <div key={index} className="p-4 bg-white shadow rounded-lg mt-5">
+              <div className="flex items-center mb-2">
+                {[...Array(5)].map((star, i) => (
+                  <FaStar
+                    key={i}
+                    size={24}
+                    color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                  />
+                ))}
+                <span className="ml-2 text-xl font-bold">
+                  {review.rating.toFixed(1)}
+                </span>
+              </div>
+              <div>
+                <p className="text-gray-600 text-right me-auto">
+                  {new Date(review.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+              <p className="text-lg font-semibold">{review.comment}</p>
+              <p className="text-gray-600">- {user?.username}</p>
+            </div>
+          ))}
+        </Slider>
+      </div>
       <style jsx>{styles}</style>
     </div>
   );
