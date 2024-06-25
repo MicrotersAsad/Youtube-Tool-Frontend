@@ -5,6 +5,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import { FaStar } from 'react-icons/fa';
 import Slider from 'react-slick';
 import StarRating from './StarRating';
+import Link from 'next/link';
 
 const rpmCpmRates = {
   "Low Shorts RPM": { rpm: 0.01, cpm: 0.02 },
