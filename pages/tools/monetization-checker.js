@@ -10,6 +10,10 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { FaStar } from 'react-icons/fa';
 import StarRating from './StarRating'; // Assuming you have a StarRating component
+import announce from "../../public/shape/announce.png"
+import chart from "../../public/shape/chart (1).png"
+import cloud from "../../public/shape/cloud.png"
+import cloud2 from "../../public/shape/cloud2.png"
 
 const MonetizationChecker = () => {
     const { user, updateUserProfile } = useAuth(); // Custom hook for authentication
@@ -26,6 +30,7 @@ const MonetizationChecker = () => {
     const [existingContent, setExistingContent] = useState('');
     const [reviews, setReviews] = useState([]);
     const [newReview, setNewReview] = useState({ rating: 0, comment: '', userProfile: '' });
+    const [modalVisible, setModalVisible] = useState(true); // State to control modal visibility
 
     // Fetch content and reviews on component mount
     useEffect(() => {
@@ -191,7 +196,20 @@ const MonetizationChecker = () => {
         ]
     };
 
+    const closeModal = () => {
+        setModalVisible(false);
+    };
+
     return (
+        <>
+        <div className='bg-box'>
+              <div>
+                  <Image className='shape1' src={announce} alt="announce"/>
+             
+                  <Image className='shape2' src={cloud} alt="announce"/>
+                  <Image className='shape3' src={cloud2} alt="announce"/>
+                  <Image className='shape4' src={chart} alt="announce"/>
+              </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
             {/* Page head metadata */}
             <Head>
@@ -211,33 +229,36 @@ const MonetizationChecker = () => {
             {/* Toast container for notifications */}
             <ToastContainer />
             {/* Page title */}
-            <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">YouTube Monetization Checker</h1>
+            <h1 className="text-3xl font-bold text-center mb-6 text-white">YouTube Monetization Checker</h1>
             {/* Alert message for logged in/out users */}
-            <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
-                <div className="flex">
-                    <div className="py-1">
-                        <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
-                    </div>
-                    <div>
-                        {user ? (
-                            user.paymentStatus === 'success' || user.role === 'admin' ? (
-                                <p className="text-center p-3 alert-warning">
-                                    Congratulations!! Now you can generate unlimited tags.
-                                </p>
+            {modalVisible && (
+                <div className=" bottom-0 right-0 bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3 z-50" role="alert">
+                    <div className="flex">
+                        <div className="py-1">
+                            <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
+                        </div>
+                        <div>
+                            {user ? (
+                                user.paymentStatus === 'success' || user.role === 'admin' ? (
+                                    <p className="text-center p-3 alert-warning">
+                                        Congratulations!! Now you can generate unlimited tags.
+                                    </p>
+                                ) : (
+                                    <p className="text-center p-3 alert-warning">
+                                        You are not upgraded. You can generate Title {5 - generateCount}{" "}
+                                        more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                                    </p>
+                                )
                             ) : (
                                 <p className="text-center p-3 alert-warning">
-                                    You are not upgraded. You can generate Title {5 - generateCount}{" "}
-                                    more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                                    Please payment in to use this tool.
                                 </p>
-                            )
-                        ) : (
-                            <p className="text-center p-3 alert-warning">
-                                Please payment in to use this tool.
-                            </p>
-                        )}
+                            )}
+                        </div>
+                        <button className="text-yellow-700 ml-auto" onClick={closeModal}>×</button>
                     </div>
                 </div>
-            </div>
+            )}
             {/* Input field and button */}
             <div className="max-w-lg mx-auto bg-white rounded-lg shadow-md p-6">
                 <div className="mb-4">
@@ -260,6 +281,9 @@ const MonetizationChecker = () => {
             </div>
             {/* Error message */}
             {error && <div className="alert alert-danger text-red-500 text-center mt-4">{error}</div>}
+            </div>
+        </div>
+        <div className="max-w-7xl mx-auto p-4">
             {/* Display fetched data */}
             {data && (
                 <div className="mt-8 bg-white rounded-lg shadow-md p-6">
@@ -392,26 +416,28 @@ const MonetizationChecker = () => {
                 <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
             </div>
             {/* Review Form */}
-            <div className="mt-8 review-card">
-                <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
-                <div className="mb-4">
-                    <StarRating rating={newReview.rating} setRating={(rating) => setNewReview({ ...newReview, rating })} />
+            {user && (
+                <div className="mt-8 review-card">
+                    <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+                    <div className="mb-4">
+                        <StarRating rating={newReview.rating} setRating={(rating) => setNewReview({ ...newReview, rating })} />
+                    </div>
+                    <div className="mb-4">
+                        <textarea
+                            className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                            placeholder="Your Review"
+                            value={newReview.comment}
+                            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                        />
+                    </div>
+                    <button
+                        className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                        onClick={handleReviewSubmit}
+                    >
+                        Submit Review
+                    </button>
                 </div>
-                <div className="mb-4">
-                    <textarea
-                        className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                        placeholder="Your Review"
-                        value={newReview.comment}
-                        onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                    />
-                </div>
-                <button
-                    className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
-                    onClick={handleReviewSubmit}
-                >
-                    Submit Review
-                </button>
-            </div>
+            )}
             {/* Reviews Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5">
                 {[5, 4, 3, 2, 1].map((rating) => (
@@ -442,7 +468,7 @@ const MonetizationChecker = () => {
                                 <p className="text-gray-600 text-right me-auto">{new Date(review.createdAt).toLocaleDateString()}</p>
                             </div>
                             <p className="text-lg font-semibold">{review.comment}</p>
-                            <p className="text-gray-600">- {user?.username}</p>
+                            <p className="text-gray-600">- {review.name}</p>
                             {review.userProfile && (
                                 <img
                                     src={review.userProfile}
@@ -453,8 +479,9 @@ const MonetizationChecker = () => {
                         </div>
                     ))}
                 </Slider>
-            </div>
-        </div>
+                </div>
+    </div>
+    </>
     );
 };
 

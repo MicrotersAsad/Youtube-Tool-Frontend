@@ -1,36 +1,43 @@
-// pages/api/terms.js
 import { connectToDatabase } from '../../utils/mongodb';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
-      const doc = req.body;
-      if (!doc) {
-        return res.status(400).json({ message: 'Invalid request body' });
+      const { content } = req.body;
+      if (!content) {
+        return res.status(400).json({ message: 'Content is required' });
       }
 
       const { db } = await connectToDatabase();
-      const result = await db.collection('terms').insertOne(doc);
+      const result = await db.collection('terms').updateOne(
+        { page: 'terms' },
+        { $set: { content } },
+        { upsert: true }
+      );
 
-      // console.log('Insertion result:', result);
-
-      if (!result || !result.ops || result.ops.length === 0) {
-        return res.status(500).json({ message: 'Failed to insert document' });
+      if (result.upsertedId) {
+        const insertedDocument = await db.collection('terms').findOne({ _id: result.upsertedId });
+        res.status(201).json(insertedDocument);
+      } else {
+        const updatedDocument = await db.collection('terms').findOne({ page: 'terms' });
+        res.status(200).json(updatedDocument);
       }
-
-      res.status(201).json(result.ops[0]); // Return the inserted document
     } catch (error) {
-      // console.error('Error inserting document:', error);
+      // console.error('Error updating or inserting document:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   } else if (req.method === 'GET') {
     try {
       const { db } = await connectToDatabase();
-      const result = await db.collection('terms').find({}).toArray();
+      const result = await db.collection('terms').findOne({ page: 'terms' });
+
+      if (!result) {
+        return res.status(200).json({ content: '' });
+      }
 
       res.status(200).json(result);
     } catch (error) {
-      // console.error('Error fetching documents:', error);
+      // console.error('Error fetching document:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   } else {

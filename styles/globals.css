@@ -659,3 +659,145 @@ a {
    
   }
 }
+
+.review-card {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+.share-icons {
+  display: flex;
+  justify-content: space-between;
+  width: 150px;
+}
+.bg-box{
+  background-color: #fa6742;
+  width: 100%;
+  height: auto;
+  padding: 150px 50px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.bg-box .shape1{
+  position: absolute;
+  left: 0;
+  bottom: -30px;
+}
+.bg-box .shape2{
+  position: absolute;
+  left: 0;
+  top: 10px;
+}
+.bg-box .shape3{
+  position: absolute;
+  right: 0;
+  top: 10px;
+}
+.bg-box .shape4{
+  position: absolute;
+  right: 150px;
+  bottom: -10px;
+}
+
+@media only screen and (max-width: 767px) {
+  .bg-box{
+    background-color: #fa6742;
+    width: 100%;
+    height: auto;
+    padding: 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .bg-box .shape1{
+   display: none;
+  }
+  .bg-box .shape2{
+    display: none;
+  }
+  .bg-box .shape3{
+    display: none;
+  }
+  .bg-box .shape4{
+    display: none;
+  }
+}
+
+.keywords-input-container {
+  border: 2px solid #ccc;
+  padding: 10px;
+  border-radius: 10px;
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  min-height: 100px;
+  margin: auto;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+}
+
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  color: #fff;
+  background-color: #0d6efd;
+  border-radius: 6px;
+  padding: 5px 10px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.remove-btn {
+  margin-left: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.input-box {
+  flex: 1;
+  border: none;
+  height: 40px;
+  font-size: 16px;
+  padding: 8px;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  margin-top: 8px;
+}
+
+.input-box::placeholder {
+  color: #aaa;
+}
+
+@media (max-width: 600px) {
+  .keywords-input-container {
+    width: 100%;
+    padding: 8px;
+  }
+
+  .input-box {
+    height: 35px;
+    font-size: 14px;
+    padding: 6px;
+  }
+}
+
+.generated-tags-display {
+  background-color: #f2f2f2;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 20px;
+}

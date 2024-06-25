@@ -28,7 +28,6 @@ function Content() {
         throw new Error('Failed to fetch content');
       }
       const data = await response.json();
-      console.log("Fetched Data:", data);
       const contentData = data.length > 0 ? data[0].content : ''; // Get content if available
       setQuillContent(contentData);
       setExistingContent(contentData);
@@ -116,6 +115,10 @@ function Content() {
         return 'YouTube Monetization Checker';
       case 'YouTube-Channel-finder':
         return 'YouTube Channel Finder';
+      case 'YouTube-Video-Summary-Generator':
+        return 'YouTube Video Summary Generator';
+      case 'case-converter':
+        return 'Case Converter';
       default:
         return 'Unknown Category';
     }
@@ -148,6 +151,8 @@ function Content() {
               <option value="video-data-viewer">YouTube Video Data Viewer</option>
               <option value="monetization-checker">YouTube Monetization Checker</option>
               <option value="YouTube-Channel-finder">YouTube Channel Finder</option>
+              <option value="YouTube-Video-Summary-Generator">YouTube Video Summary Generator</option>
+              <option value="case-converter">Case Converter</option>
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
               <svg

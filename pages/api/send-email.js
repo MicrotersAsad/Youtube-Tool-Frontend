@@ -5,9 +5,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ success: false, message: 'Method not allowed' });
   }
 
-  const { email, subject, message } = req.body;
+  const { emails, subject, message } = req.body;
 
-  if (!email || !subject || !message) {
+  if (!emails || !Array.isArray(emails) || emails.length === 0 || !subject || !message) {
     return res.status(400).json({ success: false, message: 'All fields are required' });
   }
 
@@ -21,15 +21,20 @@ export default async function handler(req, res) {
       },
     });
 
-    // Send mail with defined transport object
-    let info = await transporter.sendMail({
-      from: `"YtTools" <${process.env.NEXT_PUBLIC_EMAIL_USER}>`, // sender address
-      to: email, // list of receivers
-      subject: subject, // Subject line
-      text: message, // plain text body
-    });
+    // Send mail to each recipient
+    const sendEmailPromises = emails.map((email) =>
+      transporter.sendMail({
+        from: `"YtTools" <${process.env.NEXT_PUBLIC_EMAIL_USER}>`, // sender address
+        to: email, // recipient address
+        subject: subject, // Subject line
+        text: message, // plain text body
+      })
+    );
 
-    res.status(200).json({ success: true, message: 'Email sent successfully', info });
+    // Await all email sending promises
+    await Promise.all(sendEmailPromises);
+
+    res.status(200).json({ success: true, message: 'Emails sent successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error', error });
   }

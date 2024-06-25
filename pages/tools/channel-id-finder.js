@@ -1,18 +1,22 @@
-// Import necessary libraries and components
-import Head from 'next/head';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useAuth } from '../../contexts/AuthContext';
 import Link from 'next/link';
-import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
+import { useAuth } from '../../contexts/AuthContext';
+import Slider from "react-slick";
 import { FaStar } from 'react-icons/fa';
-import StarRating from './StarRating'; // Assuming you have a StarRating component
-
+import StarRating from "./StarRating"; // Assuming StarRating is a custom component
+import announce from "../../public/shape/announce.png"
+import chart from "../../public/shape/chart (1).png"
+import cloud from "../../public/shape/cloud.png"
+import cloud2 from "../../public/shape/cloud2.png"
+import Image from 'next/image';
+import Head from 'next/head';
 const ChannelIdFinder = () => {
     const { user, updateUserProfile } = useAuth(); // Custom hook for user authentication
+    const [modalVisible, setModalVisible] = useState(true); // State to control modal visibility
     const [videoUrl, setVideoUrl] = useState(''); // State to hold the YouTube video URL
     const [loading, setLoading] = useState(false); // State to handle loading status
     const [channelData, setChannelData] = useState(null); // State to hold the fetched channel data
@@ -25,6 +29,11 @@ const ChannelIdFinder = () => {
     const [existingContent, setExistingContent] = useState(''); // State to handle existing content
     const [reviews, setReviews] = useState([]); // State to handle reviews
     const [newReview, setNewReview] = useState({ name: '', rating: 0, comment: '', details: '', userProfile: '' }); // State to handle new review input
+
+    // Function to close the modal
+    const closeModal = () => {
+        setModalVisible(false);
+    };
 
     // Fetch content and reviews on component mount
     useEffect(() => {
@@ -179,41 +188,54 @@ const ChannelIdFinder = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
-            <Head>
-                <title>{meta.title}</title>
-                <meta name="description" content={meta.description} />
-                <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/channel-id-finder" />
-                <meta property="og:title" content={meta.title} />
-                <meta property="og:description" content={meta.description} />
-                <meta property="og:image" content={meta.image} />
-                <meta name="twitter:card" content={meta.image} />
-                <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
-                <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/channel-id-finder" />
-                <meta name="twitter:title" content={meta.title} />
-                <meta name="twitter:description" content={meta.description} />
-                <meta name="twitter:image" content={meta.image} />
-            </Head>
+        <>
+        <div className='bg-box'>
+              <div>
+                  <Image className='shape1' src={announce} alt="announce"/>
+             
+                  <Image className='shape2' src={cloud} alt="announce"/>
+                  <Image className='shape3' src={cloud2} alt="announce"/>
+                  <Image className='shape4' src={chart} alt="announce"/>
+              </div>
+      
+          <div className="max-w-7xl mx-auto p-4">
+                <Head>
+                      <title>{meta.title}</title>
+                      <meta name="description" content={meta.description} />
+                      <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/monetization-checker" />
+                      <meta property="og:title" content={meta.title} />
+                      <meta property="og:description" content={meta.description} />
+                      <meta property="og:image" content={meta.image} />
+                      <meta name="twitter:card" content={meta.image} />
+                      <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
+                      <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/monetization-checker" />
+                      <meta name="twitter:title" content={meta.title} />
+                      <meta name="twitter:description" content={meta.description} />
+                      <meta name="twitter:image" content={meta.image} />
+                  </Head>
             <ToastContainer />
-            <h1 className="text-3xl font-bold text-center mb-6">YouTube Channel Data Fetcher</h1>
-            <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
-                <div className="flex">
-                    <div className="py-1">
-                        <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
-                    </div>
-                    <div>
-                        {user?.paymentStatus === 'success' || user?.role === 'admin' ? (
-                            <p className="text-center p-3 alert-warning">
-                                You are upgraded and can generate unlimited data.
-                            </p>
-                        ) : (
-                            <p className="text-center p-3 alert-warning">
-                                You are not upgraded. You can fetch data {3 - generateCount} more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link> for unlimited access.
-                            </p>
-                        )}
+            <h1 className="text-3xl font-bold text-center text-white mb-6">YouTube Channel Data Fetcher</h1>
+            {modalVisible && (
+                <div className="fixed-modal bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
+                    <div className="flex">
+                        <div className="py-1">
+                            <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
+                        </div>
+                        <div>
+                            {user?.paymentStatus === 'success' || user?.role === 'admin' ? (
+                                <p className="text-center p-3 alert-warning">
+                                    You are upgraded and can generate unlimited data.
+                                </p>
+                            ) : (
+                                <p className="text-center p-3 alert-warning">
+                                    You are not upgraded. You can fetch data {3 - generateCount} more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link> for unlimited access.
+                                </p>
+                            )}
+                        </div>
+                        <button className="text-yellow-700 ml-auto" onClick={closeModal}>×</button>
                     </div>
                 </div>
-            </div>
+            )}
             <div className="max-w-md mx-auto">
                 <div className="input-group mb-4">
                     <input
@@ -226,7 +248,7 @@ const ChannelIdFinder = () => {
                             if (event.key === 'Enter') handleFetch();
                         }}
                     />
-                    <small className='text-muted'>Example: https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s</small>
+                    <small className=' text-white'>Example: https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s</small>
                 </div>
                 <button
                     className={`btn btn-danger w-full text-white font-bold py-2 px-4 rounded hover:bg-red-700 focus:outline-none focus:shadow-outline ${loading ? 'bg-blue-300' : 'bg-blue-500'}`}
@@ -237,6 +259,9 @@ const ChannelIdFinder = () => {
                 </button>
             </div>
             {error && <div className="alert alert-danger text-red-500 text-center mt-4">{error}</div>}
+            </div>
+        </div>
+        <div className="max-w-7xl mx-auto p-4">
             {channelData && (
                 <div className="mt-8">
                     <p><strong>Channel ID:</strong> {channelData.channelId}</p>
@@ -257,26 +282,28 @@ const ChannelIdFinder = () => {
                 <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
             </div>
             {/* Review Form */}
-            <div className="mt-8 review-card">
-                <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
-                <div className="mb-4">
-                    <StarRating rating={newReview.rating} setRating={(rating) => setNewReview({ ...newReview, rating })} />
+            {user && (
+                <div className="mt-8 review-card">
+                    <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+                    <div className="mb-4">
+                        <StarRating rating={newReview.rating} setRating={(rating) => setNewReview({ ...newReview, rating })} />
+                    </div>
+                    <div className="mb-4">
+                        <textarea
+                            className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                            placeholder="Your Review"
+                            value={newReview.comment}
+                            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                        />
+                    </div>
+                    <button
+                        className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                        onClick={handleReviewSubmit}
+                    >
+                        Submit Review
+                    </button>
                 </div>
-                <div className="mb-4">
-                    <textarea
-                        className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                        placeholder="Your Review"
-                        value={newReview.comment}
-                        onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                    />
-                </div>
-                <button
-                    className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
-                    onClick={handleReviewSubmit}
-                >
-                    Submit Review
-                </button>
-            </div>
+            )}
             {/* Reviews Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5">
                 {[5, 4, 3, 2, 1].map((rating) => (
@@ -307,7 +334,7 @@ const ChannelIdFinder = () => {
                                 <p className="text-gray-600 text-right me-auto">{new Date(review.createdAt).toLocaleDateString()}</p>
                             </div>
                             <p className="text-lg font-semibold">{review.comment}</p>
-                            <p className="text-gray-600">- {user?.username}</p>
+                            <p className="text-gray-600">- {review.name}</p>
                             {review.userProfile && (
                                 <img
                                     src={review.userProfile}
@@ -318,8 +345,9 @@ const ChannelIdFinder = () => {
                         </div>
                     ))}
                 </Slider>
-            </div>
-        </div>
+                </div>
+    </div>
+    </>
     );
 };
 

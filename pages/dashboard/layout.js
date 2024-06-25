@@ -14,6 +14,10 @@ import {
   FaFolderOpen,
   FaBlog,
   FaPlusCircle,
+  FaNotEqual,
+  FaAngleRight,
+  FaBell,
+  FaSearch
 } from 'react-icons/fa';
 
 const Layout = ({ children }) => {
@@ -23,7 +27,6 @@ const Layout = ({ children }) => {
   const router = useRouter();
 
   useEffect(() => {
-    console.log('Layout component - User: ', user);
     if (
       router.pathname === '/dashboard/categories' ||
       router.pathname === '/dashboard/blogs' ||
@@ -69,7 +72,7 @@ const Layout = ({ children }) => {
               <FaTachometerAlt className="mr-3" /> <span className="mx-3">Dashboard</span>
             </p>
           </Link>
-           {user && (user.role === 'admin') && (
+          {user && (user.role === 'admin') && (
             <Link href="/dashboard/users" passHref>
               <p
                 className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
@@ -134,7 +137,7 @@ const Layout = ({ children }) => {
               )}
             </div>
           )}
-           {user && (user.role === 'admin' || user.role === 'moderator') && (
+          {user && (user.role === 'admin' || user.role === 'moderator') && (
             <Link href="/dashboard/about" passHref>
               <p
                 className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
@@ -147,7 +150,7 @@ const Layout = ({ children }) => {
               </p>
             </Link>
           )}
-           {user && (user.role === 'admin' || user.role === 'moderator') && (
+          {user && (user.role === 'admin' || user.role === 'moderator') && (
             <Link href="/dashboard/privacy" passHref>
               <p
                 className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
@@ -160,7 +163,7 @@ const Layout = ({ children }) => {
               </p>
             </Link>
           )}
-           {user && (user.role === 'admin' || user.role === 'moderator') && (
+          {user && (user.role === 'admin' || user.role === 'moderator') && (
             <Link href="/dashboard/terms" passHref>
               <p
                 className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
@@ -173,7 +176,7 @@ const Layout = ({ children }) => {
               </p>
             </Link>
           )}
-           {user && (user.role === 'admin' || user.role === 'moderator') && (
+          {user && (user.role === 'admin' || user.role === 'moderator') && (
             <Link href="/dashboard/content" passHref>
               <p
                 className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
@@ -186,7 +189,19 @@ const Layout = ({ children }) => {
               </p>
             </Link>
           )}
-         
+          {user && (user.role === 'admin' || user.role === 'moderator') && (
+            <Link href="/dashboard/notice" passHref>
+              <p
+                className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
+                  isActiveRoute('/dashboard/notice')
+                    ? 'bg-gray-300 text-gray-700'
+                    : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
+                }`}
+              >
+                <FaBell className="mr-3" /> <span className="mx-3">Add Notice</span>
+              </p>
+            </Link>
+          )}
         </nav>
       </div>
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -211,6 +226,7 @@ const Layout = ({ children }) => {
                 className="w-full px-4 py-2 rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0 text-sm"
                 placeholder="Search"
               />
+              <FaSearch className="absolute top-3 right-3 text-gray-400" />
             </div>
           </div>
         </header>

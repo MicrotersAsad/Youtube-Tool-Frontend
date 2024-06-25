@@ -14,7 +14,8 @@ import 'slick-carousel/slick/slick-theme.css';
 import StarRating from './StarRating'; // Assuming StarRating is a custom component
 
 const YouTubeChannelLogoDownloader = () => {
-    const { isLoggedIn } = useAuth(); // Destructure authentication state from context
+    const { isLoggedIn,user,updateUserProfile } = useAuth(); // Destructure authentication state from context
+    const [isUpdated, setIsUpdated] = useState(false);
     const [loading, setLoading] = useState(false); // Loading state for API requests
     const [error, setError] = useState(''); // Error state
     const [channelUrl, setChannelUrl] = useState(''); // State for input URL
@@ -28,42 +29,32 @@ const YouTubeChannelLogoDownloader = () => {
         image: 'https://yourwebsite.com/og-image.png',
     });
     const [reviews, setReviews] = useState([]);
+    const [quillContent, setQuillContent] = useState("");
+    const [existingContent, setExistingContent] = useState("");
     const [newReview, setNewReview] = useState({ rating: 0, comment: '' });
-
+    const [modalVisable,setModalVisable]=useState(true)
+    const closeModal=()=>{
+      setModalVisable(false)
+    }
     useEffect(() => {
         const fetchContent = async () => {
-            try {
-                const response = await fetch(`/api/content?category=YouTube-Channel-Logo-Downloader`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch content');
-                }
-                const data = await response.json();
-                console.log(data);
-                if (data && data.length > 0 && data[0].content) {
-                    const sanitizedContent = sanitizeHtml(data[0].content, {
-                        allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
-                        allowedAttributes: {
-                            'a': ['href']
-                        }
-                    });
-                    setContent(sanitizedContent);
-                    setMeta({
-                        title: data[0].title || 'YouTube Channel Logo Downloader',
-                        description: data[0].description || meta.description,
-                        image: data[0].image || meta.image
-                    });
-                } else {
-                    toast.error("Content data is invalid");
-                }
-            } catch (error) {
-                toast.error("Error fetching content");
+          try {
+            const response = await fetch(`/api/content?category=YouTube-Channel-Logo-Downloader`);
+            if (!response.ok) {
+              throw new Error("Failed to fetch content");
             }
+            const data = await response.json();
+            setQuillContent(data[0]?.content || ""); // Ensure content is not undefined
+            setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
+            setMeta(data[0]);
+          } catch (error) {
+            toast.error("Error fetching content");
+          }
         };
-
+    
         fetchContent();
         fetchReviews();
-    }, [meta.description, meta.image]);
-
+      }, []);
     const fetchReviews = async () => {
         try {
             const response = await fetch('/api/reviews?tool=youtube-channel-logo-downloader');
@@ -81,13 +72,27 @@ const YouTubeChannelLogoDownloader = () => {
     const handleShareClick = () => {
         setShowShareIcons(!showShareIcons);
     };
+    useEffect(() => {
+        if (user && user.paymentStatus !== 'success' && !isUpdated) {
+          updateUserProfile().then(() => setIsUpdated(true));
+        }
+    }, [user, updateUserProfile, isUpdated]);
 
+    useEffect(() => {
+        if (user && user.paymentStatus !== 'success' && user.role !== 'admin') {
+            setGenerateCount(5);
+        }
+    }, [user]);
     const extractChannelId = (link) => {
         const match = link.match(/(?:https?:\/\/)?(?:www\.)?youtube\.com\/(?:channel\/|c\/|user\/)?([a-zA-Z0-9_-]+)/);
         return match ? match[1] : null;
     };
 
     const fetchChannelLogo = async () => {
+        if (user && user.paymentStatus !== 'success' && user.role !== 'admin' && generateCount <= 0) {
+            toast.error("You have reached the limit of generating tags. Please upgrade your plan for unlimited use.");
+            return;
+        }
         if (!channelUrl) {
             setError('Please enter a YouTube channel URL.');
             return;
@@ -227,25 +232,34 @@ const YouTubeChannelLogoDownloader = () => {
             </Head>
             <ToastContainer />
             <h2 className='text-3xl pt-5'>YouTube Channel Logo Downloader</h2>
-            <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
-                <div className="flex">
-                    <div className="py-1">
-                        <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
-                    </div>
-                    <div>
-                        {isLoggedIn ? (
-                            <p className="text-center p-3 alert-warning">
-                                You are logged in and can generate unlimited tags.
-                            </p>
-                        ) : (
-                            <p className="text-center p-3 alert-warning">
-                                You are not logged in. You can generate tags {5 - generateCount}{" "}
-                                more times.<Link href="/register" className="btn btn-warning ms-3">Registration</Link>
-                            </p>
-                        )}
+            {
+                modalVisable && (
+                    <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
+                    <div className="flex">
+                        <div>
+                        {user ? (
+                                user.paymentStatus === 'success' || user.role === 'admin' ? (
+                                    <p className="text-center p-3 alert-warning">
+                                        Congratulations!! Now you can download unlimited logo.
+                                    </p>
+                                ) : (
+                                    <p className="text-center p-3 alert-warning">
+                                        You are not upgraded.  Now you can download unlimited logo {5 - generateCount}{" "}
+                                        more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                                    </p>
+                                )
+                            ) : (
+                                <p className="text-center p-3 alert-warning">
+                                    Please payment in to use this tool.
+                                </p>
+                            )}
+                        </div>
+                        <button className="ml-auto text-yellow-700" onClick={closeModal}>×</button>
                     </div>
                 </div>
-            </div>
+                )
+            }
+          
             <div className="row justify-content-center pt-5">
                 <div className="col-md-6">
                     <div className="input-group mb-3">
@@ -295,30 +309,36 @@ const YouTubeChannelLogoDownloader = () => {
                     )}
                 </div>
                 <div className="content pt-6 pb-5">
-                    <div dangerouslySetInnerHTML={{ __html: content }}></div>
+                <div
+          dangerouslySetInnerHTML={{ __html: existingContent }}
+          style={{ listStyleType: "none" }}
+        ></div>
                 </div>
             </div>
-            {/* Review Section */}
-            <div className="mt-8 review-card">
-                <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
-                <div className="mb-4">
-                    <StarRating rating={newReview.rating} setRating={(rating) => setNewReview({ ...newReview, rating })} />
+            {/* Review Form */}
+            {user && (
+                <div className="mt-8 review-card">
+                    <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+                    <div className="mb-4">
+                        <StarRating rating={newReview.rating} setRating={(rating) => setNewReview({ ...newReview, rating })} />
+                    </div>
+                    <div className="mb-4">
+                        <textarea
+                            className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                            placeholder="Your Review"
+                            value={newReview.comment}
+                            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                        />
+                    </div>
+                    <button
+                        className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                        onClick={handleReviewSubmit}
+                    >
+                        Submit Review
+                    </button>
                 </div>
-                <div className="mb-4">
-                    <textarea
-                        className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                        placeholder="Your Review"
-                        value={newReview.comment}
-                        onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                    />
-                </div>
-                <button
-                    className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
-                    onClick={handleReviewSubmit}
-                >
-                    Submit Review
-                </button>
-            </div>
+            )}
+            {/* Reviews Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5">
                 {[5, 4, 3, 2, 1].map((rating) => (
                     <div key={rating} className="flex items-center">
@@ -330,9 +350,7 @@ const YouTubeChannelLogoDownloader = () => {
                     </div>
                 ))}
             </div>
-            {/* Reviews Section */}
-            <div className="mt-8 review-card">
-                <h2 className="text-2xl font-semibold mb-4">User Reviews</h2>
+            <div className="review-card pb-5">
                 <Slider {...settings}>
                     {reviews.map((review, index) => (
                         <div key={index} className="p-4 bg-white shadow rounded-lg mt-5">
@@ -350,11 +368,22 @@ const YouTubeChannelLogoDownloader = () => {
                                 <p className="text-gray-600 text-right me-auto">{new Date(review.createdAt).toLocaleDateString()}</p>
                             </div>
                             <p className="text-lg font-semibold">{review.comment}</p>
-                            <p className="text-gray-600">- {user?.username}</p>
+                            <p className="text-gray-600">- {review.name}</p>
+                            {review.userProfile && (
+                                <img
+                                    src={review.userProfile}
+                                    alt="User Profile"
+                                    className="w-12 h-12 rounded-full mt-2"
+                                />
+                            )}
                         </div>
                     ))}
                 </Slider>
-            </div>
+           
+     
+    
+        </div>
+           
         </div>
     );
 };

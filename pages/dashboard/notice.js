@@ -5,7 +5,7 @@ import Layout from './layout';
 // Dynamically import the QuillWrapper component with SSR disabled
 const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
 
-function Privacy() {
+function Notice() {
   const [quillContent, setQuillContent] = useState('');
   const [existingContent, setExistingContent] = useState('');
   const [error, setError] = useState(null);
@@ -13,12 +13,11 @@ function Privacy() {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch('/api/privacy');
+        const response = await fetch('/api/notice');
         if (!response.ok) {
           throw new Error('Failed to fetch content');
         }
         const data = await response.json();
-        console.log("Fetched Data:", data); // Add debugging
         setQuillContent(data?.content || ''); // Ensure content is not undefined
         setExistingContent(data?.content || ''); // Ensure existing content is not undefined
       } catch (error) {
@@ -33,7 +32,7 @@ function Privacy() {
   const handleSubmit = useCallback(async () => {
     try {
       console.log("Submitting Data:", quillContent); // Add debugging
-      const response = await fetch('/api/privacy', {
+      const response = await fetch('/api/notice', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -47,7 +46,7 @@ function Privacy() {
       }
 
       // Handle success
-      console.log('Content posted successfully');
+    
       setError(null);
       setExistingContent(quillContent); // Update the displayed existing content
     } catch (error) {
@@ -63,13 +62,13 @@ function Privacy() {
   return (
     <Layout>
       <div className='container p-5'>
-        <h2>Content Add For Privacy Us Page</h2>
+        <h2>Content Add For Notice  Page</h2>
         {error && <div className="text-red-500">Error: {error}</div>}
         <QuillWrapper initialContent={quillContent} onChange={handleQuillChange} />
         <button className='btn btn-primary p-2 mt-3' onClick={handleSubmit}>Submit Content</button>
         
         <div className='mt-10'>
-          <h2>Privacy Us Content</h2>
+          <h2>Notice  Content</h2>
           <div dangerouslySetInnerHTML={{ __html: existingContent }}></div>
         </div>
       </div>
@@ -77,4 +76,4 @@ function Privacy() {
   );
 }
 
-export default Privacy;
+export default Notice;

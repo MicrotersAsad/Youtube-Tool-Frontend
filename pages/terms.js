@@ -1,50 +1,47 @@
 /* eslint-disable react/no-unescaped-entities */
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import sanitizeHtml from 'sanitize-html';
+
 const Terms = () => {
-    const [content,setContent]=useState('')
-    useEffect(() => {
-      const fetchContent = async () => {
-        try {
-          const response = await fetch('/api/privacy');
-          if (!response.ok) {
-            throw new Error('Failed to fetch content');
-          }
-          const data = await response.json();
-          console.log("Content data:", data); // Check the fetched data
-          
-          // Check if data is an array and contains content
-          if (Array.isArray(data) && data.length > 0 && data[0].content) {
-            // Sanitize the content while allowing certain tags
-            const sanitizedContent = sanitizeHtml(data[0].content, {
-              allowedTags: ['h2', 'h3', 'p', 'li', 'a'],
-              allowedAttributes: {
-                'a': ['href']
-              }
-            });
-  
-            setContent(sanitizedContent);
-          } else {
-            // Handle the case when data or data[0].content is not available
-            console.error("Content data is invalid:", data);
-          }
-        } catch (error) {
-          console.error("Error fetching content:", error);
-          setError(error.message);
+  const [quillContent, setQuillContent] = useState('');
+  const [existingContent, setExistingContent] = useState('');
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true); // State to track loading
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const response = await fetch('/api/terms');
+        if (!response.ok) {
+          throw new Error('Failed to fetch content');
         }
-      };
-  
-      fetchContent();
-    }, []);
-      
-      
-    return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="content pt-6 pb-5">
-    <div dangerouslySetInnerHTML={{ __html: content }} />
-  </div>
-        </div>
-    );
+        const data = await response.json();
+        console.log("Fetched Data:", data); // Add debugging
+        setQuillContent(data?.content || ''); // Ensure content is not undefined
+        setExistingContent(data?.content || ''); // Ensure existing content is not undefined
+        setLoading(false); // Set loading to false after fetching data
+      } catch (error) {
+        console.error('Error fetching content:', error.message);
+        setError(error.message);
+        setLoading(false); // Set loading to false in case of an error
+      }
+    };
+
+    fetchContent();
+  }, []);
+
+  const handleQuillChange = useCallback((newContent) => {
+    setQuillContent(newContent);
+  }, []);
+
+ 
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="content pt-6 pb-5">
+        {error && <div className="text-red-500">Error: {error}</div>}
+        <div dangerouslySetInnerHTML={{ __html: existingContent }}></div>
+      </div>
+    </div>
+  );
 };
 
 export default Terms;

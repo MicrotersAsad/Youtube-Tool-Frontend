@@ -14,13 +14,14 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
 import Link from "next/link";
-import sanitizeHtml from 'sanitize-html';
+import sanitizeHtml from "sanitize-html";
 import { ToastContainer, toast } from "react-toastify";
 import Head from "next/head";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import StarRating from "./StarRating"; // Assuming StarRating is a custom component
+
 
 const YouTubeHashtagGenerator = () => {
   // State variables
@@ -31,18 +32,22 @@ const YouTubeHashtagGenerator = () => {
   const [isLoading, setIsLoading] = useState(false); // Loading state for API requests
   const [showCaptcha, setShowCaptcha] = useState(false); // Whether to show ReCAPTCHA
   const [showShareIcons, setShowShareIcons] = useState(false); // Whether to show social media share icons
-  const [generateCount, setGenerateCount] = useState(2); // generated count show 
+  const [generateCount, setGenerateCount] = useState(2); // generated count show
   const recaptchaRef = useRef(null); // Reference to ReCAPTCHA component
   const apiKey = process.env.NEXT_PUBLIC_API_KEY; // API key for OpenAI
   const [selectAll, setSelectAll] = useState(false); // Whether all titles are selected
-  const [prompt, setPrompt] = useState('');
-  const [content, setContent] = useState('');
+  const [prompt, setPrompt] = useState("");
+  const [content, setContent] = useState("");
   const [meta, setMeta] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
-  const [quillContent, setQuillContent] = useState('');
-    const [existingContent, setExistingContent] = useState('');
+  const [quillContent, setQuillContent] = useState("");
+  const [existingContent, setExistingContent] = useState("");
+  const [mnodalVisable,setModalVisable]=useState(true)
+  const closeModal=()=>{
+      setModalVisable(false)
+  }
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -54,8 +59,8 @@ const YouTubeHashtagGenerator = () => {
         }
         const data = await response.json();
         console.log(data);
-        setQuillContent(data[0]?.content || '');
-        setExistingContent(data[0]?.content || '');
+        setQuillContent(data[0]?.content || "");
+        setExistingContent(data[0]?.content || "");
         setMeta(data[0]);
       } catch (error) {
         toast.error("Error fetching content");
@@ -67,23 +72,22 @@ const YouTubeHashtagGenerator = () => {
   }, []);
 
   useEffect(() => {
-    fetch('/api/deal')
-      .then(res => res.json())
-      .then(data => setPrompt(data[0]))
+    fetch("/api/deal")
+      .then((res) => res.json())
+      .then((data) => setPrompt(data[0]));
   }, []);
 
-
   useEffect(() => {
-    if (user && user.paymentStatus !== 'success' && !isUpdated) {
+    if (user && user.paymentStatus !== "success" && !isUpdated) {
       updateUserProfile().then(() => setIsUpdated(true));
     }
-}, [user, updateUserProfile, isUpdated]);
+  }, [user, updateUserProfile, isUpdated]);
 
-useEffect(() => {
-    if (user && user.paymentStatus !== 'success' && user.role !== 'admin') {
-        setGenerateCount(5);
+  useEffect(() => {
+    if (user && user.paymentStatus !== "success" && user.role !== "admin") {
+      setGenerateCount(5);
     }
-}, [user]);
+  }, [user]);
 
   const fetchReviews = async () => {
     try {
@@ -190,10 +194,17 @@ useEffect(() => {
 
   // Function to generate titles
   const generateHashTags = async () => {
-    if (user && user.paymentStatus !== 'success' && user.role !== 'admin' && generateCount <= 0) {
-      toast.error("You have reached the limit of generating tags. Please upgrade your plan for unlimited use.");
+    if (
+      user &&
+      user.paymentStatus !== "success" &&
+      user.role !== "admin" &&
+      generateCount <= 0
+    ) {
+      toast.error(
+        "You have reached the limit of generating tags. Please upgrade your plan for unlimited use."
+      );
       return;
-  }
+    }
     setIsLoading(true);
     setShowCaptcha(true);
     console.log(tags.join(", "));
@@ -234,7 +245,7 @@ useEffect(() => {
         }));
       setGenerateHashTag(titles);
 
-      if (user && user.paymentStatus !== 'success') {
+      if (user && user.paymentStatus !== "success") {
         setGenerateCount(generateCount - 1);
       }
     } catch (error) {
@@ -280,8 +291,9 @@ useEffect(() => {
 
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
-    const ratingCount = reviews.filter((review) => review.rating === rating)
-      .length;
+    const ratingCount = reviews.filter(
+      (review) => review.rating === rating
+    ).length;
     return (ratingCount / totalReviews) * 100;
   };
 
@@ -329,7 +341,9 @@ useEffect(() => {
       </Head>
       <h2 className="text-3xl pt-5">YouTube Hashtag Generator</h2>
       <ToastContainer />
-      <div className="text-center pt-4 pb-4">
+      {
+        mnodalVisable && (
+<div className="text-center pt-4 pb-4">
         <div
           className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
           role="alert"
@@ -343,26 +357,33 @@ useEffect(() => {
               ></svg>
             </div>
             <div>
-            {user ? (
-                            user.paymentStatus === 'success' || user.role === 'admin' ? (
-                                <p className="text-center p-3 alert-warning">
-                                    Congratulations!! Now you can generate unlimited tags.
-                                </p>
-                            ) : (
-                                <p className="text-center p-3 alert-warning">
-                                    You are not upgraded. You can generate Title {5 - generateCount}{" "}
-                                    more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
-                                </p>
-                            )
-                        ) : (
-                            <p className="text-center p-3 alert-warning">
-                                Please payment in to use this tool.
-                            </p>
-                        )}
+              {user ? (
+                user.paymentStatus === "success" || user.role === "admin" ? (
+                  <p className="text-center p-3 alert-warning">
+                    Congratulations!! Now you can generate unlimited hashtags.
+                  </p>
+                ) : (
+                  <p className="text-center p-3 alert-warning">
+                    You are not upgraded. You can generate hashtags{" "}
+                    {5 - generateCount} more times.{" "}
+                    <Link href="/pricing" className="btn btn-warning ms-3">
+                      Upgrade
+                    </Link>
+                  </p>
+                )
+              ) : (
+                <p className="text-center p-3 alert-warning">
+                  Please payment in to use this tool.
+                </p>
+              )}
             </div>
+            <button className="ml-auto text-yellow-700" onClick={closeModal}>×</button>
           </div>
         </div>
       </div>
+        )
+      }
+      
       <div className="keywords-input center rounded">
         <div className="tags">
           {tags.map((tag, index) => (
@@ -395,10 +416,7 @@ useEffect(() => {
             onClick={generateHashTags}
             disabled={isLoading || tags.length === 0}
           >
-            <span>
-              {" "}
-              {isLoading ? "Generating..." : "Generate HashTag"}
-            </span>
+            <span> {isLoading ? "Generating..." : "Generate HashTag"}</span>
           </button>
           <div className="share-button-container">
             <button className="btn btn-danger ms-5" onClick={handleShareClick}>
@@ -472,38 +490,43 @@ useEffect(() => {
           </button>
         )}
       </div>
-      <div>
-
-      </div>
+      <div></div>
       <div className="content pt-6 pb-5">
-                    <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
-                </div>
-      {/* Review Section */}
-      <div className="mt-8 review-card">
-        <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
-        <div className="mb-4">
-          <StarRating
-            rating={newReview.rating}
-            setRating={(rating) => setNewReview({ ...newReview, rating })}
-          />
-        </div>
-        <div className="mb-4">
-          <textarea
-            className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-            placeholder="Your Review"
-            value={newReview.comment}
-            onChange={(e) =>
-              setNewReview({ ...newReview, comment: e.target.value })
-            }
-          />
-        </div>
-        <button
-          className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
-          onClick={handleReviewSubmit}
-        >
-          Submit Review
-        </button>
+        <div
+          dangerouslySetInnerHTML={{ __html: existingContent }}
+          style={{ listStyleType: "none" }}
+        ></div>
       </div>
+
+      {/* Review Form */}
+      {user && (
+        <div className="mt-8 review-card">
+          <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+          <div className="mb-4">
+            <StarRating
+              rating={newReview.rating}
+              setRating={(rating) => setNewReview({ ...newReview, rating })}
+            />
+          </div>
+          <div className="mb-4">
+            <textarea
+              className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+              placeholder="Your Review"
+              value={newReview.comment}
+              onChange={(e) =>
+                setNewReview({ ...newReview, comment: e.target.value })
+              }
+            />
+          </div>
+          <button
+            className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+            onClick={handleReviewSubmit}
+          >
+            Submit Review
+          </button>
+        </div>
+      )}
+      {/* Reviews Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5">
         {[5, 4, 3, 2, 1].map((rating) => (
           <div key={rating} className="flex items-center">
@@ -520,8 +543,7 @@ useEffect(() => {
           </div>
         ))}
       </div>
-      <div className="mt-8 review-card">
-        <h2 className="text-2xl font-semibold mb-4">User Reviews</h2>
+      <div className="review-card pb-5">
         <Slider {...settings}>
           {reviews.map((review, index) => (
             <div key={index} className="p-4 bg-white shadow rounded-lg mt-5">
@@ -543,18 +565,23 @@ useEffect(() => {
                 </p>
               </div>
               <p className="text-lg font-semibold">{review.comment}</p>
-              <p className="text-gray-600">- {user?.username}</p>
+              <p className="text-gray-600">- {review.name}</p>
+              {review.userProfile && (
+                <img
+                  src={review.userProfile}
+                  alt="User Profile"
+                  className="w-12 h-12 rounded-full mt-2"
+                />
+              )}
             </div>
           ))}
         </Slider>
       </div>
-      <style jsx>{styles}</style>
-    </div>
-  );
-};
+      <style jsx>
+        {`
+                      
 
-const styles = `
-    .keywords-input {
+           .keywords-input {
         border: 2px solid #ccc;
         padding: 5px;
         border-radius: 10px;
@@ -637,5 +664,10 @@ const styles = `
         padding: 10px.
         margin-top: 20px.
     }
-`;
+          `}
+      </style>
+    </div>
+  );
+};
+
 export default YouTubeHashtagGenerator;

@@ -10,11 +10,14 @@ const Users = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUsers, setSelectedUsers] = useState([]); // Add this line
   const [paymentInfo, setPaymentInfo] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [emailSubject, setEmailSubject] = useState('');
   const [emailMessage, setEmailMessage] = useState('');
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [sendingAll, setSendingAll] = useState(false); // To differentiate between single and multiple email sends
+  const [sendingEmail, setSendingEmail] = useState(false); // To track email sending status
 
   useEffect(() => {
     fetchUsers();
@@ -82,12 +85,13 @@ const Users = () => {
     return differenceInDays >= 0 ? differenceInDays : 0;
   };
 
-  const handleSendEmail = async (email) => {
+  const handleSendEmail = async (emails) => {
     if (!emailSubject.trim() || !emailMessage.trim()) {
       toast.error('Subject and message cannot be empty');
       return;
     }
 
+    setSendingEmail(true); // Start loading
     try {
       const response = await fetch('/api/send-email', {
         method: 'POST',
@@ -95,7 +99,7 @@ const Users = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email,
+          emails,
           subject: emailSubject,
           message: emailMessage,
         }),
@@ -110,13 +114,20 @@ const Users = () => {
       setShowEmailModal(false);
     } catch (error) {
       toast.error('Failed to send email');
+    } finally {
+      setSendingEmail(false); // End loading
     }
   };
 
-  const openEmailModal = (user) => {
-    setSelectedUser(user.email);
-    setEmailSubject(`Important Update for ${user.username}`);
-    setEmailMessage(`Dear ${user.username},\n\nWe have an important update for you.\n\nBest regards,\nYtTools`);
+  const openEmailModal = (user = null) => {
+    if (user) {
+      setSelectedUser(user.email);
+      setSendingAll(false);
+    } else {
+      setSendingAll(true);
+    }
+    setEmailSubject('Important Update');
+    setEmailMessage('Dear User,\n\nWe have an important update for you.\n\nBest regards,\nYtTools');
     setShowEmailModal(true);
   };
 
@@ -124,6 +135,24 @@ const Users = () => {
     setEmailSubject('');
     setEmailMessage('');
     setShowEmailModal(false);
+  };
+
+  const handleSelectAllUsers = (e) => {
+    if (e.target.checked) {
+      setSelectedUsers(users.map((user) => user.email));
+    } else {
+      setSelectedUsers([]);
+    }
+  };
+
+  const handleSelectUser = (email) => {
+    setSelectedUsers((prevSelectedUsers) => {
+      if (prevSelectedUsers.includes(email)) {
+        return prevSelectedUsers.filter((userEmail) => userEmail !== email);
+      } else {
+        return [...prevSelectedUsers, email];
+      }
+    });
   };
 
   return (
@@ -142,6 +171,9 @@ const Users = () => {
               <table className="min-w-full bg-white">
                 <thead>
                   <tr className="bg-gray-200">
+                    <th className="py-2 px-4 border-b">
+                      <input type="checkbox" onChange={handleSelectAllUsers} checked={selectedUsers.length === users.length} />
+                    </th>
                     <th className="py-2 px-4 border-b">Email</th>
                     <th className="py-2 px-4 border-b">Profile Image</th>
                     <th className="py-2 px-4 border-b">Payment Info</th>
@@ -153,6 +185,9 @@ const Users = () => {
                 <tbody>
                   {users.map((user) => (
                     <tr key={user._id} className="hover:bg-gray-100">
+                      <td className="py-2 px-4 border-b">
+                        <input type="checkbox" onChange={() => handleSelectUser(user.email)} checked={selectedUsers.includes(user.email)} />
+                      </td>
                       <td className="py-2 px-4 border-b">{user.email}</td>
                       <td className="py-2 px-4 border-b">
                         {user.profileImage ? (
@@ -198,6 +233,16 @@ const Users = () => {
             </div>
           )}
         </div>
+        {selectedUsers.length > 0 && (
+          <div className="flex justify-center mt-4">
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"
+              onClick={() => openEmailModal()}
+            >
+              Send Email to Selected Users
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Modal for sending email */}
@@ -233,9 +278,10 @@ const Users = () => {
               </button>
               <button
                 className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-200"
-                onClick={() => handleSendEmail(selectedUser)}
+                onClick={() => handleSendEmail(sendingAll ? selectedUsers : [selectedUser])} // Send to all selected users or single user based on the context
+                disabled={sendingEmail} // Disable the button when sending email
               >
-                Send
+                {sendingEmail ? <ClipLoader size={20} color={"#fff"} /> : 'Send'}
               </button>
             </div>
           </div>

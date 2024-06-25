@@ -29,7 +29,10 @@ const YouTubeChannelScraper = () => {
   const [generateCount, setGenerateCount] = useState(0);
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({ name: '', rating: 0, comment: '', userProfile: '' });
-
+  const [modalVisable,setModalVisable]=useState(true)
+  const closeModal=()=>{
+    setModalVisable(false)
+  }
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -211,7 +214,9 @@ const YouTubeChannelScraper = () => {
         <meta name="twitter:image" content={meta.image} />
       </Head>
       <h1 className="text-center text-2xl font-bold mb-4">YouTube Channel Finder</h1>
-      <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
+      {
+        modalVisable && (
+          <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
         <div className="flex">
           <div>
             {user ? (
@@ -231,8 +236,12 @@ const YouTubeChannelScraper = () => {
               </p>
             )}
           </div>
+          <button className="ml-auto text-yellow-700" onClick={closeModal}>×</button>
         </div>
       </div>
+        )
+      }
+      
 
       <form className="max-w-sm mx-auto" onSubmit={handleSearchClick}>
         <div className="mb-3">
@@ -303,72 +312,78 @@ const YouTubeChannelScraper = () => {
       <div className="content pt-6 pb-5">
         <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
       </div>
-      <div className="mt-8 review-card">
-        <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
-       
-        <div className="mb-4">
-          <StarRating rating={newReview.rating} setRating={(rating) => setNewReview({ ...newReview, rating })} />
-        </div>
-        <div className="mb-4">
-          <textarea
-            className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-            placeholder="Your Review"
-            value={newReview.comment}
-            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-          />
-        </div>
-        <button
-          className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
-          onClick={handleReviewSubmit}
-        >
-          Submit Review
-        </button>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5">
-        {[5, 4, 3, 2, 1].map((rating) => (
-          <div key={rating} className="flex items-center">
-            <div className="w-12 text-right mr-4">{rating}-star</div>
-            <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
-              <div className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0" style={{ width: `${calculateRatingPercentage(rating)}%` }}></div>
-            </div>
-            <div className="w-12 text-left ml-4">{calculateRatingPercentage(rating).toFixed(1)}%</div>
-          </div>
-        ))}
-      </div>
-      {/* Reviews Section */}
-      <div className="mt-8 review-card">
-        <h2 className="text-2xl font-semibold mb-4">User Reviews</h2>
-        <Slider {...settings}>
-          {reviews.map((review, index) => (
-            <div key={index} className="p-4 bg-white shadow rounded-lg mt-5">
-              <div className="flex items-center mb-2">
-                {[...Array(5)].map((star, i) => (
-                  <FaStar
-                    key={i}
-                    size={24}
-                    color={i < review.rating ? "#ffc107" : "#e4e5e9"}
-                  />
+      {/* Review Form */}
+      {user && (
+                <div className="mt-8 review-card">
+                    <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+                    <div className="mb-4">
+                        <StarRating rating={newReview.rating} setRating={(rating) => setNewReview({ ...newReview, rating })} />
+                    </div>
+                    <div className="mb-4">
+                        <textarea
+                            className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                            placeholder="Your Review"
+                            value={newReview.comment}
+                            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                        />
+                    </div>
+                    <button
+                        className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                        onClick={handleReviewSubmit}
+                    >
+                        Submit Review
+                    </button>
+                </div>
+            )}
+            {/* Reviews Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5">
+                {[5, 4, 3, 2, 1].map((rating) => (
+                    <div key={rating} className="flex items-center">
+                        <div className="w-12 text-right mr-4">{rating}-star</div>
+                        <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
+                            <div className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0" style={{ width: `${calculateRatingPercentage(rating)}%` }}></div>
+                        </div>
+                        <div className="w-12 text-left ml-4">{calculateRatingPercentage(rating).toFixed(1)}%</div>
+                    </div>
                 ))}
-                <span className="ml-2 text-xl font-bold">{review.rating.toFixed(1)}</span>
-              </div>
-              <div>
-                <p className="text-gray-600 text-right me-auto">{new Date(review.createdAt).toLocaleDateString()}</p>
-              </div>
-              <p className="text-lg font-semibold">{review.comment}</p>
-              <p className="text-gray-600">- {user?.username}</p>
-              {review.userProfile && (
-                <img
-                  src={review.userProfile}
-                  alt="User Profile"
-                  className="w-12 h-12 rounded-full mt-2"
-                />
-              )}
             </div>
-          ))}
-        </Slider>
-      </div>
+            <div className="review-card pb-5">
+                <Slider {...settings}>
+                    {reviews.map((review, index) => (
+                        <div key={index} className="p-4 bg-white shadow rounded-lg mt-5">
+                            <div className="flex items-center mb-2">
+                                {[...Array(5)].map((star, i) => (
+                                    <FaStar
+                                        key={i}
+                                        size={24}
+                                        color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                                    />
+                                ))}
+                                <span className="ml-2 text-xl font-bold">{review.rating.toFixed(1)}</span>
+                            </div>
+                            <div>
+                                <p className="text-gray-600 text-right me-auto">{new Date(review.createdAt).toLocaleDateString()}</p>
+                            </div>
+                            <p className="text-lg font-semibold">{review.comment}</p>
+                            <p className="text-gray-600">- {review.name}</p>
+                            {review.userProfile && (
+                                <img
+                                    src={review.userProfile}
+                                    alt="User Profile"
+                                    className="w-12 h-12 rounded-full mt-2"
+                                />
+                            )}
+                        </div>
+                    ))}
+                </Slider>
+           
+     
+    
+        </div>
+           
       
       <ToastContainer />
+   
     </div>
   );
 };

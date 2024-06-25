@@ -14,7 +14,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const YouTubeDescriptionGenerator = () => {
   // Initial video information state
-  const { isLoggedIn, user, updateUserProfile } = useAuth();
+  const { user, updateUserProfile } = useAuth(); // Custom hook for user authentication
   const [videoInfo, setVideoInfo] = useState({
     aboutVideo: `Welcome to [Your Channel Name]!\n\nIn this video, we're diving deep into the world of Full Stack Development. Whether you're a beginner or an experienced developer, these tips and guidelines will help you enhance your skills and stay ahead in the tech industry.`,
     timestamps: `00:00 - Introduction\n01:00 - First Topic\n02:00 - Second Topic\n03:00 - Third Topic`,
@@ -270,24 +270,28 @@ ${keywords}
       </div>
       {/* Review section */}
       <div>
-        <div className="review-card">
-          <h3 className="text-xl font-bold mb-4">Add a Review</h3>
-          <div className="mb-3">
-          <StarRating
-            rating={newReview.rating}
-            setRating={(rating) => setNewReview({ ...newReview, rating })}
-          />
-          </div>
-          <textarea
-            className="form-control mb-3"
-            placeholder="Add your review..."
-            value={newReview.comment}
-            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-          ></textarea>
-          <button className="btn btn-primary" onClick={handleReviewSubmit}>
-            Submit Review
-          </button>
-        </div>
+      {user && (
+                <div className="mt-8 review-card">
+                    <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+                    <div className="mb-4">
+                        <StarRating rating={newReview.rating} setRating={(rating) => setNewReview({ ...newReview, rating })} />
+                    </div>
+                    <div className="mb-4">
+                        <textarea
+                            className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                            placeholder="Your Review"
+                            value={newReview.comment}
+                            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                        />
+                    </div>
+                    <button
+                        className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                        onClick={handleReviewSubmit}
+                    >
+                        Submit Review
+                    </button>
+                </div>
+            )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5">
           {[5, 4, 3, 2, 1].map((rating) => (
             <div key={rating} className="flex items-center">
@@ -327,27 +331,14 @@ ${keywords}
                   </p>
                 </div>
                 <p className="text-lg font-semibold">{review.comment}</p>
-                <p className="text-gray-600">- {user?.username}</p>
+                <p className="text-gray-600">- {review.user?.username}</p>
               </div>
             ))}
           </Slider>
         </div>
       </div>
       {/* Additional styles */}
-      <style jsx>{`
-        .review-card {
-          margin-top: 20px;
-          padding: 20px;
-          background-color: #f9f9f9;
-          border: 1px solid #e0e0e0;
-          border-radius: 8px;
-        }
-        .share-icons {
-          display: flex;
-          justify-content: space-between;
-          width: 150px;
-        }
-      `}</style>
+     
     </div>
   );
 };

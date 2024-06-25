@@ -47,7 +47,7 @@ function Terms() {
       }
 
       // Handle success
-      console.log('Content posted successfully');
+      
       setError(null);
       setExistingContent(quillContent); // Update the displayed existing content
     } catch (error) {
@@ -63,13 +63,13 @@ function Terms() {
   return (
     <Layout>
       <div className='container p-5'>
-        <h2>Content Add For Terms of Service</h2>
+        <h2>Content Add For Terms  Page</h2>
         {error && <div className="text-red-500">Error: {error}</div>}
         <QuillWrapper initialContent={quillContent} onChange={handleQuillChange} />
         <button className='btn btn-primary p-2 mt-3' onClick={handleSubmit}>Submit Content</button>
         
         <div className='mt-10'>
-          <h2>Terms of Service</h2>
+          <h2>Terms  Content</h2>
           <div dangerouslySetInnerHTML={{ __html: existingContent }}></div>
         </div>
       </div>

@@ -24,7 +24,7 @@ export default async (req, res) => {
       return [...new Set(links)];
     });
 
-    console.log(`Found channel links: ${channelLinks.length}`);
+
 
     let totalChannelsData = [];
     for (const link of channelLinks) {
@@ -39,7 +39,7 @@ export default async (req, res) => {
       }
     }
 
-    console.log(`Total channels data collected: ${totalChannelsData.length}`);
+
     
     await browser.close();
 
@@ -72,7 +72,7 @@ const getChannelData = async (channelUrl, page) => {
       };
     });
 
-    console.log(`Channel data: ${JSON.stringify(channelData)}`);
+
     return channelData;
   } catch (error) {
     console.error(`Error navigating to channel URL: ${channelUrl}`, error);

@@ -7,7 +7,9 @@ import { useAuth } from '../contexts/AuthContext';
 import logo from "../public/yt icon.png";
 import Image from 'next/image';
 import {
-  FaTags, FaSearch, FaPenAlt, FaFileAlt, FaImage, FaHashtag, FaCode, FaFlag, FaIdCard, FaVideo, FaDollarSign
+  FaTags, FaSearch, FaPenAlt, FaFileAlt, FaImage, FaHashtag, FaCode, FaFlag, FaIdCard, FaVideo, FaDollarSign,
+  FaBook,
+  FaLink
 } from 'react-icons/fa';
 
 function classNames(...classes) {
@@ -30,7 +32,9 @@ const navigation = [
       { name: 'Channel Id Finder', href: '/tools/channel-id-finder', icon: <FaIdCard /> },
       { name: 'Video data viewer', href: '/tools/video-data-viewer', icon: <FaVideo /> },
       { name: 'Monetization Checker', href: '/tools/monetization-checker', icon: <FaDollarSign /> },
-      { name: 'YouTube Channel Details Finder', href: '/tools/YouTube-Channel-Details-Finder', icon: <FaDollarSign /> }
+      { name: 'YouTube Channel Details Finder', href: '/tools/YouTube-Channel-Details-Finder', icon: <FaSearch /> },
+      { name: 'YouTube Video Summary Generator', href: '/tools/YouTube-Video-Summary-Generator', icon: <FaBook /> },
+      { name: 'Case Converter', href: '/tools/case-converter', icon: <FaLink /> }
     ]
   },
   { name: 'Pricing', href: '/pricing', dropdown: false },
@@ -41,7 +45,6 @@ const navigation = [
 
 function Navbar() {
   const { user, logout } = useAuth();
-  console.log(user);
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -193,7 +196,7 @@ function Navbar() {
                         leaveFrom="opacity-100 scale-100"
                         leaveTo="opacity-0 scale-95"
                       >
-                        <Menu.Items className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                        <Menu.Items className="origin-top-right absolute z-10 right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
                           <Menu.Item>
                             {({ active }) => (
                               <Link href="/user/profile" className={classNames(active ? 'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700')}>

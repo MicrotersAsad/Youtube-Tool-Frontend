@@ -9,17 +9,17 @@ export default async function handler(req, res) {
       }
 
       const { db } = await connectToDatabase();
-      const result = await db.collection('privacy').updateOne(
-        { page: 'privacy' },
+      const result = await db.collection('notice').updateOne(
+        { page: 'notice' },
         { $set: { content } },
         { upsert: true }
       );
 
       if (result.upsertedId) {
-        const insertedDocument = await db.collection('privacy').findOne({ _id: result.upsertedId });
+        const insertedDocument = await db.collection('notice').findOne({ _id: result.upsertedId });
         res.status(201).json(insertedDocument);
       } else {
-        const updatedDocument = await db.collection('privacy').findOne({ page: 'privacy' });
+        const updatedDocument = await db.collection('notice').findOne({ page: 'notice' });
         res.status(200).json(updatedDocument);
       }
     } catch (error) {
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
   } else if (req.method === 'GET') {
     try {
       const { db } = await connectToDatabase();
-      const result = await db.collection('privacy').findOne({ page: 'privacy' });
+      const result = await db.collection('notice').findOne({ page: 'notice' });
 
       if (!result) {
         return res.status(200).json({ content: '' });
