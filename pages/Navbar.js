@@ -9,7 +9,11 @@ import Image from 'next/image';
 import {
   FaTags, FaSearch, FaPenAlt, FaFileAlt, FaImage, FaHashtag, FaCode, FaFlag, FaIdCard, FaVideo, FaDollarSign,
   FaBook,
-  FaLink
+  FaLink,
+  FaFire,
+  FaDownload,
+  FaFileDownload,
+  FaCloudDownloadAlt
 } from 'react-icons/fa';
 
 function classNames(...classes) {
@@ -24,17 +28,19 @@ const navigation = [
       { name: 'Tag Extractor', href: '/tools/tagExtractor', icon: <FaSearch /> },
       { name: 'Title & Description Generator', href: '/tools/youtube-title-and-description-generator', icon: <FaPenAlt /> },
       { name: 'Title & Description Extractor', href: '/tools/youtube-title-and-description-extractor', icon: <FaFileAlt /> },
-      { name: 'Youtube Thumbnails Generator', href: '/tools/youtube-thumbnail', icon: <FaImage /> },
+      { name: 'Youtube Thumbnails Download', href: '/tools/youtube-thumbnail', icon: <FaFileDownload /> },
       { name: 'YouTube Hashtag Generator', href: '/tools/YouTube-Hashtag-Generator', icon: <FaHashtag /> },
       { name: 'YouTube Embed Code Generator', href: '/tools/YouTube-Embed-Code-Generator', icon: <FaCode /> },
-      { name: 'YouTube Channel Banner Downloader', href: '/tools/YouTube-Channel-Banner-Downloader', icon: <FaFlag /> },
-      { name: 'YouTube Channel Logo Downloader', href: '/tools/YouTube-Channel-Logo-Downloader', icon: <FaIdCard /> },
+      { name: 'YouTube Channel Banner Downloader', href: '/tools/YouTube-Channel-Banner-Downloader', icon: <FaDownload /> },
+      { name: 'YouTube Channel Logo Downloader', href: '/tools/YouTube-Channel-Logo-Downloader', icon: <FaCloudDownloadAlt /> },
       { name: 'Channel Id Finder', href: '/tools/channel-id-finder', icon: <FaIdCard /> },
       { name: 'Video data viewer', href: '/tools/video-data-viewer', icon: <FaVideo /> },
       { name: 'Monetization Checker', href: '/tools/monetization-checker', icon: <FaDollarSign /> },
       { name: 'YouTube Channel Details Finder', href: '/tools/YouTube-Channel-Details-Finder', icon: <FaSearch /> },
       { name: 'YouTube Video Summary Generator', href: '/tools/YouTube-Video-Summary-Generator', icon: <FaBook /> },
-      { name: 'Case Converter', href: '/tools/case-converter', icon: <FaLink /> }
+      { name: 'Case Converter', href: '/tools/case-converter', icon: <FaLink /> },
+      { name: 'YouTube Trending Videos', href: '/tools/trendingVideos', icon: <FaFire /> },
+      { name: 'YouTube Money Calculator', href: '/tools/YouTube-Money-Calculator', icon: <FaDollarSign /> }
     ]
   },
   { name: 'Pricing', href: '/pricing', dropdown: false },
@@ -114,15 +120,13 @@ function Navbar() {
                               leaveFrom="opacity-100 translate-y-0"
                               leaveTo="opacity-0 translate-y-1"
                             >
-                              <Menu.Items className="absolute z-10 mt-2 w-80 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                              <Menu.Items className="absolute z-10 mt-2 w-80 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none grid grid-cols-2 gap-4 p-4">
                                 {item.children.map((subItem) => (
                                   <Menu.Item key={subItem.name}>
                                     {({ active }) => (
-                                      <Link href={subItem.href} className={classNames(active ? 'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700 border hover:text-red-500')}>
-                                        <span className="flex items-center">
-                                          {subItem.icon}
-                                          <span className="ml-2">{subItem.name}</span>
-                                        </span>
+                                      <Link href={subItem.href} className={classNames(active ? 'bg-gray-100' : '', 'flex items-center space-x-2 px-2 py-1 text-gray-700 rounded-md')}>
+                                        {subItem.icon}
+                                        <span>{subItem.name}</span>
                                       </Link>
                                     )}
                                   </Menu.Item>

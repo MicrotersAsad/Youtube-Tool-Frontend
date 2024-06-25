@@ -490,6 +490,11 @@ blockquote {
     margin-top: 10px !important
   }
 }
+.center {
+  margin: auto;
+  width: 100%;
+  padding: 0px;
+}
 h1{
   font-size: 1.8em;
   font-weight: bold;
@@ -800,4 +805,36 @@ a {
   border-radius: 8px;
   padding: 10px;
   margin-top: 20px;
+}
+
+.w-80 {
+  width: 48rem;
+}
+
+/* winner-effect.css */
+@keyframes winnerEffect {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.winner-card {
+  animation: winnerEffect 1s ease-in-out infinite;
+  border: 2px solid gold;
+  box-shadow: 0 0 10px rgba(255, 223, 0, 0.5);
+  position: relative;
+}
+
+.winner-card::before {
+  content: "🎉";
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  font-size: 2rem;
 }

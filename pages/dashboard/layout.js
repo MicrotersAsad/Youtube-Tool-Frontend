@@ -17,7 +17,8 @@ import {
   FaNotEqual,
   FaAngleRight,
   FaBell,
-  FaSearch
+  FaSearch,
+  FaStarHalfAlt
 } from 'react-icons/fa';
 
 const Layout = ({ children }) => {
@@ -199,6 +200,19 @@ const Layout = ({ children }) => {
                 }`}
               >
                 <FaBell className="mr-3" /> <span className="mx-3">Add Notice</span>
+              </p>
+            </Link>
+          )}
+          {user && (user.role === 'admin' || user.role === 'moderator') && (
+            <Link href="/dashboard/review " passHref>
+              <p
+                className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
+                  isActiveRoute('/dashboard/review')
+                    ? 'bg-gray-300 text-gray-700'
+                    : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
+                }`}
+              >
+                <FaStarHalfAlt className="mr-3" /> <span className="mx-3">All Review</span>
               </p>
             </Link>
           )}

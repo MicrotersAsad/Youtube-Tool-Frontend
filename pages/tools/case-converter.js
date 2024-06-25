@@ -22,7 +22,6 @@ const CaseConverter = () => {
   const recaptchaRef = useRef(null);
   const apiKey = process.env.NEXT_PUBLIC_API_KEY;
   const [generateCount, setGenerateCount] = useState(0);
-  const [content, setContent] = useState("");
   const [meta, setMeta] = useState({ title: "", description: "", image: "" });
   const [isUpdated, setIsUpdated] = useState(false);
   const [quillContent, setQuillContent] = useState("");

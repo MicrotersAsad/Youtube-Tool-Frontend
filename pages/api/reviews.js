@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     try {
       const reviews = await db
         .collection('reviews')
-        .find({ tool })
+        .find(tool ? { tool } : {})
         .sort({ _id: -1 })
         .toArray();
       res.status(200).json(reviews);
@@ -30,7 +30,6 @@ export default async function handler(req, res) {
         tool,
         rating,
         comment,
-
         createdAt: new Date(),
       };
 
@@ -39,8 +38,18 @@ export default async function handler(req, res) {
     } catch (error) {
       res.status(500).json({ message: 'Failed to submit review' });
     }
+  } else if (req.method === 'DELETE') {
+    // Delete a review
+    const { id } = req.query;
+
+    try {
+      await db.collection('reviews').deleteOne({ _id: new ObjectId(id) });
+      res.status(200).json({ message: 'Review deleted successfully!' });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to delete review' });
+    }
   } else {
-    res.setHeader('Allow', ['GET', 'POST']);
+    res.setHeader('Allow', ['GET', 'POST', 'DELETE']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

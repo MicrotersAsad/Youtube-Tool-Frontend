@@ -119,6 +119,10 @@ function Content() {
         return 'YouTube Video Summary Generator';
       case 'case-converter':
         return 'Case Converter';
+      case 'trendingVideos':
+        return 'YouTube Trending Videos';
+      case 'YouTube-Money-Calculator':
+        return 'YouTube Money Calculator';
       default:
         return 'Unknown Category';
     }
@@ -153,6 +157,8 @@ function Content() {
               <option value="YouTube-Channel-finder">YouTube Channel Finder</option>
               <option value="YouTube-Video-Summary-Generator">YouTube Video Summary Generator</option>
               <option value="case-converter">Case Converter</option>
+              <option value="trendingVideos">YouTube Trending Videos</option>
+              <option value="YouTube-Money-Calculator">YouTube Money Calculator</option>
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
               <svg
