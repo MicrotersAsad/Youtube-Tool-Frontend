@@ -13,6 +13,7 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
+import Link from 'next/link';
 const CaseConverter = () => {
   const [inputText, setInputText] = useState(''); // State to hold the input text
   const [resultText, setResultText] = useState(''); // State to hold the result text
