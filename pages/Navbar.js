@@ -13,7 +13,8 @@ import {
   FaFire,
   FaDownload,
   FaFileDownload,
-  FaCloudDownloadAlt
+  FaCloudDownloadAlt,
+  FaKeybase
 } from 'react-icons/fa';
 
 function classNames(...classes) {
@@ -40,7 +41,8 @@ const navigation = [
       { name: 'YouTube Video Summary Generator', href: '/tools/YouTube-Video-Summary-Generator', icon: <FaBook /> },
       { name: 'Case Converter', href: '/tools/case-converter', icon: <FaLink /> },
       { name: 'YouTube Trending Videos', href: '/tools/trendingVideos', icon: <FaFire /> },
-      { name: 'YouTube Money Calculator', href: '/tools/YouTube-Money-Calculator', icon: <FaDollarSign /> }
+      { name: 'YouTube Money Calculator', href: '/tools/YouTube-Money-Calculator', icon: <FaDollarSign /> },
+      { name: 'YouTube Keyword Research', href: '/tools/keyword-research', icon: <FaKeybase /> }
     ]
   },
   { name: 'Pricing', href: '/pricing', dropdown: false },
