@@ -33,10 +33,12 @@ const TitleDescriptionExtractor = () => {
   const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
-  const [modalVisable,setModalVisable]=useState(true)
-  const closeModal=()=>{
-    setModalVisable(false)
-  }
+  const [modalVisible, setModalVisible] = useState(true);
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
+
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -58,6 +60,7 @@ const TitleDescriptionExtractor = () => {
     fetchContent();
     fetchReviews();
   }, []);
+
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
       updateUserProfile().then(() => setIsUpdated(true));
@@ -69,6 +72,7 @@ const TitleDescriptionExtractor = () => {
       setGenerateCount(5);
     }
   }, [user]);
+
   useEffect(() => {
     fetchReviews();
   }, []);
@@ -206,11 +210,10 @@ const TitleDescriptionExtractor = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
-      <h2 className="text-3xl pt-5">Youtube Tile & Description Extractor</h2>
+      <h2 className="text-3xl pt-5">YouTube Title & Description Extractor</h2>
       <ToastContainer />
-      {
-        modalVisable && (
-          <div className="text-center pt-4 pb-4">
+      {modalVisible && (
+        <div className="text-center pt-4 pb-4">
           <div
             className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
             role="alert"
@@ -227,12 +230,11 @@ const TitleDescriptionExtractor = () => {
                 {user ? (
                   user.paymentStatus === "success" || user.role === "admin" ? (
                     <p className="text-center p-3 alert-warning">
-                      Congratulations!! Now you can generate unlimited tags.
+                      Congratulations!! Now you can generate unlimited titles and descriptions.
                     </p>
                   ) : (
                     <p className="text-center p-3 alert-warning">
-                      You are not upgraded. You can generate Title{" "}
-                      {5 - generateCount} more times.{" "}
+                      You are not upgraded. You can generate Title {5 - generateCount} more times.{" "}
                       <Link href="/pricing" className="btn btn-warning ms-3">
                         Upgrade
                       </Link>
@@ -240,7 +242,7 @@ const TitleDescriptionExtractor = () => {
                   )
                 ) : (
                   <p className="text-center p-3 alert-warning">
-                    Please payment in to use this tool.
+                    Please log in to use this tool.
                   </p>
                 )}
               </div>
@@ -248,9 +250,8 @@ const TitleDescriptionExtractor = () => {
             </div>
           </div>
         </div>
-        )
-      }
-     
+      )}
+
       <div className="row justify-content-center pt-5">
         <div className="col-md-6">
           <div className="input-group mb-3">
@@ -406,7 +407,7 @@ const TitleDescriptionExtractor = () => {
                     </p>
                   </div>
                   <p className="text-lg font-semibold">{review.comment}</p>
-                  <p className="text-gray-600">- {user?.username}</p>
+                  <p className="text-gray-600">- {review.user}</p>
                 </div>
               ))}
             </Slider>

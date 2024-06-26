@@ -27,8 +27,6 @@ const TrendingVideos = () => {
   const [loading, setLoading] = useState(false);
   const [countries, setCountries] = useState([]);
   const { user, updateUserProfile } = useAuth();
-  const [showCaptcha, setShowCaptcha] = useState(false);
-  const recaptchaRef = useRef(null);
   const apiKey = process.env.NEXT_PUBLIC_API_KEY;
   const [generateCount, setGenerateCount] = useState(0);
   const [meta, setMeta] = useState({ title: "", description: "", image: "" });
@@ -42,9 +40,10 @@ const TrendingVideos = () => {
     comment: "",
     userProfile: "",
   });
-  const [modalVisable, setModalVisable] = useState(true);
+  const [modalVisible, setModalVisible] = useState(true);
+
   const closeModal = () => {
-    setModalVisable(false);
+    setModalVisible(false);
   };
 
   useEffect(() => {
@@ -88,6 +87,7 @@ const TrendingVideos = () => {
       setGenerateCount(5);
     }
   }, [user]);
+
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
       toast.error("All fields are required.");
@@ -188,6 +188,11 @@ const TrendingVideos = () => {
   }, [country]);
 
   const fetchTrendingVideos = async () => {
+    if (!user) {
+      toast.error("Please log in to fetch trending videos.");
+      return;
+    }
+
     if (
       user &&
       user.paymentStatus !== "success" &&
@@ -200,12 +205,16 @@ const TrendingVideos = () => {
       return;
     }
     setLoading(true);
-   
+
     try {
       const response = await axios.get("/api/trending", {
         params: { country, category },
       });
       setVideos(response.data.videos);
+
+      if (user && user.paymentStatus !== "success") {
+        setGenerateCount(generateCount - 1);
+      }
     } catch (error) {
       console.error("Error fetching trending videos:", error.message);
     } finally {
@@ -241,9 +250,9 @@ const TrendingVideos = () => {
       {/* Toast container for notifications */}
       <ToastContainer />
       {/* Page title */}
-
+      <h1 className="text-3xl text-center mb-6">YouTube Trending Videos</h1>
       {/* Alert message for logged in/out users */}
-      {modalVisable && (
+      {modalVisible && (
         <div
           className=" bottom-0 right-0 bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3 z-50"
           role="alert"
@@ -273,7 +282,7 @@ const TrendingVideos = () => {
                 )
               ) : (
                 <p className="text-center p-3 alert-warning">
-                  Please payment in to use this tool.
+                  Please log in to fetch trending videos.
                 </p>
               )}
             </div>
@@ -283,9 +292,9 @@ const TrendingVideos = () => {
           </div>
         </div>
       )}
-      <div className="border shadow-sm  rounded p-2">
+      <div className="border shadow-sm rounded p-2">
         <h1 className="text-center">YouTube Trending Videos</h1>
-        <div className="flex items-center  justify-center center w-full sm:w-3/4 space-x-4 mb-4 mt-5">
+        <div className="flex items-center justify-center center w-full sm:w-3/4 space-x-4 mb-4 mt-5">
           <select
             value={country}
             onChange={(e) => setCountry(e.target.value)}
@@ -329,9 +338,7 @@ const TrendingVideos = () => {
         <p>Loading...</p>
       ) : (
         <>
-          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            
             {videos.map((video) => (
               <div
                 key={video.videoId}
@@ -380,14 +387,14 @@ const TrendingVideos = () => {
           </div>
         </>
       )}
-       <div className="content pt-6 pb-5">
+      <div className="content pt-6 pb-5">
         <div
           dangerouslySetInnerHTML={{ __html: existingContent }}
           style={{ listStyleType: "none" }}
         ></div>
       </div>
-       {/* Review Form */}
-       {user && (
+      {/* Review Form */}
+      {user && (
         <div className="mt-8 review-card">
           <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
           <div className="mb-4">
@@ -402,8 +409,7 @@ const TrendingVideos = () => {
               placeholder="Your Review"
               value={newReview.comment}
               onChange={(e) =>
-                setNewReview({ ...newReview, comment: e.target.value })
-              }
+                setNewReview({ ...newReview, comment: e.target.value })}
             />
           </div>
           <button
@@ -464,7 +470,7 @@ const TrendingVideos = () => {
             </div>
           ))}
         </Slider>
-        </div>
+      </div>
     </div>
   );
 };

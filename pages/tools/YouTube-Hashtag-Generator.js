@@ -6,7 +6,6 @@ import {
   FaLinkedin,
   FaInstagram,
   FaTwitter,
-  FaCog,
   FaCopy,
   FaDownload,
   FaStar,
@@ -22,43 +21,39 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import StarRating from "./StarRating"; // Assuming StarRating is a custom component
 
-
 const YouTubeHashtagGenerator = () => {
-  // State variables
-  const { user, updateUserProfile } = useAuth();
-  const [tags, setTags] = useState([]); // Array to store entered tags
-  const [keyword, setKeyword] = useState(""); // keyword value for adding new tag
-  const [generateHashTag, setGenerateHashTag] = useState([]); // Array to store generated titles
-  const [isLoading, setIsLoading] = useState(false); // Loading state for API requests
-  const [showCaptcha, setShowCaptcha] = useState(false); // Whether to show ReCAPTCHA
-  const [showShareIcons, setShowShareIcons] = useState(false); // Whether to show social media share icons
-  const [generateCount, setGenerateCount] = useState(2); // generated count show
-  const recaptchaRef = useRef(null); // Reference to ReCAPTCHA component
-  const apiKey = process.env.NEXT_PUBLIC_API_KEY; // API key for OpenAI
-  const [selectAll, setSelectAll] = useState(false); // Whether all titles are selected
+  const { user, login, logout, updateUserProfile } = useAuth();
+  const [tags, setTags] = useState([]); 
+  const [keyword, setKeyword] = useState("");
+  const [generateHashTag, setGenerateHashTag] = useState([]); 
+  const [isLoading, setIsLoading] = useState(false); 
+  const [showCaptcha, setShowCaptcha] = useState(false);
+  const [showShareIcons, setShowShareIcons] = useState(false);
+  const [generateCount, setGenerateCount] = useState(5); 
+  const apiKey = process.env.NEXT_PUBLIC_API_KEY;
+  const [selectAll, setSelectAll] = useState(false);
+  const [quillContent, setQuillContent] = useState("");
+  const [existingContent, setExistingContent] = useState("");
   const [prompt, setPrompt] = useState("");
   const [content, setContent] = useState("");
   const [meta, setMeta] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
-  const [quillContent, setQuillContent] = useState("");
-  const [existingContent, setExistingContent] = useState("");
-  const [mnodalVisable,setModalVisable]=useState(true)
-  const closeModal=()=>{
-      setModalVisable(false)
-  }
+  const [modalVisible, setModalVisible] = useState(true);
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
+
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch(
-          `/api/content?category=YouTube-Hashtag-Generator`
-        );
+        const response = await fetch(`/api/content?category=YouTube-Hashtag-Generator`);
         if (!response.ok) {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
-        console.log(data);
         setQuillContent(data[0]?.content || "");
         setExistingContent(data[0]?.content || "");
         setMeta(data[0]);
@@ -84,16 +79,27 @@ const YouTubeHashtagGenerator = () => {
   }, [user, updateUserProfile, isUpdated]);
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const count = parseInt(localStorage.getItem("generateCount"), 10) || 0;
+      setGenerateCount(count);
+    }
+  }, []);
+
+  useEffect(() => {
     if (user && user.paymentStatus !== "success" && user.role !== "admin") {
       setGenerateCount(5);
     }
   }, [user]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("generateCount", generateCount.toString());
+    }
+  }, [generateCount]);
+
   const fetchReviews = async () => {
     try {
-      const response = await fetch(
-        "/api/reviews?tool=youtube-hashtag-generator"
-      );
+      const response = await fetch("/api/reviews?tool=youtube-hashtag-generator");
       const data = await response.json();
       setReviews(data);
     } catch (error) {
@@ -101,7 +107,6 @@ const YouTubeHashtagGenerator = () => {
     }
   };
 
-  // Function to handle user input for adding tags
   const handleKeyDown = (event) => {
     if (event.key === "Enter" || event.key === ",") {
       event.preventDefault();
@@ -113,7 +118,6 @@ const YouTubeHashtagGenerator = () => {
     }
   };
 
-  // Function to handle selecting all titles
   const handleSelectAll = () => {
     const newSelection = !selectAll;
     setSelectAll(newSelection);
@@ -125,7 +129,6 @@ const YouTubeHashtagGenerator = () => {
     );
   };
 
-  // Function to share on social media
   const shareOnSocialMedia = (socialNetwork) => {
     const url = encodeURIComponent(window.location.href);
     const socialMediaUrls = {
@@ -143,12 +146,10 @@ const YouTubeHashtagGenerator = () => {
     }
   };
 
-  // Function to handle share button click
   const handleShareClick = () => {
     setShowShareIcons(!showShareIcons);
   };
 
-  // Function to toggle title selection
   const toggleTitleSelect = (index) => {
     const newTitles = [...generateHashTag];
     newTitles[index].selected = !newTitles[index].selected;
@@ -156,7 +157,6 @@ const YouTubeHashtagGenerator = () => {
     setSelectAll(newTitles.every((title) => title.selected));
   };
 
-  // Function to copy text to clipboard
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(
       () => {
@@ -168,7 +168,6 @@ const YouTubeHashtagGenerator = () => {
     );
   };
 
-  // Function to copy selected titles
   const copySelectedTitles = () => {
     const selectedTitlesText = generateHashTag
       .filter((title) => title.selected)
@@ -177,7 +176,6 @@ const YouTubeHashtagGenerator = () => {
     copyToClipboard(selectedTitlesText);
   };
 
-  // Function to download selected titles
   const downloadSelectedTitles = () => {
     const selectedTitlesText = generateHashTag
       .filter((title) => title.selected)
@@ -192,7 +190,6 @@ const YouTubeHashtagGenerator = () => {
     document.body.removeChild(element);
   };
 
-  // Function to generate titles
   const generateHashTags = async () => {
     if (
       user &&
@@ -206,8 +203,6 @@ const YouTubeHashtagGenerator = () => {
       return;
     }
     setIsLoading(true);
-    setShowCaptcha(true);
-    console.log(tags.join(", "));
     try {
       const response = await fetch(
         "https://api.openai.com/v1/chat/completions",
@@ -249,7 +244,7 @@ const YouTubeHashtagGenerator = () => {
         setGenerateCount(generateCount - 1);
       }
     } catch (error) {
-      toast.error("Error generating titles:", error);
+      toast.error("Error generating hashtags:", error);
       setGenerateHashTag([]);
     } finally {
       setIsLoading(false);
@@ -342,48 +337,48 @@ const YouTubeHashtagGenerator = () => {
       <h2 className="text-3xl pt-5">YouTube Hashtag Generator</h2>
       <ToastContainer />
       {
-        mnodalVisable && (
-<div className="text-center pt-4 pb-4">
-        <div
-          className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
-          role="alert"
-        >
-          <div className="flex">
-            <div className="py-1">
-              <svg
-                className="fill-current h-6 w-6 text-yellow-500 mr-4"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-              ></svg>
+        modalVisible && (
+          <div className="text-center pt-4 pb-4">
+            <div
+              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
+              role="alert"
+            >
+              <div className="flex">
+                <div className="py-1">
+                  <svg
+                    className="fill-current h-6 w-6 text-yellow-500 mr-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                  ></svg>
+                </div>
+                <div>
+                  {user ? (
+                    user.paymentStatus === "success" || user.role === "admin" ? (
+                      <p className="text-center p-3 alert-warning">
+                        Congratulations!! Now you can generate unlimited hashtags.
+                      </p>
+                    ) : (
+                      <p className="text-center p-3 alert-warning">
+                        You are not upgraded. You can generate hashtags{" "}
+                        {5 - generateCount} more times.{" "}
+                        <Link href="/pricing" className="btn btn-warning ms-3">
+                          Upgrade
+                        </Link>
+                      </p>
+                    )
+                  ) : (
+                    <p className="text-center p-3 alert-warning">
+                      Please log in to use this tool.
+                    </p>
+                  )}
+                </div>
+                <button className="ml-auto text-yellow-700" onClick={closeModal}>×</button>
+              </div>
             </div>
-            <div>
-              {user ? (
-                user.paymentStatus === "success" || user.role === "admin" ? (
-                  <p className="text-center p-3 alert-warning">
-                    Congratulations!! Now you can generate unlimited hashtags.
-                  </p>
-                ) : (
-                  <p className="text-center p-3 alert-warning">
-                    You are not upgraded. You can generate hashtags{" "}
-                    {5 - generateCount} more times.{" "}
-                    <Link href="/pricing" className="btn btn-warning ms-3">
-                      Upgrade
-                    </Link>
-                  </p>
-                )
-              ) : (
-                <p className="text-center p-3 alert-warning">
-                  Please payment in to use this tool.
-                </p>
-              )}
-            </div>
-            <button className="ml-auto text-yellow-700" onClick={closeModal}>×</button>
           </div>
-        </div>
-      </div>
         )
       }
-      
+
       <div className="keywords-input center rounded">
         <div className="tags">
           {tags.map((tag, index) => (
@@ -410,15 +405,17 @@ const YouTubeHashtagGenerator = () => {
       </div>
       <p className="text-muted text-center"> Example : php, html, css</p>
       <div className="center">
-        <div className="d-flex justify-between items-center pt-5">
-          <button
+            <div className="flex flex-wrap gap-2 justify-center pt-5">
+            <button
             className="btn btn-danger"
             onClick={generateHashTags}
             disabled={isLoading || tags.length === 0}
           >
             <span> {isLoading ? "Generating..." : "Generate HashTag"}</span>
           </button>
-          <div className="share-button-container">
+            </div>
+          </div>
+      <div className="share-button-container">
             <button className="btn btn-danger ms-5" onClick={handleShareClick}>
               <FaShareAlt className="share-button-icon" />
             </button>
@@ -443,16 +440,7 @@ const YouTubeHashtagGenerator = () => {
               </div>
             )}
           </div>
-        </div>
-      </div>
-
-      {showCaptcha && (
-        <ReCAPTCHA
-          ref={recaptchaRef}
-          sitekey={process.env.NEXT_PUBLIC_CAPTCHA_KEY}
-          onChange={(value) => setShowCaptcha(!value)}
-        />
-      )}
+      
       <div className="generated-titles-container">
         <div className="select-all-checkbox">
           <input
@@ -579,92 +567,84 @@ const YouTubeHashtagGenerator = () => {
       </div>
       <style jsx>
         {`
-                      
-
-           .keywords-input {
-        border: 2px solid #ccc;
-        padding: 5px;
-        border-radius: 10px;
-        display: flex;
-        align-items: flex-start;
-        flex-wrap: wrap;
-        min-height: 100px;
-        margin: auto;
-        width: 50%;
-    }
-    .content {
-      color: #333; // Change the color to match your design
-      font-size: 16px; // Adjust the font size as needed
-      line-height: 1.6; // Adjust the line height for readability
-      // Add any other styles you want to apply to the content
-  }
-    .keywords-input input {
-        flex: 1;
-        border: none;
-        height: 100px;
-        font-size: 14px;
-        padding: 4px 8px;
-        width: 50%;
-    }
-    .keywords-input .tag {
-        width: auto;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff!important;
-        padding: 0 8px;
-        font-size: 14px;
-        list-style: none;
-        border-radius: 6px;
-        background-color: #0d6efd;
-        margin-right: 8px;
-        margin-bottom: 8px;
-    }
-    .tags {
-        display: flex;
-        flex-wrap: wrap;
-        margin-right: 8px;
-    }
-
-    .tag, .generated-tag {
-        display: flex;
-        align-items: center;
-
-        color: #000000!important;
-        border-radius: 6px;
-        padding: 5px 10px;
-        margin-right: 5px;
-        margin-bottom: 5px;
-    }
-
-    .remove-btn {
-        margin-left: 8px;
-        cursor: pointer;
-    }
-
-    input:focus {
-        outline: none;
-    }
-
-    @media (max-width: 600px) {
-        .keywords-input, .center {
-            width: 100%;
-        }
-
-        .btn {
-            width: 100%;
-            margin-top: 10px.
-        }
-    }
-
-    .generated-tags-display {
-        background-color: #f2f2f2;
-        border-radius: 8px;
-        padding: 10px.
-        margin-top: 20px.
-    }
-          `}
+          .keywords-input {
+            border: 2px solid #ccc;
+            padding: 5px;
+            border-radius: 10px;
+            display: flex;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            min-height: 100px;
+            margin: auto;
+            width: 50%;
+          }
+          .content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+          }
+          .keywords-input input {
+            flex: 1;
+            border: none;
+            height: 100px;
+            font-size: 14px;
+            padding: 4px 8px;
+            width: 50%;
+          }
+          .keywords-input .tag {
+            width: auto;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff !important;
+            padding: 0 8px;
+            font-size: 14px;
+            list-style: none;
+            border-radius: 6px;
+            background-color: #0d6efd;
+            margin-right: 8px;
+            margin-bottom: 8px;
+          }
+          .tags {
+            display: flex;
+            flex-wrap: wrap;
+            margin-right: 8px;
+          }
+          .tag,
+          .generated-tag {
+            display: flex;
+            align-items: center;
+            color: #000000 !important;
+            border-radius: 6px;
+            padding: 5px 10px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+          }
+          .remove-btn {
+            margin-left: 8px;
+            cursor: pointer;
+          }
+          input:focus {
+            outline: none;
+          }
+          @media (max-width: 600px) {
+            .keywords-input,
+            .center {
+              width: 100%;
+            }
+            .btn {
+              width: 100%;
+              margin-top: 10px;
+            }
+          }
+          .generated-tags-display {
+            background-color: #f2f2f2;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 20px;
+          }
+        `}
       </style>
     </div>
   );

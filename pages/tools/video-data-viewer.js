@@ -23,7 +23,6 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import Head from "next/head";
 import Link from "next/link";
-import sanitizeHtml from "sanitize-html";
 import StarRating from "./StarRating"; // Import StarRating component
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -54,11 +53,16 @@ const VideoDataViewer = () => {
     comment: "",
     userProfile: "",
   });
-const [modalVisable,setModalVisable]=useState(true)
-const closeModal=()=>{
-  setModalVisable(false)
-}
+  const [modalVisible, setModalVisible] = useState(true);
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      setGenerateCount(Number(localStorage.getItem("generateCount")) || 0);
+    }
+
     if (user && user.paymentStatus !== "success" && !isUpdated) {
       updateUserProfile().then(() => setIsUpdated(true));
     }
@@ -106,6 +110,12 @@ const closeModal=()=>{
   };
 
   const handleFetchClick = async () => {
+    if (!user) {
+      toast.error("Please log in to fetch video data.");
+      setModalVisible(true);
+      return;
+    }
+
     if (!videoUrl.trim()) {
       toast.error("Please enter a valid URL.");
       return;
@@ -144,7 +154,9 @@ const closeModal=()=>{
 
       const data = await response.json();
       setVideoData(data);
-      setGenerateCount((prevCount) => prevCount + 1);
+      const newGenerateCount = generateCount + 1;
+      setGenerateCount(newGenerateCount);
+      localStorage.setItem("generateCount", newGenerateCount);
       toast.success("Data fetched successfully!");
     } catch (error) {
       setError(error.message);
@@ -269,48 +281,57 @@ const closeModal=()=>{
       <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
         YouTube Video Data Fetcher
       </h1>
-{
-  modalVisable && ( <div
-    className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
-    role="alert"
-  >
-    <div className="flex">
-      <div className="py-1">
-        <svg
-          className="fill-current h-6 w-6 text-yellow-500 mr-4"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-        ></svg>
-      </div>
-      <div>
-        {user?.paymentStatus === "success" || user?.role === "admin" ? (
-          <p className="text-center p-3 alert-warning">
-            You are upgraded and can generate unlimited data.
-          </p>
-        ) : fetchLimitExceeded ? (
-          <p className="text-center p-3 alert-warning">
-            Fetch limit exceeded. Please try again later or{" "}
-            <Link href="/pricing" className="btn btn-warning ms-3">
-              Upgrade for unlimited access
-            </Link>
-            .
-          </p>
-        ) : (
-          <p className="text-center p-3 alert-warning">
-            You are not upgraded. You can fetch data {3 - generateCount}{" "}
-            more times.{" "}
-            <Link href="/pricing" className="btn btn-warning ms-3">
-              Upgrade
-            </Link>{" "}
-            for unlimited access.
-          </p>
-        )}
-      </div>
-      <button className="ml-auto text-yellow-700" onClick={closeModal}>×</button>
-    </div>
-  </div>)
-}
-     
+      {modalVisible && (
+        <div
+          className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
+          role="alert"
+        >
+          <div className="flex">
+            <div className="py-1">
+              <svg
+                className="fill-current h-6 w-6 text-yellow-500 mr-4"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+              ></svg>
+            </div>
+            <div>
+              {!user ? (
+                <p className="text-center p-3 alert-warning">
+                  Please log in to use this tool.
+                </p>
+              ) : user?.paymentStatus === "success" || user?.role === "admin" ? (
+                <p className="text-center p-3 alert-warning">
+                  You are upgraded and can fetch unlimited data.
+                </p>
+              ) : fetchLimitExceeded ? (
+                <p className="text-center p-3 alert-warning">
+                  Fetch limit exceeded. Please try again later or{" "}
+                  <Link href="/pricing" className="btn btn-warning ms-3">
+                    Upgrade for unlimited access
+                  </Link>
+                  .
+                </p>
+              ) : (
+                <p className="text-center p-3 alert-warning">
+                  You are not upgraded. You can fetch data {3 - generateCount}{" "}
+                  more times.{" "}
+                  <Link href="/pricing" className="btn btn-warning ms-3">
+                    Upgrade
+                  </Link>{" "}
+                  for unlimited access.
+                </p>
+              )}
+            </div>
+            <button
+              className="ml-auto text-yellow-700"
+              onClick={closeModal}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-lg mx-auto bg-white rounded-lg shadow-md p-6">
         <div className="mb-4">
           <input

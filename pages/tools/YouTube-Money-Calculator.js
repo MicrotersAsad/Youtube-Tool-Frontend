@@ -25,7 +25,7 @@ const categories = Object.keys(rpmCpmRates);
 const YouTubeMoneyCalculator = () => {
   const [dailyViews, setDailyViews] = useState(0);
   const [category, setCategory] = useState(categories[0]);
-  const { user, updateUserProfile } = useAuth();
+  const { user, updateUserProfile, logout } = useAuth();
   const [generateCount, setGenerateCount] = useState(0);
   const [meta, setMeta] = useState({ title: "", description: "", image: "" });
   const [isUpdated, setIsUpdated] = useState(false);
@@ -38,10 +38,7 @@ const YouTubeMoneyCalculator = () => {
     comment: "",
     userProfile: "",
   });
-  const [modalVisable, setModalVisable] = useState(true);
-  const closeModal = () => {
-    setModalVisable(false);
-  };
+  const [modalVisible, setModalVisible] = useState(true);
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -63,6 +60,25 @@ const YouTubeMoneyCalculator = () => {
     fetchReviews();
   }, []);
 
+  useEffect(() => {
+    if (user && user.paymentStatus !== "success" && !isUpdated) {
+      updateUserProfile().then(() => setIsUpdated(true));
+    }
+  }, [user, updateUserProfile, isUpdated]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const count = parseInt(localStorage.getItem('generateCount'), 10) || 0;
+      setGenerateCount(count);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user && user.paymentStatus !== "success" && user.role !== "admin") {
+      setGenerateCount(5);
+    }
+  }, [user]);
+
   const fetchReviews = async () => {
     try {
       const response = await fetch("/api/reviews?tool=YouTube-Money-Calculator");
@@ -73,17 +89,6 @@ const YouTubeMoneyCalculator = () => {
     }
   };
 
-  useEffect(() => {
-    if (user && user.paymentStatus !== "success" && !isUpdated) {
-      updateUserProfile().then(() => setIsUpdated(true));
-    }
-  }, [user, updateUserProfile, isUpdated]);
-
-  useEffect(() => {
-    if (user && user.paymentStatus !== "success" && user.role !== "admin") {
-      setGenerateCount(5);
-    }
-  }, [user]);
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
       toast.error("All fields are required.");
@@ -140,7 +145,6 @@ const YouTubeMoneyCalculator = () => {
     ],
   };
 
-
   const calculateEarnings = (views, rate) => {
     return (views / 1000) * rate;
   };
@@ -159,9 +163,18 @@ const YouTubeMoneyCalculator = () => {
     max: dailyEarnings.max * 365,
   };
 
+  const closeModal = () => {
+    setModalVisible(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    toast.success('Successfully logged out');
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-5">
-         <Head>
+      <Head>
         <title>{meta.title}</title>
         <meta name="description" content={meta.description} />
         <meta
@@ -184,52 +197,7 @@ const YouTubeMoneyCalculator = () => {
         <meta name="twitter:description" content={meta.description} />
         <meta name="twitter:image" content={meta.image} />
       </Head>
-      {/* Toast container for notifications */}
-      <ToastContainer/>
-      {/* Page title */}
-
-      {/* Alert message for logged in/out users */}
-      {modalVisable && (
-        <div
-          className=" bottom-0 right-0 bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3 z-50"
-          role="alert"
-        >
-          <div className="flex">
-            <div className="py-1">
-              <svg
-                className="fill-current h-6 w-6 text-yellow-500 mr-4"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-              ></svg>
-            </div>
-            <div>
-              {user ? (
-                user.paymentStatus === "success" || user.role === "admin" ? (
-                  <p className="text-center p-3 alert-warning">
-                    Congratulations!! Now you can generate unlimited tags.
-                  </p>
-                ) : (
-                  <p className="text-center p-3 alert-warning">
-                    You are not upgraded. You can generate Title{" "}
-                    {5 - generateCount} more times.{" "}
-                    <Link href="/pricing" className="btn btn-warning ms-3">
-                      Upgrade
-                    </Link>
-                  </p>
-                )
-              ) : (
-                <p className="text-center p-3 alert-warning">
-                  Please payment in to use this tool.
-                </p>
-              )}
-            </div>
-            <button className="text-yellow-700 ml-auto" onClick={closeModal}>
-              ×
-            </button>
-          </div>
-        </div>
-      )}
-     
+      <ToastContainer />
       <div className="bg-white shadow-md rounded-lg max-w-4xl mx-auto p-5">
         <h1 className='text-center'>YouTube Money Calculator</h1>
         <p className='text-center'>Check How Much Money Do YouTubers Make?</p>
@@ -265,8 +233,8 @@ const YouTubeMoneyCalculator = () => {
               <p>Estimated Yearly Projected: ${yearlyEarnings.min.toFixed(2)} - ${yearlyEarnings.max.toFixed(2)}</p>
             </div>
           </div>
-          
         </div>
+      
       </div>
       <div className="content pt-6 pb-5">
         <div
@@ -275,7 +243,7 @@ const YouTubeMoneyCalculator = () => {
         ></div>
       </div>
        {/* Review Form */}
-       {user && (
+      {user && (
         <div className="mt-8 review-card">
           <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
           <div className="mb-4">
@@ -351,9 +319,89 @@ const YouTubeMoneyCalculator = () => {
               )}
             </div>
           ))}
-        </Slider> 
-        </div>
-      
+        </Slider>
+      </div>
+      <style jsx>
+        {`
+          .keywords-input {
+            border: 2px solid #ccc;
+            padding: 5px;
+            border-radius: 10px;
+            display: flex;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            min-height: 100px;
+            margin: auto;
+            width: 50%;
+          }
+          .content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+          }
+          .keywords-input input {
+            flex: 1;
+            border: none;
+            height: 100px;
+            font-size: 14px;
+            padding: 4px 8px;
+            width: 50%;
+          }
+          .keywords-input .tag {
+            width: auto;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff !important;
+            padding: 0 8px;
+            font-size: 14px;
+            list-style: none;
+            border-radius: 6px;
+            background-color: #0d6efd;
+            margin-right: 8px;
+            margin-bottom: 8px;
+          }
+          .tags {
+            display: flex;
+            flex-wrap: wrap;
+            margin-right: 8px;
+          }
+          .tag,
+          .generated-tag {
+            display: flex;
+            align-items: center;
+            color: #000000 !important;
+            border-radius: 6px;
+            padding: 5px 10px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+          }
+          .remove-btn {
+            margin-left: 8px;
+            cursor: pointer;
+          }
+          input:focus {
+            outline: none;
+          }
+          @media (max-width: 600px) {
+            .keywords-input,
+            .center {
+              width: 100%;
+            }
+            .btn {
+              width: 100%;
+              margin-top: 10px;
+            }
+          }
+          .generated-tags-display {
+            background-color: #f2f2f2;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 20px;
+          }
+        `}
+      </style>
     </div>
   );
 };

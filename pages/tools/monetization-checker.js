@@ -241,17 +241,17 @@ const MonetizationChecker = () => {
                             {user ? (
                                 user.paymentStatus === 'success' || user.role === 'admin' ? (
                                     <p className="text-center p-3 alert-warning">
-                                        Congratulations!! Now you can generate unlimited tags.
+                                        Congratulations!! Now you can  unlimited Check Monetization.
                                     </p>
                                 ) : (
                                     <p className="text-center p-3 alert-warning">
-                                        You are not upgraded. You can generate Title {5 - generateCount}{" "}
+                                        You are not upgraded. You can Check Monetization {5 - generateCount}{" "}
                                         more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
                                     </p>
                                 )
                             ) : (
                                 <p className="text-center p-3 alert-warning">
-                                    Please payment in to use this tool.
+                                    Please log in for  Check Monetization.
                                 </p>
                             )}
                         </div>
@@ -274,7 +274,7 @@ const MonetizationChecker = () => {
                 <button
                     className={`btn btn-danger w-full py-2 text-white font-bold rounded transition-colors duration-200 ${loading ? 'bg-blue-300' : 'bg-blue-500 hover:bg-blue-700'} focus:outline-none focus:shadow-outline`}
                     onClick={handleFetchClick}
-                    disabled={loading}
+                    disabled={loading || !user}
                 >
                     {loading ? 'Loading...' : 'Check Monetization'}
                 </button>

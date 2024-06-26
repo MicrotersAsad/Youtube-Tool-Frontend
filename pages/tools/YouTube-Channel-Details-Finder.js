@@ -12,7 +12,7 @@ import 'slick-carousel/slick/slick-theme.css';
 import { FaStar } from 'react-icons/fa';
 
 const YouTubeChannelScraper = () => {
-  const { user, updateUserProfile } = useAuth();
+  const { user, updateUserProfile, logout } = useAuth();
   const [keyword, setKeyword] = useState('');
   const [channels, setChannels] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -26,13 +26,17 @@ const YouTubeChannelScraper = () => {
   const [quillContent, setQuillContent] = useState('');
   const [existingContent, setExistingContent] = useState('');
   const apiKey = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
-  const [generateCount, setGenerateCount] = useState(0);
+  const [generateCount, setGenerateCount] = useState(
+    typeof window !== 'undefined' ? Number(localStorage.getItem('generateCount')) || 0 : 0
+  );
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({ name: '', rating: 0, comment: '', userProfile: '' });
-  const [modalVisable,setModalVisable]=useState(true)
-  const closeModal=()=>{
-    setModalVisable(false)
-  }
+  const [modalVisible, setModalVisible] = useState(true);
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
+
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -45,7 +49,7 @@ const YouTubeChannelScraper = () => {
         setExistingContent(data[0]?.content || ''); // Ensure existing content is not undefined
         setMeta(data[0]);
       } catch (error) {
-        toast.error("Error fetching content");
+        toast.error('Error fetching content');
       }
     };
 
@@ -77,12 +81,16 @@ const YouTubeChannelScraper = () => {
 
   const handleSearchClick = async (e) => {
     e.preventDefault();
+    if (!user) {
+      toast.error('Please log in to fetch channel data.');
+      return;
+    }
     setLoading(true);
     setChannels([]);
     setFilteredChannels([]);
     setError('');
-    if (user && user.paymentStatus !== 'success' && user.role !== 'admin' && generateCount <= 0) {
-      toast.error("You have reached the limit of generating tags. Please upgrade your plan for unlimited use.");
+    if (user && user.paymentStatus !== 'success' && user.role !== 'admin' && generateCount >= 5) {
+      toast.error('You have reached the limit of generating tags. Please upgrade your plan for unlimited use.');
       return;
     }
     try {
@@ -90,13 +98,15 @@ const YouTubeChannelScraper = () => {
       let totalChannelsData = [];
 
       while (totalChannelsData.length < 200 && nextPageToken !== null) {
-        const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=50&q=${encodeURIComponent(keyword)}&key=${apiKey}&pageToken=${nextPageToken}`;
+        const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=50&q=${encodeURIComponent(
+          keyword
+        )}&key=${apiKey}&pageToken=${nextPageToken}`;
         const searchResponse = await fetch(searchUrl);
         if (!searchResponse.ok) {
           throw new Error(`HTTP error! status: ${searchResponse.status}`);
         }
         const searchData = await searchResponse.json();
-        const channelIds = searchData.items.map(item => item.snippet.channelId);
+        const channelIds = searchData.items.map((item) => item.snippet.channelId);
         const uniqueChannelIds = [...new Set(channelIds)];
         const channelsData = await getChannelsData(uniqueChannelIds, apiKey);
         totalChannelsData = totalChannelsData.concat(channelsData);
@@ -106,6 +116,8 @@ const YouTubeChannelScraper = () => {
       const filtered = filterChannels(totalChannelsData);
       setFilteredChannels(filtered);
       setChannels(filtered.slice(0, 50));
+      setGenerateCount(generateCount + 1);
+      localStorage.setItem('generateCount', generateCount + 1);
     } catch (error) {
       console.error('Error:', error);
       setError(`An error occurred while fetching channel data: ${error.message}`);
@@ -115,14 +127,14 @@ const YouTubeChannelScraper = () => {
   };
 
   const filterChannels = (channels) => {
-    return channels.filter(channel => {
+    return channels.filter((channel) => {
       const subscribers = parseInt(channel.statistics.subscriberCount);
       return subscribers >= minSubscriber && subscribers <= maxSubscriber;
     });
   };
 
   const getChannelsData = async (channelIds, apiKey) => {
-    const detailsPromises = channelIds.map(async channelId => {
+    const detailsPromises = channelIds.map(async (channelId) => {
       const detailsUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,contentDetails,statistics&id=${channelId}&key=${apiKey}`;
       const response = await fetch(detailsUrl);
       if (!response.ok) {
@@ -144,7 +156,7 @@ const YouTubeChannelScraper = () => {
   };
 
   const handleReviewSubmit = async () => {
-    if ( !newReview.rating || !newReview.comment) {
+    if (!newReview.rating || !newReview.comment) {
       toast.error('All fields are required.');
       return;
     }
@@ -176,7 +188,7 @@ const YouTubeChannelScraper = () => {
 
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
-    const ratingCount = reviews.filter(review => review.rating === rating).length;
+    const ratingCount = reviews.filter((review) => review.rating === rating).length;
     return totalReviews ? (ratingCount / totalReviews) * 100 : 0;
   };
 
@@ -184,7 +196,7 @@ const YouTubeChannelScraper = () => {
     infinite: true,
     speed: 500,
     slidesToShow: 1,
-    slidesToScroll: 2,
+    slidesToScroll: 1,
     responsive: [
       {
         breakpoint: 1024,
@@ -192,9 +204,9 @@ const YouTubeChannelScraper = () => {
           slidesToShow: 1,
           slidesToScroll: 1,
           infinite: true,
-        }
-      }
-    ]
+        },
+      },
+    ],
   };
 
   return (
@@ -214,34 +226,30 @@ const YouTubeChannelScraper = () => {
         <meta name="twitter:image" content={meta.image} />
       </Head>
       <h1 className="text-center text-2xl font-bold mb-4">YouTube Channel Finder</h1>
-      {
-        modalVisable && (
-          <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
-        <div className="flex">
-          <div>
-            {user ? (
-              user.paymentStatus === 'success' || user.role === 'admin' ? (
-                <p className="text-center p-3 alert-warning">
-                  Congratulations!! Now you can generate unlimited tags.
-                </p>
+      {modalVisible && (
+        <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
+          <div className="flex">
+            <div>
+              {user ? (
+                user.paymentStatus === 'success' || user.role === 'admin' ? (
+                  <p className="text-center p-3 alert-warning">
+                    Congratulations!! Now you can generate unlimited tags.
+                  </p>
+                ) : (
+                  <p className="text-center p-3 alert-warning">
+                    You are not upgraded. You can generate Title {5 - generateCount} more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                  </p>
+                )
               ) : (
                 <p className="text-center p-3 alert-warning">
-                  You are not upgraded. You can generate Title {5 - generateCount}{" "}
-                  more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                  Please log in to use this tool.
                 </p>
-              )
-            ) : (
-              <p className="text-center p-3 alert-warning">
-                Please payment in to use this tool.
-              </p>
-            )}
+              )}
+            </div>
+            <button className="ml-auto text-yellow-700" onClick={closeModal}>×</button>
           </div>
-          <button className="ml-auto text-yellow-700" onClick={closeModal}>×</button>
         </div>
-      </div>
-        )
-      }
-      
+      )}
 
       <form className="max-w-sm mx-auto" onSubmit={handleSearchClick}>
         <div className="mb-3">
@@ -314,76 +322,62 @@ const YouTubeChannelScraper = () => {
       </div>
       {/* Review Form */}
       {user && (
-                <div className="mt-8 review-card">
-                    <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
-                    <div className="mb-4">
-                        <StarRating rating={newReview.rating} setRating={(rating) => setNewReview({ ...newReview, rating })} />
-                    </div>
-                    <div className="mb-4">
-                        <textarea
-                            className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                            placeholder="Your Review"
-                            value={newReview.comment}
-                            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                        />
-                    </div>
-                    <button
-                        className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
-                        onClick={handleReviewSubmit}
-                    >
-                        Submit Review
-                    </button>
-                </div>
-            )}
-            {/* Reviews Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5">
-                {[5, 4, 3, 2, 1].map((rating) => (
-                    <div key={rating} className="flex items-center">
-                        <div className="w-12 text-right mr-4">{rating}-star</div>
-                        <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
-                            <div className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0" style={{ width: `${calculateRatingPercentage(rating)}%` }}></div>
-                        </div>
-                        <div className="w-12 text-left ml-4">{calculateRatingPercentage(rating).toFixed(1)}%</div>
-                    </div>
-                ))}
-            </div>
-            <div className="review-card pb-5">
-                <Slider {...settings}>
-                    {reviews.map((review, index) => (
-                        <div key={index} className="p-4 bg-white shadow rounded-lg mt-5">
-                            <div className="flex items-center mb-2">
-                                {[...Array(5)].map((star, i) => (
-                                    <FaStar
-                                        key={i}
-                                        size={24}
-                                        color={i < review.rating ? "#ffc107" : "#e4e5e9"}
-                                    />
-                                ))}
-                                <span className="ml-2 text-xl font-bold">{review.rating.toFixed(1)}</span>
-                            </div>
-                            <div>
-                                <p className="text-gray-600 text-right me-auto">{new Date(review.createdAt).toLocaleDateString()}</p>
-                            </div>
-                            <p className="text-lg font-semibold">{review.comment}</p>
-                            <p className="text-gray-600">- {review.name}</p>
-                            {review.userProfile && (
-                                <img
-                                    src={review.userProfile}
-                                    alt="User Profile"
-                                    className="w-12 h-12 rounded-full mt-2"
-                                />
-                            )}
-                        </div>
-                    ))}
-                </Slider>
-           
-     
-    
+        <div className="mt-8 review-card">
+          <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+          <div className="mb-4">
+            <StarRating rating={newReview.rating} setRating={(rating) => setNewReview({ ...newReview, rating })} />
+          </div>
+          <div className="mb-4">
+            <textarea
+              className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+              placeholder="Your Review"
+              value={newReview.comment}
+              onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+            />
+          </div>
+          <button
+            className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+            onClick={handleReviewSubmit}
+          >
+            Submit Review
+          </button>
         </div>
-           
-      
+      )}
+      {/* Reviews Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5">
+        {[5, 4, 3, 2, 1].map((rating) => (
+          <div key={rating} className="flex items-center">
+            <div className="w-12 text-right mr-4">{rating}-star</div>
+            <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
+              <div className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0" style={{ width: `${calculateRatingPercentage(rating)}%` }}></div>
+            </div>
+            <div className="w-12 text-left ml-4">{calculateRatingPercentage(rating).toFixed(1)}%</div>
+          </div>
+        ))}
+      </div>
+      <div className="review-card pb-5">
+        <Slider {...settings}>
+          {reviews.map((review, index) => (
+            <div key={index} className="p-4 bg-white shadow rounded-lg mt-5">
+              <div className="flex items-center mb-2">
+                {[...Array(5)].map((star, i) => (
+                  <FaStar key={i} size={24} color={i < review.rating ? '#ffc107' : '#e4e5e9'} />
+                ))}
+                <span className="ml-2 text-xl font-bold">{review.rating.toFixed(1)}</span>
+              </div>
+              <div>
+                <p className="text-gray-600 text-right me-auto">{new Date(review.createdAt).toLocaleDateString()}</p>
+              </div>
+              <p className="text-lg font-semibold">{review.comment}</p>
+              <p className="text-gray-600">- {review.name}</p>
+              {review.userProfile && (
+                <img src={review.userProfile} alt="User Profile" className="w-12 h-12 rounded-full mt-2" />
+              )}
+            </div>
+          ))}
+        </Slider>
+      </div>
       <ToastContainer />
-   
     </div>
   );
 };

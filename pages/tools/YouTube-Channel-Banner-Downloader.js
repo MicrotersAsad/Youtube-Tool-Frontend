@@ -44,11 +44,17 @@ const YtChannelDw = () => {
     comment: "",
     userProfile: "",
   });
-  const [modalVisable,setModalVisable]=useState(true)
-  const closeModal=()=>{
-    setModalVisable(false)
-  }
+  const [modalVisible, setModalVisible] = useState(true);
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
+
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      setGenerateCount(Number(localStorage.getItem("generateCount")) || 0);
+    }
+
     const fetchContent = async () => {
       try {
         const response = await fetch(
@@ -68,7 +74,7 @@ const YtChannelDw = () => {
 
     fetchContent();
     fetchReviews();
-  }, [meta.description, meta.image]);
+  }, []);
 
   const fetchReviews = async () => {
     try {
@@ -103,6 +109,26 @@ const YtChannelDw = () => {
   };
 
   const fetchYouTubeData = async () => {
+    if (!user) {
+      toast.error("Please log in to fetch YouTube data.");
+      setModalVisible(true);
+      return;
+    }
+
+    if (!channelUrl.trim()) {
+      toast.error("Please enter a valid URL.");
+      return;
+    }
+
+    if (
+      generateCount >= 3 &&
+      user?.paymentStatus !== "success" &&
+      user.role !== "admin"
+    ) {
+      toast.error("Fetch limit exceeded. Please upgrade for unlimited access.");
+      return;
+    }
+
     try {
       if (
         user &&
@@ -111,7 +137,7 @@ const YtChannelDw = () => {
         generateCount <= 0
       ) {
         toast.error(
-          "You have reached the limit of generating tags. Please upgrade your plan for unlimited use."
+          "You have reached the limit of generating banners. Please upgrade your plan for unlimited use."
         );
         return;
       }
@@ -139,6 +165,11 @@ const YtChannelDw = () => {
         throw new Error("Banner image URL not found for this channel.");
       }
       setBannerUrl(bannerUrl);
+      const newGenerateCount = generateCount + 1;
+      setGenerateCount(newGenerateCount);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("generateCount", newGenerateCount);
+      }
     } catch (error) {
       setError(
         error.message ||
@@ -292,8 +323,8 @@ const YtChannelDw = () => {
       </Head>
       <ToastContainer />
       <h2 className="text-3xl pt-5">YouTube Channel Banner Downloader</h2>
-      {
-        modalVisable && (  <div
+      {modalVisible && (
+        <div
           className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
           role="alert"
         >
@@ -326,11 +357,13 @@ const YtChannelDw = () => {
                 </p>
               )}
             </div>
-            <button className="ml-auto text-yellow-700" onClick={closeModal}>×</button>
+            <button className="ml-auto text-yellow-700" onClick={closeModal}>
+              ×
+            </button>
           </div>
-        </div>)
-      }
-    
+        </div>
+      )}
+
       <div className="row justify-content-center pt-5">
         <div className="col-md-6">
           <div className="input-group mb-3">

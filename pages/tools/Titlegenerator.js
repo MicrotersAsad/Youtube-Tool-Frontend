@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaShareAlt,
   FaFacebook,
@@ -10,7 +10,6 @@ import {
   FaStar,
 } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
-import ReCAPTCHA from "react-google-recaptcha";
 import Head from "next/head";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
@@ -24,15 +23,14 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
+
 const TitleGenerator = () => {
   const { user, updateUserProfile } = useAuth();
   const [tags, setTags] = useState([]);
   const [input, setInput] = useState("");
   const [generatedTitles, setGeneratedTitles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showCaptcha, setShowCaptcha] = useState(false);
   const [showShareIcons, setShowShareIcons] = useState(false);
-  const recaptchaRef = useRef(null);
   const apiKey = process.env.NEXT_PUBLIC_API_KEY;
   const [selectAll, setSelectAll] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
@@ -48,10 +46,11 @@ const TitleGenerator = () => {
     comment: "",
     userProfile: "",
   });
-const [modalVisable,setModalVisable]=useState(true)
-const closeModal=()=>{
-  setModalVisable(false)
-}
+  const [modalVisible, setModalVisible] = useState(true);
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -61,8 +60,8 @@ const closeModal=()=>{
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
-        setQuillContent(data[0]?.content || ""); // Ensure content is not undefined
-        setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
+        setQuillContent(data[0]?.content || "");
+        setExistingContent(data[0]?.content || "");
         setMeta(data[0]);
       } catch (error) {
         toast.error("Error fetching content");
@@ -203,6 +202,11 @@ const closeModal=()=>{
   };
 
   const generateTitles = async () => {
+    if (!user) {
+      toast.error("Please log in to fetch channel data.");
+      return;
+    }
+
     if (
       user &&
       user.paymentStatus !== "success" &&
@@ -215,7 +219,6 @@ const closeModal=()=>{
       return;
     }
     setIsLoading(true);
-    setShowCaptcha(true);
     try {
       const response = await fetch(
         "https://api.openai.com/v1/chat/completions",
@@ -259,7 +262,7 @@ const closeModal=()=>{
         setGenerateCount(generateCount - 1);
       }
     } catch (error) {
-      toast.error("Error generating titles:", error);
+      toast.error(`Error generating titles: ${error.message}`);
       setGeneratedTitles([]);
     } finally {
       setIsLoading(false);
@@ -324,146 +327,140 @@ const closeModal=()=>{
 
   return (
     <>
-    <div className="bg-box">
-      <div>
-        <Image className="shape1" src={announce} alt="announce" />
+      <div className="bg-box">
+        <div>
+          <Image className="shape1" src={announce} alt="announce" />
 
-        <Image className="shape2" src={cloud} alt="announce" />
-        <Image className="shape3" src={cloud2} alt="announce" />
-        <Image className="shape4" src={chart} alt="announce" />
-      </div>
-
-      <div className="max-w-7xl mx-auto p-4">
-      <Head>
-        <title>{meta.title}</title>
-        <meta name="description" content={meta.description} />
-        <meta
-          property="og:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta property="og:title" content={meta.title} />
-        <meta property="og:description" content={meta.description} />
-        <meta property="og:image" content={meta.image} />
-        <meta name="twitter:card" content={meta.image} />
-        <meta
-          property="twitter:domain"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta
-          property="twitter:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta name="twitter:title" content={meta.title} />
-        <meta name="twitter:description" content={meta.description} />
-        <meta name="twitter:image" content={meta.image} />
-      </Head>
-      <h2 className="text-3xl text-white">YouTube Title Generator</h2>
-      <ToastContainer />
-      {
-        modalVisable && (<div
-          className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
-          role="alert"
-        >
-          <div className="flex">
-            <div>
-              {user ? (
-                user.paymentStatus === "success" || user.role === "admin" ? (
-                  <p className="text-center p-3 alert-warning">
-                    Congratulations!! Now you can generate unlimited tags.
-                  </p>
-                ) : (
-                  <p className="text-center p-3 alert-warning">
-                    You are not upgraded. You can generate Title{" "}
-                    {5 - generateCount} more times.{" "}
-                    <Link href="/pricing" className="btn btn-warning ms-3">
-                      Upgrade
-                    </Link>
-                  </p>
-                )
-              ) : (
-                <p className="text-center p-3 alert-warning">
-                  Please payment in to use this tool.
-                </p>
-              )}
-            </div>
-            <button className="text-yellow-700 ml-auto" onClick={closeModal}>
-              ×
-            </button>
-          </div>
-        </div>)
-      }
-      
-      <div className="keywords-input-container">
-        <div className="tags-container">
-          {tags.map((tag, index) => (
-            <span className="tag" key={index}>
-              {tag}
-              <span
-                className="remove-btn"
-                onClick={() => setTags(tags.filter((_, i) => i !== index))}
-              >
-                ×
-              </span>
-            </span>
-          ))}
+          <Image className="shape2" src={cloud} alt="announce" />
+          <Image className="shape3" src={cloud2} alt="announce" />
+          <Image className="shape4" src={chart} alt="announce" />
         </div>
-        <input
-          type="text"
-          placeholder="Add a keyword"
-          className="input-box"
-          value={input}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          required
-        />
-      </div>
-      <div className="center">
-        <div className="flex flex-wrap gap-2 justify-center pt-5">
-          <button
-            className="btn btn-danger whitespace-nowrap"
-            onClick={generateTitles}
-            disabled={isLoading || tags.length === 0}
-            style={{ minWidth: "50px" }}
-          >
-            {isLoading ? "Generating..." : "Generate Titles"}
-          </button>
-          <button
-            className="btn btn-danger whitespace-nowrap"
-            onClick={handleShareClick}
-            style={{ minWidth: "50px" }}
-          >
-            <FaShareAlt />
-          </button>
-          {showShareIcons && (
-            <div className="flex gap-2">
-              <FaFacebook
-                className="facebook-icon"
-                onClick={() => shareOnSocialMedia("facebook")}
-              />
-              <FaInstagram
-                className="instagram-icon"
-                onClick={() => shareOnSocialMedia("instagram")}
-              />
-              <FaTwitter
-                className="twitter-icon"
-                onClick={() => shareOnSocialMedia("twitter")}
-              />
-              <FaLinkedin
-                className="linkedin-icon"
-                onClick={() => shareOnSocialMedia("linkedin")}
-              />
+
+        <div className="max-w-7xl mx-auto p-4">
+          <Head>
+            <title>{meta.title}</title>
+            <meta name="description" content={meta.description} />
+            <meta
+              property="og:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
+            />
+            <meta property="og:title" content={meta.title} />
+            <meta property="og:description" content={meta.description} />
+            <meta property="og:image" content={meta.image} />
+            <meta name="twitter:card" content={meta.image} />
+            <meta
+              property="twitter:domain"
+              content="https://youtube-tool-frontend.vercel.app/"
+            />
+            <meta
+              property="twitter:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
+            />
+            <meta name="twitter:title" content={meta.title} />
+            <meta name="twitter:description" content={meta.description} />
+            <meta name="twitter:image" content={meta.image} />
+          </Head>
+          <h2 className="text-3xl text-white">YouTube Title Generator</h2>
+          <ToastContainer />
+          {modalVisible && (
+            <div
+              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
+              role="alert"
+            >
+              <div className="flex">
+                <div>
+                  {user ? (
+                    user.paymentStatus === "success" ||
+                    user.role === "admin" ? (
+                      <p className="text-center p-3 alert-warning">
+                        Congratulations!! Now you can generate unlimited tags.
+                      </p>
+                    ) : (
+                      <p className="text-center p-3 alert-warning">
+                        You are not upgraded. You can generate Title{" "}
+                        {5 - generateCount} more times.{" "}
+                        <Link href="/pricing" className="btn btn-warning ms-3">
+                          Upgrade
+                        </Link>
+                      </p>
+                    )
+                  ) : (
+                    <p className="text-center p-3 alert-warning">
+                      Please log in to fetch channel data.
+                    </p>
+                  )}
+                </div>
+                <button className="text-yellow-700 ml-auto" onClick={closeModal}>
+                  ×
+                </button>
+              </div>
             </div>
           )}
+
+          <div className="keywords-input-container">
+            <div className="tags-container">
+              {tags.map((tag, index) => (
+                <span className="tag" key={index}>
+                  {tag}
+                  <span
+                    className="remove-btn"
+                    onClick={() => setTags(tags.filter((_, i) => i !== index))}
+                  >
+                    ×
+                  </span>
+                </span>
+              ))}
+            </div>
+            <input
+              type="text"
+              placeholder="Add a keyword"
+              className="input-box"
+              value={input}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              required
+            />
+          </div>
+          <div className="center">
+            <div className="flex flex-wrap gap-2 justify-center pt-5">
+              <button
+                className="btn btn-danger whitespace-nowrap"
+                onClick={generateTitles}
+                disabled={isLoading || tags.length === 0}
+                style={{ minWidth: "50px" }}
+              >
+                {isLoading ? "Generating..." : "Generate Titles"}
+              </button>
+              <button
+                className="btn btn-danger whitespace-nowrap"
+                onClick={handleShareClick}
+                style={{ minWidth: "50px" }}
+              >
+                <FaShareAlt />
+              </button>
+              {showShareIcons && (
+                <div className="flex gap-2">
+                  <FaFacebook
+                    className="facebook-icon"
+                    onClick={() => shareOnSocialMedia("facebook")}
+                  />
+                  <FaInstagram
+                    className="instagram-icon"
+                    onClick={() => shareOnSocialMedia("instagram")}
+                  />
+                  <FaTwitter
+                    className="twitter-icon"
+                    onClick={() => shareOnSocialMedia("twitter")}
+                  />
+                  <FaLinkedin
+                    className="linkedin-icon"
+                    onClick={() => shareOnSocialMedia("linkedin")}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-      {/* {showCaptcha && (
-        <ReCAPTCHA
-          ref={recaptchaRef}
-          sitekey={process.env.NEXT_PUBLIC_CAPTCHA_KEY}
-          onChange={(value) => setShowCaptcha(!value)}
-        />
-      )} */}
-      </div>
       </div>
       <div className="generated-titles-container">
         {generatedTitles.length > 0 && (
@@ -527,8 +524,7 @@ const closeModal=()=>{
               placeholder="Your Review"
               value={newReview.comment}
               onChange={(e) =>
-                setNewReview({ ...newReview, comment: e.target.value })
-              }
+                setNewReview({ ...newReview, comment: e.target.value })}
             />
           </div>
           <button
@@ -590,9 +586,7 @@ const closeModal=()=>{
           ))}
         </Slider>
       </div>
-   
-   
-   
+
       <style jsx>{`
         .keywords-input-container {
           border: 2px solid #ccc;
@@ -670,7 +664,6 @@ const closeModal=()=>{
           margin-top: 20px;
         }
       `}</style>
- 
     </>
   );
 };

@@ -40,6 +40,7 @@ const YtEmbedCode = () => {
   const closeModal = () => {
     setModalVisable(false);
   };
+
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -108,11 +109,10 @@ const YtEmbedCode = () => {
       generateCount <= 0
     ) {
       toast.error(
-        "You have reached the limit of generating tags. Please upgrade your plan for unlimited use."
+        "You have reached the limit of generating embed codes. Please upgrade your plan for unlimited use."
       );
       return;
     }
-    s;
 
     try {
       setLoading(true);
@@ -265,7 +265,7 @@ const YtEmbedCode = () => {
                 )
               ) : (
                 <p className="text-center p-3 alert-warning">
-                  Please payment in to use this tool.
+                  Please log in to use this tool.
                 </p>
               )}
             </div>
@@ -369,8 +369,7 @@ const YtEmbedCode = () => {
               placeholder="Your Review"
               value={newReview.comment}
               onChange={(e) =>
-                setNewReview({ ...newReview, comment: e.target.value })
-              }
+                setNewReview({ ...newReview, comment: e.target.value })}
             />
           </div>
           <button

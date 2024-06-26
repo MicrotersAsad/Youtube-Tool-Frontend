@@ -14,6 +14,7 @@ import cloud from "../../public/shape/cloud.png"
 import cloud2 from "../../public/shape/cloud2.png"
 import Image from 'next/image';
 import Head from 'next/head';
+
 const ChannelIdFinder = () => {
     const { user, updateUserProfile } = useAuth(); // Custom hook for user authentication
     const [modalVisible, setModalVisible] = useState(true); // State to control modal visibility
@@ -82,7 +83,18 @@ const ChannelIdFinder = () => {
     // Set generate count if user payment status is not success and role is not admin
     useEffect(() => {
         if (user && user.paymentStatus !== 'success' && user.role !== 'admin') {
-            setGenerateCount(5);
+            const storedCount = localStorage.getItem("generateCount");
+            if (storedCount) {
+                setGenerateCount(parseInt(storedCount));
+            } else {
+                setGenerateCount(3);
+            }
+        }
+    }, [user]);
+
+    useEffect(() => {
+        if (user && (user.paymentStatus === 'success' || user.role === 'admin')) {
+            localStorage.removeItem("generateCount");
         }
     }, [user]);
 
@@ -107,21 +119,32 @@ const ChannelIdFinder = () => {
 
     // Handle the fetch button click
     const handleFetch = async () => {
+        if (!user) {
+            toast.error('Please log in to fetch channel data.');
+            return;
+        }
+
         if (!videoUrl) {
             toast.error('Please enter a YouTube video URL.');
             return;
         }
 
-        if (generateCount >= 3 && user?.paymentStatus !== 'success' && user.role !== 'admin') {
+        if (generateCount >= 3 && user.paymentStatus !== 'success' && user.role !== 'admin') {
             toast.error('Fetch limit exceeded. Please upgrade for unlimited access.');
             return;
         }
+
         setLoading(true);
         setError('');
         try {
             const data = await fetchVideoData(videoUrl);
             setChannelData(data);
             toast.success('Channel data fetched successfully!');
+            if (user && user.paymentStatus !== 'success' && user.role !== 'admin') {
+                const newCount = generateCount + 1;
+                setGenerateCount(newCount);
+                localStorage.setItem("generateCount", newCount);
+            }
         } catch (err) {
             setError(err.message);
             toast.error(err.message);
@@ -222,9 +245,13 @@ const ChannelIdFinder = () => {
                             <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
                         </div>
                         <div>
-                            {user?.paymentStatus === 'success' || user?.role === 'admin' ? (
+                            {!user ? (
                                 <p className="text-center p-3 alert-warning">
-                                    You are upgraded and can generate unlimited data.
+                                    Please log in to fetch channel data.
+                                </p>
+                            ) : user?.paymentStatus === 'success' || user?.role === 'admin' ? (
+                                <p className="text-center p-3 alert-warning">
+                                    You are upgraded and can get unlimited channel details.
                                 </p>
                             ) : (
                                 <p className="text-center p-3 alert-warning">

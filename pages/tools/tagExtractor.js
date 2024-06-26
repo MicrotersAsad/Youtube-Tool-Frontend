@@ -37,7 +37,7 @@ const TagExtractor = () => {
   const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false);
   const [content, setContent] = useState("");
   const [meta, setMeta] = useState("");
-  const [generateCount, setGenerateCount] = useState(2);
+  const [generateCount, setGenerateCount] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
@@ -81,10 +81,6 @@ const TagExtractor = () => {
     }
   };
 
-  const handleQuillChange = (newContent) => {
-    setQuillContent(newContent);
-  };
-
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
       updateUserProfile().then(() => setIsUpdated(true));
@@ -93,7 +89,18 @@ const TagExtractor = () => {
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && user.role !== "admin") {
-      setGenerateCount(5);
+      const storedCount = localStorage.getItem("generateCount");
+      if (storedCount) {
+        setGenerateCount(parseInt(storedCount));
+      } else {
+        setGenerateCount(5);
+      }
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && (user.paymentStatus === "success" || user.role === "admin")) {
+      localStorage.removeItem("generateCount");
     }
   }, [user]);
 
@@ -120,6 +127,11 @@ const TagExtractor = () => {
     if (!videoUrl) {
       setError("Please enter a valid YouTube URL");
       toast.error("Please enter a valid YouTube URL");
+      return;
+    }
+
+    if (!user) {
+      toast.error("You need to be logged in to generate tags.");
       return;
     }
 
@@ -160,7 +172,9 @@ const TagExtractor = () => {
       const data = await response.json();
       setTags(data.tags || []);
       if (user && user.paymentStatus !== "success") {
-        setGenerateCount(generateCount - 1);
+        const newCount = generateCount - 1;
+        setGenerateCount(newCount);
+        localStorage.setItem("generateCount", newCount);
       }
     } catch (err) {
       setError(err.message);
@@ -340,24 +354,20 @@ const TagExtractor = () => {
                   ></svg>
                 </div>
                 <div>
-                  {user ? (
-                    user.paymentStatus === "success" ||
-                    user.role === "admin" ? (
-                      <p className="text-center p-3 alert-warning">
-                        Congratulations!! Now you can generate unlimited tags.
-                      </p>
-                    ) : (
-                      <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can generate Title{" "}
-                        {5 - generateCount} more times.{" "}
-                        <Link href="/pricing" className="btn btn-warning ms-3">
-                          Upgrade
-                        </Link>
-                      </p>
-                    )
-                  ) : (
+                  {!user ? (
                     <p className="text-center p-3 alert-warning">
                       Please sign in to use this tool.
+                    </p>
+                  ) : user.paymentStatus === "success" || user.role === "admin" ? (
+                    <p className="text-center p-3 alert-warning">
+                      Congratulations!! Now you can generate unlimited tags.
+                    </p>
+                  ) : (
+                    <p className="text-center p-3 alert-warning">
+                      You are not upgraded. You can get tag {5 - generateCount} more times.{" "}
+                      <Link href="/pricing" className="btn btn-warning ms-3">
+                        Upgrade
+                      </Link>
                     </p>
                   )}
                 </div>

@@ -22,7 +22,7 @@ import "slick-carousel/slick/slick-theme.css";
 import StarRating from "./StarRating"; // Assuming StarRating is a custom component
 
 const YtThumbnailDw = () => {
-  const { isLoggedIn, user, updateUserProfile } = useAuth(); // Added user and updateUserProfile
+  const { isLoggedIn, user, updateUserProfile, logout } = useAuth(); // Added logout
   const [videoUrl, setVideoUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -37,10 +37,11 @@ const YtThumbnailDw = () => {
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
-  const [modalVisable,setModalVisable]=useState(true)
-  const closeModal=()=>[
-      setModalVisable(false)
-  ]
+  const [modalVisible, setModalVisible] = useState(true);
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -61,6 +62,13 @@ const YtThumbnailDw = () => {
     };
 
     fetchContent();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const count = parseInt(localStorage.getItem("generateCount"), 10) || 0;
+      setGenerateCount(count);
+    }
   }, []);
 
   useEffect(() => {
@@ -154,8 +162,14 @@ const YtThumbnailDw = () => {
       const thumbnailData = response.data.items[0].snippet.thumbnails;
 
       setThumbnails(thumbnailData);
+
+      setGenerateCount((prevCount) => {
+        const newCount = prevCount + 1;
+        localStorage.setItem("generateCount", newCount);
+        return newCount;
+      });
     } catch (error) {
-      console.error("Error fetching YouTube data:", error); // Log error
+      console.error("Error fetching YouTube data:", error);
       setError("Failed to fetch YouTube data. Please check the video URL.");
       setThumbnails(null);
       setSelectedThumbnailUrl("");
@@ -176,27 +190,22 @@ const YtThumbnailDw = () => {
 
     const fileName = "YouTube_thumbnail.jpg";
 
-    // Fetch the thumbnail image data
     fetch(selectedThumbnailUrl)
       .then((response) => response.blob())
       .then((blob) => {
-        // Create a temporary URL for the image blob
         const url = window.URL.createObjectURL(new Blob([blob]));
 
-        // Create a temporary anchor element to trigger the download
         const anchor = document.createElement("a");
         anchor.href = url;
         anchor.download = fileName;
         document.body.appendChild(anchor);
         anchor.click();
 
-        // Clean up
         window.URL.revokeObjectURL(url);
         document.body.removeChild(anchor);
       })
       .catch((error) => {
         console.error("Error downloading thumbnail:", error);
-        // Handle error
       });
   };
 
@@ -243,49 +252,50 @@ const YtThumbnailDw = () => {
       </Head>
       <h2 className="text-3xl pt-5">YouTube Thumbnails Generator</h2>
       <ToastContainer />
-      {
-        modalVisable && (
-<div className="text-center pt-4 pb-4">
-        <div
-          className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
-          role="alert"
-        >
-          <div className="flex">
-            <div className="py-1">
-              <svg
-                className="fill-current h-6 w-6 text-yellow-500 mr-4"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-              ></svg>
-            </div>
-            <div>
-              {user ? (
-                user.paymentStatus === "success" || user.role === "admin" ? (
-                  <p className="text-center p-3 alert-warning">
-                    Congratulations!! Now you can generate unlimited tags.
-                  </p>
+      {modalVisible && (
+        <div className="text-center pt-4 pb-4">
+          <div
+            className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
+            role="alert"
+          >
+            <div className="flex">
+              <div className="py-1">
+                <svg
+                  className="fill-current h-6 w-6 text-yellow-500 mr-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                ></svg>
+              </div>
+              <div>
+                {user ? (
+                  user.paymentStatus === "success" || user.role === "admin" ? (
+                    <p className="text-center p-3 alert-warning">
+                      Congratulations!! Now you can generate unlimited
+                      thumbnails.
+                    </p>
+                  ) : (
+                    <p className="text-center p-3 alert-warning">
+                      You are not upgraded. You can generate thumbnails{" "}
+                      {5 - generateCount} more times.{" "}
+                      <Link href="/pricing" className="btn btn-warning ms-3">
+                        Upgrade
+                      </Link>
+                    </p>
+                  )
                 ) : (
                   <p className="text-center p-3 alert-warning">
-                    You are not upgraded. You can generate Title{" "}
-                    {5 - generateCount} more times.{" "}
-                    <Link href="/pricing" className="btn btn-warning ms-3">
-                      Upgrade
-                    </Link>
+                    Please log in to use this tool.
                   </p>
-                )
-              ) : (
-                <p className="text-center p-3 alert-warning">
-                  Please payment in to use this tool.
-                </p>
-              )}
+                )}
+              </div>
+              <button className="ml-auto text-yellow-700" onClick={closeModal}>
+                ×
+              </button>
             </div>
-            <button className="ml-auto text-yellow-700" onClick={closeModal}>×</button>
           </div>
         </div>
-      </div>
-        )
-      }
-      
+      )}
+
       <div className="row justify-content-center pt-5">
         <div className="col-md-6">
           <div className="input-group mb-3">
@@ -341,6 +351,8 @@ const YtThumbnailDw = () => {
                   <Image
                     src={url}
                     alt={`Thumbnail ${resolution}`}
+                    width={200}
+                    height={150}
                     className="img-thumbnail"
                     style={{
                       border:

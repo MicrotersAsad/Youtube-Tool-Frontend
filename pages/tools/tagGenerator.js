@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   FaShareAlt,
   FaFacebook,
@@ -24,6 +24,7 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
+
 const TagGenerator = () => {
   const { user, updateUserProfile } = useAuth();
   const [tags, setTags] = useState([]);
@@ -32,11 +33,9 @@ const TagGenerator = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showCaptcha, setShowCaptcha] = useState(false);
   const [showShareIcons, setShowShareIcons] = useState(false);
-  const recaptchaRef = useRef(null);
   const apiKey = process.env.NEXT_PUBLIC_API_KEY;
   const [selectAll, setSelectAll] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
-  const [content, setContent] = useState("");
   const [meta, setMeta] = useState({ title: "", description: "", image: "" });
   const [isUpdated, setIsUpdated] = useState(false);
   const [quillContent, setQuillContent] = useState("");
@@ -52,6 +51,7 @@ const TagGenerator = () => {
   const closeModal = () => {
     setModalVisible(false);
   };
+
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -60,9 +60,8 @@ const TagGenerator = () => {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
-
-        setQuillContent(data[0]?.content || ""); // Ensure content is not undefined
-        setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
+        setQuillContent(data[0]?.content || "");
+        setExistingContent(data[0]?.content || "");
         setMeta(data[0]);
       } catch (error) {
         toast.error("Error fetching content");
@@ -95,7 +94,18 @@ const TagGenerator = () => {
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && user.role !== "admin") {
-      setGenerateCount(5);
+      const storedCount = localStorage.getItem("generateCount");
+      if (storedCount) {
+        setGenerateCount(parseInt(storedCount));
+      } else {
+        setGenerateCount(5);
+      }
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && (user.paymentStatus === "success" || user.role === "admin")) {
+      localStorage.removeItem("generateCount");
     }
   }, [user]);
 
@@ -207,6 +217,11 @@ const TagGenerator = () => {
   };
 
   const generateTitles = async () => {
+    if (!user) {
+      toast.error("You need to be logged in to generate tags.");
+      return;
+    }
+
     if (
       user &&
       user.paymentStatus !== "success" &&
@@ -220,7 +235,7 @@ const TagGenerator = () => {
     }
 
     setIsLoading(true);
-    setShowCaptcha(true);
+
     try {
       const response = await fetch(
         "https://api.openai.com/v1/chat/completions",
@@ -261,7 +276,9 @@ const TagGenerator = () => {
       setGeneratedTitles(titles);
 
       if (user && user.paymentStatus !== "success") {
-        setGenerateCount(generateCount - 1);
+        const newCount = generateCount - 1;
+        setGenerateCount(newCount);
+        localStorage.setItem("generateCount", newCount);
       }
     } catch (error) {
       toast.error("Error generating titles:", error);
@@ -369,40 +386,35 @@ const TagGenerator = () => {
               className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
               role="alert"
             >
-              <div className="flex">
-                <div className="py-1">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
                   <svg
                     className="fill-current h-6 w-6 text-yellow-500 mr-4"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
-                  ></svg>
-                </div>
-                <div>
-                  {user ? (
-                    user.paymentStatus === "success" ||
-                    user.role === "admin" ? (
+                  >
+                    {/* SVG content can go here */}
+                  </svg>
+                  <div>
+                    {!user ? (
+                      <p className="text-center p-3 alert-warning">
+                        You need to be logged in to generate tags.
+                      </p>
+                    ) : user.paymentStatus === 'success' || user.role === 'admin' ? (
                       <p className="text-center p-3 alert-warning">
                         Congratulations!! Now you can generate unlimited tags.
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can generate Title{" "}
-                        {5 - generateCount} more times.{" "}
-                        <Link href="/pricing" className="btn btn-warning ms-3">
+                        You are not upgraded. You can generate Title {5 - generateCount} more times.{' '}
+                        <Link className="btn btn-warning ms-3" href="/pricing">
                           Upgrade
                         </Link>
                       </p>
-                    )
-                  ) : (
-                    <p className="text-center p-3 alert-warning">
-                      Please payment in to use this tool.
-                    </p>
-                  )}
+                    )}
+                  </div>
                 </div>
-                <button
-                  className="text-yellow-700 ml-auto"
-                  onClick={closeModal}
-                >
+                <button className="text-yellow-700" onClick={closeModal}>
                   ×
                 </button>
               </div>
@@ -445,13 +457,6 @@ const TagGenerator = () => {
               </button>
             </div>
           </div>
-          {showCaptcha && (
-            <ReCAPTCHA
-              ref={recaptchaRef}
-              sitekey={process.env.NEXT_PUBLIC_CAPTCHA_KEY}
-              onChange={(value) => setShowCaptcha(!value)}
-            />
-          )}
         </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">

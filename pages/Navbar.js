@@ -14,7 +14,8 @@ import {
   FaDownload,
   FaFileDownload,
   FaCloudDownloadAlt,
-  FaKeybase
+  FaKeybase,
+  FaComment
 } from 'react-icons/fa';
 
 function classNames(...classes) {
@@ -42,7 +43,8 @@ const navigation = [
       { name: 'Case Converter', href: '/tools/case-converter', icon: <FaLink /> },
       { name: 'YouTube Trending Videos', href: '/tools/trendingVideos', icon: <FaFire /> },
       { name: 'YouTube Money Calculator', href: '/tools/YouTube-Money-Calculator', icon: <FaDollarSign /> },
-      { name: 'YouTube Keyword Research', href: '/tools/keyword-research', icon: <FaKeybase /> }
+      { name: 'YouTube Keyword Research', href: '/tools/keyword-research', icon: <FaKeybase /> },
+      { name: 'Youtube Comment Picker', href: '/tools/youtube-comment-picker', icon: <FaComment /> }
     ]
   },
   { name: 'Pricing', href: '/pricing', dropdown: false },

@@ -14,14 +14,16 @@ import 'slick-carousel/slick/slick-theme.css';
 import StarRating from './StarRating'; // Assuming StarRating is a custom component
 
 const YouTubeChannelLogoDownloader = () => {
-    const { isLoggedIn,user,updateUserProfile } = useAuth(); // Destructure authentication state from context
+    const { isLoggedIn, user, updateUserProfile, logout } = useAuth(); // Destructure authentication state from context
     const [isUpdated, setIsUpdated] = useState(false);
     const [loading, setLoading] = useState(false); // Loading state for API requests
     const [error, setError] = useState(''); // Error state
     const [channelUrl, setChannelUrl] = useState(''); // State for input URL
     const [logoUrl, setLogoUrl] = useState(''); // State for fetched logo URL
     const [showShareIcons, setShowShareIcons] = useState(false); // State to toggle share icons visibility
-    const [generateCount, setGenerateCount] = useState(5); // Count for how many times data is fetched
+    const [generateCount, setGenerateCount] = useState(
+        typeof window !== 'undefined' ? Number(localStorage.getItem('generateCount')) || 0 : 0
+      );
     const [content, setContent] = useState(''); // Content state for fetched HTML content
     const [meta, setMeta] = useState({ // Meta information for the page
         title: 'YouTube Channel Logo Downloader',
@@ -32,29 +34,32 @@ const YouTubeChannelLogoDownloader = () => {
     const [quillContent, setQuillContent] = useState("");
     const [existingContent, setExistingContent] = useState("");
     const [newReview, setNewReview] = useState({ rating: 0, comment: '' });
-    const [modalVisable,setModalVisable]=useState(true)
-    const closeModal=()=>{
-      setModalVisable(false)
+    const [modalVisible, setModalVisible] = useState(true);
+
+    const closeModal = () => {
+        setModalVisible(false);
     }
+
     useEffect(() => {
         const fetchContent = async () => {
-          try {
-            const response = await fetch(`/api/content?category=YouTube-Channel-Logo-Downloader`);
-            if (!response.ok) {
-              throw new Error("Failed to fetch content");
+            try {
+                const response = await fetch(`/api/content?category=YouTube-Channel-Logo-Downloader`);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch content");
+                }
+                const data = await response.json();
+                setQuillContent(data[0]?.content || ""); // Ensure content is not undefined
+                setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
+                setMeta(data[0]);
+            } catch (error) {
+                toast.error("Error fetching content");
             }
-            const data = await response.json();
-            setQuillContent(data[0]?.content || ""); // Ensure content is not undefined
-            setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
-            setMeta(data[0]);
-          } catch (error) {
-            toast.error("Error fetching content");
-          }
         };
-    
+
         fetchContent();
         fetchReviews();
-      }, []);
+    }, []);
+
     const fetchReviews = async () => {
         try {
             const response = await fetch('/api/reviews?tool=youtube-channel-logo-downloader');
@@ -72,9 +77,10 @@ const YouTubeChannelLogoDownloader = () => {
     const handleShareClick = () => {
         setShowShareIcons(!showShareIcons);
     };
+
     useEffect(() => {
         if (user && user.paymentStatus !== 'success' && !isUpdated) {
-          updateUserProfile().then(() => setIsUpdated(true));
+            updateUserProfile().then(() => setIsUpdated(true));
         }
     }, [user, updateUserProfile, isUpdated]);
 
@@ -83,6 +89,7 @@ const YouTubeChannelLogoDownloader = () => {
             setGenerateCount(5);
         }
     }, [user]);
+
     const extractChannelId = (link) => {
         const match = link.match(/(?:https?:\/\/)?(?:www\.)?youtube\.com\/(?:channel\/|c\/|user\/)?([a-zA-Z0-9_-]+)/);
         return match ? match[1] : null;
@@ -111,6 +118,8 @@ const YouTubeChannelLogoDownloader = () => {
             const response = await axios.get(`https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&key=${process.env.NEXT_PUBLIC_YOUTUBE_API_KEY}`);
             const logoUrl = response.data.items[0].snippet.thumbnails.default.url;
             setLogoUrl(logoUrl);
+            setGenerateCount(generateCount - 1);
+            localStorage.setItem('generateCount', generateCount - 1);
         } catch (error) {
             toast.error('Failed to fetch channel logo:', error);
             setError('Failed to fetch data. Check console for more details.');
@@ -233,33 +242,33 @@ const YouTubeChannelLogoDownloader = () => {
             <ToastContainer />
             <h2 className='text-3xl pt-5'>YouTube Channel Logo Downloader</h2>
             {
-                modalVisable && (
+                modalVisible && (
                     <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
-                    <div className="flex">
-                        <div>
-                        {user ? (
-                                user.paymentStatus === 'success' || user.role === 'admin' ? (
-                                    <p className="text-center p-3 alert-warning">
-                                        Congratulations!! Now you can download unlimited logo.
-                                    </p>
+                        <div className="flex">
+                            <div>
+                                {user ? (
+                                    user.paymentStatus === 'success' || user.role === 'admin' ? (
+                                        <p className="text-center p-3 alert-warning">
+                                            Congratulations!! Now you can download unlimited logos.
+                                        </p>
+                                    ) : (
+                                        <p className="text-center p-3 alert-warning">
+                                            You are not upgraded. Now you can download unlimited logos {5 - generateCount}{" "}
+                                            more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                                        </p>
+                                    )
                                 ) : (
                                     <p className="text-center p-3 alert-warning">
-                                        You are not upgraded.  Now you can download unlimited logo {5 - generateCount}{" "}
-                                        more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                                        Please log in to use this tool.
                                     </p>
-                                )
-                            ) : (
-                                <p className="text-center p-3 alert-warning">
-                                    Please payment in to use this tool.
-                                </p>
-                            )}
+                                )}
+                            </div>
+                            <button className="ml-auto text-yellow-700" onClick={closeModal}>×</button>
                         </div>
-                        <button className="ml-auto text-yellow-700" onClick={closeModal}>×</button>
                     </div>
-                </div>
                 )
             }
-          
+
             <div className="row justify-content-center pt-5">
                 <div className="col-md-6">
                     <div className="input-group mb-3">
@@ -309,10 +318,10 @@ const YouTubeChannelLogoDownloader = () => {
                     )}
                 </div>
                 <div className="content pt-6 pb-5">
-                <div
-          dangerouslySetInnerHTML={{ __html: existingContent }}
-          style={{ listStyleType: "none" }}
-        ></div>
+                    <div
+                        dangerouslySetInnerHTML={{ __html: existingContent }}
+                        style={{ listStyleType: "none" }}
+                    ></div>
                 </div>
             </div>
             {/* Review Form */}
@@ -379,11 +388,9 @@ const YouTubeChannelLogoDownloader = () => {
                         </div>
                     ))}
                 </Slider>
-           
-     
-    
-        </div>
-           
+
+            </div>
+
         </div>
     );
 };
