@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Layout from './layout';
 
 export default function Tokens() {
   const [tokens, setTokens] = useState([]);
@@ -51,6 +52,7 @@ export default function Tokens() {
   };
 
   return (
+    <Layout>
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">OpenAI Tokens</h1>
       <div className="mb-4">
@@ -101,5 +103,6 @@ export default function Tokens() {
         </tbody>
       </table>
     </div>
+    </Layout>
   );
 }

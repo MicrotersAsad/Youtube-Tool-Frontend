@@ -18,7 +18,8 @@ import {
   FaAngleRight,
   FaBell,
   FaSearch,
-  FaStarHalfAlt
+  FaStarHalfAlt,
+  FaKey
 } from 'react-icons/fa';
 
 const Layout = ({ children }) => {
@@ -213,6 +214,19 @@ const Layout = ({ children }) => {
                 }`}
               >
                 <FaStarHalfAlt className="mr-3" /> <span className="mx-3">All Review</span>
+              </p>
+            </Link>
+          )}
+          {user && (user.role === 'admin' || user.role === 'moderator') && (
+            <Link href="/dashboard/addYtApi " passHref>
+              <p
+                className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
+                  isActiveRoute('/dashboard/addYtApi')
+                    ? 'bg-gray-300 text-gray-700'
+                    : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
+                }`}
+              >
+                <FaKey className="mr-3" /> <span className="mx-3">Add Api</span>
               </p>
             </Link>
           )}
