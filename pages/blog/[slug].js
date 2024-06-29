@@ -99,7 +99,7 @@ const BlogPost = () => {
       console.error('Error fetching comments:', error);
     }
   };
-
+console.log(comments);
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
 

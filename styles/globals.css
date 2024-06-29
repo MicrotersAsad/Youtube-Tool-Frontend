@@ -365,31 +365,27 @@ blockquote {
 /* Social media icons specific colors */
 .facebook-icon {
   color: #1877F2;
+  cursor: pointer;
 }
 
 .instagram-icon {
   color: #E4405F;
+  cursor: pointer;
 }
 
 .twitter-icon {
   color: #1DA1F2;
+  cursor: pointer;
 }
 
 .linkedin-icon {
   color: #0A66C2;
-}
-
-.share-icons {
-  display: flex;
-  justify-content: space-around;
-  margin-top: 10px;
-}
-
-.share-icons svg {
-  font-size: 24px;
-  margin-right: 10px;
   cursor: pointer;
 }
+
+
+
+
 
 /* Tag container styles */
 .tag-container {
@@ -653,8 +649,8 @@ a {
 }
 .review-card{
   margin: auto;
-  width: 50%;
-  padding: 10px;
+  width: 30%;
+  
 }
 /* styles for mobile devices */
 @media only screen and (max-width: 767px) {
@@ -665,13 +661,6 @@ a {
   }
 }
 
-.review-card {
-  margin-top: 20px;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-}
 .share-icons {
   display: flex;
   justify-content: space-between;
@@ -681,7 +670,7 @@ a {
   background-color: #fa6742;
   width: 100%;
   height: auto;
-  padding: 150px 50px;
+  padding: 100px 50px;
   text-align: center;
   position: relative;
   overflow: hidden;

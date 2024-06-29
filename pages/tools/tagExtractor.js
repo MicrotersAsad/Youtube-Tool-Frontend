@@ -17,7 +17,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import sanitizeHtml from "sanitize-html";
 import Head from "next/head";
-import StarRating from "./StarRating"; // Import StarRating component
+import StarRating from "./StarRating";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -28,7 +28,7 @@ import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 
 const TagExtractor = () => {
-  const { user, updateUserProfile } = useAuth(); // Get the user object from the AuthContext
+  const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState("");
   const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -48,9 +48,9 @@ const TagExtractor = () => {
     comment: "",
     userProfile: "",
   });
-  const [modalVisible, setModalVisible] = useState(true); // Modal visibility state
+  const [modalVisible, setModalVisible] = useState(true);
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
-  // Fetch content and reviews from API on component mount
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -59,8 +59,8 @@ const TagExtractor = () => {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
-        setQuillContent(data[0]?.content || ""); // Ensure content is not undefined
-        setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
+        setQuillContent(data[0]?.content || "");
+        setExistingContent(data[0]?.content || "");
         setMeta(data[0]);
       } catch (error) {
         toast.error("Error fetching content");
@@ -75,11 +75,18 @@ const TagExtractor = () => {
     try {
       const response = await fetch("/api/reviews?tool=tag-extractor");
       const data = await response.json();
-      setReviews(data);
+      // Update reviews state to include user details
+      const updatedReviews = data.map(review => ({
+        ...review,
+        name: review.userName , // Assuming user has a name field
+        userProfile: review.userProfile, // Use userProfile from review or empty string
+      }));
+      setReviews(updatedReviews);
     } catch (error) {
       console.error("Failed to fetch reviews:", error);
     }
   };
+  
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -104,12 +111,10 @@ const TagExtractor = () => {
     }
   }, [user]);
 
-  // Handle URL input change
   const handleUrlChange = (e) => {
     setVideoUrl(e.target.value);
   };
 
-  // Copy all tags to clipboard
   const copyAllTagsToClipboard = () => {
     const textToCopy = tags.join(", ");
     navigator.clipboard.writeText(textToCopy).then(
@@ -122,7 +127,6 @@ const TagExtractor = () => {
     );
   };
 
-  // Fetch tags from the API
   const fetchTags = async () => {
     if (!videoUrl) {
       setError("Please enter a valid YouTube URL");
@@ -184,7 +188,6 @@ const TagExtractor = () => {
     }
   };
 
-  // Copy a single tag to clipboard
   const copyToClipboard = (tag) => {
     navigator.clipboard.writeText(tag).then(
       () => {
@@ -196,7 +199,6 @@ const TagExtractor = () => {
     );
   };
 
-  // Download tags as a text file
   const downloadTags = () => {
     const element = document.createElement("a");
     const file = new Blob([tags.join("\n")], { type: "text/plain" });
@@ -207,12 +209,10 @@ const TagExtractor = () => {
     document.body.removeChild(element);
   };
 
-  // Remove a tag from the list
   const removeTag = (index) => {
     setTags(tags.filter((_, i) => i !== index));
   };
 
-  // Share on social media
   const shareOnSocialMedia = (socialNetwork) => {
     const url = encodeURIComponent(window.location.href);
     const socialMediaUrls = {
@@ -230,12 +230,10 @@ const TagExtractor = () => {
     }
   };
 
-  // Handle share button click
   const handleShareClick = () => {
     setShowShareIcons(!showShareIcons);
   };
 
-  // Reset fetch limit if user has unlimited access
   useEffect(() => {
     if (user && user.paymentStatus === "success") {
       setFetchLimitExceeded(false);
@@ -257,7 +255,8 @@ const TagExtractor = () => {
         body: JSON.stringify({
           tool: "tag-extractor",
           ...newReview,
-          userProfile: user?.profileImage || "", // Assuming user has a profileImage property
+          userProfile: user?.profileImage, // Assuming user has a profileImage property
+          userName:user?.username
         }),
       });
 
@@ -266,13 +265,13 @@ const TagExtractor = () => {
       }
 
       toast.success("Review submitted successfully!");
-      setNewReview({ name: "", rating: 0, comment: "", userProfile: "" });
+      setNewReview({ name: "", rating: 0, comment: "", userProfile: "",userName:"" });
+      setShowReviewForm(false);
       fetchReviews(); // Refresh the reviews
     } catch (error) {
       toast.error("Failed to submit review");
     }
   };
-
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
     const ratingCount = reviews.filter(
@@ -298,7 +297,6 @@ const TagExtractor = () => {
     ],
   };
 
-  // Function to close the modal
   const closeModal = () => {
     setModalVisible(false);
   };
@@ -308,14 +306,12 @@ const TagExtractor = () => {
       <div className="bg-box">
         <div>
           <Image className="shape1" src={announce} alt="announce" />
-
           <Image className="shape2" src={cloud} alt="announce" />
           <Image className="shape3" src={cloud2} alt="announce" />
           <Image className="shape4" src={chart} alt="announce" />
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-          {/* Page head metadata */}
           <Head>
             <title>{meta.title}</title>
             <meta name="description" content={meta.description} />
@@ -478,15 +474,42 @@ const TagExtractor = () => {
           </div>
         )}
 
-        {/* Render content from API */}
         <div className="content pt-6 pb-5">
           <div
             dangerouslySetInnerHTML={{ __html: existingContent }}
             style={{ listStyleType: "none" }}
           ></div>
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border p-5">
+          {[5, 4, 3, 2, 1].map((rating) => (
+            <div key={rating} className="flex items-center">
+              <div className="w-12 text-right mr-4">{rating}-star</div>
+              <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
+                <div
+                  className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0"
+                  style={{ width: `${calculateRatingPercentage(rating)}%` }}
+                ></div>
+              </div>
+              <div className="w-12 text-left ml-4">
+                {calculateRatingPercentage(rating).toFixed(1)}%
+              </div>
+            </div>
+          ))}
+        </div>
+       
+       {/* Review Form */}
+      {/* Review Form Toggle */}
+      {user && !showReviewForm && (
+          <button
+            className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
+            onClick={() => setShowReviewForm(true)}
+          >
+            Add Review
+          </button>
+        )}
+
         {/* Review Form */}
-        {user && (
+        {user && showReviewForm && (
           <div className="mt-8 review-card">
             <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
             <div className="mb-4">
@@ -513,57 +536,44 @@ const TagExtractor = () => {
             </button>
           </div>
         )}
-        {/* Reviews Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5">
-          {[5, 4, 3, 2, 1].map((rating) => (
-            <div key={rating} className="flex items-center">
-              <div className="w-12 text-right mr-4">{rating}-star</div>
-              <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
-                <div
-                  className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0"
-                  style={{ width: `${calculateRatingPercentage(rating)}%` }}
-                ></div>
-              </div>
-              <div className="w-12 text-left ml-4">
-                {calculateRatingPercentage(rating).toFixed(1)}%
-              </div>
+
+    
+<div className="review-card pb-5">
+      <Slider {...settings}>
+        {reviews.map((review, index) => (
+          <div key={index} className="p-6 bg-white shadow-lg rounded-lg relative mt-5 max-w-sm mx-auto">
+            <div className="flex justify-center">
+              <Image
+                src={`data:image/jpeg;base64,${review?.userProfile}`}
+                alt={review.name}
+                className="w-16 h-16 rounded-full -mt-12 border-2 border-white"
+                width={64}
+                height={64}
+              />
             </div>
-          ))}
-        </div>
-        <div className="review-card pb-5">
-          <Slider {...settings}>
-            {reviews.map((review, index) => (
-              <div key={index} className="p-4 bg-white shadow rounded-lg mt-5">
-                <div className="flex items-center mb-2">
-                  {[...Array(5)].map((star, i) => (
-                    <FaStar
-                      key={i}
-                      size={24}
-                      color={i < review.rating ? "#ffc107" : "#e4e5e9"}
-                    />
-                  ))}
-                  <span className="ml-2 text-xl font-bold">
-                    {review.rating.toFixed(1)}
-                  </span>
-                </div>
-                <div>
-                  <p className="text-gray-600 text-right me-auto">
-                    {new Date(review.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <p className="text-lg font-semibold">{review.comment}</p>
-                <p className="text-gray-600">- {review.name}</p>
-                {review.userProfile && (
-                  <img
-                    src={review.userProfile}
-                    alt="User Profile"
-                    className="w-12 h-12 rounded-full mt-2"
+            <div className="mt-6 text-center">
+              <p className="text-lg italic text-gray-700 mb-4">
+                “{review.comment}”
+              </p>
+              <h3 className="text-xl font-bold text-gray-800">{review.name}</h3>
+              <p className="text-sm text-gray-500">User</p>
+              <div className="flex justify-center mt-3">
+                {[...Array(5)].map((_, i) => (
+                  <FaStar
+                    key={i}
+                    size={24}
+                    color={i < review.rating ? "#ffc107" : "#e4e5e9"}
                   />
-                )}
+                ))}
               </div>
-            ))}
-          </Slider>
-        </div>
+              <span className="text-xl font-bold mt-2">{review.rating.toFixed(1)}</span>
+            </div>
+            <div className="absolute top-2 left-2 text-red-600 text-7xl">“</div>
+            <div className="absolute bottom-2 right-2 text-red-600 text-7xl">”</div>
+          </div>
+        ))}
+      </Slider>
+    </div>
       </div>
     </>
   );

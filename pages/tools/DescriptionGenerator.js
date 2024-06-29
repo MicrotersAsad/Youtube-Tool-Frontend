@@ -4,17 +4,16 @@ import React, { useEffect, useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { FaEye, FaEyeSlash, FaStar } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
-import sanitizeHtml from 'sanitize-html';
-import Slider from "react-slick";
+import Slider from 'react-slick';
 import 'react-toastify/dist/ReactToastify.css';
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import StarRating from "./StarRating"; // Assuming StarRating is a custom component
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
+import StarRating from './StarRating';
 import { useAuth } from '../../contexts/AuthContext';
+import Image from 'next/image';
 
 const YouTubeDescriptionGenerator = () => {
-  // Initial video information state
-  const { user, updateUserProfile } = useAuth(); // Custom hook for user authentication
+  const { user, updateUserProfile } = useAuth();
   const [videoInfo, setVideoInfo] = useState({
     aboutVideo: `Welcome to [Your Channel Name]!\n\nIn this video, we're diving deep into the world of Full Stack Development. Whether you're a beginner or an experienced developer, these tips and guidelines will help you enhance your skills and stay ahead in the tech industry.`,
     timestamps: `00:00 - Introduction\n01:00 - First Topic\n02:00 - Second Topic\n03:00 - Third Topic`,
@@ -26,7 +25,6 @@ const YouTubeDescriptionGenerator = () => {
     keywords: 'full stack development, coding, programming, web development'
   });
 
-  // Sections for the draggable interface
   const [sections, setSections] = useState([
     { id: 'aboutVideo', title: 'About the Video', visible: true },
     { id: 'timestamps', title: 'Timestamps', visible: true },
@@ -38,15 +36,14 @@ const YouTubeDescriptionGenerator = () => {
     { id: 'keywords', title: 'Keywords to Target (Optional)', visible: true }
   ]);
 
-  // State for meta and content
   const [content, setContent] = useState('');
   const [meta, setMeta] = useState('');
   const [quillContent, setQuillContent] = useState('');
   const [existingContent, setExistingContent] = useState('');
   const [reviews, setReviews] = useState([]);
-  const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
+  const [newReview, setNewReview] = useState({ rating: 0, comment: '' });
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
-  // Fetch content on component mount
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -55,36 +52,36 @@ const YouTubeDescriptionGenerator = () => {
           throw new Error('Failed to fetch content');
         }
         const data = await response.json();
-        
-        setQuillContent(data[0]?.content || ''); // Ensure content is not undefined
-        setExistingContent(data[0]?.content || ''); // Ensure existing content is not undefined
-        setMeta(data[0])
-      
+        setQuillContent(data[0]?.content || '');
+        setExistingContent(data[0]?.content || '');
+        setMeta(data[0]);
       } catch (error) {
-        toast.error("Error fetching content");
+        toast.error('Error fetching content');
       }
     };
 
     fetchContent();
-  }, []);
-
-  useEffect(() => {
     fetchReviews();
   }, []);
 
   const fetchReviews = async () => {
     try {
-      const response = await fetch("/api/reviews?tool=youtube-description-generator");
+      const response = await fetch("/api/reviews?tool=descriptionGenerator");
       const data = await response.json();
-      setReviews(data);
+      // Update reviews state to include user details
+      const updatedReviews = data.map(review => ({
+        ...review,
+        name: review.userName , // Assuming user has a name field
+        userProfile: review.userProfile, // Use userProfile from review or empty string
+      }));
+      setReviews(updatedReviews);
     } catch (error) {
       console.error("Failed to fetch reviews:", error);
     }
   };
-
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
-      toast.error("Please fill in both rating and comment.");
+      toast.error("All fields are required.");
       return;
     }
 
@@ -95,27 +92,50 @@ const YouTubeDescriptionGenerator = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          tool: "youtube-description-generator",
-          rating: newReview.rating,
-          comment: newReview.comment,
-          user: user.id,
+          tool: "descriptionGenerator",
+          ...newReview,
+          userProfile: user?.profileImage, // Assuming user has a profileImage property
+          userName:user?.username
         }),
       });
 
-      if (response.ok) {
-        toast.success("Review submitted successfully!");
-        setNewReview({ rating: 0, comment: "" });
-        fetchReviews();
-      } else {
-        toast.error("Failed to submit review.");
+      if (!response.ok) {
+        throw new Error("Failed to submit review");
       }
+
+      toast.success("Review submitted successfully!");
+      setNewReview({ name: "", rating: 0, comment: "", userProfile: "",userName:"" });
+      setShowReviewForm(false);
+      fetchReviews(); // Refresh the reviews
     } catch (error) {
-      console.error("Failed to submit review:", error);
-      toast.error("Failed to submit review.");
+      toast.error("Failed to submit review");
     }
   };
+  const calculateRatingPercentage = (rating) => {
+    const totalReviews = reviews.length;
+    const ratingCount = reviews.filter(
+      (review) => review.rating === rating
+    ).length;
+    return totalReviews ? (ratingCount / totalReviews) * 100 : 0;
+  };
 
-  // Handle input changes
+  const settings = {
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 2,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1,
+          infinite: true,
+        },
+      },
+    ],
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setVideoInfo((prevInfo) => ({
@@ -124,7 +144,6 @@ const YouTubeDescriptionGenerator = () => {
     }));
   };
 
-  // Generate description based on the current state
   const generateDescription = () => {
     const { aboutVideo, timestamps, aboutChannel, recommendedVideos, aboutCompany, website, contactSocial, keywords } = videoInfo;
     return `
@@ -153,7 +172,6 @@ ${keywords}
     `;
   };
 
-  // Handle drag and drop functionality
   const handleDragEnd = (result) => {
     if (!result.destination) return;
 
@@ -164,7 +182,6 @@ ${keywords}
     setSections(newSections);
   };
 
-  // Toggle visibility of sections
   const toggleVisibility = (id) => {
     setSections((prevSections) =>
       prevSections.map((section) =>
@@ -173,23 +190,9 @@ ${keywords}
     );
   };
 
-  const calculateRatingPercentage = (rating) => {
-    const totalReviews = reviews.length;
-    const ratingCount = reviews.filter((review) => review.rating === rating).length;
-    return (ratingCount / totalReviews) * 100;
-  };
-
-  const settings = {
-    dots: true,
-    infinite: false,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-  };
-
+ 
   return (
     <div className="container mx-auto p-6">
-      {/* Page head metadata */}
       <Head>
         <title>{meta.title}</title>
         <meta name="description" content={meta.description} />
@@ -204,13 +207,9 @@ ${keywords}
         <meta name="twitter:description" content={meta.description} />
         <meta name="twitter:image" content="https://unsplash.com/photos/a-green-cloud-floating-over-a-lush-green-field-yb8L9I0He_8" />
       </Head>
-      {/* Toast container for notifications */}
       <ToastContainer />
-      {/* Page title */}
       <h1 className="text-2xl font-bold mb-4 text-center">YouTube Description Generator</h1>
-      {/* Grid layout for input and output sections */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Draggable sections input */}
         <div>
           <DragDropContext onDragEnd={handleDragEnd}>
             <Droppable droppableId="sections">
@@ -250,7 +249,6 @@ ${keywords}
             </Droppable>
           </DragDropContext>
         </div>
-        {/* Generated description output */}
         <div>
           <h2 className="text-xl font-semibold mb-4 text-center">Generated Video Description</h2>
           <div className="p-4 border border-gray-300 rounded bg-gray-100 whitespace-pre-wrap">
@@ -264,35 +262,10 @@ ${keywords}
           </button>
         </div>
       </div>
-      {/* Render content from API */}
       <div className="content pt-6 pb-5">
         <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
       </div>
-      {/* Review section */}
-      <div>
-      {user && (
-                <div className="mt-8 review-card">
-                    <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
-                    <div className="mb-4">
-                        <StarRating rating={newReview.rating} setRating={(rating) => setNewReview({ ...newReview, rating })} />
-                    </div>
-                    <div className="mb-4">
-                        <textarea
-                            className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                            placeholder="Your Review"
-                            value={newReview.comment}
-                            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                        />
-                    </div>
-                    <button
-                        className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
-                        onClick={handleReviewSubmit}
-                    >
-                        Submit Review
-                    </button>
-                </div>
-            )}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border p-5">
           {[5, 4, 3, 2, 1].map((rating) => (
             <div key={rating} className="flex items-center">
               <div className="w-12 text-right mr-4">{rating}-star</div>
@@ -308,37 +281,84 @@ ${keywords}
             </div>
           ))}
         </div>
-        <div className="mt-8 review-card">
-          <h2 className="text-2xl font-semibold mb-4">User Reviews</h2>
-          <Slider {...settings}>
-            {reviews.map((review, index) => (
-              <div key={index} className="p-4 bg-white shadow rounded-lg mt-5">
-                <div className="flex items-center mb-2">
-                  {[...Array(5)].map((star, i) => (
-                    <FaStar
-                      key={i}
-                      size={24}
-                      color={i < review.rating ? "#ffc107" : "#e4e5e9"}
-                    />
-                  ))}
-                  <span className="ml-2 text-xl font-bold">
-                    {review.rating.toFixed(1)}
-                  </span>
-                </div>
-                <div>
-                  <p className="text-gray-600 text-right me-auto">
-                    {new Date(review.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <p className="text-lg font-semibold">{review.comment}</p>
-                <p className="text-gray-600">- {review.user?.username}</p>
+       
+       {/* Review Form */}
+      {/* Review Form Toggle */}
+      {user && !showReviewForm && (
+          <button
+            className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
+            onClick={() => setShowReviewForm(true)}
+          >
+            Add Review
+          </button>
+        )}
+
+        {/* Review Form */}
+        {user && showReviewForm && (
+          <div className="mt-8 review-card">
+            <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+            <div className="mb-4">
+              <StarRating
+                rating={newReview.rating}
+                setRating={(rating) => setNewReview({ ...newReview, rating })}
+              />
+            </div>
+            <div className="mb-4">
+              <textarea
+                className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                placeholder="Your Review"
+                value={newReview.comment}
+                onChange={(e) =>
+                  setNewReview({ ...newReview, comment: e.target.value })
+                }
+              />
+            </div>
+            <button
+              className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+              onClick={handleReviewSubmit}
+            >
+              Submit Review
+            </button>
+          </div>
+        )}
+
+    
+<div className="review-card pb-5">
+      <Slider {...settings}>
+        {reviews.map((review, index) => (
+          <div key={index} className="p-6 bg-white shadow-lg rounded-lg relative mt-5 max-w-sm mx-auto">
+            <div className="flex justify-center">
+              <Image
+                src={`data:image/jpeg;base64,${review?.userProfile}`}
+                alt={review.name}
+                className="w-16 h-16 rounded-full -mt-12 border-2 border-white"
+                width={64}
+                height={64}
+              />
+            </div>
+            <div className="mt-6 text-center">
+              <p className="text-lg italic text-gray-700 mb-4">
+                “{review.comment}”
+              </p>
+              <h3 className="text-xl font-bold text-gray-800">{review.name}</h3>
+              <p className="text-sm text-gray-500">User</p>
+              <div className="flex justify-center mt-3">
+                {[...Array(5)].map((_, i) => (
+                  <FaStar
+                    key={i}
+                    size={24}
+                    color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                  />
+                ))}
               </div>
-            ))}
-          </Slider>
-        </div>
-      </div>
-      {/* Additional styles */}
-     
+              <span className="text-xl font-bold mt-2">{review.rating.toFixed(1)}</span>
+            </div>
+            <div className="absolute top-2 left-2 text-red-600 text-7xl">“</div>
+            <div className="absolute bottom-2 right-2 text-red-600 text-7xl">”</div>
+          </div>
+        ))}
+      </Slider>
+    </div>
     </div>
   );
 };

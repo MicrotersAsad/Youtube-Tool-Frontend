@@ -19,9 +19,9 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'POST') {
     // Post a new review
-    const { tool, rating, comment } = req.body;
+    const { tool, rating, comment, userName, userProfile } = req.body;
 
-    if (!tool || !rating || !comment) {
+    if (!tool || !rating || !comment || !userName || !userProfile) {
       return res.status(400).json({ message: 'All fields are required.' });
     }
 
@@ -30,6 +30,8 @@ export default async function handler(req, res) {
         tool,
         rating,
         comment,
+        userName,
+        userProfile,
         createdAt: new Date(),
       };
 

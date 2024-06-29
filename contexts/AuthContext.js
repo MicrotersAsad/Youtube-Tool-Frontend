@@ -1,3 +1,76 @@
+// import { createContext, useContext, useState, useEffect } from 'react';
+// import { useRouter } from 'next/router';
+// import jwt from 'jsonwebtoken';
+// import axios from 'axios';
+
+// const AuthContext = createContext();
+
+// export const AuthProvider = ({ children }) => {
+//   const [user, setUser] = useState(null);
+//   const router = useRouter();
+
+//   useEffect(() => {
+//     const token = localStorage.getItem('token');
+//     if (token) {
+//       try {
+//         const decoded = jwt.decode(token);
+//         if (decoded) {
+//           setUser(decoded);
+//         } else {
+//           console.error("Token decoding failed");
+//         }
+//       } catch (error) {
+//         console.error("Token verification failed:", error);
+//         localStorage.removeItem('token');
+//         router.push('/login');
+//       }
+//     }
+//   }, [router]);
+
+//   const login = async (email, password) => {
+//     try {
+//       const response = await axios.post('/api/login', { email, password });
+//       const token = response.data.token;
+//       const decoded = jwt.decode(token);
+//       if (decoded) {
+//         setUser(decoded);
+//         localStorage.setItem('token', token);
+//       } else {
+//         console.error("Token decoding failed on login");
+//       }
+//     } catch (error) {
+//       console.error("Login failed:", error);
+//     }
+//   };
+
+//   const logout = () => {
+//     setUser(null);
+//     localStorage.removeItem('token');
+//     router.push('/login');
+//   };
+
+//   const updateUserProfile = async () => {
+//     try {
+//       const token = localStorage.getItem('token');
+//       const response = await axios.get('/api/user', {
+//         headers: {
+//           'Authorization': `Bearer ${token}`,
+//         },
+//       });
+//       setUser(response.data); // Update the user state with the new profile data
+//     } catch (error) {
+//       console.error('Failed to update profile:', error);
+//     }
+//   };
+// console.log(user);
+//   return (
+//     <AuthContext.Provider value={{ user, login, logout, updateUserProfile }}>
+//       {children}
+//     </AuthContext.Provider>
+//   );
+// };
+
+// export const useAuth = () => useContext(AuthContext);
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import jwt from 'jsonwebtoken';
@@ -18,14 +91,20 @@ export const AuthProvider = ({ children }) => {
           setUser(decoded);
         } else {
           console.error("Token decoding failed");
+          handleLogout();
         }
       } catch (error) {
         console.error("Token verification failed:", error);
-        localStorage.removeItem('token');
-        router.push('/login');
+        handleLogout();
       }
     }
-  }, [router]);
+  }, []);
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
 
   const login = async (email, password) => {
     try {
@@ -35,18 +114,13 @@ export const AuthProvider = ({ children }) => {
       if (decoded) {
         setUser(decoded);
         localStorage.setItem('token', token);
+        router.push('/'); // Redirect to homepage after successful login
       } else {
         console.error("Token decoding failed on login");
       }
     } catch (error) {
       console.error("Login failed:", error);
     }
-  };
-
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('token');
-    router.push('/login');
   };
 
   const updateUserProfile = async () => {
@@ -64,7 +138,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateUserProfile }}>
+    <AuthContext.Provider value={{ user, login, logout: handleLogout, updateUserProfile }}>
       {children}
     </AuthContext.Provider>
   );

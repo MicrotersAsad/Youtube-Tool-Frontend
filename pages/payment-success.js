@@ -25,6 +25,7 @@ const PaymentSuccess = () => {
         })
         .then(response => {
           login(response.data.token); // Assuming the updated token is returned
+          router.push('https://youtube-tool-frontend.vercel.app/');
         })
         .catch(error => {
           console.error('Failed to update payment status:', error);
@@ -41,7 +42,7 @@ const PaymentSuccess = () => {
         console.error('No token found in local storage');
       }
     }
-  }, [session_id, user, login]);
+  }, [session_id, user, login, router]);
 
   return (
     <div>

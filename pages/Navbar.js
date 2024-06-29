@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment } from 'react';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
@@ -6,17 +6,6 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 import logo from "../public/yt icon.png";
 import Image from 'next/image';
-import {
-  FaTags, FaSearch, FaPenAlt, FaFileAlt, FaImage, FaHashtag, FaCode, FaFlag, FaIdCard, FaVideo, FaDollarSign,
-  FaBook,
-  FaLink,
-  FaFire,
-  FaDownload,
-  FaFileDownload,
-  FaCloudDownloadAlt,
-  FaKeybase,
-  FaComment
-} from 'react-icons/fa';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -25,26 +14,26 @@ function classNames(...classes) {
 const navigation = [
   { name: 'Home', href: '/', dropdown: false },
   {
-    name: 'Youtube Tools', href: '#', dropdown: true, children: [
-      { name: 'Tag Generator', href: '/tools/tagGenerator', icon: <FaTags /> },
-      { name: 'Tag Extractor', href: '/tools/tagExtractor', icon: <FaSearch /> },
-      { name: 'Title & Description Generator', href: '/tools/youtube-title-and-description-generator', icon: <FaPenAlt /> },
-      { name: 'Title & Description Extractor', href: '/tools/youtube-title-and-description-extractor', icon: <FaFileAlt /> },
-      { name: 'Youtube Thumbnails Download', href: '/tools/youtube-thumbnail', icon: <FaFileDownload /> },
-      { name: 'YouTube Hashtag Generator', href: '/tools/YouTube-Hashtag-Generator', icon: <FaHashtag /> },
-      { name: 'YouTube Embed Code Generator', href: '/tools/YouTube-Embed-Code-Generator', icon: <FaCode /> },
-      { name: 'YouTube Channel Banner Downloader', href: '/tools/YouTube-Channel-Banner-Downloader', icon: <FaDownload /> },
-      { name: 'YouTube Channel Logo Downloader', href: '/tools/YouTube-Channel-Logo-Downloader', icon: <FaCloudDownloadAlt /> },
-      { name: 'Channel Id Finder', href: '/tools/channel-id-finder', icon: <FaIdCard /> },
-      { name: 'Video data viewer', href: '/tools/video-data-viewer', icon: <FaVideo /> },
-      { name: 'Monetization Checker', href: '/tools/monetization-checker', icon: <FaDollarSign /> },
-      { name: 'YouTube Channel Details Finder', href: '/tools/YouTube-Channel-Details-Finder', icon: <FaSearch /> },
-      { name: 'YouTube Video Summary Generator', href: '/tools/YouTube-Video-Summary-Generator', icon: <FaBook /> },
-      { name: 'Case Converter', href: '/tools/case-converter', icon: <FaLink /> },
-      { name: 'YouTube Trending Videos', href: '/tools/trendingVideos', icon: <FaFire /> },
-      { name: 'YouTube Money Calculator', href: '/tools/YouTube-Money-Calculator', icon: <FaDollarSign /> },
-      { name: 'YouTube Keyword Research', href: '/tools/keyword-research', icon: <FaKeybase /> },
-      { name: 'Youtube Comment Picker', href: '/tools/youtube-comment-picker', icon: <FaComment /> }
+    name: 'YouTube Tools', href: '#', dropdown: true, children: [
+      { name: 'Tag Generator', href: '/tools/tagGenerator', icon: '🔖' },
+      { name: 'Tag Extractor', href: '/tools/tagExtractor', icon: '🔍' },
+      { name: 'Title & Description Generator', href: '/tools/youtube-title-and-description-generator', icon: '📝' },
+      { name: 'Title & Description Extractor', href: '/tools/youtube-title-and-description-extractor', icon: '📄' },
+      { name: 'YouTube Thumbnails Download', href: '/tools/youtube-thumbnail', icon: '📥' },
+      { name: 'YouTube Hashtag Generator', href: '/tools/YouTube-Hashtag-Generator', icon: '#️⃣' },
+      { name: 'YouTube Embed Code Generator', href: '/tools/YouTube-Embed-Code-Generator', icon: '📋' },
+      { name: 'YouTube Channel Banner Downloader', href: '/tools/YouTube-Channel-Banner-Downloader', icon: '📥' },
+      { name: 'YouTube Channel Logo Downloader', href: '/tools/YouTube-Channel-Logo-Downloader', icon: '🎨' },
+      { name: 'Channel Id Finder', href: '/tools/channel-id-finder', icon: '🆔' },
+      { name: 'Video Data Viewer', href: '/tools/video-data-viewer', icon: '👁️' },
+      { name: 'Monetization Checker', href: '/tools/monetization-checker', icon: '💰' },
+      { name: 'YouTube Channel Details Finder', href: '/tools/YouTube-Channel-Details-Finder', icon: '🔍' },
+      { name: 'YouTube Video Summary Generator', href: '/tools/YouTube-Video-Summary-Generator', icon: '📝' },
+      { name: 'Case Converter', href: '/tools/case-converter', icon: '🔄' },
+      { name: 'YouTube Trending Videos', href: '/tools/trendingVideos', icon: '🔥' },
+      { name: 'YouTube Money Calculator', href: '/tools/YouTube-Money-Calculator', icon: '💰' },
+      { name: 'YouTube Keyword Research', href: '/tools/keyword-research', icon: '🔍' },
+      { name: 'YouTube Comment Picker', href: '/tools/youtube-comment-picker', icon: '🎲' }
     ]
   },
   { name: 'Pricing', href: '/pricing', dropdown: false },
@@ -56,29 +45,6 @@ const navigation = [
 function Navbar() {
   const { user, logout } = useAuth();
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-
-  useEffect(() => {
-    if (searchQuery) {
-      // Fetch search results from your API
-      fetch(`/api/search?query=${searchQuery}`)
-        .then(response => response.json())
-        .then(data => setSearchResults(data.results))
-        .catch(error => console.error('Error fetching search results:', error));
-    } else {
-      setSearchResults([]);
-    }
-  }, [searchQuery]);
-
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    router.push(`/search?query=${searchQuery}`);
-  };
 
   return (
     <>
@@ -98,7 +64,7 @@ function Navbar() {
                     <Link href='/'>
                       <Image 
                         src={logo}
-                        alt="GFG logo served with static path of public directory"
+                        alt="Logo"
                         height="70"
                         width="150"
                       />
@@ -124,13 +90,15 @@ function Navbar() {
                               leaveFrom="opacity-100 translate-y-0"
                               leaveTo="opacity-0 translate-y-1"
                             >
-                              <Menu.Items className="absolute z-10 mt-2 w-80 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none grid grid-cols-2 gap-4 p-4">
+                            <Menu.Items className="absolute z-10 mt-2 w-[52rem] origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none grid grid-cols-2 gap-2">
+
+
                                 {item.children.map((subItem) => (
                                   <Menu.Item key={subItem.name}>
                                     {({ active }) => (
-                                      <Link href={subItem.href} className={classNames(active ? 'bg-gray-100' : '', 'flex items-center space-x-2 px-2 py-1 text-gray-700 rounded-md')}>
-                                        {subItem.icon}
-                                        <span>{subItem.name}</span>
+                                      <Link href={subItem.href} className={classNames(active ? 'bg-gray-100' : '', 'flex items-center p-2 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition')}>
+                                        <i className="mr-3 text-blue-500 text-xl">{subItem.icon}</i>
+                                        <span className="text-gray-800">{subItem.name}</span>
                                       </Link>
                                     )}
                                   </Menu.Item>
@@ -159,24 +127,6 @@ function Navbar() {
                   </div>
                 </div>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-                  <form onSubmit={handleSearchSubmit} className="hidden sm:block relative">
-                    <input
-                      type="text"
-                      placeholder="Search..."
-                      value={searchQuery}
-                      onChange={handleSearchChange}
-                      className="px-3 py-2 rounded-md bg-gray-700 text-black border-transparent focus:border-gray-500 focus:bg-white focus:ring-0 text-sm"
-                    />
-                    {searchQuery && searchResults.length > 0 && (
-                      <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10">
-                        {searchResults.map(result => (
-                          <Link key={result.id} href={result.href}>
-                            <span className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{result.title}</span>
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </form>
                   {user ? (
                     <Menu as="div" className="relative ml-3">
                       <div>
@@ -262,7 +212,7 @@ function Navbar() {
                               {({ active }) => (
                                 <Link href={subItem.href} className={classNames(active ? 'text-gray-300 hover:text-red-500 hover:bg-gray-700' : 'text-gray-300 hover:text-red-500 hover:bg-gray-700')}>
                                   <span className="flex items-center">
-                                    {subItem.icon}
+                                    <i className="mr-3 text-blue-500 text-xl">{subItem.icon}</i>
                                     <span className="ml-2">{subItem.name}</span>
                                   </span>
                                 </Link>

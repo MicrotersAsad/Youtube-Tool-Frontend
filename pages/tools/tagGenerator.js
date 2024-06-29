@@ -31,7 +31,6 @@ const TagGenerator = () => {
   const [input, setInput] = useState("");
   const [generatedTitles, setGeneratedTitles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showCaptcha, setShowCaptcha] = useState(false);
   const [showShareIcons, setShowShareIcons] = useState(false);
   const apiKey = process.env.NEXT_PUBLIC_API_KEY;
   const [selectAll, setSelectAll] = useState(false);
@@ -41,6 +40,8 @@ const TagGenerator = () => {
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+
   const [newReview, setNewReview] = useState({
     name: "",
     rating: 0,
@@ -51,6 +52,7 @@ const TagGenerator = () => {
   const closeModal = () => {
     setModalVisible(false);
   };
+
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -69,18 +71,16 @@ const TagGenerator = () => {
     };
 
     fetchContent();
-    fetchReviews();
+    fetchReviews(); // Fetch reviews when component mounts
   }, []);
-
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch("/api/reviews?tool=tag-generator");
-      const data = await response.json();
-      setReviews(data);
-    } catch (error) {
-      console.error("Failed to fetch reviews:", error);
+  
+  // Fetch user data when user changes
+  useEffect(() => {
+    if (user && !user.name) {
+      updateUserProfile().then(() => setIsUpdated(true));
     }
-  };
+  }, [user, updateUserProfile]);
+
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
@@ -303,7 +303,8 @@ const TagGenerator = () => {
         body: JSON.stringify({
           tool: "tag-generator",
           ...newReview,
-          userProfile: user?.profileImage || "", // Assuming user has a profileImage property
+          userProfile: user?.profileImage || "nai", // Assuming user has a profileImage property
+          userName:user?.username
         }),
       });
 
@@ -312,13 +313,30 @@ const TagGenerator = () => {
       }
 
       toast.success("Review submitted successfully!");
-      setNewReview({ name: "", rating: 0, comment: "", userProfile: "" });
+      setNewReview({ name: "", rating: 0, comment: "", userProfile: "",userName:"" });
+      setShowReviewForm(false);
       fetchReviews(); // Refresh the reviews
     } catch (error) {
       toast.error("Failed to submit review");
     }
   };
 
+  const fetchReviews = async () => {
+    try {
+      const response = await fetch("/api/reviews?tool=tag-generator");
+      const data = await response.json();
+      // Update reviews state to include user details
+      const updatedReviews = data.map(review => ({
+        ...review,
+        name: review.userName , // Assuming user has a name field
+        userProfile: review.userProfile, // Use userProfile from review or empty string
+      }));
+      setReviews(updatedReviews);
+    } catch (error) {
+      console.error("Failed to fetch reviews:", error);
+    }
+  };
+  
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
     const ratingCount = reviews.filter(
@@ -331,7 +349,7 @@ const TagGenerator = () => {
     infinite: true,
     speed: 500,
     slidesToShow: 1,
-    slidesToScroll: 2,
+    slidesToScroll: 1,
     responsive: [
       {
         breakpoint: 1024,
@@ -395,7 +413,7 @@ const TagGenerator = () => {
                   >
                     {/* SVG content can go here */}
                   </svg>
-                  <div>
+                  <div className="mt-4">
                     {!user ? (
                       <p className="text-center p-3 alert-warning">
                         You need to be logged in to generate tags.
@@ -460,34 +478,30 @@ const TagGenerator = () => {
         </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
-        <div className="text-end">
-          <button
-            className="btn btn-danger whitespace-nowrap"
-            onClick={handleShareClick}
-            style={{ minWidth: "50px" }}
-          >
-            <FaShareAlt />
-          </button>
-          {showShareIcons && (
+        <div className="text-center">
+        
+          
             <div className="flex gap-2">
+            <FaShareAlt className="text-danger fs-3"/> 
+          <span> Share On Social Media</span>
               <FaFacebook
-                className="facebook-icon"
+                className="facebook-icon fs-3 text-center"
                 onClick={() => shareOnSocialMedia("facebook")}
               />
               <FaInstagram
-                className="instagram-icon"
+                className="instagram-icon  fs-3"
                 onClick={() => shareOnSocialMedia("instagram")}
               />
               <FaTwitter
-                className="twitter-icon"
+                className="twitter-icon  fs-3"
                 onClick={() => shareOnSocialMedia("twitter")}
               />
               <FaLinkedin
-                className="linkedin-icon"
+                className="linkedin-icon  fs-3"
                 onClick={() => shareOnSocialMedia("linkedin")}
               />
             </div>
-          )}
+          
         </div>
         <div className="generated-titles-container">
           {generatedTitles.length > 0 && (
@@ -535,8 +549,36 @@ const TagGenerator = () => {
             style={{ listStyleType: "none" }}
           ></div>
         </div>
+            {/* Reviews Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
+          {[5, 4, 3, 2, 1].map((rating) => (
+            <div key={rating} className="flex items-center">
+              <div className="w-12 text-right mr-4">{rating}-star</div>
+              <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
+                <div
+                  className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0"
+                  style={{ width: `${calculateRatingPercentage(rating)}%` }}
+                ></div>
+              </div>
+              <div className="w-12 text-left ml-4">
+                {calculateRatingPercentage(rating).toFixed(1)}%
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Review Form Toggle */}
+        {user && !showReviewForm && (
+          <button
+            className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
+            onClick={() => setShowReviewForm(true)}
+          >
+            Add Review
+          </button>
+        )}
+
         {/* Review Form */}
-        {user && (
+        {user && showReviewForm && (
           <div className="mt-8 review-card">
             <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
             <div className="mb-4">
@@ -563,57 +605,46 @@ const TagGenerator = () => {
             </button>
           </div>
         )}
-        {/* Reviews Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5">
-          {[5, 4, 3, 2, 1].map((rating) => (
-            <div key={rating} className="flex items-center">
-              <div className="w-12 text-right mr-4">{rating}-star</div>
-              <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
-                <div
-                  className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0"
-                  style={{ width: `${calculateRatingPercentage(rating)}%` }}
-                ></div>
-              </div>
-              <div className="w-12 text-left ml-4">
-                {calculateRatingPercentage(rating).toFixed(1)}%
-              </div>
-            </div>
-          ))}
-        </div>
+    
         <div className="review-card pb-5">
-          <Slider {...settings}>
-            {reviews.map((review, index) => (
-              <div key={index} className="p-4 bg-white shadow rounded-lg mt-5">
-                <div className="flex items-center mb-2">
-                  {[...Array(5)].map((star, i) => (
-                    <FaStar
-                      key={i}
-                      size={24}
-                      color={i < review.rating ? "#ffc107" : "#e4e5e9"}
-                    />
-                  ))}
-                  <span className="ml-2 text-xl font-bold">
-                    {review.rating.toFixed(1)}
-                  </span>
-                </div>
-                <div>
-                  <p className="text-gray-600 text-right me-auto">
-                    {new Date(review.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <p className="text-lg font-semibold">{review.comment}</p>
-                <p className="text-gray-600">- {review.name}</p>
-                {review.userProfile && (
-                  <img
-                    src={review.userProfile}
-                    alt="User Profile"
-                    className="w-12 h-12 rounded-full mt-2"
+      <Slider {...settings}>
+        {reviews.map((review, index) => (
+          <div key={index} className="p-6 bg-white shadow-lg rounded-lg relative mt-5 max-w-sm mx-auto">
+            <div className="flex justify-center">
+              <Image
+                src={`data:image/jpeg;base64,${review?.userProfile}`}
+                alt={review.name}
+                className="w-16 h-16 rounded-full -mt-12 border-2 border-white"
+                width={64}
+                height={64}
+              />
+            </div>
+            <div className="mt-6 text-center">
+              <p className="text-lg italic text-gray-700 mb-4">
+                “{review.comment}”
+              </p>
+              <h3 className="text-xl font-bold text-gray-800">{review.name}</h3>
+              <p className="text-sm text-gray-500">User</p>
+              <div className="flex justify-center mt-3">
+                {[...Array(5)].map((_, i) => (
+                  <FaStar
+                    key={i}
+                    size={24}
+                    color={i < review.rating ? "#ffc107" : "#e4e5e9"}
                   />
-                )}
+                ))}
               </div>
-            ))}
-          </Slider>
-        </div>
+              <span className="text-xl font-bold mt-2">{review.rating.toFixed(1)}</span>
+            </div>
+            <div className="absolute top-2 left-2 text-red-600 text-7xl">“</div>
+            <div className="absolute bottom-2 right-2 text-red-600 text-7xl">”</div>
+          </div>
+        ))}
+      </Slider>
+    </div>
+       
+  
+
       </div>
     </>
   );
