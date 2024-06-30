@@ -525,9 +525,11 @@ const TagGenerator = () => {
             </button>
           )}
         </div> */}
-        <div className="generated-titles-container grid grid-cols-1 md:grid-cols-4 gap-4">
-  {generatedTitles.length > 0 && (
-    <div className="select-all-checkbox">
+
+       
+        <div className="center">
+        {generatedTitles.length > 0 && (
+    <div className="rounded p-3">
       <input
         type="checkbox"
         checked={selectAll}
@@ -536,10 +538,12 @@ const TagGenerator = () => {
       <span>Select All</span>
     </div>
   )}
+        </div>
+   <div className="generated-titles-container grid grid-cols-1 md:grid-cols-4 gap-4">
   {generatedTitles.map((title, index) => (
-    <div key={index} className="title-checkbox flex items-center">
+    <div key={index} className="title-checkbox rounded flex items-center">
       <input
-        className="me-2"
+        className="me-2 rounded"
         type="checkbox"
         checked={title.selected}
         onChange={() => toggleTitleSelect(index)}
@@ -551,19 +555,20 @@ const TagGenerator = () => {
       />
     </div>
   ))}
-  {generatedTitles.some((title) => title.selected) && (
-    <button className="btn btn-primary" onClick={copySelectedTitles}>
-      Copy <FaCopy />
-    </button>
-  )}
-  {generatedTitles.some((title) => title.selected) && (
-    <button
-      className="btn btn-primary ms-2"
-      onClick={downloadSelectedTitles}
-    >
-      Download <FaDownload />
-    </button>
-  )}
+  
+</div>
+<div className="d-flex">
+{generatedTitles.some((title) => title.selected) && (
+  
+  <FaCopy onClick={copySelectedTitles}  className="text-center text-red-500 cursor-pointer ms-2 fs-4"/>
+  
+
+)}
+{generatedTitles.some((title) => title.selected) && (
+
+  <FaDownload onClick={downloadSelectedTitles}  className="text-center text-red-500 cursor-pointer ms-2 fs-4"/>
+
+)}
 </div>
 
         <div className="content pt-6 pb-5">

@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import { connectToDatabase } from '../../utils/mongodb';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -13,49 +14,77 @@ export default async function handler(req, res) {
   }
 
   try {
-    const apiKey = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
+    // Connect to the MongoDB database
+    const { db } = await connectToDatabase();
+    // Fetch all active API tokens from the collection
+    const tokens = await db.collection('ytApi').find({ active: true }).toArray();
 
-    // Fetch video categories
-    const categoryUrl = `https://www.googleapis.com/youtube/v3/videoCategories?part=snippet&regionCode=${country}&key=${apiKey}`;
-    const categoryResponse = await fetch(categoryUrl);
-    const categoryData = await categoryResponse.json();
+    let videos = [];
+    let categoryDict = {};
+    let tokenIndex = 0;
 
-    if (!categoryResponse.ok || !categoryData.items) {
-      throw new Error('Failed to fetch video categories');
+    while (tokenIndex < tokens.length) {
+      const apiKey = tokens[tokenIndex].token;
+
+      try {
+        // Fetch video categories
+        const categoryUrl = `https://www.googleapis.com/youtube/v3/videoCategories?part=snippet&regionCode=${country}&key=${apiKey}`;
+        const categoryResponse = await fetch(categoryUrl);
+        const categoryData = await categoryResponse.json();
+
+        if (!categoryResponse.ok || !categoryData.items) {
+          throw new Error('Failed to fetch video categories');
+        }
+
+        categoryDict = categoryData.items.reduce((acc, item) => {
+          acc[item.id] = item.snippet.title;
+          return acc;
+        }, {});
+
+        // Fetch trending videos
+        let videoUrl = `https://www.googleapis.com/youtube/v3/videos?chart=mostPopular&part=snippet,contentDetails,statistics&maxResults=12&key=${apiKey}`;
+        if (country !== 'All') {
+          videoUrl += `&regionCode=${country}`;
+        }
+        if (category !== 'All') {
+          videoUrl += `&videoCategoryId=${category}`;
+        }
+
+        const videoResponse = await fetch(videoUrl);
+        const videoData = await videoResponse.json();
+
+        if (!videoResponse.ok || !videoData.items) {
+          throw new Error('Failed to fetch trending videos');
+        }
+
+        videos = videoData.items.map(item => ({
+          title: item.snippet.title,
+          thumbnail: item.snippet.thumbnails.high.url,
+          channel: item.snippet.channelTitle,
+          uploadedAt: item.snippet.publishedAt,
+          category: categoryDict[item.snippet.categoryId] || 'Unknown',
+          likes: item.statistics.likeCount,
+          comments: item.statistics.commentCount,
+          views: item.statistics.viewCount,
+          videoId: item.id,
+        }));
+
+        break; // Exit loop on successful fetch
+      } catch (error) {
+        console.error(`Error with API key ${apiKey}:`, error.message);
+
+        if (error.message.includes('quotaExceeded')) {
+          tokenIndex++; // Try the next API key
+          continue;
+        }
+
+        throw new Error('Failed to fetch trending videos');
+      }
     }
 
-    const categoryDict = categoryData.items.reduce((acc, item) => {
-      acc[item.id] = item.snippet.title;
-      return acc;
-    }, {});
-
-    // Fetch trending videos
-    let videoUrl = `https://www.googleapis.com/youtube/v3/videos?chart=mostPopular&part=snippet,contentDetails,statistics&maxResults=12&key=${apiKey}`;
-    if (country !== 'All') {
-      videoUrl += `&regionCode=${country}`;
+    if (videos.length === 0) {
+      throw new Error('All API keys exhausted or error occurred');
     }
-    if (category !== 'All') {
-      videoUrl += `&videoCategoryId=${category}`;
-    }
-
-    const videoResponse = await fetch(videoUrl);
-    const videoData = await videoResponse.json();
-
-    if (!videoResponse.ok || !videoData.items) {
-      throw new Error('Failed to fetch trending videos');
-    }
-
-    const videos = videoData.items.map(item => ({
-      title: item.snippet.title,
-      thumbnail: item.snippet.thumbnails.high.url,
-      channel: item.snippet.channelTitle,
-      uploadedAt: item.snippet.publishedAt,
-      category: categoryDict[item.snippet.categoryId] || 'Unknown',
-      likes: item.statistics.likeCount,
-      comments: item.statistics.commentCount,
-      views: item.statistics.viewCount,
-      videoId: item.id,
-    }));
 
     res.status(200).json({ videos, categories: categoryDict });
   } catch (error) {

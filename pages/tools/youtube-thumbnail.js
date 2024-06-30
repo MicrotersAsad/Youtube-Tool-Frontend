@@ -14,13 +14,15 @@ import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
 import Image from "next/image";
 import { ToastContainer, toast } from "react-toastify";
-import Head from "next/head";
-import sanitizeHtml from "sanitize-html";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import StarRating from "./StarRating"; // Assuming StarRating is a custom component
-
+import announce from "../../public/shape/announce.png";
+import chart from "../../public/shape/chart (1).png";
+import cloud from "../../public/shape/cloud.png";
+import cloud2 from "../../public/shape/cloud2.png";
+import Head from "next/head";
 const YtThumbnailDw = () => {
   const { isLoggedIn, user, updateUserProfile, logout } = useAuth(); // Added logout
   const [videoUrl, setVideoUrl] = useState("");
@@ -38,7 +40,7 @@ const YtThumbnailDw = () => {
   const [existingContent, setExistingContent] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
   const [modalVisible, setModalVisible] = useState(true);
-
+  const [showReviewForm, setShowReviewForm] = useState(false);
   const closeModal = () => {
     setModalVisible(false);
   };
@@ -99,7 +101,7 @@ const YtThumbnailDw = () => {
 
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
-      toast.error("Please fill in both rating and comment.");
+      toast.error("All fields are required.");
       return;
     }
 
@@ -111,22 +113,21 @@ const YtThumbnailDw = () => {
         },
         body: JSON.stringify({
           tool: "yt-thumbnail-downloader",
-          rating: newReview.rating,
-          comment: newReview.comment,
-          user: user.id,
+          ...newReview,
+          userProfile: user?.profileImage || "not available",
+          userName: user?.username,
         }),
       });
 
-      if (response.ok) {
-        toast.success("Review submitted successfully!");
-        setNewReview({ rating: 0, comment: "" });
-        fetchReviews();
-      } else {
-        toast.error("Failed to submit review.");
-      }
+      if (!response.ok) throw new Error("Failed to submit review");
+
+      toast.success("Review submitted successfully!");
+      setNewReview({ name: "", rating: 0, comment: "", userProfile: "", userName: "" });
+      setShowReviewForm(false);
+      fetchReviews();
     } catch (error) {
       console.error("Failed to submit review:", error);
-      toast.error("Failed to submit review.");
+      toast.error("Failed to submit review");
     }
   };
 
@@ -139,44 +140,57 @@ const YtThumbnailDw = () => {
   };
 
   const fetchYouTubeData = async () => {
-    if (
-      user &&
-      user.paymentStatus !== "success" &&
-      user.role !== "admin" &&
-      generateCount <= 0
-    ) {
-      toast.error(
-        "You have reached the limit of generating tags. Please upgrade your plan for unlimited use."
-      );
+    if (generateCount <= 0) {
+      toast.error("You have reached the limit of generating titles. Please upgrade your plan for unlimited use.");
       return;
     }
+    if (!videoUrl) {
+      toast.error("Please enter a valid YouTube video URL.");
+      return;
+    }
+  
+    setLoading(true);
+    setError("");
+  
     try {
-      setLoading(true);
-      setError("");
+      const tokensResponse = await fetch("/api/tokens");
+      if (!tokensResponse.ok) throw new Error("Failed to fetch API tokens");
+  
+      const tokens = await tokensResponse.json();
       const videoId = extractVideoId(videoUrl);
-
-      const response = await axios.get(
-        `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${process.env.NEXT_PUBLIC_YOUTUBE_API_KEY}`
-      );
-
-      const thumbnailData = response.data.items[0].snippet.thumbnails;
-
-      setThumbnails(thumbnailData);
-
-      setGenerateCount((prevCount) => {
-        const newCount = prevCount + 1;
-        localStorage.setItem("generateCount", newCount);
-        return newCount;
-      });
+      let dataFetched = false;
+  
+      for (const { token } of tokens) {
+        try {
+          const response = await axios.get(
+            `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${token}`
+          );
+  
+          if (response.data.items && response.data.items.length > 0) {
+            const { thumbnails } = response.data.items[0].snippet;
+            console.log(thumbnails);
+            setThumbnails(thumbnails);
+            dataFetched = true;
+            break; // Exit loop on success
+          } else {
+            console.error("No video data found for the provided URL.");
+          }
+        } catch (error) {
+          console.error(`Error fetching data with token ${token}:`, error.response?.data || error.message);
+        }
+      }
+  
+      if (!dataFetched) {
+        throw new Error("All API tokens exhausted or failed to fetch data.");
+      }
     } catch (error) {
-      console.error("Error fetching YouTube data:", error);
       setError("Failed to fetch YouTube data. Please check the video URL.");
-      setThumbnails(null);
-      setSelectedThumbnailUrl("");
+      console.error("Error:", error);
     } finally {
       setLoading(false);
     }
   };
+  
 
   const extractVideoId = (url) => {
     const regex =
@@ -185,30 +199,17 @@ const YtThumbnailDw = () => {
     return match ? match[2] : null;
   };
 
-  const downloadThumbnail = () => {
-    if (!selectedThumbnailUrl) return;
+  const downloadThumbnail = (url) => {
+    if (!url) {
+      toast.error("No thumbnail URL selected.");
+      return;
+    }
 
-    const fileName = "YouTube_thumbnail.jpg";
-
-    fetch(selectedThumbnailUrl)
-      .then((response) => response.blob())
-      .then((blob) => {
-        const url = window.URL.createObjectURL(new Blob([blob]));
-
-        const anchor = document.createElement("a");
-        anchor.href = url;
-        anchor.download = fileName;
-        document.body.appendChild(anchor);
-        anchor.click();
-
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(anchor);
-      })
-      .catch((error) => {
-        console.error("Error downloading thumbnail:", error);
-      });
+    window.location.href = url;
   };
-
+  
+  
+  
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
     const ratingCount = reviews.filter(
@@ -226,7 +227,16 @@ const YtThumbnailDw = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
+    <>
+    <div className="bg-box">
+      <div>
+        <Image className="shape1" src={announce} alt="announce" />
+        <Image className="shape2" src={cloud} alt="announce" />
+        <Image className="shape3" src={cloud2} alt="announce" />
+        <Image className="shape4" src={chart} alt="announce" />
+      </div>
+
+      <div className="max-w-7xl mx-auto p-4">
       <Head>
         <title>{meta.title}</title>
         <meta name="description" content={meta.description} />
@@ -250,51 +260,43 @@ const YtThumbnailDw = () => {
         <meta name="twitter:description" content={meta.description} />
         <meta name="twitter:image" content={meta.image} />
       </Head>
-      <h2 className="text-3xl pt-5">YouTube Thumbnails Generator</h2>
+      <h2 className="text-3xl pt-5 text-white">YouTube Thumbnails Generator</h2>
       <ToastContainer />
       {modalVisible && (
-        <div className="text-center pt-4 pb-4">
-          <div
-            className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
-            role="alert"
-          >
-            <div className="flex">
-              <div className="py-1">
-                <svg
-                  className="fill-current h-6 w-6 text-yellow-500 mr-4"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                ></svg>
-              </div>
-              <div>
-                {user ? (
-                  user.paymentStatus === "success" || user.role === "admin" ? (
-                    <p className="text-center p-3 alert-warning">
-                      Congratulations!! Now you can generate unlimited
-                      thumbnails.
-                    </p>
+            <div
+              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+              role="alert"
+            >
+              <div className="flex">
+              <div className="mt-4">
+                  {user ? (
+                    user.paymentStatus === "success" ||
+                    user.role === "admin" ? (
+                      <p className="text-center p-3 alert-warning">
+                        Congratulations! Now you can generate unlimited Titles.
+                      </p>
+                    ) : (
+                      <p className="text-center p-3 alert-warning">
+                        You are not upgraded. You can generate titles{" "}
+                        {5 - generateCount} more times.{" "}
+                        <Link href="/pricing" className="btn btn-warning ms-3">
+                          Upgrade
+                        </Link>
+                      </p>
+                    )
                   ) : (
                     <p className="text-center p-3 alert-warning">
-                      You are not upgraded. You can generate thumbnails{" "}
-                      {5 - generateCount} more times.{" "}
-                      <Link href="/pricing" className="btn btn-warning ms-3">
-                        Upgrade
-                      </Link>
+                      Please log in to fetch channel data.
                     </p>
-                  )
-                ) : (
-                  <p className="text-center p-3 alert-warning">
-                    Please log in to use this tool.
-                  </p>
-                )}
+                  )}
+                </div>
+                <button className="text-yellow-700 ml-auto" onClick={closeModal}>
+                  ×
+                </button>
               </div>
-              <button className="ml-auto text-yellow-700" onClick={closeModal}>
-                ×
-              </button>
             </div>
-          </div>
-        </div>
-      )}
+          )}
+
 
       <div className="row justify-content-center pt-5">
         <div className="col-md-6">
@@ -316,7 +318,7 @@ const YtThumbnailDw = () => {
               {loading ? "Loading..." : "Fetch Thumbnail"}
             </button>
           </div>
-          <small className="text-muted">
+          <small className="text-white">
             Example: https://www.youtube.com/watch?v=j6X9tH9y_cs
           </small>
           <br />
@@ -333,11 +335,17 @@ const YtThumbnailDw = () => {
               </div>
             )}
           </div>
+          </div>
+          
           {error && (
             <div className="alert alert-danger" role="alert">
               {error}
             </div>
           )}
+          </div>
+          </div>
+          </div>
+          <div className="max-w-7xl mx-auto p-4">
           <div className="d-flex flex-wrap justify-content-center">
             {thumbnails &&
               Object.entries(thumbnails).map(([resolution, { url }]) => (
@@ -366,12 +374,20 @@ const YtThumbnailDw = () => {
                 </div>
               ))}
           </div>
+        <div className="text-center mt-4">  
           {selectedThumbnailUrl && (
-            <button className="btn btn-danger mt-3" onClick={downloadThumbnail}>
-              <FaDownload />
-            </button>
+             <button className="btn btn-danger">
+          <Link  target="_blank" href={selectedThumbnailUrl} download="YouTube_thumbnail.jpg">
+         
+            <FaDownload  className="text-white"/>
+          
+        </Link>
+        </button>
+        
+         
           )}
-        </div>
+          </div>
+    
         <div className="content pt-6 pb-5">
           <div
             dangerouslySetInnerHTML={{ __html: existingContent }}
@@ -379,90 +395,101 @@ const YtThumbnailDw = () => {
           ></div>
         </div>
         <div>
-          {/* Review Form */}
-          {user && (
-            <div className="mt-8 review-card">
-              <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
-              <div className="mb-4">
-                <StarRating
-                  rating={newReview.rating}
-                  setRating={(rating) => setNewReview({ ...newReview, rating })}
-                />
-              </div>
-              <div className="mb-4">
-                <textarea
-                  className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder="Your Review"
-                  value={newReview.comment}
-                  onChange={(e) =>
-                    setNewReview({ ...newReview, comment: e.target.value })
-                  }
-                />
-              </div>
-              <button
-                className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
-                onClick={handleReviewSubmit}
-              >
-                Submit Review
-              </button>
-            </div>
-          )}
-          {/* Reviews Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5">
-            {[5, 4, 3, 2, 1].map((rating) => (
-              <div key={rating} className="flex items-center">
-                <div className="w-12 text-right mr-4">{rating}-star</div>
-                <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
-                  <div
-                    className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0"
-                    style={{ width: `${calculateRatingPercentage(rating)}%` }}
-                  ></div>
-                </div>
-                <div className="w-12 text-left ml-4">
-                  {calculateRatingPercentage(rating).toFixed(1)}%
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="review-card pb-5">
-            <Slider {...settings}>
-              {reviews.map((review, index) => (
+                   {/* Reviews Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
+          {[5, 4, 3, 2, 1].map((rating) => (
+            <div key={rating} className="flex items-center">
+              <div className="w-12 text-right mr-4">{rating}-star</div>
+              <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
                 <div
-                  key={index}
-                  className="p-4 bg-white shadow rounded-lg mt-5"
-                >
-                  <div className="flex items-center mb-2">
-                    {[...Array(5)].map((star, i) => (
+                  className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0"
+                  style={{ width: `${calculateRatingPercentage(rating)}%` }}
+                ></div>
+              </div>
+              <div className="w-12 text-left ml-4">
+                {calculateRatingPercentage(rating).toFixed(1)}%
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Review Form Toggle */}
+        {user && !showReviewForm && (
+          <button
+            className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
+            onClick={() => setShowReviewForm(true)}
+          >
+            Add Review
+          </button>
+        )}
+
+        {/* Review Form */}
+        {user && showReviewForm && (
+          <div className="mt-8 review-card">
+            <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+            <div className="mb-4">
+              <StarRating
+                rating={newReview.rating}
+                setRating={(rating) => setNewReview({ ...newReview, rating })}
+              />
+            </div>
+            <div className="mb-4">
+              <textarea
+                className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                placeholder="Your Review"
+                value={newReview.comment}
+                onChange={(e) =>
+                  setNewReview({ ...newReview, comment: e.target.value })
+                }
+              />
+            </div>
+            <button
+              className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+              onClick={handleReviewSubmit}
+            >
+              Submit Review
+            </button>
+          </div>
+        )}
+
+        <div className="review-card pb-5">
+          <Slider {...settings}>
+            {reviews.map((review, index) => (
+              <div key={index} className="p-6 bg-white shadow-lg rounded-lg relative mt-5 max-w-sm mx-auto">
+                <div className="flex justify-center">
+                  <Image
+                    src={`data:image/jpeg;base64,${review?.userProfile}`}
+                    alt={review.name}
+                    className="w-16 h-16 rounded-full -mt-12 border-2 border-white"
+                    width={64}
+                    height={64}
+                  />
+                </div>
+                <div className="mt-6 text-center">
+                  <p className="text-lg italic text-gray-700 mb-4">
+                    “{review.comment}”
+                  </p>
+                  <h3 className="text-xl font-bold text-gray-800">{review.name}</h3>
+                  <p className="text-sm text-gray-500">User</p>
+                  <div className="flex justify-center mt-3">
+                    {[...Array(5)].map((_, i) => (
                       <FaStar
                         key={i}
                         size={24}
                         color={i < review.rating ? "#ffc107" : "#e4e5e9"}
                       />
                     ))}
-                    <span className="ml-2 text-xl font-bold">
-                      {review.rating.toFixed(1)}
-                    </span>
                   </div>
-                  <div>
-                    <p className="text-gray-600 text-right me-auto">
-                      {new Date(review.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <p className="text-lg font-semibold">{review.comment}</p>
-                  <p className="text-gray-600">- {review.name}</p>
-                  {review.userProfile && (
-                    <img
-                      src={review.userProfile}
-                      alt="User Profile"
-                      className="w-12 h-12 rounded-full mt-2"
-                    />
-                  )}
+                  <span className="text-xl font-bold mt-2">{review.rating.toFixed(1)}</span>
                 </div>
-              ))}
-            </Slider>
-          </div>
+                <div className="absolute top-2 left-2 text-red-600 text-7xl">“</div>
+                <div className="absolute bottom-2 right-2 text-red-600 text-7xl">”</div>
+              </div>
+            ))}
+          </Slider>
         </div>
-      </div>
+      
+          </div>
       <style jsx>{`
         .selected {
           border: 3px solid blue;
@@ -483,7 +510,8 @@ const YtThumbnailDw = () => {
           width: 150px;
         }
       `}</style>
-    </div>
+      </div>
+    </>
   );
 };
 
