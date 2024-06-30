@@ -11,14 +11,14 @@ export default function Tokens() {
   }, []);
 
   const fetchTokens = async () => {
-    const response = await fetch('/api/tokens');
+    const response = await fetch('/api/openaiKey');
     const data = await response.json();
     setTokens(data);
   };
 
   const handleAddTokens = async () => {
     setLoading(true);
-    await fetch('/api/tokens', {
+    await fetch('/api/openaiKey', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ export default function Tokens() {
   };
 
   const handleToggleActive = async (id, active) => {
-    await fetch('/api/tokens', {
+    await fetch('/api/openaiKey', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ export default function Tokens() {
           onChange={(e) => setNewTokens(e.target.value)}
           rows="3"
           className="w-full p-2 border rounded"
-          placeholder="Add Youtube ApiKey  (comma-separated)"
+          placeholder="Add openai ApiKey  (comma-separated)"
         />
         <button
           onClick={handleAddTokens}

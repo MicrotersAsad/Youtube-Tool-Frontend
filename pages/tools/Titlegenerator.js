@@ -31,7 +31,6 @@ const TitleGenerator = () => {
   const [generatedTitles, setGeneratedTitles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showShareIcons, setShowShareIcons] = useState(false);
-  const apiKey = process.env.NEXT_PUBLIC_API_KEY;
   const [selectAll, setSelectAll] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
   const [content, setContent] = useState("");
@@ -175,15 +174,15 @@ const TitleGenerator = () => {
   const copySelectedTitles = () => {
     const selectedTitlesText = generatedTitles
       .filter((title) => title.selected)
-      .map((title) => title.text)
+      .map((title) => title.text.replace(/^\d+\.\s*/, "")) // Remove leading numbers and dots
       .join("\n");
     copyToClipboard(selectedTitlesText);
   };
-
+  
   const downloadSelectedTitles = () => {
     const selectedTitlesText = generatedTitles
       .filter((title) => title.selected)
-      .map((title) => title.text)
+      .map((title) => title.text.replace(/^\d+\.\s*/, "")) // Remove leading numbers and dots
       .join("\n");
     const element = document.createElement("a");
     const file = new Blob([selectedTitlesText], { type: "text/plain" });
@@ -193,74 +192,88 @@ const TitleGenerator = () => {
     element.click();
     document.body.removeChild(element);
   };
-
+  
   const generateTitles = async () => {
     if (!user) {
-      toast.error("Please log in to fetch channel data.");
+      toast.error("You need to be logged in to generate tags.");
       return;
     }
 
     if (
-      user &&
       user.paymentStatus !== "success" &&
       user.role !== "admin" &&
       generateCount <= 0
     ) {
-      toast.error(
-        "You have reached the limit of generating tags. Please upgrade your plan for unlimited use."
-      );
+      toast.error("Upgrade your plan for unlimited use.");
       return;
     }
+
     setIsLoading(true);
+
     try {
-      const response = await fetch(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            model: "gpt-3.5-turbo-16k",
-            messages: [
-              {
-                role: "system",
-                content: `Generate a list of at least 20 SEO-friendly titles for all keywords: "${tags.join(
-                  ", "
-                )}".`,
-              },
-              { role: "user", content: tags.join(", ") },
-            ],
-            temperature: 0.7,
-            max_tokens: 3500,
-            top_p: 1,
-            frequency_penalty: 0,
-            presence_penalty: 0,
-          }),
+      const response = await fetch("/api/openaiKey");
+      if (!response.ok) throw new Error(`Failed to fetch API keys: ${response.status}`);
+      
+      const keysData = await response.json();
+      const apiKeys = keysData.map((key) => key.token);
+      let titles = [];
+      let success = false;
+
+      for (const key of apiKeys) {
+        try {
+          const result = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${key}`,
+            },
+            body: JSON.stringify({
+              model: "gpt-3.5-turbo-16k",
+              messages: [
+                {
+                  role: "system",
+                  content: `Generate a list of at least 20 SEO-friendly Title for keywords: "${tags.join(
+                    ", "
+                  )}".`,
+                },
+                { role: "user", content: tags.join(", ") },
+              ],
+              temperature: 0.7,
+              max_tokens: 3500,
+            }),
+          });
+
+          const data = await result.json();
+          console.log("API response:", data);
+
+          if (data.choices) {
+            titles = data.choices[0].message.content
+              .trim()
+              .split("\n")
+              .map((title) => ({ text: title, selected: false }));
+            success = true;
+            break;
+          }
+        } catch (error) {
+          console.error("Error with key:", key, error.message);
         }
-      );
+      }
 
-      const data = await response.json();
-      const titles = data.choices[0].message.content
-        .trim()
-        .split("\n")
-        .map((title) => ({
-          text: title,
-          selected: false,
-        }));
+      if (!success) throw new Error("All API keys exhausted or error occurred");
+
       setGeneratedTitles(titles);
-
-      if (user && user.paymentStatus !== "success") {
-        setGenerateCount(generateCount - 1);
+      if (user.paymentStatus !== "success") {
+        const newCount = generateCount - 1;
+        setGenerateCount(newCount);
+        localStorage.setItem("generateCount", newCount);
       }
     } catch (error) {
-      toast.error(`Error generating titles: ${error.message}`);
-      setGeneratedTitles([]);
+      console.error("Error generating titles:", error);
+      toast.error(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   const fetchReviews = async () => {
     try {
@@ -372,11 +385,11 @@ const TitleGenerator = () => {
           <ToastContainer />
           {modalVisible && (
             <div
-              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
+              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
               role="alert"
             >
               <div className="flex">
-                <div>
+              <div className="mt-4">
                   {user ? (
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (

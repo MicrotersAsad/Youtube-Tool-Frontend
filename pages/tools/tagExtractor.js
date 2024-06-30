@@ -336,9 +336,10 @@ const TagExtractor = () => {
             <meta name="twitter:image" content={meta.image} />
           </Head>
           <h2 className="text-3xl text-white">YouTube Tag Extractor</h2>
+          <ToastContainer/>
           {modalVisible && (
             <div
-              className=" bottom-0 right-0 bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3 fixed-modal"
+              className=" bottom-0 right-0 bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4  shadow-md mb-6 mt-3 fixed-modal"
               role="alert"
             >
               <div className="flex">
@@ -349,7 +350,7 @@ const TagExtractor = () => {
                     viewBox="0 0 20 20"
                   ></svg>
                 </div>
-                <div>
+                <div className="mt-4">
                   {!user ? (
                     <p className="text-center p-3 alert-warning">
                       Please sign in to use this tool.

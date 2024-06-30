@@ -1,4 +1,3 @@
-// components/VideoSummarizer.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { FaCopy, FaStar } from 'react-icons/fa';
@@ -11,15 +10,15 @@ import { useAuth } from '../../contexts/AuthContext';
 import Link from 'next/link';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import StarRating from './StarRating'; // Assuming you have a StarRating component
-import announce from "../../public/shape/announce.png"
-import chart from "../../public/shape/chart (1).png"
-import cloud from "../../public/shape/cloud.png"
-import cloud2 from "../../public/shape/cloud2.png"
+import StarRating from './StarRating';
+import announce from "../../public/shape/announce.png";
+import chart from "../../public/shape/chart (1).png";
+import cloud from "../../public/shape/cloud.png";
+import cloud2 from "../../public/shape/cloud2.png";
 import Image from 'next/image';
 
 const VideoSummarizer = () => {
-  const { user, updateUserProfile, login, logout } = useAuth(); // Get the user object and auth functions from the AuthContext
+  const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState('');
   const [videoInfo, setVideoInfo] = useState(null);
   const [transcript, setTranscript] = useState([]);
@@ -27,26 +26,24 @@ const VideoSummarizer = () => {
   const [activeTab, setActiveTab] = useState('Transcript');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showShareIcons, setShowShareIcons] = useState(false);
-  const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false);
-  const [generateCount, setGenerateCount] = useState(2);
+  const [generateCount, setGenerateCount] = useState(5);
   const [isUpdated, setIsUpdated] = useState(false);
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
-  const [meta, setMeta] = useState({}); // Ensure meta is an object
+  const [meta, setMeta] = useState({});
   const [newReview, setNewReview] = useState({
     name: "",
     rating: 0,
     comment: "",
     userProfile: "",
   });
-  const [modalVisible, setModalVisible] = useState(true); // Modal visibility state
+  const [modalVisible, setModalVisible] = useState(true);
+
   const closeModal = () => {
     setModalVisible(false);
   };
 
-  // Fetch content and reviews from API on component mount
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -55,8 +52,8 @@ const VideoSummarizer = () => {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
-        setQuillContent(data[0]?.content || ""); // Ensure content is not undefined
-        setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
+        setQuillContent(data[0]?.content || "");
+        setExistingContent(data[0]?.content || "");
         setMeta(data[0]);
       } catch (error) {
         toast.error("Error fetching content");
@@ -77,38 +74,33 @@ const VideoSummarizer = () => {
     }
   };
 
-  const handleQuillChange = (newContent) => {
-    setQuillContent(newContent);
-  };
-
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
       updateUserProfile().then(() => setIsUpdated(true));
     }
   }, [user, updateUserProfile, isUpdated]);
 
-  useEffect(() => {
-    if (user && user.paymentStatus !== "success" && user.role !== "admin") {
-      setGenerateCount(5);
-    }
-  }, [user]);
-
   const fetchSummary = async () => {
     if (user && user.paymentStatus !== "success" && generateCount <= 0) {
       toast.error(
-        "You have reached the limit of generating tags. Please upgrade your plan for unlimited use."
+        "You have reached the limit. Please upgrade for unlimited use."
       );
       return;
     }
     setLoading(true);
+    setError('');
     try {
       const response = await axios.post('/api/summarize', { videoUrl });
-      console.log('API Response:', response.data); // Debugging log
       setVideoInfo(response.data.videoInfo);
       setTranscript(response.data.captions);
       setSummary(response.data.summaries);
+      if (user && user.paymentStatus !== "success" && user.role !== "admin") {
+        setGenerateCount(generateCount - 1);
+      }
     } catch (error) {
       console.error('Error summarizing video:', error);
+      setError('Failed to summarize video');
+      toast.error('Failed to summarize video');
     } finally {
       setLoading(false);
     }
@@ -123,7 +115,6 @@ const VideoSummarizer = () => {
     });
   };
 
-  // Handle review submission
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
       toast.error('All fields are required.');
@@ -149,20 +140,18 @@ const VideoSummarizer = () => {
 
       toast.success('Review submitted successfully!');
       setNewReview({ rating: 0, comment: '', userProfile: '' });
-      fetchReviews(); // Refresh the reviews
+      fetchReviews();
     } catch (error) {
       toast.error('Failed to submit review');
     }
   };
 
-  // Calculate rating percentage
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
     const ratingCount = reviews.filter(review => review.rating === rating).length;
     return totalReviews ? (ratingCount / totalReviews) * 100 : 0;
   };
 
-  // Slider settings
   const settings = {
     infinite: true,
     speed: 500,
@@ -180,43 +169,14 @@ const VideoSummarizer = () => {
     ]
   };
 
-  // Handle login
-  const handleLogin = () => {
-    login().then(() => {
-      toast.success('Logged in successfully!');
-    }).catch((error) => {
-      console.error('Login failed:', error);
-      toast.error('Failed to log in');
-    });
-  };
-
-  // Handle logout
-  const handleLogout = () => {
-    logout().then(() => {
-      toast.success('Logged out successfully!');
-    }).catch((error) => {
-      console.error('Logout failed:', error);
-      toast.error('Failed to log out');
-    });
-  };
-
-  // Check if user is logged in on component mount
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('user');
-    }
-  }, [user]);
-
   return (
     <>
       <div className='bg-box'>
         <div>
           <Image className='shape1' src={announce} alt="announce" />
-          <Image className='shape2' src={cloud} alt="announce" />
-          <Image className='shape3' src={cloud2} alt="announce" />
-          <Image className='shape4' src={chart} alt="announce" />
+          <Image className='shape2' src={cloud} alt="cloud" />
+          <Image className='shape3' src={cloud2} alt="cloud2" />
+          <Image className='shape4' src={chart} alt="chart" />
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
@@ -234,13 +194,10 @@ const VideoSummarizer = () => {
             <meta name="twitter:description" content={meta.description} />
             <meta name="twitter:image" content={meta.image} />
           </Head>
-          {/* Toast container for notifications */}
           <ToastContainer />
-          {/* Page title */}
           <h1 className="text-3xl font-bold text-center mb-6 text-white">YouTube Video Summarizer</h1>
-          {/* Alert message for logged in/out users */}
           {modalVisible && (
-            <div className=" bottom-0 right-0 bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3 z-50" role="alert">
+            <div className="bottom-0 right-0 bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3 z-50" role="alert">
               <div className="flex">
                 <div className="py-1">
                   <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
@@ -249,12 +206,11 @@ const VideoSummarizer = () => {
                   {user ? (
                     user.paymentStatus === 'success' || user.role === 'admin' ? (
                       <p className="text-center p-3 alert-warning">
-                        Congratulations!! Now you can generate unlimited tags.
+                        Congratulations! You can generate unlimited summaries.
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can generate Title {5 - generateCount}{" "}
-                        more times. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                        You can generate {generateCount} more summaries. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
                       </p>
                     )
                   ) : (
@@ -284,7 +240,6 @@ const VideoSummarizer = () => {
               {loading ? 'Generating...' : 'Generate Summary'}
             </button>
           </div>
-          <ToastContainer />
           {loading && (
             <div className="flex justify-center my-4">
               <ClipLoader size={50} color={"#123abc"} loading={loading} />
@@ -356,11 +311,9 @@ const VideoSummarizer = () => {
             </div>
           </div>
         )}
-        {/* Render content from API */}
         <div className="content pt-6 pb-5">
           <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
         </div>
-        {/* Review Form */}
         {user && (
           <div className="mt-8 review-card">
             <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
@@ -383,7 +336,6 @@ const VideoSummarizer = () => {
             </button>
           </div>
         )}
-        {/* Reviews Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5">
           {[5, 4, 3, 2, 1].map((rating) => (
             <div key={rating} className="flex items-center">

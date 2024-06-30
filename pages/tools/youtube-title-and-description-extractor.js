@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -18,19 +17,26 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import StarRating from "./StarRating"; // Assuming StarRating is a custom component
-
+import announce from "../../public/shape/announce.png";
+import chart from "../../public/shape/chart (1).png";
+import cloud from "../../public/shape/cloud.png";
+import cloud2 from "../../public/shape/cloud2.png";
+import Image from "next/image";
 const TitleDescriptionExtractor = () => {
-  const { isLoggedIn, user, updateUserProfile } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [generateCount, setGenerateCount] = useState(5); // Set initial count to 5
+  const [generateCount, setGenerateCount] = useState(5);
   const [isUpdated, setIsUpdated] = useState(false);
   const [reviews, setReviews] = useState([]);
-  const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
+  const [newReview, setNewReview] = useState({  name: "",
+    rating: 0,
+    comment: "",
+    userProfile: "",});
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
   const [modalVisible, setModalVisible] = useState(true);
@@ -42,16 +48,11 @@ const TitleDescriptionExtractor = () => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch(
-          `/api/content?category=youtube-title-and-description-extractor`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch content");
-        }
+        const response = await fetch(`/api/content?category=youtube-title-and-description-extractor`);
+        if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
         setQuillContent(data[0]?.content || "");
         setExistingContent(data[0]?.content || "");
-        setMeta(data[0]);
       } catch (error) {
         toast.error("Error fetching content");
       }
@@ -73,15 +74,9 @@ const TitleDescriptionExtractor = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    fetchReviews();
-  }, []);
-
   const fetchReviews = async () => {
     try {
-      const response = await fetch(
-        "/api/reviews?tool=title-description-extractor"
-      );
+      const response = await fetch("/api/reviews?tool=title-description-extractor");
       const data = await response.json();
       setReviews(data);
     } catch (error) {
@@ -128,57 +123,72 @@ const TitleDescriptionExtractor = () => {
 
   const fetchYouTubeData = async () => {
     if (generateCount <= 0) {
-      toast.error(
-        "You have reached the limit of generating titles. Please upgrade your plan for unlimited use."
-      );
+      toast.error("You have reached the limit of generating titles. Please upgrade your plan for unlimited use.");
       return;
     }
-
+  
+    setLoading(true);
+    setError("");
+  
     try {
-      setLoading(true);
-      setError("");
+      const tokensResponse = await fetch("/api/tokens");
+      if (!tokensResponse.ok) throw new Error("Failed to fetch API tokens");
+  
+      const tokens = await tokensResponse.json();
       const videoId = extractVideoId(videoUrl);
-      const response = await axios.get(
-        `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${process.env.NEXT_PUBLIC_YOUTUBE_API_KEY}`
-      );
-      const { title, description } = response.data.items[0].snippet;
-      setTitle(title);
-      setDescription(description);
-
-      if (user && user.paymentStatus !== "success") {
-        setGenerateCount(generateCount - 1); // Decrease count if not paid
+      let dataFetched = false;
+  
+      for (const { token } of tokens) {
+        try {
+          const response = await axios.get(
+            `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${token}`
+          );
+  
+          if (response.data.items && response.data.items.length > 0) {
+            const { title, description } = response.data.items[0].snippet;
+            setTitle(title);
+            setDescription(description);
+            dataFetched = true;
+  
+            if (user && user.paymentStatus !== "success") {
+              setGenerateCount((prev) => prev - 1);
+            }
+            break;
+          } else {
+            console.error("No video data found for the provided URL.");
+          }
+        } catch (error) {
+          console.error(`Error fetching data with token ${token}:`, error.response?.data || error.message);
+        }
+      }
+  
+      if (!dataFetched) {
+        throw new Error("All API tokens exhausted or failed to fetch data.");
       }
     } catch (error) {
       setError("Failed to fetch YouTube data. Please check the video URL.");
+      console.error("Error:", error);
     } finally {
       setLoading(false);
     }
   };
-
+  
+  
   const extractVideoId = (url) => {
-    const regex =
-      /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+    const regex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
     const match = url.match(regex);
-
-    if (match && match[1]) {
-      return match[1];
-    } else {
-      throw new Error("Invalid YouTube video URL");
-    }
+    if (match && match[1]) return match[1];
+    throw new Error("Invalid YouTube video URL");
   };
-
+  
   const handleShareClick = () => {
     setShowShareIcons(!showShareIcons);
   };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(
-      () => {
-        toast.success("Copied to clipboard!");
-      },
-      (err) => {
-        toast.error("Failed to copy:", err);
-      }
+      () => toast.success("Copied to clipboard!"),
+      (err) => toast.error("Failed to copy:", err)
     );
   };
 
@@ -194,9 +204,7 @@ const TitleDescriptionExtractor = () => {
 
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
-    const ratingCount = reviews.filter(
-      (review) => review.rating === rating
-    ).length;
+    const ratingCount = reviews.filter((review) => review.rating === rating).length;
     return (ratingCount / totalReviews) * 100;
   };
 

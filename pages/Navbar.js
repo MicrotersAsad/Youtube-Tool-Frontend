@@ -90,13 +90,13 @@ function Navbar() {
                               leaveFrom="opacity-100 translate-y-0"
                               leaveTo="opacity-0 translate-y-1"
                             >
-                            <Menu.Items className="absolute z-10 mt-2 w-[52rem] origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none grid grid-cols-2 gap-2">
+                            <Menu.Items className="absolute z-10 p-3 w-[52rem]  origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none grid grid-cols-2 gap-2">
 
 
                                 {item.children.map((subItem) => (
                                   <Menu.Item key={subItem.name}>
                                     {({ active }) => (
-                                      <Link href={subItem.href} className={classNames(active ? 'bg-gray-100' : '', 'flex items-center p-2 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition')}>
+                                      <Link href={subItem.href} className={classNames(active ? 'bg-gray-100' : '', 'flex items-center p-2 bg-gray-50 rounded-lg border  border-gray-200 hover:shadow-md transition')}>
                                         <i className="mr-3 text-blue-500 text-xl">{subItem.icon}</i>
                                         <span className="text-gray-800">{subItem.name}</span>
                                       </Link>

@@ -1,32 +1,53 @@
-// pages/api/youtube.js
 import fetch from 'node-fetch';
+import { connectToDatabase } from '../../utils/mongodb';
 
-const apiKey = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
-
-async function handler(req, res) {
+export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).end('Method Not Allowed');
     }
 
     const { videoUrl } = req.body;
+    const videoId = new URLSearchParams(new URL(videoUrl).search).get('v');
+
+    if (!videoId) {
+        return res.status(400).json({ message: 'Invalid YouTube URL' });
+    }
 
     try {
-        const data = await fetchVideoData(videoUrl);
-        res.status(200).json(data);
+        const { db } = await connectToDatabase();
+        const tokens = await db.collection('ytApi').find({ active: true }).toArray();
+
+        for (const token of tokens) {
+            const apiKey = token.token;
+            try {
+                const data = await fetchVideoData(videoId, apiKey);
+                return res.status(200).json(data);
+            } catch (error) {
+                if (error.message === 'Quota Exceeded') {
+                    console.log(`Quota exceeded for API key: ${apiKey}`);
+                    continue; // Try the next API key
+                }
+                console.error('Error fetching video data:', error.message);
+                continue; // Continue to the next API key on other errors
+            }
+        }
+
+        res.status(500).json({ message: 'All API keys exhausted or error occurred' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Database error:', error.message);
+        res.status(500).json({ message: 'Database connection error' });
     }
 }
 
-async function fetchVideoData(videoUrl) {
-    const videoId = new URLSearchParams(new URL(videoUrl).search).get('v');
-    if (!videoId) {
-        throw new Error('Invalid YouTube URL');
-    }
+async function fetchVideoData(videoId, apiKey) {
 
     const videoApiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoId}&key=${apiKey}`;
     const videoResponse = await fetch(videoApiUrl);
     const videoData = await videoResponse.json();
+
+    if (videoResponse.status === 403) {
+        throw new Error('Quota Exceeded');
+    }
 
     if (!videoData.items || videoData.items.length === 0) {
         throw new Error('No data found for the provided video ID');
@@ -60,5 +81,3 @@ async function fetchVideoData(videoUrl) {
         videoUrl: `https://www.youtube.com/watch?v=${videoId}`
     };
 }
-
-export default handler;

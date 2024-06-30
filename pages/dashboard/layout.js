@@ -226,7 +226,20 @@ const Layout = ({ children }) => {
                     : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
                 }`}
               >
-                <FaKey className="mr-3" /> <span className="mx-3">Add Api</span>
+                <FaKey className="mr-3" /> <span className="mx-3">Add ytkey</span>
+              </p>
+            </Link>
+          )}
+          {user && (user.role === 'admin' || user.role === 'moderator') && (
+            <Link href="/dashboard/addopenaiKey " passHref>
+              <p
+                className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
+                  isActiveRoute('/dashboard/addopenaiKey')
+                    ? 'bg-gray-300 text-gray-700'
+                    : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
+                }`}
+              >
+                <FaKey className="mr-3" /> <span className="mx-3">Add openaiKey</span>
               </p>
             </Link>
           )}

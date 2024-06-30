@@ -10,12 +10,11 @@ import {
   FaStar,
 } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
-import ReCAPTCHA from "react-google-recaptcha";
 import Head from "next/head";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import StarRating from "./StarRating"; // Import StarRating component
+import StarRating from "./StarRating";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -32,7 +31,6 @@ const TagGenerator = () => {
   const [generatedTitles, setGeneratedTitles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showShareIcons, setShowShareIcons] = useState(false);
-  const apiKey = process.env.NEXT_PUBLIC_API_KEY;
   const [selectAll, setSelectAll] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
   const [meta, setMeta] = useState({ title: "", description: "", image: "" });
@@ -49,42 +47,32 @@ const TagGenerator = () => {
     userProfile: "",
   });
   const [modalVisible, setModalVisible] = useState(true);
-  const closeModal = () => {
-    setModalVisible(false);
-  };
-
+  const closeModal = () => setModalVisible(false);
 
   useEffect(() => {
     const fetchContent = async () => {
       try {
         const response = await fetch(`/api/content?category=tagGenerator`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch content");
-        }
+        if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
         setQuillContent(data[0]?.content || "");
         setExistingContent(data[0]?.content || "");
         setMeta(data[0]);
       } catch (error) {
+        console.error("Error fetching content:", error);
         toast.error("Error fetching content");
       }
     };
 
     fetchContent();
-    fetchReviews(); // Fetch reviews when component mounts
+    fetchReviews();
   }, []);
-  
-  // Fetch user data when user changes
+
   useEffect(() => {
     if (user && !user.name) {
       updateUserProfile().then(() => setIsUpdated(true));
     }
   }, [user, updateUserProfile]);
-
-
-  const handleQuillChange = useCallback((newContent) => {
-    setQuillContent(newContent);
-  }, []);
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -95,11 +83,7 @@ const TagGenerator = () => {
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && user.role !== "admin") {
       const storedCount = localStorage.getItem("generateCount");
-      if (storedCount) {
-        setGenerateCount(parseInt(storedCount));
-      } else {
-        setGenerateCount(5);
-      }
+      setGenerateCount(storedCount ? parseInt(storedCount) : 5);
     }
   }, [user]);
 
@@ -112,33 +96,28 @@ const TagGenerator = () => {
   const handleInputChange = (e) => {
     const { value } = e.target;
     setInput(value);
-
-    const delimiters = [",", "."];
     const parts = value
-      .split(new RegExp(`[${delimiters.join("")}]`))
+      .split(/[,\.]/)
       .map((part) => part.trim())
       .filter((part) => part);
-
     if (parts.length > 1) {
-      const newTags = [...tags, ...parts];
-      setTags(newTags);
+      setTags([...tags, ...parts]);
       setInput("");
     }
   };
 
   const handleKeyDown = (event) => {
-    if (event.key === "Enter" || event.key === "," || event.key === ".") {
+    if (["Enter", ",", "."].includes(event.key)) {
       event.preventDefault();
       const newTag = input.trim();
       if (newTag) {
-        const newTags = [
+        setTags([
           ...tags,
           ...newTag
             .split(/[,\.]/)
             .map((tag) => tag.trim())
             .filter((tag) => tag),
-        ];
-        setTags(newTags);
+        ]);
         setInput("");
       }
     }
@@ -160,8 +139,7 @@ const TagGenerator = () => {
     const socialMediaUrls = {
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
       twitter: `https://twitter.com/intent/tweet?url=${url}`,
-      instagram:
-        "You can share this page on Instagram through the Instagram app on your mobile device.",
+      instagram: "Instagram sharing is only available via the mobile app.",
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
     };
 
@@ -185,27 +163,23 @@ const TagGenerator = () => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(
-      () => {
-        toast.success(`Copied: "${text}"`);
-      },
-      (err) => {
-        toast.error("Failed to copy text: ", err);
-      }
+      () => toast.success(`Copied: "${text}"`),
+      (err) => toast.error("Failed to copy text")
     );
   };
 
   const copySelectedTitles = () => {
     const selectedTitlesText = generatedTitles
       .filter((title) => title.selected)
-      .map((title) => title.text)
+      .map((title) => title.text.replace(/^\d+\.\s*/, "")) // Remove leading numbers and dots
       .join("\n");
     copyToClipboard(selectedTitlesText);
   };
-
+  
   const downloadSelectedTitles = () => {
     const selectedTitlesText = generatedTitles
       .filter((title) => title.selected)
-      .map((title) => title.text)
+      .map((title) => title.text.replace(/^\d+\.\s*/, "")) // Remove leading numbers and dots
       .join("\n");
     const element = document.createElement("a");
     const file = new Blob([selectedTitlesText], { type: "text/plain" });
@@ -215,6 +189,7 @@ const TagGenerator = () => {
     element.click();
     document.body.removeChild(element);
   };
+  
 
   const generateTitles = async () => {
     if (!user) {
@@ -223,66 +198,76 @@ const TagGenerator = () => {
     }
 
     if (
-      user &&
       user.paymentStatus !== "success" &&
       user.role !== "admin" &&
       generateCount <= 0
     ) {
-      toast.error(
-        "You have reached the limit of generating tags. Please upgrade your plan for unlimited use."
-      );
+      toast.error("Upgrade your plan for unlimited use.");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const response = await fetch(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            model: "gpt-3.5-turbo-16k",
-            messages: [
-              {
-                role: "system",
-                content: `Generate a list of at least 20 SEO-friendly tags for all keywords "${tags.join(
-                  ", "
-                )}".`,
-              },
-              { role: "user", content: tags.join(", ") },
-            ],
-            temperature: 0.7,
-            max_tokens: 3500,
-            top_p: 1,
-            frequency_penalty: 0,
-            presence_penalty: 0,
-          }),
+      const response = await fetch("/api/openaiKey");
+      if (!response.ok) throw new Error(`Failed to fetch API keys: ${response.status}`);
+      
+      const keysData = await response.json();
+      const apiKeys = keysData.map((key) => key.token);
+      let titles = [];
+      let success = false;
+
+      for (const key of apiKeys) {
+        try {
+          const result = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${key}`,
+            },
+            body: JSON.stringify({
+              model: "gpt-3.5-turbo-16k",
+              messages: [
+                {
+                  role: "system",
+                  content: `Generate a list of at least 20 SEO-friendly tags for keywords: "${tags.join(
+                    ", "
+                  )}".`,
+                },
+                { role: "user", content: tags.join(", ") },
+              ],
+              temperature: 0.7,
+              max_tokens: 3500,
+            }),
+          });
+
+          const data = await result.json();
+          console.log("API response:", data);
+
+          if (data.choices) {
+            titles = data.choices[0].message.content
+              .trim()
+              .split("\n")
+              .map((title) => ({ text: title, selected: false }));
+            success = true;
+            break;
+          }
+        } catch (error) {
+          console.error("Error with key:", key, error.message);
         }
-      );
+      }
 
-      const data = await response.json();
-      const titles = data.choices[0].message.content
-        .trim()
-        .split("\n")
-        .map((title) => ({
-          text: title,
-          selected: false,
-        }));
+      if (!success) throw new Error("All API keys exhausted or error occurred");
+
       setGeneratedTitles(titles);
-
-      if (user && user.paymentStatus !== "success") {
+      if (user.paymentStatus !== "success") {
         const newCount = generateCount - 1;
         setGenerateCount(newCount);
         localStorage.setItem("generateCount", newCount);
       }
     } catch (error) {
-      toast.error("Error generating titles:", error);
-      setGeneratedTitles([]);
+      console.error("Error generating titles:", error);
+      toast.error(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -303,20 +288,19 @@ const TagGenerator = () => {
         body: JSON.stringify({
           tool: "tag-generator",
           ...newReview,
-          userProfile: user?.profileImage || "nai", // Assuming user has a profileImage property
-          userName:user?.username
+          userProfile: user?.profileImage || "nai",
+          userName: user?.username,
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to submit review");
-      }
+      if (!response.ok) throw new Error("Failed to submit review");
 
       toast.success("Review submitted successfully!");
-      setNewReview({ name: "", rating: 0, comment: "", userProfile: "",userName:"" });
+      setNewReview({ name: "", rating: 0, comment: "", userProfile: "", userName: "" });
       setShowReviewForm(false);
-      fetchReviews(); // Refresh the reviews
+      fetchReviews();
     } catch (error) {
+      console.error("Failed to submit review:", error);
       toast.error("Failed to submit review");
     }
   };
@@ -324,19 +308,21 @@ const TagGenerator = () => {
   const fetchReviews = async () => {
     try {
       const response = await fetch("/api/reviews?tool=tag-generator");
+      if (!response.ok) throw new Error("Failed to fetch reviews");
+      
       const data = await response.json();
-      // Update reviews state to include user details
-      const updatedReviews = data.map(review => ({
+      const updatedReviews = data.map((review) => ({
         ...review,
-        name: review.userName , // Assuming user has a name field
-        userProfile: review.userProfile, // Use userProfile from review or empty string
+        name: review.userName,
+        userProfile: review.userProfile,
       }));
       setReviews(updatedReviews);
     } catch (error) {
       console.error("Failed to fetch reviews:", error);
+      toast.error("Failed to fetch reviews");
     }
   };
-  
+
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
     const ratingCount = reviews.filter(
@@ -367,7 +353,6 @@ const TagGenerator = () => {
       <div className="bg-box">
         <div>
           <Image className="shape1" src={announce} alt="announce" />
-
           <Image className="shape2" src={cloud} alt="announce" />
           <Image className="shape3" src={cloud2} alt="announce" />
           <Image className="shape4" src={chart} alt="announce" />
@@ -401,7 +386,7 @@ const TagGenerator = () => {
           <ToastContainer />
           {modalVisible && (
             <div
-              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
+              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4  shadow-md mb-6 mt-3"
               role="alert"
             >
               <div className="flex justify-between items-center">
@@ -418,13 +403,13 @@ const TagGenerator = () => {
                       <p className="text-center p-3 alert-warning">
                         You need to be logged in to generate tags.
                       </p>
-                    ) : user.paymentStatus === 'success' || user.role === 'admin' ? (
+                    ) : user.paymentStatus === "success" || user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
                         Congratulations!! Now you can generate unlimited tags.
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can generate Title {5 - generateCount} more times.{' '}
+                        You are not upgraded. You can generate Title {5 - generateCount} more times.{" "}
                         <Link className="btn btn-warning ms-3" href="/pricing">
                           Upgrade
                         </Link>
@@ -471,7 +456,7 @@ const TagGenerator = () => {
                 disabled={isLoading || tags.length === 0}
                 style={{ minWidth: "50px" }}
               >
-                {isLoading ? "Generating..." : "Generate Titles"}
+                {isLoading ? "Generating..." : "Generate Tag"}
               </button>
             </div>
           </div>
@@ -479,31 +464,28 @@ const TagGenerator = () => {
       </div>
       <div className="max-w-7xl mx-auto p-4">
         <div className="text-center">
-        
-          
-            <div className="flex gap-2">
-            <FaShareAlt className="text-danger fs-3"/> 
-          <span> Share On Social Media</span>
-              <FaFacebook
-                className="facebook-icon fs-3 text-center"
-                onClick={() => shareOnSocialMedia("facebook")}
-              />
-              <FaInstagram
-                className="instagram-icon  fs-3"
-                onClick={() => shareOnSocialMedia("instagram")}
-              />
-              <FaTwitter
-                className="twitter-icon  fs-3"
-                onClick={() => shareOnSocialMedia("twitter")}
-              />
-              <FaLinkedin
-                className="linkedin-icon  fs-3"
-                onClick={() => shareOnSocialMedia("linkedin")}
-              />
-            </div>
-          
+          <div className="flex gap-2">
+            <FaShareAlt className="text-danger fs-3" />
+            <span> Share On Social Media</span>
+            <FaFacebook
+              className="facebook-icon fs-3"
+              onClick={() => shareOnSocialMedia("facebook")}
+            />
+            <FaInstagram
+              className="instagram-icon fs-3"
+              onClick={() => shareOnSocialMedia("instagram")}
+            />
+            <FaTwitter
+              className="twitter-icon fs-3"
+              onClick={() => shareOnSocialMedia("twitter")}
+            />
+            <FaLinkedin
+              className="linkedin-icon fs-3"
+              onClick={() => shareOnSocialMedia("linkedin")}
+            />
+          </div>
         </div>
-        <div className="generated-titles-container">
+        {/* <div className="generated-titles-container">
           {generatedTitles.length > 0 && (
             <div className="select-all-checkbox">
               <input
@@ -542,15 +524,56 @@ const TagGenerator = () => {
               Download <FaDownload />
             </button>
           )}
-        </div>
+        </div> */}
+        <div className="generated-titles-container grid grid-cols-1 md:grid-cols-4 gap-4">
+  {generatedTitles.length > 0 && (
+    <div className="select-all-checkbox">
+      <input
+        type="checkbox"
+        checked={selectAll}
+        onChange={handleSelectAll}
+      />
+      <span>Select All</span>
+    </div>
+  )}
+  {generatedTitles.map((title, index) => (
+    <div key={index} className="title-checkbox flex items-center">
+      <input
+        className="me-2"
+        type="checkbox"
+        checked={title.selected}
+        onChange={() => toggleTitleSelect(index)}
+      />
+      {title.text.replace(/^\d+\.\s*/, "")}
+      <FaCopy
+        className="copy-icon ml-2 cursor-pointer"
+        onClick={() => copyToClipboard(title.text.replace(/^\d+\.\s*/, ""))}
+      />
+    </div>
+  ))}
+  {generatedTitles.some((title) => title.selected) && (
+    <button className="btn btn-primary" onClick={copySelectedTitles}>
+      Copy <FaCopy />
+    </button>
+  )}
+  {generatedTitles.some((title) => title.selected) && (
+    <button
+      className="btn btn-primary ms-2"
+      onClick={downloadSelectedTitles}
+    >
+      Download <FaDownload />
+    </button>
+  )}
+</div>
+
         <div className="content pt-6 pb-5">
           <div
             dangerouslySetInnerHTML={{ __html: existingContent }}
             style={{ listStyleType: "none" }}
           ></div>
         </div>
-            {/* Reviews Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
+        {/* Reviews Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
           {[5, 4, 3, 2, 1].map((rating) => (
             <div key={rating} className="flex items-center">
               <div className="w-12 text-right mr-4">{rating}-star</div>
@@ -566,7 +589,7 @@ const TagGenerator = () => {
             </div>
           ))}
         </div>
-        
+
         {/* Review Form Toggle */}
         {user && !showReviewForm && (
           <button
@@ -605,46 +628,43 @@ const TagGenerator = () => {
             </button>
           </div>
         )}
-    
-        <div className="review-card pb-5">
-      <Slider {...settings}>
-        {reviews.map((review, index) => (
-          <div key={index} className="p-6 bg-white shadow-lg rounded-lg relative mt-5 max-w-sm mx-auto">
-            <div className="flex justify-center">
-              <Image
-                src={`data:image/jpeg;base64,${review?.userProfile}`}
-                alt={review.name}
-                className="w-16 h-16 rounded-full -mt-12 border-2 border-white"
-                width={64}
-                height={64}
-              />
-            </div>
-            <div className="mt-6 text-center">
-              <p className="text-lg italic text-gray-700 mb-4">
-                “{review.comment}”
-              </p>
-              <h3 className="text-xl font-bold text-gray-800">{review.name}</h3>
-              <p className="text-sm text-gray-500">User</p>
-              <div className="flex justify-center mt-3">
-                {[...Array(5)].map((_, i) => (
-                  <FaStar
-                    key={i}
-                    size={24}
-                    color={i < review.rating ? "#ffc107" : "#e4e5e9"}
-                  />
-                ))}
-              </div>
-              <span className="text-xl font-bold mt-2">{review.rating.toFixed(1)}</span>
-            </div>
-            <div className="absolute top-2 left-2 text-red-600 text-7xl">“</div>
-            <div className="absolute bottom-2 right-2 text-red-600 text-7xl">”</div>
-          </div>
-        ))}
-      </Slider>
-    </div>
-       
-  
 
+        <div className="review-card pb-5">
+          <Slider {...settings}>
+            {reviews.map((review, index) => (
+              <div key={index} className="p-6 bg-white shadow-lg rounded-lg relative mt-5 max-w-sm mx-auto">
+                <div className="flex justify-center">
+                  <Image
+                    src={`data:image/jpeg;base64,${review?.userProfile}`}
+                    alt={review.name}
+                    className="w-16 h-16 rounded-full -mt-12 border-2 border-white"
+                    width={64}
+                    height={64}
+                  />
+                </div>
+                <div className="mt-6 text-center">
+                  <p className="text-lg italic text-gray-700 mb-4">
+                    “{review.comment}”
+                  </p>
+                  <h3 className="text-xl font-bold text-gray-800">{review.name}</h3>
+                  <p className="text-sm text-gray-500">User</p>
+                  <div className="flex justify-center mt-3">
+                    {[...Array(5)].map((_, i) => (
+                      <FaStar
+                        key={i}
+                        size={24}
+                        color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xl font-bold mt-2">{review.rating.toFixed(1)}</span>
+                </div>
+                <div className="absolute top-2 left-2 text-red-600 text-7xl">“</div>
+                <div className="absolute bottom-2 right-2 text-red-600 text-7xl">”</div>
+              </div>
+            ))}
+          </Slider>
+        </div>
       </div>
     </>
   );

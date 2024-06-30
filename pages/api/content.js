@@ -53,7 +53,7 @@ const handlePost = async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    const imageUrl = image ? `/uploads/${image.filename}` : null; // Save the relative URL to the image
+    const imageUrl = image ? `/uploads/${image.filename}` : null;
 
     const doc = {
       content,
@@ -88,20 +88,18 @@ const handlePut = async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    const imageUrl = image ? `/uploads/${image.filename}` : null; // Save the relative URL to the image
+    const imageUrl = image ? `/uploads/${image.filename}` : undefined;
 
     const doc = {
       content,
       title,
       description,
-      image: imageUrl,
+      ...(imageUrl && { image: imageUrl }),
     };
 
     const { db } = await connectToDatabase();
     const filter = { category };
-    const updateDoc = {
-      $set: doc,
-    };
+    const updateDoc = { $set: doc };
     const result = await db.collection('content').updateOne(filter, updateDoc, { upsert: true });
 
     if (!result.matchedCount && !result.upsertedCount) {
