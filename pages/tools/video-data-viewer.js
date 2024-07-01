@@ -148,7 +148,9 @@ const VideoDataViewer = () => {
       }
 
       const data = await response.json();
+      console.log(data);
       setVideoData(data);
+      console.log(videoData);
       const newGenerateCount = generateCount + 1;
       setGenerateCount(newGenerateCount);
       localStorage.setItem("generateCount", newGenerateCount);
@@ -384,19 +386,11 @@ const VideoDataViewer = () => {
           )}
         </div>
       </div>
-
       <div className="max-w-7xl mx-auto p-4">
-        {videoData && (
+      {videoData && (
           <div className="mt-8 bg-white rounded-lg shadow-md p-6">
             <div className="flex justify-center mb-4">
-              <Image
-                src={videoData.thumbnail || ""}
-                alt="Video Cover"
-                width={880}
-                height={420}
-                layout="intrinsic"
-                className="rounded-lg"
-              />
+              <Image src={videoData.thumbnail || ''} alt="Video Cover" width={880} height={420} layout="intrinsic" className="rounded-lg" />
             </div>
             <table className="min-w-full bg-white">
               <thead>
@@ -406,21 +400,14 @@ const VideoDataViewer = () => {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td className="px-4 py-2 border">
-                    <div className="flex items-center">
-                      <FaVideo className="mr-2" /> Category
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 border">{videoData.category}</td>
-                </tr>
+              
                 <tr>
                   <td className="px-4 py-2 border">
                     <div className="flex items-center">
                       <FaClock className="mr-2" /> Duration
                     </div>
                   </td>
-                  <td className="px-4 py-2 border">{videoData.duration}</td>
+                  <td className="px-4 py-2 border">{formatDuration(videoData.duration) || 'N/A'}</td>
                 </tr>
                 <tr>
                   <td className="px-4 py-2 border">
@@ -428,18 +415,15 @@ const VideoDataViewer = () => {
                       <FaEye className="mr-2" /> View Count
                     </div>
                   </td>
-                  <td className="px-4 py-2 border">{videoData.views}</td>
+                  <td className="px-4 py-2 border">{videoData.viewCount || 'N/A'}</td>
                 </tr>
                 <tr>
                   <td className="px-4 py-2 border">
                     <div className="flex items-center">
-                      <FaThumbsUp className="mr-2" />{" "}
-                      <FaThumbsDown className="ml-2" /> Like/Dislike Count
+                      <FaThumbsUp className="mr-2" /> <FaThumbsDown className="ml-2" /> Like/Dislike Count
                     </div>
                   </td>
-                  <td className="px-4 py-2 border">
-                    {videoData.likes} / {videoData.dislikes}
-                  </td>
+                  <td className="px-4 py-2 border">{videoData.likeCount || 'N/A'} / {videoData.dislikeCount || 'N/A'}</td>
                 </tr>
                 <tr>
                   <td className="px-4 py-2 border">
@@ -447,23 +431,16 @@ const VideoDataViewer = () => {
                       <FaComments className="mr-2" /> Comment Count
                     </div>
                   </td>
-                  <td className="px-4 py-2 border">{videoData.commentCount}</td>
+                  <td className="px-4 py-2 border">{videoData.commentCount || 'N/A'}</td>
                 </tr>
-                <tr>
-                  <td className="px-4 py-2 border">
-                    <div className="flex items-center">
-                      <FaLanguage className="mr-2" /> Audio Language
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 border">{videoData.audioLanguage}</td>
-                </tr>
+              
                 <tr>
                   <td className="px-4 py-2 border">
                     <div className="flex items-center">
                       <FaCalendarAlt className="mr-2" /> Published At
                     </div>
                   </td>
-                  <td className="px-4 py-2 border">{videoData.uploadDate}</td>
+                  <td className="px-4 py-2 border">{videoData.publishedAt || 'N/A'}</td>
                 </tr>
                 <tr>
                   <td className="px-4 py-2 border">
@@ -471,7 +448,7 @@ const VideoDataViewer = () => {
                       <FaVideo className="mr-2" /> Is Embeddable
                     </div>
                   </td>
-                  <td className="px-4 py-2 border">{videoData.isEmbeddable}</td>
+                  <td className="px-4 py-2 border">{videoData.isEmbeddable ? 'Yes' : 'No'}</td>
                 </tr>
                 <tr>
                   <td className="px-4 py-2 border">
@@ -479,11 +456,7 @@ const VideoDataViewer = () => {
                       <FaTags className="mr-2" /> Video Tags
                     </div>
                   </td>
-                  <td className="px-4 py-2 border">
-                    {Array.isArray(videoData.videoTags)
-                      ? videoData.videoTags.join(", ")
-                      : videoData.videoTags}
-                  </td>
+                  <td className="px-4 py-2 border">{Array.isArray(videoData.tags) ? videoData.tags.join(', ') : 'N/A'}</td>
                 </tr>
                 <tr>
                   <td className="px-4 py-2 border">
@@ -491,12 +464,14 @@ const VideoDataViewer = () => {
                       <FaInfoCircle className="mr-2" /> Description
                     </div>
                   </td>
-                  <td className="px-4 py-2 border">{videoData.description}</td>
+                  <td className="px-4 py-2 border">{videoData.description || 'N/A'}</td>
                 </tr>
               </tbody>
             </table>
           </div>
         )}
+     
+
         <div className="content pt-6 pb-5">
           <div
             dangerouslySetInnerHTML={{ __html: existingContent }}
@@ -597,7 +572,7 @@ const VideoDataViewer = () => {
             ))}
           </Slider>
         </div>
-        <ToastContainer />
+       
       </div>
     </>
   );
