@@ -51,6 +51,7 @@ const YouTubeDescriptionGenerator = ({ meta }) => {
           throw new Error('Failed to fetch content');
         }
         const data = await response.json();
+        console.log(data);
         setQuillContent(data[0]?.content || '');
         setExistingContent(data[0]?.content || '');
       } catch (error) {

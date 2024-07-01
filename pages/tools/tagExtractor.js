@@ -26,7 +26,7 @@ import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 
-const TagExtractor = () => {
+const TagExtractor = ({ meta }) => {
   const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState("");
   const [tags, setTags] = useState([]);
@@ -34,7 +34,6 @@ const TagExtractor = () => {
   const [error, setError] = useState("");
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false);
-  const [meta, setMeta] = useState("");
   const [generateCount, setGenerateCount] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);
   const [quillContent, setQuillContent] = useState("");
@@ -59,7 +58,6 @@ const TagExtractor = () => {
         const data = await response.json();
         setQuillContent(data[0]?.content || "");
         setExistingContent(data[0]?.content || "");
-        setMeta(data[0]);
       } catch (error) {
         toast.error("Error fetching content");
       }
@@ -73,18 +71,16 @@ const TagExtractor = () => {
     try {
       const response = await fetch("/api/reviews?tool=tag-extractor");
       const data = await response.json();
-      // Update reviews state to include user details
-      const updatedReviews = data.map(review => ({
+      const updatedReviews = data.map((review) => ({
         ...review,
-        name: review.userName , // Assuming user has a name field
-        userProfile: review.userProfile, // Use userProfile from review or empty string
+        name: review.userName,
+        userProfile: review.userProfile,
       }));
       setReviews(updatedReviews);
     } catch (error) {
       console.error("Failed to fetch reviews:", error);
     }
   };
-  
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -254,7 +250,7 @@ const TagExtractor = () => {
           tool: "tag-extractor",
           ...newReview,
           userProfile: user?.profileImage, // Assuming user has a profileImage property
-          userName:user?.username
+          userName: user?.username,
         }),
       });
 
@@ -263,18 +259,24 @@ const TagExtractor = () => {
       }
 
       toast.success("Review submitted successfully!");
-      setNewReview({ name: "", rating: 0, comment: "", userProfile: "",userName:"" });
+      setNewReview({
+        name: "",
+        rating: 0,
+        comment: "",
+        userProfile: "",
+        userName: "",
+      });
       setShowReviewForm(false);
-      fetchReviews(); // Refresh the reviews
+      fetchReviews();
     } catch (error) {
       toast.error("Failed to submit review");
     }
   };
+
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
-    const ratingCount = reviews.filter(
-      (review) => review.rating === rating
-    ).length;
+    const ratingCount = reviews.filter((review) => review.rating === rating)
+      .length;
     return totalReviews ? (ratingCount / totalReviews) * 100 : 0;
   };
 
@@ -315,7 +317,7 @@ const TagExtractor = () => {
             <meta name="description" content={meta.description} />
             <meta
               property="og:url"
-              content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
+              content={meta.url}
             />
             <meta property="og:title" content={meta.title} />
             <meta property="og:description" content={meta.description} />
@@ -323,18 +325,18 @@ const TagExtractor = () => {
             <meta name="twitter:card" content={meta.image} />
             <meta
               property="twitter:domain"
-              content="https://youtube-tool-frontend.vercel.app/"
+              content={meta.url}
             />
             <meta
               property="twitter:url"
-              content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
+              content={meta.url}
             />
             <meta name="twitter:title" content={meta.title} />
             <meta name="twitter:description" content={meta.description} />
             <meta name="twitter:image" content={meta.image} />
           </Head>
           <h2 className="text-3xl text-white">YouTube Tag Extractor</h2>
-          <ToastContainer/>
+          <ToastContainer />
           {modalVisible && (
             <div
               className=" bottom-0 right-0 bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4  shadow-md mb-6 mt-3 fixed-modal"
@@ -353,13 +355,15 @@ const TagExtractor = () => {
                     <p className="text-center p-3 alert-warning">
                       Please sign in to use this tool.
                     </p>
-                  ) : user.paymentStatus === "success" || user.role === "admin" ? (
+                  ) : user.paymentStatus === "success" ||
+                    user.role === "admin" ? (
                     <p className="text-center p-3 alert-warning">
                       Congratulations!! Now you can generate unlimited tags.
                     </p>
                   ) : (
                     <p className="text-center p-3 alert-warning">
-                      You are not upgraded. You can get tag {5 - generateCount} more times.{" "}
+                      You are not upgraded. You can get tag {5 - generateCount}{" "}
+                      more times.{" "}
                       <Link href="/pricing" className="btn btn-warning ms-3">
                         Upgrade
                       </Link>
@@ -462,13 +466,13 @@ const TagExtractor = () => {
               ))}
             </div>
             <button className="btn btn-danger mt-3" onClick={downloadTags}>
-              Download <FaDownload />
+               <FaDownload />
             </button>
             <button
               className="btn btn-danger mt-3 ms-2"
               onClick={copyAllTagsToClipboard}
             >
-              Copy <FaCopy />
+               <FaCopy />
             </button>
           </div>
         )}
@@ -495,10 +499,10 @@ const TagExtractor = () => {
             </div>
           ))}
         </div>
-       
-       {/* Review Form */}
-      {/* Review Form Toggle */}
-      {user && !showReviewForm && (
+
+        {/* Review Form */}
+        {/* Review Form Toggle */}
+        {user && !showReviewForm && (
           <button
             className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
             onClick={() => setShowReviewForm(true)}
@@ -536,46 +540,79 @@ const TagExtractor = () => {
           </div>
         )}
 
-    
-<div className="review-card pb-5">
-      <Slider {...settings}>
-        {reviews.map((review, index) => (
-          <div key={index} className="p-6 bg-white shadow-lg rounded-lg relative mt-5 max-w-sm mx-auto">
-            <div className="flex justify-center">
-              <Image
-                src={`data:image/jpeg;base64,${review?.userProfile}`}
-                alt={review.name}
-                className="w-16 h-16 rounded-full -mt-12 border-2 border-white"
-                width={64}
-                height={64}
-              />
-            </div>
-            <div className="mt-6 text-center">
-              <p className="text-lg italic text-gray-700 mb-4">
-                “{review.comment}”
-              </p>
-              <h3 className="text-xl font-bold text-gray-800">{review.name}</h3>
-              <p className="text-sm text-gray-500">User</p>
-              <div className="flex justify-center mt-3">
-                {[...Array(5)].map((_, i) => (
-                  <FaStar
-                    key={i}
-                    size={24}
-                    color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+        <div className="review-card pb-5">
+          <Slider {...settings}>
+            {reviews.map((review, index) => (
+              <div
+                key={index}
+                className="p-6 bg-white shadow-lg rounded-lg relative mt-5 max-w-sm mx-auto"
+              >
+                <div className="flex justify-center">
+                  <Image
+                    src={`data:image/jpeg;base64,${review?.userProfile}`}
+                    alt={review.name}
+                    className="w-16 h-16 rounded-full -mt-12 border-2 border-white"
+                    width={64}
+                    height={64}
                   />
-                ))}
+                </div>
+                <div className="mt-6 text-center">
+                  <p className="text-lg italic text-gray-700 mb-4">
+                    “{review.comment}”
+                  </p>
+                  <h3 className="text-xl font-bold text-gray-800">
+                    {review.name}
+                  </h3>
+                  <p className="text-sm text-gray-500">User</p>
+                  <div className="flex justify-center mt-3">
+                    {[...Array(5)].map((_, i) => (
+                      <FaStar
+                        key={i}
+                        size={24}
+                        color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xl font-bold mt-2">
+                    {review.rating.toFixed(1)}
+                  </span>
+                </div>
+                <div className="absolute top-2 left-2 text-red-600 text-7xl">
+                  “
+                </div>
+                <div className="absolute bottom-2 right-2 text-red-600 text-7xl">
+                  ”
+                </div>
               </div>
-              <span className="text-xl font-bold mt-2">{review.rating.toFixed(1)}</span>
-            </div>
-            <div className="absolute top-2 left-2 text-red-600 text-7xl">“</div>
-            <div className="absolute bottom-2 right-2 text-red-600 text-7xl">”</div>
-          </div>
-        ))}
-      </Slider>
-    </div>
+            ))}
+          </Slider>
+        </div>
       </div>
     </>
   );
 };
+
+export async function getServerSideProps(context) {
+  const { req } = context;
+  const host = req.headers.host;
+  const protocol = req.headers["x-forwarded-proto"] || "http";
+  const apiUrl = `${protocol}://${host}`;
+
+  const response = await fetch(`${apiUrl}/api/content?category=tagExtractor`);
+  const data = await response.json();
+
+  const meta = {
+    title: data[0]?.title || "",
+    description: data[0]?.description || "",
+    image: data[0]?.image || "",
+    url: `${apiUrl}/tools/tagExtractor`,
+  };
+
+  return {
+    props: {
+      meta,
+    },
+  };
+}
 
 export default TagExtractor;

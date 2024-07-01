@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaShareAlt,
   FaFacebook,
@@ -24,7 +24,7 @@ import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 
-const TagGenerator = () => {
+const TagGenerator = ({ meta }) => {
   const { user, updateUserProfile } = useAuth();
   const [tags, setTags] = useState([]);
   const [input, setInput] = useState("");
@@ -33,7 +33,6 @@ const TagGenerator = () => {
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
-  const [meta, setMeta] = useState({ title: "", description: "", image: "" });
   const [isUpdated, setIsUpdated] = useState(false);
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
@@ -57,7 +56,6 @@ const TagGenerator = () => {
         const data = await response.json();
         setQuillContent(data[0]?.content || "");
         setExistingContent(data[0]?.content || "");
-        setMeta(data[0]);
       } catch (error) {
         console.error("Error fetching content:", error);
         toast.error("Error fetching content");
@@ -189,7 +187,6 @@ const TagGenerator = () => {
     element.click();
     document.body.removeChild(element);
   };
-  
 
   const generateTitles = async () => {
     if (!user) {
@@ -485,48 +482,6 @@ const TagGenerator = () => {
             />
           </div>
         </div>
-        {/* <div className="generated-titles-container">
-          {generatedTitles.length > 0 && (
-            <div className="select-all-checkbox">
-              <input
-                type="checkbox"
-                checked={selectAll}
-                onChange={handleSelectAll}
-              />
-              <span>Select All</span>
-            </div>
-          )}
-          {generatedTitles.map((title, index) => (
-            <div key={index} className="title-checkbox">
-              <input
-                className="me-2"
-                type="checkbox"
-                checked={title.selected}
-                onChange={() => toggleTitleSelect(index)}
-              />
-              {title.text}
-              <FaCopy
-                className="copy-icon"
-                onClick={() => copyToClipboard(title.text)}
-              />
-            </div>
-          ))}
-          {generatedTitles.some((title) => title.selected) && (
-            <button className="btn btn-primary" onClick={copySelectedTitles}>
-              Copy <FaCopy />
-            </button>
-          )}
-          {generatedTitles.some((title) => title.selected) && (
-            <button
-              className="btn btn-primary ms-2"
-              onClick={downloadSelectedTitles}
-            >
-              Download <FaDownload />
-            </button>
-          )}
-        </div> */}
-
-       
         <div className="center">
         {generatedTitles.length > 0 && (
     <div className="rounded p-3">
@@ -674,5 +629,28 @@ const TagGenerator = () => {
     </>
   );
 };
+
+export async function getServerSideProps(context) {
+  const { req } = context;
+  const host = req.headers.host;
+  const protocol = req.headers['x-forwarded-proto'] || 'http';
+  const apiUrl = `${protocol}://${host}`;
+
+  const response = await fetch(`${apiUrl}/api/content?category=tagGenerator`);
+  const data = await response.json();
+
+  const meta = {
+      title: data[0]?.title || "",
+      description: data[0]?.description || "",
+      image: data[0]?.image || "",
+      url: `${apiUrl}/tools/tagGenerator`,
+  };
+
+  return {
+      props: {
+          meta,
+      },
+  };
+}
 
 export default TagGenerator;
