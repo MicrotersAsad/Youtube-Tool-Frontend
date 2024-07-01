@@ -49,7 +49,7 @@ const YouTubeChannelScraper = () => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch(`/api/content?category=YouTube-Channel-finder`);
+        const response = await fetch(`/api/content?category=YouTube-Channel-Search`);
         if (!response.ok) {
           throw new Error('Failed to fetch content');
         }
@@ -68,7 +68,7 @@ const YouTubeChannelScraper = () => {
 
   const fetchReviews = async () => {
     try {
-      const response = await fetch("/api/reviews?tool=YouTube-Channel-Details-Finder");
+      const response = await fetch("/api/reviews?tool=YouTube-Channel-Search");
       const data = await response.json();
       setReviews(data);
     } catch (error) {
@@ -89,7 +89,7 @@ const YouTubeChannelScraper = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          tool: "YouTube-Channel-Details-Finder",
+          tool: "YouTube-Channel-Search",
           ...newReview,
           userProfile: user?.profileImage || "not available",
           userName: user?.username,
@@ -274,7 +274,7 @@ const YouTubeChannelScraper = () => {
         <meta name="twitter:description" content={meta.description} />
         <meta name="twitter:image" content={meta.image} />
       </Head>
-      <h1 className="text-center text-white text-2xl font-bold mb-4">YouTube Channel Details Finder</h1>
+      <h1 className="text-center text-white text-2xl font-bold mb-4">YouTube Channel Search</h1>
       {modalVisible && (
             <div
               className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"

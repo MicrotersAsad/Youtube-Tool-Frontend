@@ -219,7 +219,7 @@ const ChannelIdFinder = () => {
                         <meta name="twitter:image" content={meta.image} />
                     </Head>
                     <ToastContainer />
-                    <h1 className="text-3xl font-bold text-center text-white mb-6">YouTube Channel Data Fetcher</h1>
+                    <h1 className="text-3xl font-bold text-center text-white mb-6">YouTube Channel ID Finder</h1>
                     {modalVisible && (
             <div
               className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"

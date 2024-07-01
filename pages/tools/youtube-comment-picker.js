@@ -16,7 +16,7 @@ import Image from "next/image";
 import StarRating from './StarRating';
 import Head from 'next/head';
 
-const YouTubeCommentPicker = () => {
+const YouTubeCommentPicker = ({ meta }) => {
   const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState('');
   const [includeReplies, setIncludeReplies] = useState(false);
@@ -29,100 +29,96 @@ const YouTubeCommentPicker = () => {
   const [generateCount, setGenerateCount] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);
   const [modalVisible, setModalVisible] = useState(true);
-  const [meta, setMeta] = useState({ // Meta information for the page
-    title: 'YouTube Channel Logo Downloader',
-    description: "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
-    image: 'https://yourwebsite.com/og-image.png',
-});
-const [reviews, setReviews] = useState([]);
-const [quillContent, setQuillContent] = useState("");
-const [existingContent, setExistingContent] = useState("");
-const [newReview, setNewReview] = useState({ rating: 0, comment: '' });
-const [showReviewForm, setShowReviewForm] = useState(false);
-useEffect(() => {
-  const fetchContent = async () => {
+  const [reviews, setReviews] = useState([]);
+  const [quillContent, setQuillContent] = useState("");
+  const [existingContent, setExistingContent] = useState("");
+  const [newReview, setNewReview] = useState({ rating: 0, comment: '' });
+  const [showReviewForm, setShowReviewForm] = useState(false);
+
+  useEffect(() => {
+    const fetchContent = async () => {
       try {
-          const response = await fetch(`/api/content?category=youtube-comment-picker`);
-          if (!response.ok) {
-              throw new Error("Failed to fetch content");
-          }
-          const data = await response.json();
-          setQuillContent(data[0]?.content || ""); // Ensure content is not undefined
-          setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
-          setMeta(data[0]);
+        const response = await fetch(`/api/content?category=youtube-comment-picker`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch content");
+        }
+        const data = await response.json();
+        setQuillContent(data[0]?.content || ""); // Ensure content is not undefined
+        setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
+        setMeta(data[0]);
       } catch (error) {
-          toast.error("Error fetching content");
+        toast.error("Error fetching content");
       }
+    };
+
+    fetchContent();
+    fetchReviews();
+  }, []);
+
+  const fetchReviews = async () => {
+    try {
+      const response = await fetch("/api/reviews?tool=youtube-comment-picker");
+      const data = await response.json();
+      setReviews(data);
+    } catch (error) {
+      console.error("Failed to fetch reviews:", error);
+    }
   };
 
-  fetchContent();
-  fetchReviews();
-}, []);
+  const handleReviewSubmit = async () => {
+    if (!newReview.rating || !newReview.comment) {
+      toast.error("All fields are required.");
+      return;
+    }
 
-const fetchReviews = async () => {
-  try {
-    const response = await fetch("/api/reviews?tool=youtube-comment-picker");
-    const data = await response.json();
-    setReviews(data);
-  } catch (error) {
-    console.error("Failed to fetch reviews:", error);
-  }
-};
+    try {
+      const response = await fetch("/api/reviews", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tool: "youtube-comment-picker",
+          ...newReview,
+          userProfile: user?.profileImage || "not available",
+          userName: user?.username,
+        }),
+      });
 
-const handleReviewSubmit = async () => {
-  if (!newReview.rating || !newReview.comment) {
-    toast.error("All fields are required.");
-    return;
-  }
+      if (!response.ok) throw new Error("Failed to submit review");
 
-  try {
-    const response = await fetch("/api/reviews", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        tool: "youtube-comment-picker",
-        ...newReview,
-        userProfile: user?.profileImage || "not available",
-        userName: user?.username,
-      }),
-    });
+      toast.success("Review submitted successfully!");
+      setNewReview({ name: "", rating: 0, comment: "", userProfile: "", userName: "" });
+      setShowReviewForm(false);
+      fetchReviews();
+    } catch (error) {
+      console.error("Failed to submit review:", error);
+      toast.error("Failed to submit review");
+    }
+  };
 
-    if (!response.ok) throw new Error("Failed to submit review");
+  const calculateRatingPercentage = (rating) => {
+    const totalReviews = reviews.length;
+    const ratingCount = reviews.filter(review => review.rating === rating).length;
+    return totalReviews ? (ratingCount / totalReviews) * 100 : 0;
+  };
 
-    toast.success("Review submitted successfully!");
-    setNewReview({ name: "", rating: 0, comment: "", userProfile: "", userName: "" });
-    setShowReviewForm(false);
-    fetchReviews();
-  } catch (error) {
-    console.error("Failed to submit review:", error);
-    toast.error("Failed to submit review");
-  }
-};
-const calculateRatingPercentage = (rating) => {
-  const totalReviews = reviews.length;
-  const ratingCount = reviews.filter(review => review.rating === rating).length;
-  return totalReviews ? (ratingCount / totalReviews) * 100 : 0;
-};
-
-const settings = {
-  infinite: true,
-  speed: 500,
-  slidesToShow: 1,
-  slidesToScroll: 1,
-  responsive: [
+  const settings = {
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    responsive: [
       {
-          breakpoint: 1024,
-          settings: {
-              slidesToShow: 1,
-              slidesToScroll: 1,
-              infinite: true,
-          }
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1,
+          infinite: true,
+        }
       }
-  ]
-};
-
+    ]
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -205,178 +201,167 @@ const settings = {
 
   return (
     <>
-    <div className="bg-box">
-      <div>
-        <Image className="shape1" src={announce} alt="announce" />
-        <Image className="shape2" src={cloud} alt="cloud" />
-        <Image className="shape3" src={cloud2} alt="cloud2" />
-        <Image className="shape4" src={chart} alt="chart" />
-      </div>
-
-      <div className="max-w-7xl mx-auto p-4">
-      <Head>
-        <title>{meta.title}</title>
-        <meta name="description" content={meta.description} />
-        <meta
-          property="og:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta property="og:title" content={meta.title} />
-        <meta property="og:description" content={meta.description} />
-        <meta property="og:image" content={meta.image} />
-        <meta name="twitter:card" content={meta.image} />
-        <meta
-          property="twitter:domain"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta
-          property="twitter:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta name="twitter:title" content={meta.title} />
-        <meta name="twitter:description" content={meta.description} />
-        <meta name="twitter:image" content={meta.image} />
-      </Head>
-      
-
-    
-      <ToastContainer />
-      <div className="bg-white p-4 rounded-lg shadow-md">
-        <h1 className='text-center'>YouTube Comment Picker</h1>
-        {modalVisible && (
-           <div
-           className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
-           role="alert"
-         >
-           <div className="flex">
-           <div className="mt-4">
-                {user ? (
-                  user.paymentStatus === 'success' || user.role === 'admin' ? (
-                    <p className="text-center p-3 alert-warning">
-                      Congratulations!! Now you can pick unlimited winners.
-                    </p>
-                  ) : (
-                    <p className="text-center p-3 alert-warning">
-                      You are not upgraded. You can pick winners {5 - generateCount} more times.{' '}
-                      <Link href="/pricing" className="btn btn-warning ms-3">
-                        Upgrade
-                      </Link>
-                    </p>
-                  )
-                ) : (
-                  <p className="text-center p-3 alert-warning">
-                    Please log in to use this tool.
-                  </p>
-                )}
-              </div>
-              <button className="ml-auto text-yellow-700" onClick={closeModal}>
-                ×
-              </button>
-            </div>
-          </div>
-          
-        )}
-        <div className="flex items-center space-x-4 mb-4">
-          <input
-            type="text"
-            placeholder="https://www.youtube.com/watch?v=example"
-            className="border p-2 rounded sm:w-2/3"
-            value={videoUrl}
-            onChange={(e) => setVideoUrl(e.target.value)}
-          />
-          <button
-            onClick={handlePickWinner}
-            className="bg-red-500 text-white p-2 rounded"
-            disabled={loading}
-          >
-            {loading ? 'Loading...' : 'Pick a Winner'}
-          </button>
+      <div className="bg-box">
+        <div>
+          <Image className="shape1" src={announce} alt="announce" />
+          <Image className="shape2" src={cloud} alt="cloud" />
+          <Image className="shape3" src={cloud2} alt="cloud2" />
+          <Image className="shape4" src={chart} alt="chart" />
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <h3 className="text-lg font-bold mb-2">YouTube Comment Options:</h3>
-            <div className="flex items-center space-x-2 mb-2">
-              <label>Include replies to comments</label>
-              <input
-                type="checkbox"
-                checked={includeReplies}
-                onChange={() => setIncludeReplies(!includeReplies)}
-              />
-            </div>
-            <div className="flex items-center space-x-2 mb-2">
-              <label>Filter duplicate users/names</label>
-              <input
-                type="checkbox"
-                checked={filterDuplicates}
-                onChange={() => setFilterDuplicates(!filterDuplicates)}
-              />
-            </div>
-            <div className="flex items-center space-x-2 mb-2">
-              <label>Filter comments on specific text</label>
+
+        <div className="max-w-7xl mx-auto p-4">
+          <Head>
+            <title>{meta.title}</title>
+            <meta name="description" content={meta.description} />
+            <meta property="og:url" content={meta.url} />
+            <meta property="og:title" content={meta.title} />
+            <meta property="og:description" content={meta.description} />
+            <meta property="og:image" content={meta.image} />
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta property="twitter:domain" content={meta.url} />
+            <meta property="twitter:url" content={meta.url} />
+            <meta name="twitter:title" content={meta.title} />
+            <meta name="twitter:description" content={meta.description} />
+            <meta name="twitter:image" content={meta.image} />
+          </Head>
+
+          <ToastContainer />
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <h1 className='text-center'>YouTube Comment Picker</h1>
+            {modalVisible && (
+              <div
+                className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+                role="alert"
+              >
+                <div className="flex">
+                  <div className="mt-4">
+                    {user ? (
+                      user.paymentStatus === 'success' || user.role === 'admin' ? (
+                        <p className="text-center p-3 alert-warning">
+                          Congratulations!! Now you can pick unlimited winners.
+                        </p>
+                      ) : (
+                        <p className="text-center p-3 alert-warning">
+                          You are not upgraded. You can pick winners {5 - generateCount} more times.{' '}
+                          <Link href="/pricing" className="btn btn-warning ms-3">
+                            Upgrade
+                          </Link>
+                        </p>
+                      )
+                    ) : (
+                      <p className="text-center p-3 alert-warning">
+                        Please log in to use this tool.
+                      </p>
+                    )}
+                  </div>
+                  <button className="ml-auto text-yellow-700" onClick={closeModal}>
+                    ×
+                  </button>
+                </div>
+              </div>
+
+            )}
+            <div className="flex items-center space-x-4 mb-4">
               <input
                 type="text"
-                className="border p-2 rounded w-full"
-                value={filterText}
-                onChange={(e) => setFilterText(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=example"
+                className="border p-2 rounded sm:w-2/3"
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
               />
-            </div>
-          </div>
-          <div>
-            <h3 className="text-lg font-bold mb-2">YouTube Raffle Options:</h3>
-            <div className="flex items-center space-x-2 mb-2">
-              <label>No. of winners:</label>
-              <select
-                value={numberOfWinners}
-                onChange={(e) => setNumberOfWinners(parseInt(e.target.value))}
-                className="border p-2 rounded"
+              <button
+                onClick={handlePickWinner}
+                className="bg-red-500 text-white p-2 rounded"
+                disabled={loading}
               >
-                {[1, 2, 3, 4, 5].map((num) => (
-                  <option key={num} value={num}>
-                    {num}
-                  </option>
-                ))}
-              </select>
+                {loading ? 'Loading...' : 'Pick a Winner'}
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h3 className="text-lg font-bold mb-2">YouTube Comment Options:</h3>
+                <div className="flex items-center space-x-2 mb-2">
+                  <label>Include replies to comments</label>
+                  <input
+                    type="checkbox"
+                    checked={includeReplies}
+                    onChange={() => setIncludeReplies(!includeReplies)}
+                  />
+                </div>
+                <div className="flex items-center space-x-2 mb-2">
+                  <label>Filter duplicate users/names</label>
+                  <input
+                    type="checkbox"
+                    checked={filterDuplicates}
+                    onChange={() => setFilterDuplicates(!filterDuplicates)}
+                  />
+                </div>
+                <div className="flex items-center space-x-2 mb-2">
+                  <label>Filter comments on specific text</label>
+                  <input
+                    type="text"
+                    className="border p-2 rounded w-full"
+                    value={filterText}
+                    onChange={(e) => setFilterText(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold mb-2">YouTube Raffle Options:</h3>
+                <div className="flex items-center space-x-2 mb-2">
+                  <label>No. of winners:</label>
+                  <select
+                    value={numberOfWinners}
+                    onChange={(e) => setNumberOfWinners(parseInt(e.target.value))}
+                    className="border p-2 rounded"
+                  >
+                    {[1, 2, 3, 4, 5].map((num) => (
+                      <option key={num} value={num}>
+                        {num}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
-      {winner && (
-        <div className="bg-white p-4 rounded-lg sm:w-1/3 w center shadow-md mt-5 winner-card">
-          <h3 className="text-xl font-bold text-center mb-4">Winner</h3>
-          <div className="flex flex-col items-center">
-            <div className="w-24 h-24 mb-4">
-              <img src={winner.avatar} alt={winner.user} className="w-full h-full rounded-full object-cover" />
-            </div>
-            <p className="text-lg font-bold">
-              <Link target='_blank' href={winner.channelUrl}>
-                @{winner.user}
-              </Link>
-            </p>
-            <p className="text-gray-600">{winner.text}</p>
-            <div className="flex space-x-4 mt-2">
-              <div className="flex items-center space-x-1 text-red-500">
-                <FaHeart />
-                <span>{winner.likes}</span>
+        {winner && (
+          <div className="bg-white p-4 rounded-lg sm:w-1/3 w center shadow-md mt-5 winner-card">
+            <h3 className="text-xl font-bold text-center mb-4">Winner</h3>
+            <div className="flex flex-col items-center">
+              <div className="w-24 h-24 mb-4">
+                <img src={winner.avatar} alt={winner.user} className="w-full h-full rounded-full object-cover" />
               </div>
-              <div className="flex items-center space-x-1 text-blue-500">
-                <FaComment />
-                <span>{winner.replies}</span>
+              <p className="text-lg font-bold">
+                <Link target='_blank' href={winner.channelUrl}>
+                  @{winner.user}
+                </Link>
+              </p>
+              <p className="text-gray-600">{winner.text}</p>
+              <div className="flex space-x-4 mt-2">
+                <div className="flex items-center space-x-1 text-red-500">
+                  <FaHeart />
+                  <span>{winner.likes}</span>
+                </div>
+                <div className="flex items-center space-x-1 text-blue-500">
+                  <FaComment />
+                  <span>{winner.replies}</span>
+                </div>
               </div>
             </div>
           </div>
+        )}
+        <div className="content pt-6 pb-5">
+          <div
+            dangerouslySetInnerHTML={{ __html: existingContent }}
+            style={{ listStyleType: "none" }}
+          ></div>
         </div>
-      )}
-       <div className="content pt-6 pb-5">
-                    <div
-                        dangerouslySetInnerHTML={{ __html: existingContent }}
-                        style={{ listStyleType: "none" }}
-                    ></div>
-                </div>
-               {/* Reviews Section */}
-       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
+        {/* Reviews Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
           {[5, 4, 3, 2, 1].map((rating) => (
             <div key={rating} className="flex items-center">
               <div className="w-12 text-right mr-4">{rating}-star</div>
@@ -469,9 +454,32 @@ const settings = {
           </Slider>
         </div>
 
-    </div>
+      </div>
     </>
   );
 };
+
+export async function getServerSideProps(context) {
+  const { req } = context;
+  const host = req.headers.host;
+  const protocol = req.headers['x-forwarded-proto'] || 'http';
+  const apiUrl = `${protocol}://${host}`;
+
+  const response = await fetch(`${apiUrl}/api/content?category=youtube-comment-picker`);
+  const data = await response.json();
+
+  const meta = {
+    title: data[0]?.title || "",
+    description: data[0]?.description || "",
+    image: data[0]?.image || "",
+    url: `${apiUrl}/tools/youtube-comment-picker`,
+  };
+
+  return {
+    props: {
+      meta,
+    },
+  };
+}
 
 export default YouTubeCommentPicker;

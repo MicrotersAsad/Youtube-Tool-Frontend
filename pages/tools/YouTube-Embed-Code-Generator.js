@@ -1,5 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -13,7 +11,6 @@ import {
 } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
-import sanitizeHtml from "sanitize-html";
 import Head from "next/head";
 import { ToastContainer, toast } from "react-toastify";
 import Slider from "react-slick";
@@ -26,7 +23,7 @@ import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 
-const YtEmbedCode = () => {
+const YtEmbedCode = ({ meta }) => {
   const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -35,7 +32,6 @@ const YtEmbedCode = () => {
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [embedCode, setEmbedCode] = useState("");
   const [content, setContent] = useState("");
-  const [meta, setMeta] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
@@ -43,6 +39,7 @@ const YtEmbedCode = () => {
   const [existingContent, setExistingContent] = useState("");
   const [modalVisable, setModalVisable] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
+
   const closeModal = () => {
     setModalVisable(false);
   };
@@ -81,8 +78,6 @@ const YtEmbedCode = () => {
     }
   }, [user]);
 
-
-
   const handleUrlChange = (e) => {
     setVideoUrl(e.target.value);
   };
@@ -113,17 +108,17 @@ const YtEmbedCode = () => {
     try {
       const tokensResponse = await fetch("/api/tokens");
       if (!tokensResponse.ok) throw new Error("Failed to fetch API tokens");
-  
+
       const tokens = await tokensResponse.json();
       const videoId = extractVideoId(videoUrl);
       let success = false;
-  
+
       for (const { token } of tokens) {
         try {
           const response = await axios.get(
             `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${token}`
           );
-           {
+          if (response.status === 200) {
             setEmbedCode(
               `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
             );
@@ -157,10 +152,11 @@ const YtEmbedCode = () => {
     return match ? match[2] : null;
   };
 
-
   const fetchReviews = async () => {
     try {
-      const response = await fetch("/api/reviews?tool=YouTube-Embed-Code-Generator");
+      const response = await fetch(
+        "/api/reviews?tool=YouTube-Embed-Code-Generator"
+      );
       const data = await response.json();
       setReviews(data);
     } catch (error) {
@@ -191,7 +187,13 @@ const YtEmbedCode = () => {
       if (!response.ok) throw new Error("Failed to submit review");
 
       toast.success("Review submitted successfully!");
-      setNewReview({ name: "", rating: 0, comment: "", userProfile: "", userName: "" });
+      setNewReview({
+        name: "",
+        rating: 0,
+        comment: "",
+        userProfile: "",
+        userName: "",
+      });
       setShowReviewForm(false);
       fetchReviews();
     } catch (error) {
@@ -224,6 +226,7 @@ const YtEmbedCode = () => {
       },
     ],
   };
+
   const copyToClipboard = async (text) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -232,49 +235,43 @@ const YtEmbedCode = () => {
       toast.error("Failed to copy embed code to clipboard.");
     }
   };
+
   return (
     <>
-    <div className="bg-box">
-      <div>
-        <Image className="shape1" src={announce} alt="announce" />
-        <Image className="shape2" src={cloud} alt="cloud" />
-        <Image className="shape3" src={cloud2} alt="cloud2" />
-        <Image className="shape4" src={chart} alt="chart" />
-      </div>
+      <div className="bg-box">
+        <div>
+          <Image className="shape1" src={announce} alt="announce" />
+          <Image className="shape2" src={cloud} alt="cloud" />
+          <Image className="shape3" src={cloud2} alt="cloud2" />
+          <Image className="shape4" src={chart} alt="chart" />
+        </div>
 
-      <div className="max-w-7xl mx-auto p-4">
-      <Head>
-        <title>{meta.title}</title>
-        <meta name="description" content={meta.description} />
-        <meta
-          property="og:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta property="og:title" content={meta.title} />
-        <meta property="og:description" content={meta.description} />
-        <meta property="og:image" content={meta.image} />
-        <meta name="twitter:card" content={meta.image} />
-        <meta
-          property="twitter:domain"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta
-          property="twitter:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta name="twitter:title" content={meta.title} />
-        <meta name="twitter:description" content={meta.description} />
-        <meta name="twitter:image" content={meta.image} />
-      </Head>
-      <h2 className="text-3xl pt-5 text-white">YouTube Thumbnails Generator</h2>
-      <ToastContainer />
-      {modalVisable && (
+        <div className="max-w-7xl mx-auto p-4">
+          <Head>
+            <title>{meta.title}</title>
+            <meta name="description" content={meta.description} />
+            <meta property="og:url" content={meta.url} />
+            <meta property="og:title" content={meta.title} />
+            <meta property="og:description" content={meta.description} />
+            <meta property="og:image" content={meta.image} />
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta property="twitter:domain" content={meta.url} />
+            <meta property="twitter:url" content={meta.url} />
+            <meta name="twitter:title" content={meta.title} />
+            <meta name="twitter:description" content={meta.description} />
+            <meta name="twitter:image" content={meta.image} />
+          </Head>
+          <h2 className="text-3xl pt-5 text-white">
+            YouTube Thumbnails Generator
+          </h2>
+          <ToastContainer />
+          {modalVisable && (
             <div
               className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
               role="alert"
             >
               <div className="flex">
-              <div className="mt-4">
+                <div className="mt-4">
                   {user ? (
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
@@ -302,92 +299,91 @@ const YtEmbedCode = () => {
               </div>
             </div>
           )}
-      <div className="row justify-content-center pt-5">
-        <div className="col-md-6">
-          <div className="input-group mb-3">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Enter YouTube Video URL..."
-              aria-label="YouTube Video URL"
-              value={videoUrl}
-              onChange={handleUrlChange}
-            />
-            <button
-              className="btn btn-danger"
-              type="button"
-              onClick={fetchYouTubeData}
-              disabled={loading}
-            >
-              {loading ? "Loading..." : "Fetch Video"}
-            </button>
-          </div>
-          <small className="text-white">
-            Example: https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s
-          </small>
-          <br />
-          <div className="ms-5">
-            <button className="btn btn-danger mt-3" onClick={handleShareClick}>
-              <FaShareAlt />
-            </button>
-            {showShareIcons && (
-              <div className="share-icons mt-3">
-                <FaFacebook
-                  className="facebook-icon"
-                  onClick={() => shareOnSocialMedia("facebook")}
+          <div className="row justify-content-center pt-5">
+            <div className="col-md-6">
+              <div className="input-group mb-3">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Enter YouTube Video URL..."
+                  aria-label="YouTube Video URL"
+                  value={videoUrl}
+                  onChange={handleUrlChange}
                 />
-                <FaInstagram
-                  className="instagram-icon"
-                  onClick={() => shareOnSocialMedia("instagram")}
-                />
-                <FaTwitter
-                  className="twitter-icon"
-                  onClick={() => shareOnSocialMedia("twitter")}
-                />
-                <FaLinkedin
-                  className="linkedin-icon"
-                  onClick={() => shareOnSocialMedia("linkedin")}
-                />
+                <button
+                  className="btn btn-danger"
+                  type="button"
+                  onClick={fetchYouTubeData}
+                  disabled={loading}
+                >
+                  {loading ? "Loading..." : "Fetch Video"}
+                </button>
               </div>
-            )}
-          </div>
-          {error && (
-            <div className="alert alert-danger" role="alert">
-              {error}
+              <small className="text-white">
+                Example: https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s
+              </small>
+              <br />
+              <div className="ms-5">
+                <button className="btn btn-danger mt-3" onClick={handleShareClick}>
+                  <FaShareAlt />
+                </button>
+                {showShareIcons && (
+                  <div className="share-icons mt-3">
+                    <FaFacebook
+                      className="facebook-icon"
+                      onClick={() => shareOnSocialMedia("facebook")}
+                    />
+                    <FaInstagram
+                      className="instagram-icon"
+                      onClick={() => shareOnSocialMedia("instagram")}
+                    />
+                    <FaTwitter
+                      className="twitter-icon"
+                      onClick={() => shareOnSocialMedia("twitter")}
+                    />
+                    <FaLinkedin
+                      className="linkedin-icon"
+                      onClick={() => shareOnSocialMedia("linkedin")}
+                    />
+                  </div>
+                )}
+              </div>
+              {error && (
+                <div className="alert alert-danger" role="alert">
+                  {error}
+                </div>
+              )}
             </div>
-          )}
-</div>
           </div>
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto p-4">
+        {embedCode && (
+          <div>
+            <div
+              dangerouslySetInnerHTML={{ __html: embedCode }}
+              className="embed-code-preview"
+              onClick={() => copyToClipboard(embedCode)}
+            ></div>
+            <h4 className="mt-4">Embed Code:</h4>
+            <textarea
+              className="form-control"
+              rows="3"
+              readOnly
+              value={embedCode}
+            ></textarea>
           </div>
-          </div>
-          <div className="max-w-7xl mx-auto p-4">
-          {embedCode && (
-            <div>
-              <div
-                dangerouslySetInnerHTML={{ __html: embedCode }}
-                className="embed-code-preview"
-                onClick={() => copyToClipboard(embedCode)}
-              ></div>
-              <h4 className="mt-4">Embed Code:</h4>
-              <textarea
-                className="form-control"
-                rows="3"
-                readOnly
-                value={embedCode}
-              ></textarea>
-            </div>
-          )}
-       
+        )}
+
         <div className="content pt-6 pb-5">
           <div
             dangerouslySetInnerHTML={{ __html: existingContent }}
             style={{ listStyleType: "none" }}
           ></div>
         </div>
-     
 
-       {/* Reviews Section */}
-       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
+        {/* Reviews Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
           {[5, 4, 3, 2, 1].map((rating) => (
             <div key={rating} className="flex items-center">
               <div className="w-12 text-right mr-4">{rating}-star</div>
@@ -479,9 +475,32 @@ const YtEmbedCode = () => {
             ))}
           </Slider>
         </div>
-        </div> 
+      </div>
     </>
   );
 };
+
+export async function getServerSideProps(context) {
+  const { req } = context;
+  const host = req.headers.host;
+  const protocol = req.headers['x-forwarded-proto'] || 'http';
+  const apiUrl = `${protocol}://${host}`;
+
+  const response = await fetch(`${apiUrl}/api/content?category=YouTube-Embed-Code-Generator`);
+  const data = await response.json();
+
+  const meta = {
+    title: data[0]?.title || "",
+    description: data[0]?.description || "",
+    image: data[0]?.image || "",
+    url: `${apiUrl}/tools/yt-embed-code`,
+  };
+
+  return {
+    props: {
+      meta,
+    },
+  };
+}
 
 export default YtEmbedCode;

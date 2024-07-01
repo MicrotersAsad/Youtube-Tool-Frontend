@@ -113,8 +113,8 @@ function Content() {
         return 'YouTube Video Data Viewer';
       case 'monetization-checker':
         return 'YouTube Monetization Checker';
-      case 'YouTube-Channel-finder':
-        return 'YouTube Channel Finder';
+      case 'YouTube-Channel-Search':
+        return 'YouTube Channel Search';
       case 'YouTube-Video-Summary-Generator':
         return 'YouTube Video Summary Generator';
       case 'case-converter':
@@ -158,7 +158,7 @@ function Content() {
               <option value="Youtube-Thumbnails-Generator">Youtube Thumbnails Generator</option>
               <option value="video-data-viewer">YouTube Video Data Viewer</option>
               <option value="monetization-checker">YouTube Monetization Checker</option>
-              <option value="YouTube-Channel-finder">YouTube Channel Finder</option>
+              <option value="YouTube-Channel-Search">YouTube-Channel-Search</option>
               <option value="YouTube-Video-Summary-Generator">YouTube Video Summary Generator</option>
               <option value="case-converter">Case Converter</option>
               <option value="trendingVideos">YouTube Trending Videos</option>

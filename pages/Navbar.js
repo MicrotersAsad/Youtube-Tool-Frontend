@@ -27,7 +27,7 @@ const navigation = [
       { name: 'Channel Id Finder', href: '/tools/channel-id-finder', icon: '🆔' },
       { name: 'Video Data Viewer', href: '/tools/video-data-viewer', icon: '👁️' },
       { name: 'Monetization Checker', href: '/tools/monetization-checker', icon: '💰' },
-      { name: 'YouTube Channel Details Finder', href: '/tools/YouTube-Channel-Details-Finder', icon: '🔍' },
+      { name: 'YouTube Channel Search', href: '/tools/YouTube-Channel-Search', icon: '🔍' },
       { name: 'YouTube Video Summary Generator', href: '/tools/YouTube-Video-Summary-Generator', icon: '📝' },
       { name: 'Case Converter', href: '/tools/case-converter', icon: '🔄' },
       { name: 'YouTube Trending Videos', href: '/tools/trendingVideos', icon: '🔥' },
