@@ -15,7 +15,7 @@ import cloud2 from "../../public/shape/cloud2.png";
 import Image from 'next/image';
 import Head from 'next/head';
 
-const ChannelIdFinder = () => {
+const ChannelIdFinder = ({ meta }) => {
     const { user, updateUserProfile } = useAuth();
     const [modalVisible, setModalVisible] = useState(true);
     const [videoUrl, setVideoUrl] = useState('');
@@ -23,7 +23,6 @@ const ChannelIdFinder = () => {
     const [channelData, setChannelData] = useState(null);
     const [error, setError] = useState('');
     const [content, setContent] = useState('');
-    const [meta, setMeta] = useState('');
     const [isUpdated, setIsUpdated] = useState(false);
     const [generateCount, setGenerateCount] = useState(0);
     const [quillContent, setQuillContent] = useState('');
@@ -51,8 +50,6 @@ const ChannelIdFinder = () => {
         fetchContent();
         fetchReviews();
     }, []);
-
-   
 
     const handleQuillChange = useCallback((newContent) => {
         setQuillContent(newContent);
@@ -127,49 +124,49 @@ const ChannelIdFinder = () => {
             setLoading(false);
         }
     };
+
     const fetchReviews = async () => {
         try {
-          const response = await fetch("/api/reviews?tool=channel-id-finder");
-          const data = await response.json();
-          setReviews(data);
+            const response = await fetch("/api/reviews?tool=channel-id-finder");
+            const data = await response.json();
+            setReviews(data);
         } catch (error) {
-          console.error("Failed to fetch reviews:", error);
+            console.error("Failed to fetch reviews:", error);
         }
-      };
-    
-      const handleReviewSubmit = async () => {
+    };
+
+    const handleReviewSubmit = async () => {
         if (!newReview.rating || !newReview.comment) {
-          toast.error("All fields are required.");
-          return;
+            toast.error("All fields are required.");
+            return;
         }
-    
+
         try {
-          const response = await fetch("/api/reviews", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              tool: "channel-id-finder",
-              ...newReview,
-              userProfile: user?.profileImage || "not available",
-              userName: user?.username,
-            }),
-          });
-    
-          if (!response.ok) throw new Error("Failed to submit review");
-    
-          toast.success("Review submitted successfully!");
-          setNewReview({ name: "", rating: 0, comment: "", userProfile: "", userName: "" });
-          setShowReviewForm(false);
-          fetchReviews();
+            const response = await fetch("/api/reviews", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    tool: "channel-id-finder",
+                    ...newReview,
+                    userProfile: user?.profileImage || "not available",
+                    userName: user?.username,
+                }),
+            });
+
+            if (!response.ok) throw new Error("Failed to submit review");
+
+            toast.success("Review submitted successfully!");
+            setNewReview({ name: "", rating: 0, comment: "", userProfile: "", userName: "" });
+            setShowReviewForm(false);
+            fetchReviews();
         } catch (error) {
-          console.error("Failed to submit review:", error);
-          toast.error("Failed to submit review");
+            console.error("Failed to submit review:", error);
+            toast.error("Failed to submit review");
         }
-      };
-    
-   
+    };
+
     const calculateRatingPercentage = (rating) => {
         const totalReviews = reviews.length;
         const ratingCount = reviews.filter(review => review.rating === rating).length;
@@ -207,13 +204,13 @@ const ChannelIdFinder = () => {
                     <Head>
                         <title>{meta.title}</title>
                         <meta name="description" content={meta.description} />
-                        <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/monetization-checker" />
+                        <meta property="og:url" content={meta.url} />
                         <meta property="og:title" content={meta.title} />
                         <meta property="og:description" content={meta.description} />
                         <meta property="og:image" content={meta.image} />
-                        <meta name="twitter:card" content={meta.image} />
-                        <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
-                        <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/monetization-checker" />
+                        <meta name="twitter:card" content="summary_large_image" />
+                        <meta property="twitter:domain" content={meta.url} />
+                        <meta property="twitter:url" content={meta.url} />
                         <meta name="twitter:title" content={meta.title} />
                         <meta name="twitter:description" content={meta.description} />
                         <meta name="twitter:image" content={meta.image} />
@@ -221,39 +218,39 @@ const ChannelIdFinder = () => {
                     <ToastContainer />
                     <h1 className="text-3xl font-bold text-center text-white mb-6">YouTube Channel ID Finder</h1>
                     {modalVisible && (
-            <div
-              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
-              role="alert"
-            >
-              <div className="flex">
-              <div className="mt-4">
-                  {user ? (
-                    user.paymentStatus === "success" ||
-                    user.role === "admin" ? (
-                      <p className="text-center p-3 alert-warning">
-                        Congratulations! Now you can get  unlimited Channel Data.
-                      </p>
-                    ) : (
-                      <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can get Channel Data{" "}
-                        {5 - generateCount} more times.{" "}
-                        <Link href="/pricing" className="btn btn-warning ms-3">
-                          Upgrade
-                        </Link>
-                      </p>
-                    )
-                  ) : (
-                    <p className="text-center p-3 alert-warning">
-                      Please log in to fetch channel data.
-                    </p>
-                  )}
-                </div>
-                <button className="text-yellow-700 ml-auto" onClick={closeModal}>
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
+                        <div
+                            className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+                            role="alert"
+                        >
+                            <div className="flex">
+                                <div className="mt-4">
+                                    {user ? (
+                                        user.paymentStatus === "success" ||
+                                            user.role === "admin" ? (
+                                            <p className="text-center p-3 alert-warning">
+                                                Congratulations! Now you can get  unlimited Channel Data.
+                                            </p>
+                                        ) : (
+                                            <p className="text-center p-3 alert-warning">
+                                                You are not upgraded. You can get Channel Data{" "}
+                                                {5 - generateCount} more times.{" "}
+                                                <Link href="/pricing" className="btn btn-warning ms-3">
+                                                    Upgrade
+                                                </Link>
+                                            </p>
+                                        )
+                                    ) : (
+                                        <p className="text-center p-3 alert-warning">
+                                            Please log in to fetch channel data.
+                                        </p>
+                                    )}
+                                </div>
+                                <button className="text-yellow-700 ml-auto" onClick={closeModal}>
+                                    ×
+                                </button>
+                            </div>
+                        </div>
+                    )}
                     <div className="max-w-md mx-auto">
                         <div className="input-group mb-4">
                             <input
@@ -292,16 +289,13 @@ const ChannelIdFinder = () => {
                         <p><strong>Tags:</strong> {channelData.channelTags}</p>
                         <div className="flex flex-wrap justify-center mt-4">
                             <img src={channelData.channelProfileImage} alt="Channel Profile" className="w-24 h-24 rounded-full mx-2" />
-                         
-                            
                         </div>
-                       <div className='flex flex-wrap justify-center mt-4'>
-                       <a href={channelData.channelProfileImage} download>
+                        <div className='flex flex-wrap justify-center mt-4'>
+                            <a href={channelData.channelProfileImage} download>
                                 <button className="btn btn-primary mt-2">Download Profile Image</button>
                             </a>
+                        </div>
                     </div>
-                       </div>
-                       
                 )}
                 <div className="content pt-6 pb-5">
                     <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
@@ -404,5 +398,28 @@ const ChannelIdFinder = () => {
         </>
     );
 };
+
+export async function getServerSideProps(context) {
+    const { req } = context;
+    const host = req.headers.host;
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const apiUrl = `${protocol}://${host}`;
+
+    const response = await fetch(`${apiUrl}/api/content?category=channel-id-finder`);
+    const data = await response.json();
+
+    const meta = {
+        title: data[0]?.title || "",
+        description: data[0]?.description || "",
+        image: data[0]?.image || "",
+        url: `${apiUrl}/tools/channel-id-finder`,
+    };
+
+    return {
+        props: {
+            meta,
+        },
+    };
+}
 
 export default ChannelIdFinder;

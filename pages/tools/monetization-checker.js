@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Image from 'next/image';
@@ -15,21 +15,21 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 
-const MonetizationChecker = () => {
+const MonetizationChecker = ({ meta }) => {
     const { user, updateUserProfile } = useAuth();
     const [url, setUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState(null);
     const [error, setError] = useState('');
-    const [meta, setMeta] = useState({});
     const [isUpdated, setIsUpdated] = useState(false);
     const [reviews, setReviews] = useState([]);
     const [newReview, setNewReview] = useState({ rating: 0, comment: '', userProfile: '' });
     const [showReviewForm, setShowReviewForm] = useState(false);
-    const [quillContent, setQuillContent] = useState(''); // State to handle content from Quill editor
-    const [existingContent, setExistingContent] = useState(''); // State to handle existing content
+    const [quillContent, setQuillContent] = useState('');
+    const [existingContent, setExistingContent] = useState('');
     const [modalVisible, setModalVisible] = useState(true);
-    const [generateCount, setGenerateCount] = useState(0); // State to handle count of data generation
+    const [generateCount, setGenerateCount] = useState(0);
+
     const closeModals = () => {
         setModalVisible(false);
     };
@@ -40,10 +40,8 @@ const MonetizationChecker = () => {
                 const response = await fetch('/api/content?category=monetization-checker');
                 if (!response.ok) throw new Error('Failed to fetch content');
                 const data = await response.json();
-               
                 setQuillContent(data[0]?.content || '');
                 setExistingContent(data[0]?.content || '');
-                setMeta(data[0]);
             } catch (error) {
                 toast.error('Error fetching content');
             }
@@ -63,30 +61,28 @@ const MonetizationChecker = () => {
         }
     };
 
-// Update user profile if payment status is not success and profile is not updated
-useEffect(() => {
-    if (user && user.paymentStatus !== 'success' && !isUpdated) {
-        updateUserProfile().then(() => setIsUpdated(true));
-    }
-}, [user, updateUserProfile, isUpdated]);
-
-// Set generate count if user payment status is not success and role is not admin
-useEffect(() => {
-    if (user && user.paymentStatus !== 'success' && user.role !== 'admin') {
-        const storedCount = localStorage.getItem("generateCount");
-        if (storedCount) {
-            setGenerateCount(parseInt(storedCount));
-        } else {
-            setGenerateCount(3);
+    useEffect(() => {
+        if (user && user.paymentStatus !== 'success' && !isUpdated) {
+            updateUserProfile().then(() => setIsUpdated(true));
         }
-    }
-}, [user]);
+    }, [user, updateUserProfile, isUpdated]);
 
-useEffect(() => {
-    if (user && (user.paymentStatus === 'success' || user.role === 'admin')) {
-        localStorage.removeItem("generateCount");
-    }
-}, [user]);
+    useEffect(() => {
+        if (user && user.paymentStatus !== 'success' && user.role !== 'admin') {
+            const storedCount = localStorage.getItem("generateCount");
+            if (storedCount) {
+                setGenerateCount(parseInt(storedCount));
+            } else {
+                setGenerateCount(3);
+            }
+        }
+    }, [user]);
+
+    useEffect(() => {
+        if (user && (user.paymentStatus === 'success' || user.role === 'admin')) {
+            localStorage.removeItem("generateCount");
+        }
+    }, [user]);
 
     const handleInputChange = (e) => {
         setError('');
@@ -188,30 +184,26 @@ useEffect(() => {
         ],
     };
 
-    const closeModal = () => {
-        setShowReviewForm(false);
-    };
-
     return (
         <>
             <div className='bg-box'>
                 <div>
                     <Image className='shape1' src={announce} alt="announce" />
-                    <Image className='shape2' src={cloud} alt="announce" />
-                    <Image className='shape3' src={cloud2} alt="announce" />
-                    <Image className='shape4' src={chart} alt="announce" />
+                    <Image className='shape2' src={cloud} alt="cloud" />
+                    <Image className='shape3' src={cloud2} alt="cloud2" />
+                    <Image className='shape4' src={chart} alt="chart" />
                 </div>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
                     <Head>
                         <title>{meta.title}</title>
                         <meta name="description" content={meta.description} />
-                        <meta property="og:url" content="https://youtube-tool-frontend.vercel.app/tools/monetization-checker" />
+                        <meta property="og:url" content={meta.url} />
                         <meta property="og:title" content={meta.title} />
                         <meta property="og:description" content={meta.description} />
                         <meta property="og:image" content={meta.image} />
-                        <meta name="twitter:card" content={meta.image} />
-                        <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
-                        <meta property="twitter:url" content="https://youtube-tool-frontend.vercel.app/tools/monetization-checker" />
+                        <meta name="twitter:card" content="summary_large_image" />
+                        <meta property="twitter:domain" content={meta.url} />
+                        <meta property="twitter:url" content={meta.url} />
                         <meta name="twitter:title" content={meta.title} />
                         <meta name="twitter:description" content={meta.description} />
                         <meta name="twitter:image" content={meta.image} />
@@ -219,7 +211,7 @@ useEffect(() => {
                     <ToastContainer />
                     <h1 className="text-3xl font-bold text-center mb-6 text-white">YouTube Monetization Checker</h1>
                     {modalVisible && (
-                        <div className=" bottom-0 right-0 bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3 z-50" role="alert">
+                        <div className="bottom-0 right-0 bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3 z-50" role="alert">
                             <div className="flex">
                                 <div className="py-1">
                                     <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
@@ -395,10 +387,10 @@ useEffect(() => {
                         )}
                     </div>
                 )}
-                  <div className="content pt-6 pb-5">
-                <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
-            </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border p-5">
+                <div className="content pt-6 pb-5">
+                    <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border p-5">
                     {[5, 4, 3, 2, 1].map((rating) => (
                         <div key={rating} className="flex items-center">
                             <div className="w-12 text-right mr-4">{rating}-star</div>
@@ -444,7 +436,6 @@ useEffect(() => {
                         )}
                     </div>
                 )}
-              
                 <div className="review-card pb-5">
                     <Slider {...sliderSettings}>
                         {reviews.map((review, index) => (
@@ -479,5 +470,28 @@ useEffect(() => {
         </>
     );
 };
+
+export async function getServerSideProps(context) {
+    const { req } = context;
+    const host = req.headers.host;
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const apiUrl = `${protocol}://${host}`;
+
+    const response = await fetch(`${apiUrl}/api/content?category=monetization-checker`);
+    const data = await response.json();
+
+    const meta = {
+        title: data[0]?.title || "",
+        description: data[0]?.description || "",
+        image: data[0]?.image || "",
+        url: `${apiUrl}/tools/monetization-checker`,
+    };
+
+    return {
+        props: {
+            meta,
+        },
+    };
+}
 
 export default MonetizationChecker;

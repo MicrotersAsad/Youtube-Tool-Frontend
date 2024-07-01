@@ -58,7 +58,7 @@ const YtEmbedCode = ({ meta }) => {
         setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
         setMeta(data[0]);
       } catch (error) {
-        toast.error("Error fetching content");
+        console.error("Error fetching content");
       }
     };
 
@@ -262,7 +262,7 @@ const YtEmbedCode = ({ meta }) => {
             <meta name="twitter:image" content={meta.image} />
           </Head>
           <h2 className="text-3xl pt-5 text-white">
-            YouTube Thumbnails Generator
+            YouTube Embed Code Generator
           </h2>
           <ToastContainer />
           {modalVisable && (
@@ -276,11 +276,11 @@ const YtEmbedCode = ({ meta }) => {
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        Congratulations! Now you can generate unlimited Titles.
+                        Congratulations! Now you can generate unlimited Embed Code.
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can generate titles{" "}
+                        You are not upgraded. You can generate unlimited Embed Code{" "}
                         {5 - generateCount} more times.{" "}
                         <Link href="/pricing" className="btn btn-warning ms-3">
                           Upgrade
@@ -289,7 +289,7 @@ const YtEmbedCode = ({ meta }) => {
                     )
                   ) : (
                     <p className="text-center p-3 alert-warning">
-                      Please log in to fetch channel data.
+                      Please <Link href="/login">log</Link> in to unlimited Embed Code.
                     </p>
                   )}
                 </div>

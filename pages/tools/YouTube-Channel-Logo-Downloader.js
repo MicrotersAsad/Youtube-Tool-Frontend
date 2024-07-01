@@ -292,7 +292,7 @@ const YouTubeChannelLogoDownloader = () => {
             <meta name="twitter:description" content={meta.description} />
             <meta name="twitter:image" content={meta.image} />
           </Head>
-          <h2 className="text-3xl pt-5 text-white">YouTube Banner Download</h2>
+          <h2 className="text-3xl pt-5 text-white">YouTube Channel Logo Download</h2>
           <ToastContainer />
           {modalVisible && (
                 <div

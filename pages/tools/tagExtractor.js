@@ -15,7 +15,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import sanitizeHtml from "sanitize-html";
 import Head from "next/head";
 import StarRating from "./StarRating";
 import Slider from "react-slick";
@@ -35,7 +34,6 @@ const TagExtractor = () => {
   const [error, setError] = useState("");
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false);
-  const [content, setContent] = useState("");
   const [meta, setMeta] = useState("");
   const [generateCount, setGenerateCount] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);

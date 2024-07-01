@@ -254,7 +254,7 @@ const TitleDescriptionExtractor = () => {
             <meta name="twitter:description" content={meta.description} />
             <meta name="twitter:image" content={meta.image} />
           </Head>
-          <h2 className="text-3xl text-white">YouTube Title Generator</h2>
+          <h2 className="text-3xl text-white">YouTube Title & Description Extractor</h2>
           <ToastContainer />
           {modalVisible && (
             <div
