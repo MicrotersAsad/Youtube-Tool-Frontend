@@ -1,5 +1,3 @@
-// /components/KeywordSearch.js
-
 import { useEffect, useState } from 'react';
 import { FaCopy, FaStar } from 'react-icons/fa';
 import ClipLoader from 'react-spinners/ClipLoader';
@@ -14,9 +12,10 @@ import { ToastContainer, toast } from 'react-toastify';
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import StarRating from './StarRating';
 import Link from 'next/link';
-const KeywordSearch = () => {
+import StarRating from './StarRating';
+
+const KeywordSearch = ({ meta }) => {
   const [keyword, setKeyword] = useState('');
   const [country, setCountry] = useState('');
   const [data, setData] = useState(null);
@@ -24,11 +23,10 @@ const KeywordSearch = () => {
   const [error, setError] = useState(null);
   const { user, updateUserProfile, logout } = useAuth();
   const [generateCount, setGenerateCount] = useState(0);
-  const [meta, setMeta] = useState({ title: "", description: "", image: "" });
-  const [isUpdated, setIsUpdated] = useState(false);
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
+  const [isUpdated, setIsUpdated] = useState(false);
   const [newReview, setNewReview] = useState({
     name: "",
     rating: 0,
@@ -37,6 +35,7 @@ const KeywordSearch = () => {
   });
   const [modalVisible, setModalVisible] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
+
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -45,9 +44,9 @@ const KeywordSearch = () => {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
+        console.log("Fetched data:", data); // Add this line for debugging
         setQuillContent(data[0]?.content || ""); // Ensure content is not undefined
         setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
-        setMeta(data[0]);
       } catch (error) {
         toast.error("Error fetching content");
       }
@@ -143,14 +142,9 @@ const KeywordSearch = () => {
     ],
   };
 
-
-
-
-
   const closeModal = () => {
     setModalVisible(false);
   };
-
 
   const fetchKeywordData = async () => {
     setLoading(true);
@@ -180,47 +174,35 @@ const KeywordSearch = () => {
 
   return (
     <>
-    <div className="bg-box">
-      <div>
-        <Image className="shape1" src={announce} alt="announce" />
-        <Image className="shape2" src={cloud} alt="cloud" />
-        <Image className="shape3" src={cloud2} alt="cloud2" />
-        <Image className="shape4" src={chart} alt="chart" />
-      </div>
+      <div className="bg-box">
+        <div>
+          <Image className="shape1" src={announce} alt="announce" />
+          <Image className="shape2" src={cloud} alt="cloud" />
+          <Image className="shape3" src={cloud2} alt="cloud2" />
+          <Image className="shape4" src={chart} alt="chart" />
+        </div>
 
-      <div className="max-w-7xl mx-auto p-4">
-      <Head>
-        <title>{meta.title}</title>
-        <meta name="description" content={meta.description} />
-        <meta
-          property="og:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta property="og:title" content={meta.title} />
-        <meta property="og:description" content={meta.description} />
-        <meta property="og:image" content={meta.image} />
-        <meta name="twitter:card" content={meta.image} />
-        <meta
-          property="twitter:domain"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta
-          property="twitter:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta name="twitter:title" content={meta.title} />
-        <meta name="twitter:description" content={meta.description} />
-        <meta name="twitter:image" content={meta.image} />
-      </Head>
-      <h2 className="text-3xl pt-5 text-white">YouTube Keyword Research</h2>
-      <ToastContainer />
-      {modalVisible && (
-            <div
-              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
-              role="alert"
-            >
+        <div className="max-w-7xl mx-auto p-4">
+          <Head>
+            <title>{meta.title}</title>
+            <meta name="description" content={meta.description} />
+            <meta property="og:url" content={meta.url} />
+            <meta property="og:title" content={meta.title} />
+            <meta property="og:description" content={meta.description} />
+            <meta property="og:image" content={meta.image} />
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta property="twitter:domain" content={meta.url} />
+            <meta property="twitter:url" content={meta.url} />
+            <meta name="twitter:title" content={meta.title} />
+            <meta name="twitter:description" content={meta.description} />
+            <meta name="twitter:image" content={meta.image} />
+          </Head>
+          <h2 className="text-3xl pt-5 text-white">YouTube Keyword Research</h2>
+          <ToastContainer />
+          {modalVisible && (
+            <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3" role="alert">
               <div className="flex">
-              <div className="mt-4">
+                <div className="mt-4">
                   {user ? (
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
@@ -229,97 +211,86 @@ const KeywordSearch = () => {
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can  Keyword Research{" "}
-                        {5 - generateCount} more times.{" "}
-                        <Link href="/pricing" className="btn btn-warning ms-3">
-                          Upgrade
-                        </Link>
+                        You are not upgraded. You can  Keyword Research {5 - generateCount} more times.{" "}
+                        <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
                       </p>
                     )
                   ) : (
-                    <p className="text-center p-3 alert-warning">
-                      Please log in to fetch channel data.
-                    </p>
+                    <p className="text-center p-3 alert-warning">Please log in to fetch channel data.</p>
                   )}
                 </div>
-                <button className="text-yellow-700 ml-auto" onClick={closeModal}>
-                  ×
-                </button>
+                <button className="text-yellow-700 ml-auto" onClick={closeModal}>×</button>
               </div>
             </div>
           )}
-      <div className="mb-4 center w-full sm:w-2/3">
-        <input
-          type="text"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          placeholder="Enter a keyword"
-          className="p-2 m-2 border border-gray-300 rounded mr-2"
-        />
-        <input
-          type="text"
-          value={country}
-          onChange={(e) => setCountry(e.target.value)}
-          placeholder="Enter a country code"
-          className="p-2 m-2 border md:mt-2 border-gray-300 rounded mr-2"
-        />
-        <button onClick={fetchKeywordData} className="p-2 sm:mt-3 bg-red-500 text-white rounded">
-          Search
-        </button>
+          <div className="mb-4 center w-full sm:w-2/3">
+            <input
+              type="text"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder="Enter a keyword"
+              className="p-2 m-2 border border-gray-300 rounded mr-2"
+            />
+            <input
+              type="text"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              placeholder="Enter a country code"
+              className="p-2 m-2 border md:mt-2 border-gray-300 rounded mr-2"
+            />
+            <button onClick={fetchKeywordData} className="p-2 sm:mt-3 bg-red-500 text-white rounded">
+              Search
+            </button>
+          </div>
+
+          {loading && (
+            <div className="flex justify-center items-center">
+              <ClipLoader color="#3b82f6" loading={loading} size={50} />
+            </div>
+          )}
+
+          {error && <p className="text-red-500">{error}</p>}
+        </div>
       </div>
-
-      {loading && (
-        <div className="flex justify-center items-center">
-          <ClipLoader color="#3b82f6" loading={loading} size={50} />
-        </div>
-      )}
-
-      {error && <p className="text-red-500">{error}</p>}
-</div>
-</div>
-<div className="max-w-7xl mx-auto p-4">
-      {data && !loading && (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200">
-            <thead>
-              <tr>
-                <th className="px-4 py-2 border-b">Keyword</th>
-                <th className="px-4 py-2 border-b">CPC</th>
-                <th className="px-4 py-2 border-b">Volume</th>
-                <th className="px-4 py-2 border-b">Competition</th>
-                <th className="px-4 py-2 border-b">Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((item, index) => (
-                <tr key={index} className="hover:bg-gray-100">
-                  <td className="px-4 py-2 border-b flex items-center">
-                    {item.text}
-                    <FaCopy
-                      className="ml-2 cursor-pointer text-blue-500"
-                      onClick={() => copyToClipboard(item.text)}
-                    />
-                  </td>
-                  <td className="px-4 py-2 border-b">{item.cpc}</td>
-                  <td className="px-4 py-2 border-b">{item.vol}</td>
-                  <td className="px-4 py-2 border-b">{item.competition}</td>
-                  <td className="px-4 py-2 border-b">{item.score}</td>
+      <div className="max-w-7xl mx-auto p-4">
+        {data && !loading && (
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white border border-gray-200">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 border-b">Keyword</th>
+                  <th className="px-4 py-2 border-b">CPC</th>
+                  <th className="px-4 py-2 border-b">Volume</th>
+                  <th className="px-4 py-2 border-b">Competition</th>
+                  <th className="px-4 py-2 border-b">Score</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-       <div className="content pt-6 pb-5">
+              </thead>
+              <tbody>
+                {data.map((item, index) => (
+                  <tr key={index} className="hover:bg-gray-100">
+                    <td className="px-4 py-2 border-b flex items-center">
+                      {item.text}
+                      <FaCopy className="ml-2 cursor-pointer text-blue-500" onClick={() => copyToClipboard(item.text)} />
+                    </td>
+                    <td className="px-4 py-2 border-b">{item.cpc}</td>
+                    <td className="px-4 py-2 border-b">{item.vol}</td>
+                    <td className="px-4 py-2 border-b">{item.competition}</td>
+                    <td className="px-4 py-2 border-b">{item.score}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <div className="content pt-6 pb-5">
           <div
             dangerouslySetInnerHTML={{ __html: existingContent }}
             style={{ listStyleType: "none" }}
           ></div>
         </div>
-     
 
-       {/* Reviews Section */}
-       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
+        {/* Reviews Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
           {[5, 4, 3, 2, 1].map((rating) => (
             <div key={rating} className="flex items-center">
               <div className="w-12 text-right mr-4">{rating}-star</div>
@@ -411,9 +382,32 @@ const KeywordSearch = () => {
             ))}
           </Slider>
         </div>
-    </div>
-  </>
+      </div>
+    </>
   );
 };
+
+export async function getServerSideProps(context) {
+  const { req } = context;
+  const host = req.headers.host;
+  const protocol = req.headers['x-forwarded-proto'] || 'http';
+  const apiUrl = `${protocol}://${host}`;
+
+  const response = await fetch(`${apiUrl}/api/content?category=keyword-research`);
+  const data = await response.json();
+
+  const meta = {
+    title: data[0]?.title || "",
+    description: data[0]?.description || "",
+    image: data[0]?.image || "",
+    url: `${apiUrl}/tools/tagGenerator`,
+  };
+
+  return {
+    props: {
+      meta,
+    },
+  };
+}
 
 export default KeywordSearch;
