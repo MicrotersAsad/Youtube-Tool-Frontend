@@ -125,6 +125,8 @@ function Content() {
         return 'YouTube Money Calculator';
       case 'youtube-comment-picker':
         return 'Youtube Comment Picker';
+      case 'keyword-research':
+        return 'Youtube Keyword Research';
       default:
         return 'Unknown Category';
     }
@@ -162,6 +164,7 @@ function Content() {
               <option value="trendingVideos">YouTube Trending Videos</option>
               <option value="YouTube-Money-Calculator">YouTube Money Calculator</option>
               <option value="youtube-comment-picker">Youtube Comment Picker</option>
+              <option value="keyword-research">Keyword Research</option>
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
               <svg

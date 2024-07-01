@@ -5,8 +5,16 @@ import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import announce from "../../public/shape/announce.png";
+import chart from "../../public/shape/chart (1).png";
+import cloud from "../../public/shape/cloud.png";
+import cloud2 from "../../public/shape/cloud2.png";
+import Image from "next/image";
 import StarRating from './StarRating';
-import Slider from 'react-slick';
+import Head from 'next/head';
 
 const YouTubeCommentPicker = () => {
   const { user, updateUserProfile } = useAuth();
@@ -30,6 +38,7 @@ const [reviews, setReviews] = useState([]);
 const [quillContent, setQuillContent] = useState("");
 const [existingContent, setExistingContent] = useState("");
 const [newReview, setNewReview] = useState({ rating: 0, comment: '' });
+const [showReviewForm, setShowReviewForm] = useState(false);
 useEffect(() => {
   const fetchContent = async () => {
       try {
@@ -52,43 +61,45 @@ useEffect(() => {
 
 const fetchReviews = async () => {
   try {
-      const response = await fetch('/api/reviews?tool=youtube-comment-picker');
-      const data = await response.json();
-      setReviews(data);
+    const response = await fetch("/api/reviews?tool=youtube-comment-picker");
+    const data = await response.json();
+    setReviews(data);
   } catch (error) {
-      console.error('Failed to fetch reviews:', error);
+    console.error("Failed to fetch reviews:", error);
   }
 };
+
 const handleReviewSubmit = async () => {
   if (!newReview.rating || !newReview.comment) {
-      toast.error('All fields are required.');
-      return;
+    toast.error("All fields are required.");
+    return;
   }
 
   try {
-      const response = await fetch('/api/reviews', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-              tool: 'youtube-comment-picker',
-              ...newReview,
-          }),
-      });
+    const response = await fetch("/api/reviews", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tool: "youtube-comment-picker",
+        ...newReview,
+        userProfile: user?.profileImage || "not available",
+        userName: user?.username,
+      }),
+    });
 
-      if (!response.ok) {
-          throw new Error('Failed to submit review');
-      }
+    if (!response.ok) throw new Error("Failed to submit review");
 
-      toast.success('Review submitted successfully!');
-      setNewReview({ rating: 0, comment: '' });
-      fetchReviews(); // Refresh the reviews
+    toast.success("Review submitted successfully!");
+    setNewReview({ name: "", rating: 0, comment: "", userProfile: "", userName: "" });
+    setShowReviewForm(false);
+    fetchReviews();
   } catch (error) {
-      toast.error('Failed to submit review');
+    console.error("Failed to submit review:", error);
+    toast.error("Failed to submit review");
   }
 };
-
 const calculateRatingPercentage = (rating) => {
   const totalReviews = reviews.length;
   const ratingCount = reviews.filter(review => review.rating === rating).length;
@@ -193,17 +204,52 @@ const settings = {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-5">
+    <>
+    <div className="bg-box">
+      <div>
+        <Image className="shape1" src={announce} alt="announce" />
+        <Image className="shape2" src={cloud} alt="cloud" />
+        <Image className="shape3" src={cloud2} alt="cloud2" />
+        <Image className="shape4" src={chart} alt="chart" />
+      </div>
+
+      <div className="max-w-7xl mx-auto p-4">
+      <Head>
+        <title>{meta.title}</title>
+        <meta name="description" content={meta.description} />
+        <meta
+          property="og:url"
+          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
+        />
+        <meta property="og:title" content={meta.title} />
+        <meta property="og:description" content={meta.description} />
+        <meta property="og:image" content={meta.image} />
+        <meta name="twitter:card" content={meta.image} />
+        <meta
+          property="twitter:domain"
+          content="https://youtube-tool-frontend.vercel.app/"
+        />
+        <meta
+          property="twitter:url"
+          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
+        />
+        <meta name="twitter:title" content={meta.title} />
+        <meta name="twitter:description" content={meta.description} />
+        <meta name="twitter:image" content={meta.image} />
+      </Head>
+      
+
+    
       <ToastContainer />
       <div className="bg-white p-4 rounded-lg shadow-md">
         <h1 className='text-center'>YouTube Comment Picker</h1>
         {modalVisible && (
-          <div
-            className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
-            role="alert"
-          >
-            <div className="flex">
-              <div>
+           <div
+           className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+           role="alert"
+         >
+           <div className="flex">
+           <div className="mt-4">
                 {user ? (
                   user.paymentStatus === 'success' || user.role === 'admin' ? (
                     <p className="text-center p-3 alert-warning">
@@ -228,6 +274,7 @@ const settings = {
               </button>
             </div>
           </div>
+          
         )}
         <div className="flex items-center space-x-4 mb-4">
           <input
@@ -293,6 +340,9 @@ const settings = {
           </div>
         </div>
       </div>
+      </div>
+      </div>
+      <div className="max-w-7xl mx-auto p-4">
       {winner && (
         <div className="bg-white p-4 rounded-lg sm:w-1/3 w center shadow-md mt-5 winner-card">
           <h3 className="text-xl font-bold text-center mb-4">Winner</h3>
@@ -325,75 +375,102 @@ const settings = {
                         style={{ listStyleType: "none" }}
                     ></div>
                 </div>
-                {/* Review Form */}
-            {user && (
-                <div className="mt-8 review-card">
-                    <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
-                    <div className="mb-4">
-                        <StarRating rating={newReview.rating} setRating={(rating) => setNewReview({ ...newReview, rating })} />
-                    </div>
-                    <div className="mb-4">
-                        <textarea
-                            className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                            placeholder="Your Review"
-                            value={newReview.comment}
-                            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                        />
-                    </div>
-                    <button
-                        className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
-                        onClick={handleReviewSubmit}
-                    >
-                        Submit Review
-                    </button>
-                </div>
-            )}
-            {/* Reviews Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5">
-                {[5, 4, 3, 2, 1].map((rating) => (
-                    <div key={rating} className="flex items-center">
-                        <div className="w-12 text-right mr-4">{rating}-star</div>
-                        <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
-                            <div className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0" style={{ width: `${calculateRatingPercentage(rating)}%` }}></div>
-                        </div>
-                        <div className="w-12 text-left ml-4">{calculateRatingPercentage(rating).toFixed(1)}%</div>
-                    </div>
-                ))}
+               {/* Reviews Section */}
+       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
+          {[5, 4, 3, 2, 1].map((rating) => (
+            <div key={rating} className="flex items-center">
+              <div className="w-12 text-right mr-4">{rating}-star</div>
+              <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
+                <div
+                  className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0"
+                  style={{ width: `${calculateRatingPercentage(rating)}%` }}
+                ></div>
+              </div>
+              <div className="w-12 text-left ml-4">
+                {calculateRatingPercentage(rating).toFixed(1)}%
+              </div>
             </div>
-            <div className="review-card pb-5">
-                <Slider {...settings}>
-                    {reviews.map((review, index) => (
-                        <div key={index} className="p-4 bg-white shadow rounded-lg mt-5">
-                            <div className="flex items-center mb-2">
-                                {[...Array(5)].map((star, i) => (
-                                    <FaStar
-                                        key={i}
-                                        size={24}
-                                        color={i < review.rating ? "#ffc107" : "#e4e5e9"}
-                                    />
-                                ))}
-                                <span className="ml-2 text-xl font-bold">{review.rating.toFixed(1)}</span>
-                            </div>
-                            <div>
-                                <p className="text-gray-600 text-right me-auto">{new Date(review.createdAt).toLocaleDateString()}</p>
-                            </div>
-                            <p className="text-lg font-semibold">{review.comment}</p>
-                            <p className="text-gray-600">- {review.name}</p>
-                            {review.userProfile && (
-                                <img
-                                    src={review.userProfile}
-                                    alt="User Profile"
-                                    className="w-12 h-12 rounded-full mt-2"
-                                />
-                            )}
-                        </div>
-                    ))}
-                </Slider>
+          ))}
+        </div>
 
+        {/* Review Form Toggle */}
+        {user && !showReviewForm && (
+          <button
+            className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
+            onClick={() => setShowReviewForm(true)}
+          >
+            Add Review
+          </button>
+        )}
+
+        {/* Review Form */}
+        {user && showReviewForm && (
+          <div className="mt-8 review-card">
+            <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+            <div className="mb-4">
+              <StarRating
+                rating={newReview.rating}
+                setRating={(rating) => setNewReview({ ...newReview, rating })}
+              />
             </div>
+            <div className="mb-4">
+              <textarea
+                className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                placeholder="Your Review"
+                value={newReview.comment}
+                onChange={(e) =>
+                  setNewReview({ ...newReview, comment: e.target.value })
+                }
+              />
+            </div>
+            <button
+              className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+              onClick={handleReviewSubmit}
+            >
+              Submit Review
+            </button>
+          </div>
+        )}
+
+        <div className="review-card pb-5">
+          <Slider {...settings}>
+            {reviews.map((review, index) => (
+              <div key={index} className="p-6 bg-white shadow-lg rounded-lg relative mt-5 max-w-sm mx-auto">
+                <div className="flex justify-center">
+                  <Image
+                    src={`data:image/jpeg;base64,${review?.userProfile}`}
+                    alt={review.name}
+                    className="w-16 h-16 rounded-full -mt-12 border-2 border-white"
+                    width={64}
+                    height={64}
+                  />
+                </div>
+                <div className="mt-6 text-center">
+                  <p className="text-lg italic text-gray-700 mb-4">
+                    “{review.comment}”
+                  </p>
+                  <h3 className="text-xl font-bold text-gray-800">{review.name}</h3>
+                  <p className="text-sm text-gray-500">User</p>
+                  <div className="flex justify-center mt-3">
+                    {[...Array(5)].map((_, i) => (
+                      <FaStar
+                        key={i}
+                        size={24}
+                        color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xl font-bold mt-2">{review.rating.toFixed(1)}</span>
+                </div>
+                <div className="absolute top-2 left-2 text-red-600 text-7xl">“</div>
+                <div className="absolute bottom-2 right-2 text-red-600 text-7xl">”</div>
+              </div>
+            ))}
+          </Slider>
+        </div>
 
     </div>
-    
+    </>
   );
 };
 
