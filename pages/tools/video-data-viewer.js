@@ -8,7 +8,6 @@ import {
   FaThumbsUp,
   FaThumbsDown,
   FaComments,
-  FaLanguage,
   FaCalendarAlt,
   FaVideo,
   FaTags,
@@ -32,7 +31,7 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 
-const VideoDataViewer = () => {
+const VideoDataViewer = ({ meta }) => {
   const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -41,12 +40,6 @@ const VideoDataViewer = () => {
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
   const [generateCount, setGenerateCount] = useState(0);
-  const [meta, setMeta] = useState({
-    title: "YouTube Video Data Viewer",
-    description:
-      "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
-    image: "https://yourwebsite.com/og-image.png",
-  });
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false);
   const [isUpdated, setIsUpdated] = useState(false);
@@ -148,9 +141,8 @@ const VideoDataViewer = () => {
       }
 
       const data = await response.json();
-      console.log(data);
       setVideoData(data);
-      console.log(videoData);
+
       const newGenerateCount = generateCount + 1;
       setGenerateCount(newGenerateCount);
       localStorage.setItem("generateCount", newGenerateCount);
@@ -162,6 +154,7 @@ const VideoDataViewer = () => {
       setLoading(false);
     }
   };
+
   const fetchReviews = async () => {
     try {
       const response = await fetch("/api/reviews?tool=video-data-viewer");
@@ -195,7 +188,13 @@ const VideoDataViewer = () => {
       if (!response.ok) throw new Error("Failed to submit review");
 
       toast.success("Review submitted successfully!");
-      setNewReview({ name: "", rating: 0, comment: "", userProfile: "", userName: "" });
+      setNewReview({
+        name: "",
+        rating: 0,
+        comment: "",
+        userProfile: "",
+        userName: "",
+      });
       setShowReviewForm(false);
       fetchReviews();
     } catch (error) {
@@ -275,7 +274,7 @@ const VideoDataViewer = () => {
             <meta name="description" content={meta.description} />
             <meta
               property="og:url"
-              content="https://youtube-tool-frontend.vercel.app/tools/video-data-viewer"
+              content={meta.url}
             />
             <meta property="og:title" content={meta.title} />
             <meta property="og:description" content={meta.description} />
@@ -287,13 +286,15 @@ const VideoDataViewer = () => {
             />
             <meta
               property="twitter:url"
-              content="https://youtube-tool-frontend.vercel.app/tools/video-data-viewer"
+              content={meta.url}
             />
             <meta name="twitter:title" content={meta.title} />
             <meta name="twitter:description" content={meta.description} />
             <meta name="twitter:image" content={meta.image} />
           </Head>
-          <h2 className="text-3xl pt-5 text-white">YouTube Video Data Viewer </h2>
+          <h2 className="text-3xl pt-5 text-white">
+            YouTube Video Data Viewer{" "}
+          </h2>
           <ToastContainer />
           {modalVisible && (
             <div
@@ -323,7 +324,10 @@ const VideoDataViewer = () => {
                     </p>
                   )}
                 </div>
-                <button className="text-yellow-700 ml-auto" onClick={closeModal}>
+                <button
+                  className="text-yellow-700 ml-auto"
+                  onClick={closeModal}
+                >
                   ×
                 </button>
               </div>
@@ -387,10 +391,17 @@ const VideoDataViewer = () => {
         </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
-      {videoData && (
+        {videoData && (
           <div className="mt-8 bg-white rounded-lg shadow-md p-6">
             <div className="flex justify-center mb-4">
-              <Image src={videoData.thumbnail || ''} alt="Video Cover" width={880} height={420} layout="intrinsic" className="rounded-lg" />
+              <Image
+                src={videoData.thumbnail || ""}
+                alt="Video Cover"
+                width={880}
+                height={420}
+                layout="intrinsic"
+                className="rounded-lg"
+              />
             </div>
             <table className="min-w-full bg-white">
               <thead>
@@ -400,14 +411,15 @@ const VideoDataViewer = () => {
                 </tr>
               </thead>
               <tbody>
-              
                 <tr>
                   <td className="px-4 py-2 border">
                     <div className="flex items-center">
                       <FaClock className="mr-2" /> Duration
                     </div>
                   </td>
-                  <td className="px-4 py-2 border">{formatDuration(videoData.duration) || 'N/A'}</td>
+                  <td className="px-4 py-2 border">
+                    {formatDuration(videoData.duration) || "N/A"}
+                  </td>
                 </tr>
                 <tr>
                   <td className="px-4 py-2 border">
@@ -415,15 +427,21 @@ const VideoDataViewer = () => {
                       <FaEye className="mr-2" /> View Count
                     </div>
                   </td>
-                  <td className="px-4 py-2 border">{videoData.viewCount || 'N/A'}</td>
+                  <td className="px-4 py-2 border">
+                    {videoData.viewCount || "N/A"}
+                  </td>
                 </tr>
                 <tr>
                   <td className="px-4 py-2 border">
                     <div className="flex items-center">
-                      <FaThumbsUp className="mr-2" /> <FaThumbsDown className="ml-2" /> Like/Dislike Count
+                      <FaThumbsUp className="mr-2" />{" "}
+                      <FaThumbsDown className="ml-2" /> Like/Dislike Count
                     </div>
                   </td>
-                  <td className="px-4 py-2 border">{videoData.likeCount || 'N/A'} / {videoData.dislikeCount || 'N/A'}</td>
+                  <td className="px-4 py-2 border">
+                    {videoData.likeCount || "N/A"} /{" "}
+                    {videoData.dislikeCount || "N/A"}
+                  </td>
                 </tr>
                 <tr>
                   <td className="px-4 py-2 border">
@@ -431,16 +449,20 @@ const VideoDataViewer = () => {
                       <FaComments className="mr-2" /> Comment Count
                     </div>
                   </td>
-                  <td className="px-4 py-2 border">{videoData.commentCount || 'N/A'}</td>
+                  <td className="px-4 py-2 border">
+                    {videoData.commentCount || "N/A"}
+                  </td>
                 </tr>
-              
+
                 <tr>
                   <td className="px-4 py-2 border">
                     <div className="flex items-center">
                       <FaCalendarAlt className="mr-2" /> Published At
                     </div>
                   </td>
-                  <td className="px-4 py-2 border">{videoData.publishedAt || 'N/A'}</td>
+                  <td className="px-4 py-2 border">
+                    {videoData.publishedAt || "N/A"}
+                  </td>
                 </tr>
                 <tr>
                   <td className="px-4 py-2 border">
@@ -448,7 +470,9 @@ const VideoDataViewer = () => {
                       <FaVideo className="mr-2" /> Is Embeddable
                     </div>
                   </td>
-                  <td className="px-4 py-2 border">{videoData.isEmbeddable ? 'Yes' : 'No'}</td>
+                  <td className="px-4 py-2 border">
+                    {videoData.isEmbeddable ? "Yes" : "No"}
+                  </td>
                 </tr>
                 <tr>
                   <td className="px-4 py-2 border">
@@ -456,7 +480,11 @@ const VideoDataViewer = () => {
                       <FaTags className="mr-2" /> Video Tags
                     </div>
                   </td>
-                  <td className="px-4 py-2 border">{Array.isArray(videoData.tags) ? videoData.tags.join(', ') : 'N/A'}</td>
+                  <td className="px-4 py-2 border">
+                    {Array.isArray(videoData.tags)
+                      ? videoData.tags.join(", ")
+                      : "N/A"}
+                  </td>
                 </tr>
                 <tr>
                   <td className="px-4 py-2 border">
@@ -464,13 +492,14 @@ const VideoDataViewer = () => {
                       <FaInfoCircle className="mr-2" /> Description
                     </div>
                   </td>
-                  <td className="px-4 py-2 border">{videoData.description || 'N/A'}</td>
+                  <td className="px-4 py-2 border">
+                    {videoData.description || "N/A"}
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
         )}
-     
 
         <div className="content pt-6 pb-5">
           <div
@@ -539,7 +568,10 @@ const VideoDataViewer = () => {
         <div className="review-card pb-5">
           <Slider {...settings}>
             {reviews.map((review, index) => (
-              <div key={index} className="p-6 bg-white shadow-lg rounded-lg relative mt-5 max-w-sm mx-auto">
+              <div
+                key={index}
+                className="p-6 bg-white shadow-lg rounded-lg relative mt-5 max-w-sm mx-auto"
+              >
                 <div className="flex justify-center">
                   <Image
                     src={`data:image/jpeg;base64,${review?.userProfile}`}
@@ -553,7 +585,9 @@ const VideoDataViewer = () => {
                   <p className="text-lg italic text-gray-700 mb-4">
                     “{review.comment}”
                   </p>
-                  <h3 className="text-xl font-bold text-gray-800">{review.name}</h3>
+                  <h3 className="text-xl font-bold text-gray-800">
+                    {review.name}
+                  </h3>
                   <p className="text-sm text-gray-500">User</p>
                   <div className="flex justify-center mt-3">
                     {[...Array(5)].map((_, i) => (
@@ -564,15 +598,20 @@ const VideoDataViewer = () => {
                       />
                     ))}
                   </div>
-                  <span className="text-xl font-bold mt-2">{review.rating.toFixed(1)}</span>
+                  <span className="text-xl font-bold mt-2">
+                    {review.rating.toFixed(1)}
+                  </span>
                 </div>
-                <div className="absolute top-2 left-2 text-red-600 text-7xl">“</div>
-                <div className="absolute bottom-2 right-2 text-red-600 text-7xl">”</div>
+                <div className="absolute top-2 left-2 text-red-600 text-7xl">
+                  “
+                </div>
+                <div className="absolute bottom-2 right-2 text-red-600 text-7xl">
+                  ”
+                </div>
               </div>
             ))}
           </Slider>
         </div>
-       
       </div>
     </>
   );
@@ -580,3 +619,25 @@ const VideoDataViewer = () => {
 
 export default VideoDataViewer;
 
+export async function getServerSideProps(context) {
+  const { req } = context;
+  const host = req.headers.host;
+  const protocol = req.headers["x-forwarded-proto"] || "http";
+  const apiUrl = `${protocol}://${host}`;
+
+  const response = await fetch(`${apiUrl}/api/content?category=video-data-viewer`);
+  const data = await response.json();
+
+  const meta = {
+    title: data[0]?.title || "",
+    description: data[0]?.description || "",
+    image: data[0]?.image || "",
+    url: `${apiUrl}/tools/video-data-viewer`,
+  };
+
+  return {
+    props: {
+      meta,
+    },
+  };
+}
