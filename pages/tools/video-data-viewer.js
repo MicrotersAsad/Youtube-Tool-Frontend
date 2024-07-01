@@ -31,6 +31,7 @@ import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
+
 const VideoDataViewer = () => {
   const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState("");
@@ -97,8 +98,6 @@ const VideoDataViewer = () => {
     fetchContent();
     fetchReviews();
   }, []);
-
-
 
   const handleInputChange = (e) => {
     setError("");
@@ -233,8 +232,6 @@ const VideoDataViewer = () => {
     return `${hours > 0 ? `${hours}h ` : ""}${minutes}m ${seconds}s`;
   };
 
- 
-
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
     const ratingCount = reviews.filter(
@@ -262,47 +259,47 @@ const VideoDataViewer = () => {
 
   return (
     <>
-    <div className="bg-box">
-      <div>
-        <Image className="shape1" src={announce} alt="announce" />
-        <Image className="shape2" src={cloud} alt="announce" />
-        <Image className="shape3" src={cloud2} alt="announce" />
-        <Image className="shape4" src={chart} alt="announce" />
-      </div>
+      <div className="bg-box">
+        <div>
+          <Image className="shape1" src={announce} alt="announce" />
+          <Image className="shape2" src={cloud} alt="announce" />
+          <Image className="shape3" src={cloud2} alt="announce" />
+          <Image className="shape4" src={chart} alt="announce" />
+        </div>
 
-      <div className="max-w-7xl mx-auto p-4">
-      <Head>
-        <title>{meta.title}</title>
-        <meta name="description" content={meta.description} />
-        <meta
-          property="og:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta property="og:title" content={meta.title} />
-        <meta property="og:description" content={meta.description} />
-        <meta property="og:image" content={meta.image} />
-        <meta name="twitter:card" content={meta.image} />
-        <meta
-          property="twitter:domain"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta
-          property="twitter:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta name="twitter:title" content={meta.title} />
-        <meta name="twitter:description" content={meta.description} />
-        <meta name="twitter:image" content={meta.image} />
-      </Head>
-      <h2 className="text-3xl pt-5 text-white">YouTube Video Data Viewer </h2>
-      <ToastContainer />
-      {modalVisible && (
+        <div className="max-w-7xl mx-auto p-4">
+          <Head>
+            <title>{meta.title}</title>
+            <meta name="description" content={meta.description} />
+            <meta
+              property="og:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/video-data-viewer"
+            />
+            <meta property="og:title" content={meta.title} />
+            <meta property="og:description" content={meta.description} />
+            <meta property="og:image" content={meta.image} />
+            <meta name="twitter:card" content={meta.image} />
+            <meta
+              property="twitter:domain"
+              content="https://youtube-tool-frontend.vercel.app/"
+            />
+            <meta
+              property="twitter:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/video-data-viewer"
+            />
+            <meta name="twitter:title" content={meta.title} />
+            <meta name="twitter:description" content={meta.description} />
+            <meta name="twitter:image" content={meta.image} />
+          </Head>
+          <h2 className="text-3xl pt-5 text-white">YouTube Video Data Viewer </h2>
+          <ToastContainer />
+          {modalVisible && (
             <div
               className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
               role="alert"
             >
               <div className="flex">
-              <div className="mt-4">
+                <div className="mt-4">
                   {user ? (
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
@@ -331,185 +328,184 @@ const VideoDataViewer = () => {
             </div>
           )}
 
-      <div className="max-w-lg mx-auto bg-white rounded-lg shadow-md p-6">
-        <div className="mb-4">
-          <input
-            type="text"
-            className="form-control block w-full px-3 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out focus:text-gray-700 focus:bg-white focus:border-blue-500 focus:outline-none"
-            placeholder="Enter YouTube Video URL..."
-            value={videoUrl}
-            onChange={handleInputChange}
-          />
-          <small className="text-muted">
-            Example:https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s
-          </small>
+          <div className="max-w-lg mx-auto bg-white rounded-lg shadow-md p-6">
+            <div className="mb-4">
+              <input
+                type="text"
+                className="form-control block w-full px-3 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out focus:text-gray-700 focus:bg-white focus:border-blue-500 focus:outline-none"
+                placeholder="Enter YouTube Video URL..."
+                value={videoUrl}
+                onChange={handleInputChange}
+              />
+              <small className="text-muted">
+                Example:https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s
+              </small>
+            </div>
+            <button
+              className={`btn btn-danger w-full py-2 text-white font-bold rounded transition-colors duration-200 ${
+                loading ? "bg-blue-300" : "bg-blue-500 hover:bg-blue-700"
+              } focus:outline-none focus:shadow-outline whitespace-nowrap`}
+              onClick={handleFetchClick}
+              disabled={loading}
+            >
+              {loading ? "Loading..." : "Fetch Data"}
+            </button>
+            <button
+              className="btn btn-danger mt-5 ms-5 text-center"
+              onClick={handleShareClick}
+            >
+              <FaShareAlt />
+            </button>
+            {showShareIcons && (
+              <div className="share-icons ms-2">
+                <FaFacebook
+                  className="facebook-icon"
+                  onClick={() => shareOnSocialMedia("facebook")}
+                />
+                <FaInstagram
+                  className="instagram-icon"
+                  onClick={() => shareOnSocialMedia("instagram")}
+                />
+                <FaTwitter
+                  className="twitter-icon"
+                  onClick={() => shareOnSocialMedia("twitter")}
+                />
+                <FaLinkedin
+                  className="linkedin-icon"
+                  onClick={() => shareOnSocialMedia("linkedin")}
+                />
+              </div>
+            )}
+          </div>
+          {error && (
+            <div className="alert alert-danger text-red-500 text-center mt-4">
+              {error}
+            </div>
+          )}
         </div>
-        <button
-          className={`btn btn-danger w-full py-2 text-white font-bold rounded transition-colors duration-200 ${
-            loading ? "bg-blue-300" : "bg-blue-500 hover:bg-blue-700"
-          } focus:outline-none focus:shadow-outline whitespace-nowrap`}
-          onClick={handleFetchClick}
-          disabled={loading}
-        >
-          {loading ? "Loading..." : "Fetch Data"}
-        </button>
-        <button
-          className="btn btn-danger mt-5 ms-5 text-center"
-          onClick={handleShareClick}
-        >
-          <FaShareAlt />
-        </button>
-        {showShareIcons && (
-          <div className="share-icons ms-2">
-            <FaFacebook
-              className="facebook-icon"
-              onClick={() => shareOnSocialMedia("facebook")}
-            />
-            <FaInstagram
-              className="instagram-icon"
-              onClick={() => shareOnSocialMedia("instagram")}
-            />
-            <FaTwitter
-              className="twitter-icon"
-              onClick={() => shareOnSocialMedia("twitter")}
-            />
-            <FaLinkedin
-              className="linkedin-icon"
-              onClick={() => shareOnSocialMedia("linkedin")}
-            />
+      </div>
+
+      <div className="max-w-7xl mx-auto p-4">
+        {videoData && (
+          <div className="mt-8 bg-white rounded-lg shadow-md p-6">
+            <div className="flex justify-center mb-4">
+              <Image
+                src={videoData.thumbnail || ""}
+                alt="Video Cover"
+                width={880}
+                height={420}
+                layout="intrinsic"
+                className="rounded-lg"
+              />
+            </div>
+            <table className="min-w-full bg-white">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 border">Property</th>
+                  <th className="px-4 py-2 border">Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="px-4 py-2 border">
+                    <div className="flex items-center">
+                      <FaVideo className="mr-2" /> Category
+                    </div>
+                  </td>
+                  <td className="px-4 py-2 border">{videoData.category}</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2 border">
+                    <div className="flex items-center">
+                      <FaClock className="mr-2" /> Duration
+                    </div>
+                  </td>
+                  <td className="px-4 py-2 border">{videoData.duration}</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2 border">
+                    <div className="flex items-center">
+                      <FaEye className="mr-2" /> View Count
+                    </div>
+                  </td>
+                  <td className="px-4 py-2 border">{videoData.views}</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2 border">
+                    <div className="flex items-center">
+                      <FaThumbsUp className="mr-2" />{" "}
+                      <FaThumbsDown className="ml-2" /> Like/Dislike Count
+                    </div>
+                  </td>
+                  <td className="px-4 py-2 border">
+                    {videoData.likes} / {videoData.dislikes}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2 border">
+                    <div className="flex items-center">
+                      <FaComments className="mr-2" /> Comment Count
+                    </div>
+                  </td>
+                  <td className="px-4 py-2 border">{videoData.commentCount}</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2 border">
+                    <div className="flex items-center">
+                      <FaLanguage className="mr-2" /> Audio Language
+                    </div>
+                  </td>
+                  <td className="px-4 py-2 border">{videoData.audioLanguage}</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2 border">
+                    <div className="flex items-center">
+                      <FaCalendarAlt className="mr-2" /> Published At
+                    </div>
+                  </td>
+                  <td className="px-4 py-2 border">{videoData.uploadDate}</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2 border">
+                    <div className="flex items-center">
+                      <FaVideo className="mr-2" /> Is Embeddable
+                    </div>
+                  </td>
+                  <td className="px-4 py-2 border">{videoData.isEmbeddable}</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2 border">
+                    <div className="flex items-center">
+                      <FaTags className="mr-2" /> Video Tags
+                    </div>
+                  </td>
+                  <td className="px-4 py-2 border">
+                    {Array.isArray(videoData.videoTags)
+                      ? videoData.videoTags.join(", ")
+                      : videoData.videoTags}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2 border">
+                    <div className="flex items-center">
+                      <FaInfoCircle className="mr-2" /> Description
+                    </div>
+                  </td>
+                  <td className="px-4 py-2 border">{videoData.description}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         )}
-      </div>
-      {error && (
-        <div className="alert alert-danger text-red-500 text-center mt-4">
-          {error}
+        <div className="content pt-6 pb-5">
+          <div
+            dangerouslySetInnerHTML={{ __html: existingContent }}
+            style={{ listStyleType: "none" }}
+          ></div>
         </div>
-      )}
-      </div>
-          </div>
-          
-          <div className="max-w-7xl mx-auto p-4">
-      {videoData && (
-        <div className="mt-8 bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-center mb-4">
-            <Image
-              src={videoData.thumbnail || ""}
-              alt="Video Cover"
-              width={880}
-              height={420}
-              layout="intrinsic"
-              className="rounded-lg"
-            />
-          </div>
-          <table className="min-w-full bg-white">
-            <thead>
-              <tr>
-                <th className="px-4 py-2 border">Property</th>
-                <th className="px-4 py-2 border">Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="px-4 py-2 border">
-                  <div className="flex items-center">
-                    <FaVideo className="mr-2" /> Category
-                  </div>
-                </td>
-                <td className="px-4 py-2 border">{videoData.category}</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-2 border">
-                  <div className="flex items-center">
-                    <FaClock className="mr-2" /> Duration
-                  </div>
-                </td>
-                <td className="px-4 py-2 border">{videoData.duration}</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-2 border">
-                  <div className="flex items-center">
-                    <FaEye className="mr-2" /> View Count
-                  </div>
-                </td>
-                <td className="px-4 py-2 border">{videoData.views}</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-2 border">
-                  <div className="flex items-center">
-                    <FaThumbsUp className="mr-2" />{" "}
-                    <FaThumbsDown className="ml-2" /> Like/Dislike Count
-                  </div>
-                </td>
-                <td className="px-4 py-2 border">
-                  {videoData.likes} / {videoData.dislikes}
-                </td>
-              </tr>
-              <tr>
-                <td className="px-4 py-2 border">
-                  <div className="flex items-center">
-                    <FaComments className="mr-2" /> Comment Count
-                  </div>
-                </td>
-                <td className="px-4 py-2 border">{videoData.commentCount}</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-2 border">
-                  <div className="flex items-center">
-                    <FaLanguage className="mr-2" /> Audio Language
-                  </div>
-                </td>
-                <td className="px-4 py-2 border">{videoData.audioLanguage}</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-2 border">
-                  <div className="flex items-center">
-                    <FaCalendarAlt className="mr-2" /> Published At
-                  </div>
-                </td>
-                <td className="px-4 py-2 border">{videoData.uploadDate}</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-2 border">
-                  <div className="flex items-center">
-                    <FaVideo className="mr-2" /> Is Embeddable
-                  </div>
-                </td>
-                <td className="px-4 py-2 border">{videoData.isEmbeddable}</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-2 border">
-                  <div className="flex items-center">
-                    <FaTags className="mr-2" /> Video Tags
-                  </div>
-                </td>
-                <td className="px-4 py-2 border">
-                  {Array.isArray(videoData.videoTags)
-                    ? videoData.videoTags.join(", ")
-                    : videoData.videoTags}
-                </td>
-              </tr>
-              <tr>
-                <td className="px-4 py-2 border">
-                  <div className="flex items-center">
-                    <FaInfoCircle className="mr-2" /> Description
-                  </div>
-                </td>
-                <td className="px-4 py-2 border">{videoData.description}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
-      <div className="content pt-6 pb-5">
-        <div
-          dangerouslySetInnerHTML={{ __html: existingContent }}
-          style={{ listStyleType: "none" }}
-        ></div>
-      </div>
-     
-      
-                   {/* Reviews Section */}
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
+
+        {/* Reviews Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
           {[5, 4, 3, 2, 1].map((rating) => (
             <div key={rating} className="flex items-center">
               <div className="w-12 text-right mr-4">{rating}-star</div>
@@ -601,88 +597,11 @@ const VideoDataViewer = () => {
             ))}
           </Slider>
         </div>
-
-      <ToastContainer />
-      <style jsx>{`
-        .keywords-input-container {
-          border: 2px solid #ccc;
-          padding: 10px;
-          border-radius: 10px;
-          display: flex;
-          align-items: flex-start;
-          flex-wrap: wrap;
-          min-height: 100px;
-          margin: auto;
-          width: 100%;
-          max-width: 600px;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-          background-color: #fff;
-        }
-
-        .tags-container {
-          display: flex;
-          flex-wrap: wrap;
-          margin-bottom: 8px;
-        }
-
-        .tag {
-          display: flex;
-          align-items: center;
-          color: #fff;
-          background-color: #0d6efd;
-          border-radius: 6px;
-          padding: 5px 10px;
-          margin-right: 8px;
-          margin-bottom: 8px;
-          font-size: 14px;
-        }
-
-        .remove-btn {
-          margin-left: 8px;
-          cursor: pointer;
-          font-weight: bold;
-        }
-
-        .input-box {
-          flex: 1;
-          border: none;
-          height: 40px;
-          font-size: 16px;
-          padding: 8px;
-          border-radius: 6px;
-          width: 100%;
-          box-sizing: border-box;
-          outline: none;
-          margin-top: 8px;
-        }
-
-        .input-box::placeholder {
-          color: #aaa;
-        }
-
-        @media (max-width: 600px) {
-          .keywords-input-container {
-            width: 100%;
-            padding: 8px;
-          }
-
-          .input-box {
-            height: 35px;
-            font-size: 14px;
-            padding: 6px;
-          }
-        }
-
-        .generated-tags-display {
-          background-color: #f2f2f2;
-          border-radius: 8px;
-          padding: 10px;
-          margin-top: 20px;
-        }
-      `}</style>
-    </div>
+        <ToastContainer />
+      </div>
     </>
   );
 };
 
 export default VideoDataViewer;
+
