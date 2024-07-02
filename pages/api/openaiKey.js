@@ -3,6 +3,28 @@ import { connectToDatabase, ObjectId } from '../../utils/mongodb';
 export default async function handler(req, res) {
   const { db } = await connectToDatabase();
 
+  const updateUsage = async (token) => {
+    const apiKey = await db.collection('openaiKey').findOne({ token });
+    if (!apiKey) {
+      throw new Error('API key not found');
+    }
+
+    if (apiKey.usageCount >= apiKey.usageLimit) {
+      await db.collection('openaiKey').updateOne(
+        { _id: apiKey._id },
+        { $set: { active: false } }
+      );
+      return { message: 'API key usage limit reached and has been deactivated', active: false };
+    }
+
+    await db.collection('openaiKey').updateOne(
+      { _id: apiKey._id },
+      { $inc: { usageCount: 1 } }
+    );
+
+    return { message: 'API key usage updated', active: true };
+  };
+
   if (req.method === 'GET') {
     try {
       const tokens = await db.collection('openaiKey').find().toArray();
@@ -11,12 +33,17 @@ export default async function handler(req, res) {
       res.status(500).json({ message: 'Error fetching tokens' });
     }
   } else if (req.method === 'POST') {
-    const { tokens } = req.body;
+    const { tokens, usageLimit = 1000 } = req.body;
     const tokenArray = tokens.split(',').map(token => token.trim());
 
     try {
       await db.collection('openaiKey').insertMany(
-        tokenArray.map(token => ({ token, active: true }))
+        tokenArray.map(token => ({
+          token,
+          active: true,
+          usageCount: 0,
+          usageLimit,
+        }))
       );
       res.status(201).json({ message: 'Tokens added successfully' });
     } catch (error) {

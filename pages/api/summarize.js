@@ -21,6 +21,7 @@ export default async function handler(req, res) {
     const openAiTokens = await db.collection('openaiKey').find({ active: true }).toArray();
 
     let captions, videoInfo;
+    let youtubeApiKeyExhausted = false;
 
     // Loop through YouTube API keys
     for (const token of youtubeTokens) {
@@ -50,6 +51,7 @@ export default async function handler(req, res) {
     }
 
     if (!videoInfo) {
+      youtubeApiKeyExhausted = true;
       return res.status(500).json({ message: 'All YouTube API keys exhausted or error occurred' });
     }
 
@@ -77,6 +79,8 @@ export default async function handler(req, res) {
 
     const summaries = await Promise.all(segments.map(async segment => {
       const transcript = segment.map(caption => caption.text).join(' ');
+
+      let openAiKeyExhausted = false;
 
       for (const token of openAiTokens) {
         const openAiKey = token.token;
@@ -114,6 +118,7 @@ export default async function handler(req, res) {
         }
       }
 
+      openAiKeyExhausted = true;
       throw new Error('All OpenAI API keys exhausted or error occurred');
     }));
 
@@ -130,7 +135,12 @@ export default async function handler(req, res) {
       summaries
     });
   } catch (error) {
-    console.error('Error summarizing video:', error.message);
-    res.status(500).json({ message: 'Error summarizing video' });
+    if (youtubeApiKeyExhausted || error.message.includes('All OpenAI API keys exhausted or error occurred')) {
+      console.error('All keys exhausted:', error.message);
+      return res.status(500).json({ message: 'All API keys exhausted or error occurred' });
+    } else {
+      console.error('Error summarizing video:', error.message);
+      return res.status(500).json({ message: 'Error summarizing video' });
+    }
   }
 }
