@@ -32,6 +32,7 @@ const TrendingVideos = ({ meta }) => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [countries, setCountries] = useState([]);
+  const [isUpdated, setIsUpdated] = useState(false);
   const { user, updateUserProfile } = useAuth();
   const [generateCount, setGenerateCount] = useState(0);
   const [quillContent, setQuillContent] = useState("");
