@@ -24,7 +24,7 @@ const YouTubeCommentPicker = ({ meta }) => {
   const [filterText, setFilterText] = useState('');
   const [numberOfWinners, setNumberOfWinners] = useState(1);
   const [comments, setComments] = useState([]);
-  const [winner, setWinner] = useState(null);
+  const [winners, setWinners] = useState([]);
   const [loading, setLoading] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);
@@ -43,9 +43,8 @@ const YouTubeCommentPicker = ({ meta }) => {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
-        setQuillContent(data[0]?.content || ""); // Ensure content is not undefined
-        setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
-        setMeta(data[0]);
+        setQuillContent(data[0]?.content || "");
+        setExistingContent(data[0]?.content || "");
       } catch (error) {
         toast.error("Error fetching content");
       }
@@ -145,11 +144,7 @@ const YouTubeCommentPicker = ({ meta }) => {
       return;
     }
 
-    if (
-      generateCount >= 5 &&
-      user?.paymentStatus !== 'success' &&
-      user?.role !== 'admin'
-    ) {
+    if (generateCount >= 5 && user?.paymentStatus !== 'success' && user?.role !== 'admin') {
       toast.error('You have reached the limit of generating winners. Please upgrade your plan for unlimited use.');
       return;
     }
@@ -178,18 +173,27 @@ const YouTubeCommentPicker = ({ meta }) => {
       }
 
       if (allComments.length > 0) {
-        const randomIndex = Math.floor(Math.random() * allComments.length);
-        setWinner(allComments[randomIndex]);
+        const selectedWinners = [];
+        const uniqueIndexes = new Set();
+        while (selectedWinners.length < numberOfWinners && uniqueIndexes.size < allComments.length) {
+          const randomIndex = Math.floor(Math.random() * allComments.length);
+          if (!uniqueIndexes.has(randomIndex)) {
+            uniqueIndexes.add(randomIndex);
+            selectedWinners.push(allComments[randomIndex]);
+          }
+        }
+        setWinners(selectedWinners);
         setGenerateCount((prevCount) => {
           const newCount = prevCount + 1;
           localStorage.setItem('generateCount', newCount);
           return newCount;
         });
       } else {
-        setWinner(null);
+        setWinners([]);
       }
     } catch (error) {
       console.error('Error fetching comments:', error.message);
+      toast.error('Error fetching comments');
     } finally {
       setLoading(false);
     }
@@ -259,7 +263,6 @@ const YouTubeCommentPicker = ({ meta }) => {
                   </button>
                 </div>
               </div>
-
             )}
             <div className="flex items-center space-x-4 mb-4">
               <input
@@ -277,90 +280,129 @@ const YouTubeCommentPicker = ({ meta }) => {
                 {loading ? 'Loading...' : 'Pick a Winner'}
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h3 className="text-lg font-bold mb-2">YouTube Comment Options:</h3>
-                <div className="flex items-center space-x-2 mb-2">
-                  <label>Include replies to comments</label>
-                  <input
-                    type="checkbox"
-                    checked={includeReplies}
-                    onChange={() => setIncludeReplies(!includeReplies)}
-                  />
+            <div className="container mx-auto p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-gray-100 rounded-lg shadow-lg">
+                <div className="bg-white p-4 rounded-lg shadow-md">
+                  <h3 className="text-xl font-bold mb-4 text-blue-600">YouTube Comment Options:</h3>
+                  <div className="flex items-center space-x-4 mb-4">
+                    <label className="text-gray-700">Include replies to comments</label>
+                    <input
+                      type="checkbox"
+                      checked={includeReplies}
+                      onChange={() => setIncludeReplies(!includeReplies)}
+                      className="form-checkbox h-5 w-5 text-blue-600"
+                    />
+                  </div>
+                  <div className="flex items-center space-x-4 mb-4">
+                    <label className="text-gray-700">Filter duplicate users/names</label>
+                    <input
+                      type="checkbox"
+                      checked={filterDuplicates}
+                      onChange={() => setFilterDuplicates(!filterDuplicates)}
+                      className="form-checkbox h-5 w-5 text-blue-600"
+                    />
+                  </div>
+                  <div className="flex items-center space-x-4 mb-4">
+                    <label className="text-gray-700">Filter comments on specific text</label>
+                    <input
+                      type="text"
+                      className="border p-2 rounded-lg w-full focus:border-blue-500"
+                      value={filterText}
+                      onChange={(e) => setFilterText(e.target.value)}
+                    />
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2 mb-2">
-                  <label>Filter duplicate users/names</label>
-                  <input
-                    type="checkbox"
-                    checked={filterDuplicates}
-                    onChange={() => setFilterDuplicates(!filterDuplicates)}
-                  />
-                </div>
-                <div className="flex items-center space-x-2 mb-2">
-                  <label>Filter comments on specific text</label>
-                  <input
-                    type="text"
-                    className="border p-2 rounded w-full"
-                    value={filterText}
-                    onChange={(e) => setFilterText(e.target.value)}
-                  />
+                <div className="bg-white p-4 rounded-lg shadow-md">
+                  <h3 className="text-xl font-bold mb-4 text-blue-600">YouTube Raffle Options:</h3>
+                  <div className="flex items-center space-x-4 mb-4">
+                    <label className="text-gray-700">No. of winners:</label>
+                    <select
+                      value={numberOfWinners}
+                      onChange={(e) => setNumberOfWinners(parseInt(e.target.value))}
+                      className="border p-2 rounded-lg focus:border-blue-500"
+                    >
+                      {[1, 2, 3, 4, 5].map((num) => (
+                        <option key={num} value={num}>
+                          {num}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
-              <div>
-                <h3 className="text-lg font-bold mb-2">YouTube Raffle Options:</h3>
-                <div className="flex items-center space-x-2 mb-2">
-                  <label>No. of winners:</label>
-                  <select
-                    value={numberOfWinners}
-                    onChange={(e) => setNumberOfWinners(parseInt(e.target.value))}
-                    className="border p-2 rounded"
-                  >
-                    {[1, 2, 3, 4, 5].map((num) => (
-                      <option key={num} value={num}>
-                        {num}
-                      </option>
-                    ))}
-                  </select>
+              {winners.length === 1 && (
+                <div className="bg-white p-4 rounded-lg sm:w-1/3 mx-auto shadow-md mt-5 winner-card">
+                  <h3 className="text-xl font-bold text-center mb-4">Winner</h3>
+                  {winners.map((winner, index) => (
+                    <div key={index} className="flex flex-col items-center mb-4">
+                      <div className="w-24 h-24 mb-4">
+                        <img src={winner.avatar} alt={winner.user} className="w-full h-full rounded-full object-cover" />
+                      </div>
+                      <p className="text-lg font-bold">
+                        <Link target='_blank' href={winner.channelUrl}>
+                          @{winner.user}
+                        </Link>
+                      </p>
+                      <p className="text-gray-600">{winner.text}</p>
+                      <div className="flex space-x-4 mt-2">
+                        <div className="flex items-center space-x-1 text-red-500">
+                          <FaHeart />
+                          <span>{winner.likes}</span>
+                        </div>
+                        <div className="flex items-center space-x-1 text-blue-500">
+                          <FaComment />
+                          <span>{winner.replies}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
+              )}
+              {winners.length > 1 && (
+             <>
+                <h2 className='text-center pt-5'>Winner</h2>
+             
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
+                  {winners.map((winner, index) => (
+                    <div key={index} className="bg-white p-4 rounded-lg shadow-md winner-card">
+                      <div className="flex flex-col items-center mb-4">
+                        <div className="w-24 h-24 mb-4">
+                          <img src={winner.avatar} alt={winner.user} className="w-full h-full rounded-full object-cover" />
+                        </div>
+                        <p className="text-lg font-bold">
+                          <Link target='_blank' href={winner.channelUrl}>
+                            @{winner.user}
+                          </Link>
+                        </p>
+                        <p className="text-gray-600">{winner.text}</p>
+                        <div className="flex space-x-4 mt-2">
+                          <div className="flex items-center space-x-1 text-red-500">
+                            <FaHeart />
+                            <span>{winner.likes}</span>
+                          </div>
+                          <div className="flex items-center space-x-1 text-blue-500">
+                            <FaComment />
+                            <span>{winner.replies}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                </>
+              )}
+              
             </div>
           </div>
         </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
-        {winner && (
-          <div className="bg-white p-4 rounded-lg sm:w-1/3 w center shadow-md mt-5 winner-card">
-            <h3 className="text-xl font-bold text-center mb-4">Winner</h3>
-            <div className="flex flex-col items-center">
-              <div className="w-24 h-24 mb-4">
-                <img src={winner.avatar} alt={winner.user} className="w-full h-full rounded-full object-cover" />
-              </div>
-              <p className="text-lg font-bold">
-                <Link target='_blank' href={winner.channelUrl}>
-                  @{winner.user}
-                </Link>
-              </p>
-              <p className="text-gray-600">{winner.text}</p>
-              <div className="flex space-x-4 mt-2">
-                <div className="flex items-center space-x-1 text-red-500">
-                  <FaHeart />
-                  <span>{winner.likes}</span>
-                </div>
-                <div className="flex items-center space-x-1 text-blue-500">
-                  <FaComment />
-                  <span>{winner.replies}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
         <div className="content pt-6 pb-5">
           <div
             dangerouslySetInnerHTML={{ __html: existingContent }}
             style={{ listStyleType: "none" }}
           ></div>
         </div>
-        {/* Reviews Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
           {[5, 4, 3, 2, 1].map((rating) => (
             <div key={rating} className="flex items-center">
@@ -377,8 +419,6 @@ const YouTubeCommentPicker = ({ meta }) => {
             </div>
           ))}
         </div>
-
-        {/* Review Form Toggle */}
         {user && !showReviewForm && (
           <button
             className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
@@ -387,8 +427,6 @@ const YouTubeCommentPicker = ({ meta }) => {
             Add Review
           </button>
         )}
-
-        {/* Review Form */}
         {user && showReviewForm && (
           <div className="mt-8 review-card">
             <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
@@ -404,8 +442,7 @@ const YouTubeCommentPicker = ({ meta }) => {
                 placeholder="Your Review"
                 value={newReview.comment}
                 onChange={(e) =>
-                  setNewReview({ ...newReview, comment: e.target.value })
-                }
+                  setNewReview({ ...newReview, comment: e.target.value })}
               />
             </div>
             <button
@@ -416,7 +453,6 @@ const YouTubeCommentPicker = ({ meta }) => {
             </button>
           </div>
         )}
-
         <div className="review-card pb-5">
           <Slider {...settings}>
             {reviews.map((review, index) => (
@@ -453,7 +489,6 @@ const YouTubeCommentPicker = ({ meta }) => {
             ))}
           </Slider>
         </div>
-
       </div>
     </>
   );

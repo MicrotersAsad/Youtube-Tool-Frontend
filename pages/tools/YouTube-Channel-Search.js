@@ -15,7 +15,8 @@ import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
-const YouTubeChannelScraper = () => {
+
+const YouTubeChannelScraper = ({ meta }) => {
   const { user, updateUserProfile, logout } = useAuth();
   const [keyword, setKeyword] = useState('');
   const [channels, setChannels] = useState([]);
@@ -25,11 +26,9 @@ const YouTubeChannelScraper = () => {
   const [minSubscriber, setMinSubscriber] = useState(0);
   const [maxSubscriber, setMaxSubscriber] = useState(Infinity);
   const [page, setPage] = useState(0);
-  const [meta, setMeta] = useState({ title: '', description: '', image: '' });
   const [isUpdated, setIsUpdated] = useState(false);
   const [quillContent, setQuillContent] = useState('');
   const [existingContent, setExistingContent] = useState('');
-  const apiKey = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
   const [generateCount, setGenerateCount] = useState(
     typeof window !== 'undefined' ? Number(localStorage.getItem('generateCount')) || 0 : 0
   );
@@ -56,7 +55,6 @@ const YouTubeChannelScraper = () => {
         const data = await response.json();
         setQuillContent(data[0]?.content || ''); // Ensure content is not undefined
         setExistingContent(data[0]?.content || ''); // Ensure existing content is not undefined
-        setMeta(data[0]);
       } catch (error) {
         toast.error('Error fetching content');
       }
@@ -481,5 +479,28 @@ const YouTubeChannelScraper = () => {
     </>
   );
 };
+
+export async function getServerSideProps(context) {
+  const { req } = context;
+  const host = req.headers.host;
+  const protocol = req.headers["x-forwarded-proto"] || "http";
+  const apiUrl = `${protocol}://${host}`;
+
+  const response = await fetch(`${apiUrl}/api/content?category=YouTube-Channel-Search`);
+  const data = await response.json();
+
+  const meta = {
+    title: data[0]?.title || "",
+    description: data[0]?.description || "",
+    image: data[0]?.image || "",
+    url: `${apiUrl}/tools/YouTube-Channel-Search`,
+  };
+
+  return {
+    props: {
+      meta,
+    },
+  };
+}
 
 export default YouTubeChannelScraper;

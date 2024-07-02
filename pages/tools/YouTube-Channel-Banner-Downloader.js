@@ -22,7 +22,8 @@ import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
-const YtChannelDw = () => {
+
+const YtChannelDw = ({ meta }) => {
   const { user, updateUserProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -32,12 +33,6 @@ const YtChannelDw = () => {
   const [generateCount, setGenerateCount] = useState(0);
   const [content, setContent] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
-  const [meta, setMeta] = useState({
-    title: "YouTube Channel Banner Downloader",
-    description:
-      "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
-    image: "https://yourwebsite.com/og-image.png",
-  });
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
@@ -79,8 +74,6 @@ const YtChannelDw = () => {
     fetchReviews();
   }, []);
 
-
-
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
       updateUserProfile().then(() => setIsUpdated(true));
@@ -107,12 +100,12 @@ const YtChannelDw = () => {
       setModalVisible(true);
       return;
     }
-  
+
     if (!channelUrl.trim()) {
       toast.error("Please enter a valid URL.");
       return;
     }
-  
+
     if (
       generateCount >= 3 &&
       user?.paymentStatus !== "success" &&
@@ -121,7 +114,7 @@ const YtChannelDw = () => {
       toast.error("Fetch limit exceeded. Please upgrade for unlimited access.");
       return;
     }
-  
+
     try {
       if (
         user &&
@@ -134,7 +127,7 @@ const YtChannelDw = () => {
         );
         return;
       }
-  
+
       setLoading(true);
       setError("");
       const channelId = extractChannelId(channelUrl);
@@ -143,19 +136,19 @@ const YtChannelDw = () => {
           "Invalid YouTube channel URL. Please enter a valid URL."
         );
       }
-  
+
       const tokensResponse = await fetch("/api/tokens");
       if (!tokensResponse.ok) throw new Error("Failed to fetch API tokens");
-  
+
       const tokens = await tokensResponse.json();
       let dataFetched = false;
-  
+
       for (const { token } of tokens) {
         try {
           const response = await axios.get(
             `https://www.googleapis.com/youtube/v3/channels?part=brandingSettings&id=${channelId}&key=${token}`
           );
-  
+
           const brandingSettings = response.data?.items[0]?.brandingSettings;
           if (!brandingSettings) {
             throw new Error("Brand settings not found for this channel.");
@@ -175,11 +168,11 @@ const YtChannelDw = () => {
           console.error(`Error fetching data with token ${token}:`, error);
         }
       }
-  
+
       if (!dataFetched) {
         throw new Error("All API tokens exhausted or failed to fetch data.");
       }
-  
+
       const newGenerateCount = generateCount + 1;
       setGenerateCount(newGenerateCount);
       if (typeof window !== "undefined") {
@@ -195,7 +188,6 @@ const YtChannelDw = () => {
       setLoading(false);
     }
   };
-  
 
   const extractChannelId = (url) => {
     const regex =
@@ -292,7 +284,6 @@ const YtChannelDw = () => {
     }
   };
 
-
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
     const ratingCount = reviews.filter(
@@ -320,47 +311,49 @@ const YtChannelDw = () => {
 
   return (
     <>
-    <div className="bg-box">
-      <div>
-        <Image className="shape1" src={announce} alt="announce" />
-        <Image className="shape2" src={cloud} alt="announce" />
-        <Image className="shape3" src={cloud2} alt="announce" />
-        <Image className="shape4" src={chart} alt="announce" />
-      </div>
+      <div className="bg-box">
+        <div>
+          <Image className="shape1" src={announce} alt="announce" />
+          <Image className="shape2" src={cloud} alt="announce" />
+          <Image className="shape3" src={cloud2} alt="announce" />
+          <Image className="shape4" src={chart} alt="announce" />
+        </div>
 
-      <div className="max-w-7xl mx-auto p-4">
-      <Head>
-        <title>{meta.title}</title>
-        <meta name="description" content={meta.description} />
-        <meta
-          property="og:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta property="og:title" content={meta.title} />
-        <meta property="og:description" content={meta.description} />
-        <meta property="og:image" content={meta.image} />
-        <meta name="twitter:card" content={meta.image} />
-        <meta
-          property="twitter:domain"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta
-          property="twitter:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta name="twitter:title" content={meta.title} />
-        <meta name="twitter:description" content={meta.description} />
-        <meta name="twitter:image" content={meta.image} />
-      </Head>
-      <h2 className="text-3xl pt-5 text-white">YouTube Channel Banner Download</h2>
-      <ToastContainer />
-      {modalVisible && (
+        <div className="max-w-7xl mx-auto p-4">
+          <Head>
+            <title>{meta.title}</title>
+            <meta name="description" content={meta.description} />
+            <meta
+              property="og:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
+            />
+            <meta property="og:title" content={meta.title} />
+            <meta property="og:description" content={meta.description} />
+            <meta property="og:image" content={meta.image} />
+            <meta name="twitter:card" content={meta.image} />
+            <meta
+              property="twitter:domain"
+              content="https://youtube-tool-frontend.vercel.app/"
+            />
+            <meta
+              property="twitter:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
+            />
+            <meta name="twitter:title" content={meta.title} />
+            <meta name="twitter:description" content={meta.description} />
+            <meta name="twitter:image" content={meta.image} />
+          </Head>
+          <h2 className="text-3xl pt-5 text-white">
+            YouTube Channel Banner Download
+          </h2>
+          <ToastContainer />
+          {modalVisible && (
             <div
               className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
               role="alert"
             >
               <div className="flex">
-              <div className="mt-4">
+                <div className="mt-4">
                   {user ? (
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
@@ -389,45 +382,42 @@ const YtChannelDw = () => {
             </div>
           )}
 
+          <div className="row justify-content-center pt-5">
+            <div className="col-md-6">
+              <div className="input-group mb-3">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Enter YouTube Channel URL..."
+                  aria-label="YouTube Channel URL"
+                  value={channelUrl}
+                  onChange={handleUrlChange}
+                />
+                <button
+                  className="btn btn-danger"
+                  type="button"
+                  onClick={fetchYouTubeData}
+                  disabled={loading}
+                >
+                  {loading ? "Loading..." : "Fetch Banner"}
+                </button>
+              </div>
+              <small className="text-white">
+                Example: https://www.youtube.com/channel/UC-lHJZR3Gqxm24_Vd_AJ5Yw
+              </small>
+              <br />
 
-
-      <div className="row justify-content-center pt-5">
-        <div className="col-md-6">
-          <div className="input-group mb-3">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Enter YouTube Channel URL..."
-              aria-label="YouTube Channel URL"
-              value={channelUrl}
-              onChange={handleUrlChange}
-            />
-            <button
-              className="btn btn-danger"
-              type="button"
-              onClick={fetchYouTubeData}
-              disabled={loading}
-            >
-              {loading ? "Loading..." : "Fetch Banner"}
-            </button>
-          </div>
-          <small className="text-white">
-            Example: https://www.youtube.com/channel/UC-lHJZR3Gqxm24_Vd_AJ5Yw
-          </small>
-          <br />
-         
-
-          {error && (
-            <div className="alert alert-danger" role="alert">
-              {error}
-            </div>
-          )}
+              {error && (
+                <div className="alert alert-danger" role="alert">
+                  {error}
+                </div>
+              )}
             </div>
           </div>
-          </div>
-          </div>
-          <div className="max-w-7xl mx-auto p-4">
-          <div className="text-center">
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto p-4">
+        <div className="text-center">
           <div className="flex gap-2">
             <FaShareAlt className="text-danger fs-3" />
             <span> Share On Social Media</span>
@@ -449,33 +439,32 @@ const YtChannelDw = () => {
             />
           </div>
         </div>
-          {bannerUrl && (
-            <div className="text-center mt-3">
-              <Image
-                src={bannerUrl}
-                alt="Channel Banner"
-                width={1200}
-                height={300}
-              />
-              <button
-                className="btn btn-danger mt-3"
-                onClick={downloadChannelBanner}
-              >
-                <FaDownload /> 
-              </button>
-            </div>
-          )}
-       
+        {bannerUrl && (
+          <div className="text-center mt-3">
+            <Image
+              src={bannerUrl}
+              alt="Channel Banner"
+              width={1200}
+              height={300}
+            />
+            <button
+              className="btn btn-danger mt-3"
+              onClick={downloadChannelBanner}
+            >
+              <FaDownload />
+            </button>
+          </div>
+        )}
+
         <div className="content pt-6 pb-5">
           <div
             dangerouslySetInnerHTML={{ __html: existingContent }}
             style={{ listStyleType: "none" }}
           ></div>
         </div>
-  
-     
-                   {/* Reviews Section */}
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
+
+        {/* Reviews Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
           {[5, 4, 3, 2, 1].map((rating) => (
             <div key={rating} className="flex items-center">
               <div className="w-12 text-right mr-4">{rating}-star</div>
@@ -567,86 +556,109 @@ const YtChannelDw = () => {
             ))}
           </Slider>
         </div>
-      <style jsx>{`
-        .keywords-input-container {
-          border: 2px solid #ccc;
-          padding: 10px;
-          border-radius: 10px;
-          display: flex;
-          align-items: flex-start;
-          flex-wrap: wrap;
-          min-height: 100px;
-          margin: auto;
-          width: 100%;
-          max-width: 600px;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-          background-color: #fff;
-        }
-
-        .tags-container {
-          display: flex;
-          flex-wrap: wrap;
-          margin-bottom: 8px;
-        }
-
-        .tag {
-          display: flex;
-          align-items: center;
-          color: #fff;
-          background-color: #0d6efd;
-          border-radius: 6px;
-          padding: 5px 10px;
-          margin-right: 8px;
-          margin-bottom: 8px;
-          font-size: 14px;
-        }
-
-        .remove-btn {
-          margin-left: 8px;
-          cursor: pointer;
-          font-weight: bold;
-        }
-
-        .input-box {
-          flex: 1;
-          border: none;
-          height: 40px;
-          font-size: 16px;
-          padding: 8px;
-          border-radius: 6px;
-          width: 100%;
-          box-sizing: border-box;
-          outline: none;
-          margin-top: 8px;
-        }
-
-        .input-box::placeholder {
-          color: #aaa;
-        }
-
-        @media (max-width: 600px) {
+        <style jsx>{`
           .keywords-input-container {
+            border: 2px solid #ccc;
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            min-height: 100px;
+            margin: auto;
             width: 100%;
-            padding: 8px;
+            max-width: 600px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+          }
+
+          .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+          }
+
+          .tag {
+            display: flex;
+            align-items: center;
+            color: #fff;
+            background-color: #0d6efd;
+            border-radius: 6px;
+            padding: 5px 10px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+          }
+
+          .remove-btn {
+            margin-left: 8px;
+            cursor: pointer;
+            font-weight: bold;
           }
 
           .input-box {
-            height: 35px;
-            font-size: 14px;
-            padding: 6px;
+            flex: 1;
+            border: none;
+            height: 40px;
+            font-size: 16px;
+            padding: 8px;
+            border-radius: 6px;
+            width: 100%;
+            box-sizing: border-box;
+            outline: none;
+            margin-top: 8px;
           }
-        }
 
-        .generated-tags-display {
-          background-color: #f2f2f2;
-          border-radius: 8px;
-          padding: 10px;
-          margin-top: 20px;
-        }
-      `}</style>
+          .input-box::placeholder {
+            color: #aaa;
+          }
+
+          @media (max-width: 600px) {
+            .keywords-input-container {
+              width: 100%;
+              padding: 8px;
+            }
+
+            .input-box {
+              height: 35px;
+              font-size: 14px;
+              padding: 6px;
+            }
+          }
+
+          .generated-tags-display {
+            background-color: #f2f2f2;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 20px;
+          }
+        `}</style>
       </div>
     </>
   );
 };
+
+export async function getServerSideProps(context) {
+  const { req } = context;
+  const host = req.headers.host;
+  const protocol = req.headers["x-forwarded-proto"] || "http";
+  const apiUrl = `${protocol}://${host}`;
+
+  const response = await fetch(`${apiUrl}/api/content?category=YouTube-Channel-Banner-Downloader`);
+  const data = await response.json();
+
+  const meta = {
+    title: data[0]?.title || "",
+    description: data[0]?.description || "",
+    image: data[0]?.image || "",
+    url: `${apiUrl}/tools/YouTube-Channel-Banner-Downloader`,
+  };
+
+  return {
+    props: {
+      meta,
+    },
+  };
+}
 
 export default YtChannelDw;

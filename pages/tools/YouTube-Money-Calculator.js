@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Head from 'next/head';
 import { ToastContainer, toast } from 'react-toastify';
@@ -11,6 +11,7 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
+
 const rpmCpmRates = {
   "Low Shorts RPM": { rpm: 0.01, cpm: 0.02 },
   "Typical Shorts RPM": { rpm: 0.05, cpm: 0.09 },
@@ -26,12 +27,11 @@ const rpmCpmRates = {
 
 const categories = Object.keys(rpmCpmRates);
 
-const YouTubeMoneyCalculator = () => {
+const YouTubeMoneyCalculator = ({ meta }) => {
   const [dailyViews, setDailyViews] = useState(0);
   const [category, setCategory] = useState(categories[0]);
   const { user, updateUserProfile, logout } = useAuth();
   const [generateCount, setGenerateCount] = useState(0);
-  const [meta, setMeta] = useState({ title: "", description: "", image: "" });
   const [isUpdated, setIsUpdated] = useState(false);
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
@@ -44,6 +44,7 @@ const YouTubeMoneyCalculator = () => {
   });
   const [modalVisible, setModalVisible] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
+
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -179,89 +180,87 @@ const YouTubeMoneyCalculator = () => {
 
   return (
     <>
-    <div className="bg-box">
-      <div>
-        <Image className="shape1" src={announce} alt="announce" />
-        <Image className="shape2" src={cloud} alt="cloud" />
-        <Image className="shape3" src={cloud2} alt="cloud2" />
-        <Image className="shape4" src={chart} alt="chart" />
-      </div>
+      <div className="bg-box">
+        <div>
+          <Image className="shape1" src={announce} alt="announce" />
+          <Image className="shape2" src={cloud} alt="cloud" />
+          <Image className="shape3" src={cloud2} alt="cloud2" />
+          <Image className="shape4" src={chart} alt="chart" />
+        </div>
 
-      <div className="max-w-7xl mx-auto p-4">
-      <Head>
-        <title>{meta.title}</title>
-        <meta name="description" content={meta.description} />
-        <meta
-          property="og:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta property="og:title" content={meta.title} />
-        <meta property="og:description" content={meta.description} />
-        <meta property="og:image" content={meta.image} />
-        <meta name="twitter:card" content={meta.image} />
-        <meta
-          property="twitter:domain"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta
-          property="twitter:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta name="twitter:title" content={meta.title} />
-        <meta name="twitter:description" content={meta.description} />
-        <meta name="twitter:image" content={meta.image} />
-      </Head>
-      <ToastContainer />
-      <div className="bg-white shadow-md rounded-lg max-w-4xl mx-auto p-5">
-        <h1 className='text-center'>YouTube Money Calculator</h1>
-        <p className='text-center'>Check How Much Money Do YouTubers Make?</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <div className="mb-4">
-              <label className="block text-gray-700 font-bold mb-2">Daily Views</label>
-              <input
-                type="number"
-                className="border rounded w-full py-2 px-3 text-gray-700"
-                value={dailyViews}
-                onChange={(e) => setDailyViews(e.target.value)}
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 font-bold mb-2">Category</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="border p-2 rounded w-full"
-              >
-                {categories.map((cat, index) => (
-                  <option key={index} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div>
-          
-            <h3 className="text-xl font-bold mb-4">Estimated Earnings</h3>
-            <div className="text-red-500">
-              <p>Estimated Daily Earnings: ${dailyEarnings.min.toFixed(2)} - ${dailyEarnings.max.toFixed(2)}</p>
-              <p>Estimated Monthly Earnings: ${monthlyEarnings.min.toFixed(2)} - ${monthlyEarnings.max.toFixed(2)}</p>
-              <p>Estimated Yearly Projected: ${yearlyEarnings.min.toFixed(2)} - ${yearlyEarnings.max.toFixed(2)}</p>
+        <div className="max-w-7xl mx-auto p-4">
+          <Head>
+            <title>{meta.title}</title>
+            <meta name="description" content={meta.description} />
+            <meta
+              property="og:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/youtube-money-calculator"
+            />
+            <meta property="og:title" content={meta.title} />
+            <meta property="og:description" content={meta.description} />
+            <meta property="og:image" content={meta.image} />
+            <meta name="twitter:card" content={meta.image} />
+            <meta
+              property="twitter:domain"
+              content="https://youtube-tool-frontend.vercel.app/"
+            />
+            <meta
+              property="twitter:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/youtube-money-calculator"
+            />
+            <meta name="twitter:title" content={meta.title} />
+            <meta name="twitter:description" content={meta.description} />
+            <meta name="twitter:image" content={meta.image} />
+          </Head>
+          <ToastContainer />
+          <div className="bg-white shadow-md rounded-lg max-w-4xl mx-auto p-5">
+            <h1 className='text-center'>YouTube Money Calculator</h1>
+            <p className='text-center'>Check How Much Money Do YouTubers Make?</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-bold mb-2">Daily Views</label>
+                  <input
+                    type="number"
+                    className="border rounded w-full py-2 px-3 text-gray-700"
+                    value={dailyViews}
+                    onChange={(e) => setDailyViews(e.target.value)}
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-bold mb-2">Category</label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="border p-2 rounded w-full"
+                  >
+                    {categories.map((cat, index) => (
+                      <option key={index} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-4">Estimated Earnings</h3>
+                <div className="text-red-500">
+                  <p>Estimated Daily Earnings: ${dailyEarnings.min.toFixed(2)} - ${dailyEarnings.max.toFixed(2)}</p>
+                  <p>Estimated Monthly Earnings: ${monthlyEarnings.min.toFixed(2)} - ${monthlyEarnings.max.toFixed(2)}</p>
+                  <p>Estimated Yearly Projected: ${yearlyEarnings.min.toFixed(2)} - ${yearlyEarnings.max.toFixed(2)}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      
-      </div>
-      </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
-      <div className="content pt-6 pb-5">
-        <div
-          dangerouslySetInnerHTML={{ __html: existingContent }}
-          style={{ listStyleType: "none" }}
-        ></div>
-      </div>
-       {/* Reviews Section */}
-       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
+        <div className="content pt-6 pb-5">
+          <div
+            dangerouslySetInnerHTML={{ __html: existingContent }}
+            style={{ listStyleType: "none" }}
+          ></div>
+        </div>
+        {/* Reviews Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
           {[5, 4, 3, 2, 1].map((rating) => (
             <div key={rating} className="flex items-center">
               <div className="w-12 text-right mr-4">{rating}-star</div>
@@ -353,90 +352,115 @@ const YouTubeMoneyCalculator = () => {
             ))}
           </Slider>
         </div>
-      <style jsx>
-        {`
-          .keywords-input {
-            border: 2px solid #ccc;
-            padding: 5px;
-            border-radius: 10px;
-            display: flex;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            min-height: 100px;
-            margin: auto;
-            width: 50%;
-          }
-          .content {
-            color: #333;
-            font-size: 16px;
-            line-height: 1.6;
-          }
-          .keywords-input input {
-            flex: 1;
-            border: none;
-            height: 100px;
-            font-size: 14px;
-            padding: 4px 8px;
-            width: 50%;
-          }
-          .keywords-input .tag {
-            width: auto;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff !important;
-            padding: 0 8px;
-            font-size: 14px;
-            list-style: none;
-            border-radius: 6px;
-            background-color: #0d6efd;
-            margin-right: 8px;
-            margin-bottom: 8px;
-          }
-          .tags {
-            display: flex;
-            flex-wrap: wrap;
-            margin-right: 8px;
-          }
-          .tag,
-          .generated-tag {
-            display: flex;
-            align-items: center;
-            color: #000000 !important;
-            border-radius: 6px;
-            padding: 5px 10px;
-            margin-right: 5px;
-            margin-bottom: 5px;
-          }
-          .remove-btn {
-            margin-left: 8px;
-            cursor: pointer;
-          }
-          input:focus {
-            outline: none;
-          }
-          @media (max-width: 600px) {
-            .keywords-input,
-            .center {
-              width: 100%;
+        <style jsx>
+          {`
+            .keywords-input {
+              border: 2px solid #ccc;
+              padding: 5px;
+              border-radius: 10px;
+              display: flex;
+              align-items: flex-start;
+              flex-wrap: wrap;
+              min-height: 100px;
+              margin: auto;
+              width: 50%;
             }
-            .btn {
-              width: 100%;
-              margin-top: 10px;
+            .content {
+              color: #333;
+              font-size: 16px;
+              line-height: 1.6;
             }
-          }
-          .generated-tags-display {
-            background-color: #f2f2f2;
-            border-radius: 8px;
-            padding: 10px;
-            margin-top: 20px;
-          }
-        `}
-      </style>
-    </div>
+            .keywords-input input {
+              flex: 1;
+              border: none;
+              height: 100px;
+              font-size: 14px;
+              padding: 4px 8px;
+              width: 50%;
+            }
+            .keywords-input .tag {
+              width: auto;
+              height: 32px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: #fff !important;
+              padding: 0 8px;
+              font-size: 14px;
+              list-style: none;
+              border-radius: 6px;
+              background-color: #0d6efd;
+              margin-right: 8px;
+              margin-bottom: 8px;
+            }
+            .tags {
+              display: flex;
+              flex-wrap: wrap;
+              margin-right: 8px;
+            }
+            .tag,
+            .generated-tag {
+              display: flex;
+              align-items: center;
+              color: #000000 !important;
+              border-radius: 6px;
+              padding: 5px 10px;
+              margin-right: 5px;
+              margin-bottom: 5px;
+            }
+            .remove-btn {
+              margin-left: 8px;
+              cursor: pointer;
+            }
+            input:focus {
+              outline: none;
+            }
+            @media (max-width: 600px) {
+              .keywords-input,
+              .center {
+                width: 100%;
+              }
+              .btn {
+                width: 100%;
+                margin-top: 10px;
+              }
+            }
+            .generated-tags-display {
+              background-color: #f2f2f2;
+              border-radius: 8px;
+              padding: 10px;
+              margin-top: 20px;
+            }
+          `}
+        </style>
+      </div>
     </>
   );
 };
+
+export async function getServerSideProps(context) {
+  const { req } = context;
+  const host = req.headers.host;
+  const protocol = req.headers["x-forwarded-proto"] || "http";
+  const apiUrl = `${protocol}://${host}`;
+
+  const response = await fetch(
+    `${apiUrl}/api/content?category=YouTube-Money-Calculator`
+  );
+  const data = await response.json();
+
+  const meta = {
+    title: data[0]?.title || "",
+    description: data[0]?.description || "",
+    image: data[0]?.image || "",
+    url: `${apiUrl}/tools/youtube-money-calculator`,
+  };
+
+  return {
+    props: {
+      meta,
+    },
+  };
+}
 
 export default YouTubeMoneyCalculator;

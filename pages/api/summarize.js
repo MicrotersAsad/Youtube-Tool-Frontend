@@ -77,7 +77,7 @@ export default async function handler(req, res) {
 
     const summaries = await Promise.all(segments.map(async segment => {
       const transcript = segment.map(caption => caption.text).join(' ');
-      
+
       for (const token of openAiTokens) {
         const openAiKey = token.token;
 
@@ -95,6 +95,13 @@ export default async function handler(req, res) {
             }),
           });
           const data = await response.json();
+
+          // Improved error handling for OpenAI API response
+          if (!data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
+            console.error('Invalid response format from OpenAI API:', data);
+            continue;
+          }
+
           return data.choices[0].message.content;
         } catch (error) {
           if (error.message.includes('quota')) {

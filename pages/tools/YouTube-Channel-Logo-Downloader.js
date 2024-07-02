@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { FaDownload, FaFacebook, FaInstagram, FaLinkedin, FaShareAlt, FaTwitter, FaStar } from 'react-icons/fa';
@@ -15,8 +14,9 @@ import StarRating from './StarRating'; // Assuming StarRating is a custom compon
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
-import cloud2 from "../../public/shape/cloud2.png";;
-const YouTubeChannelLogoDownloader = () => {
+import cloud2 from "../../public/shape/cloud2.png";
+
+const YouTubeChannelLogoDownloader = ({ meta }) => {
     const { isLoggedIn, user, updateUserProfile, logout } = useAuth(); // Destructure authentication state from context
     const [isUpdated, setIsUpdated] = useState(false);
     const [loading, setLoading] = useState(false); // Loading state for API requests
@@ -28,11 +28,6 @@ const YouTubeChannelLogoDownloader = () => {
         typeof window !== 'undefined' ? Number(localStorage.getItem('generateCount')) || 0 : 0
       );
     const [content, setContent] = useState(''); // Content state for fetched HTML content
-    const [meta, setMeta] = useState({ // Meta information for the page
-        title: 'YouTube Channel Logo Downloader',
-        description: "Generate captivating YouTube titles instantly to boost your video's reach and engagement. Enhance your content strategy with our easy-to-use YouTube Title Generator.",
-        image: 'https://yourwebsite.com/og-image.png',
-    });
     const [reviews, setReviews] = useState([]);
     const [quillContent, setQuillContent] = useState("");
     const [existingContent, setExistingContent] = useState("");
@@ -59,7 +54,6 @@ const YouTubeChannelLogoDownloader = () => {
                 const data = await response.json();
                 setQuillContent(data[0]?.content || ""); // Ensure content is not undefined
                 setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
-                setMeta(data[0]);
             } catch (error) {
                 toast.error("Error fetching content");
             }
@@ -68,8 +62,6 @@ const YouTubeChannelLogoDownloader = () => {
         fetchContent();
         fetchReviews();
     }, []);
-
-   ;
 
     const handleUrlChange = (e) => {
         setChannelUrl(e.target.value);
@@ -95,6 +87,7 @@ const YouTubeChannelLogoDownloader = () => {
         const match = link.match(/(?:https?:\/\/)?(?:www\.)?youtube\.com\/(?:channel\/|c\/|user\/)?([a-zA-Z0-9_-]+)/);
         return match ? match[1] : null;
     };
+
     const fetchChannelLogo = async () => {
         if (user && user.paymentStatus !== 'success' && user.role !== 'admin' && generateCount <= 0) {
             toast.error("You have reached the limit of generating tags. Please upgrade your plan for unlimited use.");
@@ -148,7 +141,6 @@ const YouTubeChannelLogoDownloader = () => {
             setLoading(false);
         }
     };
-    
 
     const downloadLogo = () => {
         if (!logoUrl) {
@@ -202,7 +194,7 @@ const YouTubeChannelLogoDownloader = () => {
         }
       };
     
-      const handleReviewSubmit = async () => {
+    const handleReviewSubmit = async () => {
         if (!newReview.rating || !newReview.comment) {
           toast.error("All fields are required.");
           return;
@@ -233,7 +225,6 @@ const YouTubeChannelLogoDownloader = () => {
           toast.error("Failed to submit review");
         }
       };
-    
 
     const calculateRatingPercentage = (rating) => {
         const totalReviews = reviews.length;
@@ -272,22 +263,13 @@ const YouTubeChannelLogoDownloader = () => {
           <Head>
             <title>{meta.title}</title>
             <meta name="description" content={meta.description} />
-            <meta
-              property="og:url"
-              content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-            />
+            <meta property="og:url" content={meta.url} />
             <meta property="og:title" content={meta.title} />
             <meta property="og:description" content={meta.description} />
             <meta property="og:image" content={meta.image} />
             <meta name="twitter:card" content={meta.image} />
-            <meta
-              property="twitter:domain"
-              content="https://youtube-tool-frontend.vercel.app/"
-            />
-            <meta
-              property="twitter:url"
-              content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-            />
+            <meta property="twitter:domain" content={meta.url} />
+            <meta property="twitter:url" content={meta.url} />
             <meta name="twitter:title" content={meta.title} />
             <meta name="twitter:description" content={meta.description} />
             <meta name="twitter:image" content={meta.image} />
@@ -518,3 +500,26 @@ const YouTubeChannelLogoDownloader = () => {
 };
 
 export default YouTubeChannelLogoDownloader;
+
+export async function getServerSideProps(context) {
+  const { req } = context;
+  const host = req.headers.host;
+  const protocol = req.headers["x-forwarded-proto"] || "http";
+  const apiUrl = `${protocol}://${host}`;
+
+  const response = await fetch(`${apiUrl}/api/content?category=YouTube-Channel-Logo-Downloader`);
+  const data = await response.json();
+
+  const meta = {
+    title: data[0]?.title || "",
+    description: data[0]?.description || "",
+    image: data[0]?.image || "",
+    url: `${apiUrl}/tools/YouTube-Channel-Logo-Downloader`,
+  };
+
+  return {
+    props: {
+      meta,
+    },
+  };
+}

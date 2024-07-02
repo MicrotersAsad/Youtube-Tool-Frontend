@@ -23,7 +23,7 @@ import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 
-const YouTubeHashtagGenerator = () => {
+const YouTubeHashtagGenerator = ({ meta }) => {
   const { user, updateUserProfile } = useAuth();
   const [tags, setTags] = useState([]);
   const [keyword, setKeyword] = useState("");
@@ -35,12 +35,12 @@ const YouTubeHashtagGenerator = () => {
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
   const [prompt, setPrompt] = useState("");
-  const [meta, setMeta] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
   const [modalVisible, setModalVisible] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
+
   const closeModal = () => {
     setModalVisible(false);
   };
@@ -48,14 +48,15 @@ const YouTubeHashtagGenerator = () => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch(`/api/content?category=YouTube-Hashtag-Generator`);
+        const response = await fetch(
+          `/api/content?category=YouTube-Hashtag-Generator`
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
         setQuillContent(data[0]?.content || "");
         setExistingContent(data[0]?.content || "");
-        setMeta(data[0]);
       } catch (error) {
         toast.error("Error fetching content");
       }
@@ -96,7 +97,6 @@ const YouTubeHashtagGenerator = () => {
     }
   }, [generateCount]);
 
-
   const handleKeyDown = (event) => {
     if (event.key === "Enter" || event.key === ",") {
       event.preventDefault();
@@ -124,7 +124,8 @@ const YouTubeHashtagGenerator = () => {
     const socialMediaUrls = {
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
       twitter: `https://twitter.com/intent/tweet?url=${url}`,
-      instagram: "You can share this page on Instagram through the Instagram app on your mobile device.",
+      instagram:
+        "You can share this page on Instagram through the Instagram app on your mobile device.",
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
     };
 
@@ -160,7 +161,7 @@ const YouTubeHashtagGenerator = () => {
       .join("\n");
     copyToClipboard(selectedTitlesText);
   };
-  
+
   const downloadSelectedTitles = () => {
     const selectedTitlesText = generateHashTag
       .filter((title) => title.selected)
@@ -174,7 +175,6 @@ const YouTubeHashtagGenerator = () => {
     element.click();
     document.body.removeChild(element);
   };
-
 
   const generateHashTags = async () => {
     if (!user) {
@@ -196,7 +196,7 @@ const YouTubeHashtagGenerator = () => {
     try {
       const response = await fetch("/api/openaiKey");
       if (!response.ok) throw new Error(`Failed to fetch API keys: ${response.status}`);
-      
+
       const keysData = await response.json();
       const apiKeys = keysData.map((key) => key.token);
       let titles = [];
@@ -258,9 +258,6 @@ const YouTubeHashtagGenerator = () => {
     }
   };
 
-  
-
-
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
       toast.error("All fields are required.");
@@ -284,7 +281,13 @@ const YouTubeHashtagGenerator = () => {
       if (!response.ok) throw new Error("Failed to submit review");
 
       toast.success("Review submitted successfully!");
-      setNewReview({ name: "", rating: 0, comment: "", userProfile: "", userName: "" });
+      setNewReview({
+        name: "",
+        rating: 0,
+        comment: "",
+        userProfile: "",
+        userName: "",
+      });
       setShowReviewForm(false);
       fetchReviews();
     } catch (error) {
@@ -297,7 +300,7 @@ const YouTubeHashtagGenerator = () => {
     try {
       const response = await fetch("/api/reviews?tool=YouTube-Hashtag-Generator");
       if (!response.ok) throw new Error("Failed to fetch reviews");
-      
+
       const data = await response.json();
       const updatedReviews = data.map((review) => ({
         ...review,
@@ -311,12 +314,10 @@ const YouTubeHashtagGenerator = () => {
     }
   };
 
-
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
-    const ratingCount = reviews.filter(
-      (review) => review.rating === rating
-    ).length;
+    const ratingCount = reviews.filter((review) => review.rating === rating)
+      .length;
     return (ratingCount / totalReviews) * 100;
   };
 
@@ -330,41 +331,41 @@ const YouTubeHashtagGenerator = () => {
 
   return (
     <>
-    <div className="bg-box">
-      <div>
-        <Image className="shape1" src={announce} alt="announce" />
-        <Image className="shape2" src={cloud} alt="announce" />
-        <Image className="shape3" src={cloud2} alt="announce" />
-        <Image className="shape4" src={chart} alt="announce" />
-      </div>
+      <div className="bg-box">
+        <div>
+          <Image className="shape1" src={announce} alt="announce" />
+          <Image className="shape2" src={cloud} alt="announce" />
+          <Image className="shape3" src={cloud2} alt="announce" />
+          <Image className="shape4" src={chart} alt="announce" />
+        </div>
 
-      <div className="max-w-7xl mx-auto p-4">
-        <Head>
-          <title>{meta.title}</title>
-          <meta name="description" content={meta.description} />
-          <meta
-            property="og:url"
-            content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-          />
-          <meta property="og:title" content={meta.title} />
-          <meta property="og:description" content={meta.description} />
-          <meta property="og:image" content={meta.image} />
-          <meta name="twitter:card" content={meta.image} />
-          <meta
-            property="twitter:domain"
-            content="https://youtube-tool-frontend.vercel.app/"
-          />
-          <meta
-            property="twitter:url"
-            content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-          />
-          <meta name="twitter:title" content={meta.title} />
-          <meta name="twitter:description" content={meta.description} />
-          <meta name="twitter:image" content={meta.image} />
-        </Head>
-        <h2 className="text-3xl text-white">YouTube HashTag Generator</h2>
-        <ToastContainer />
-        {modalVisible && (
+        <div className="max-w-7xl mx-auto p-4">
+          <Head>
+            <title>{meta.title}</title>
+            <meta name="description" content={meta.description} />
+            <meta
+              property="og:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
+            />
+            <meta property="og:title" content={meta.title} />
+            <meta property="og:description" content={meta.description} />
+            <meta property="og:image" content={meta.image} />
+            <meta name="twitter:card" content={meta.image} />
+            <meta
+              property="twitter:domain"
+              content="https://youtube-tool-frontend.vercel.app/"
+            />
+            <meta
+              property="twitter:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
+            />
+            <meta name="twitter:title" content={meta.title} />
+            <meta name="twitter:description" content={meta.description} />
+            <meta name="twitter:image" content={meta.image} />
+          </Head>
+          <h2 className="text-3xl text-white">YouTube HashTag Generator</h2>
+          <ToastContainer />
+          {modalVisible && (
             <div
               className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4  shadow-md mb-6 mt-3"
               role="alert"
@@ -404,47 +405,46 @@ const YouTubeHashtagGenerator = () => {
             </div>
           )}
 
-
-<div className="keywords-input-container">
-<div className="tags-container">
-          {tags.map((tag, index) => (
-            <span className="tag" key={index}>
-              {tag}
-              <span
-                className="remove-btn"
-                onClick={() => setTags(tags.filter((_, i) => i !== index))}
-              >
-                ×
-              </span>
-            </span>
-          ))}
-        </div>
-        <input
-          type="text"
-          placeholder="Add a keyword"
-          className="rounded w-100"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          onKeyDown={handleKeyDown}
-          required
-        />
-      </div>
-      <p className="text-white text-center"> Example: php, html, css</p>
-      <div className="center">
-            <div className="flex flex-wrap gap-2 justify-center">
-            <button
-            className="btn btn-danger"
-            onClick={generateHashTags}
-            disabled={isLoading || tags.length === 0}
-          >
-            <span> {isLoading ? "Generating..." : "Generate HashTag"}</span>
-          </button>
+          <div className="keywords-input-container">
+            <div className="tags-container">
+              {tags.map((tag, index) => (
+                <span className="tag" key={index}>
+                  {tag}
+                  <span
+                    className="remove-btn"
+                    onClick={() => setTags(tags.filter((_, i) => i !== index))}
+                  >
+                    ×
+                  </span>
+                </span>
+              ))}
+            </div>
+            <input
+              type="text"
+              placeholder="Add a keyword"
+              className="rounded w-100"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              onKeyDown={handleKeyDown}
+              required
+            />
           </div>
+          <p className="text-white text-center"> Example: php, html, css</p>
+          <div className="center">
+            <div className="flex flex-wrap gap-2 justify-center">
+              <button
+                className="btn btn-danger"
+                onClick={generateHashTags}
+                disabled={isLoading || tags.length === 0}
+              >
+                <span> {isLoading ? "Generating..." : "Generate HashTag"}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
-          <div className="text-center">
+        <div className="text-center">
           <div className="flex gap-2">
             <FaShareAlt className="text-danger fs-3" />
             <span> Share On Social Media</span>
@@ -466,62 +466,60 @@ const YouTubeHashtagGenerator = () => {
             />
           </div>
         </div>
-     
-          <div className="center">
-        {generateHashTag.length > 0 && (
-    <div className="rounded p-3">
-      <input
-        type="checkbox"
-        checked={selectAll}
-        onChange={handleSelectAll}
-      />
-      <span>Select All</span>
-    </div>
-  )}
+
+        <div className="center">
+          {generateHashTag.length > 0 && (
+            <div className="rounded p-3">
+              <input
+                type="checkbox"
+                checked={selectAll}
+                onChange={handleSelectAll}
+              />
+              <span>Select All</span>
+            </div>
+          )}
         </div>
-   <div className="generated-titles-container grid grid-cols-1 md:grid-cols-4 gap-4">
-  {generateHashTag.map((title, index) => (
-    <div key={index} className="title-checkbox rounded flex items-center">
-      <input
-        className="me-2 rounded"
-        type="checkbox"
-        checked={title.selected}
-        onChange={() => toggleTitleSelect(index)}
-      />
-      {title.text.replace(/^\d+\.\s*/, "")}
-      <FaCopy
-        className="copy-icon ml-2 cursor-pointer"
-        onClick={() => copyToClipboard(title.text.replace(/^\d+\.\s*/, ""))}
-      />
-    </div>
-  ))}
-  
-</div>
-<div className="d-flex">
-{generateHashTag.some((title) => title.selected) && (
-  
-  <FaCopy onClick={copySelectedTitles}  className="text-center text-red-500 cursor-pointer ms-2 fs-4"/>
-  
+        <div className="generated-titles-container grid grid-cols-1 md:grid-cols-4 gap-4">
+          {generateHashTag.map((title, index) => (
+            <div key={index} className="title-checkbox rounded flex items-center">
+              <input
+                className="me-2 rounded"
+                type="checkbox"
+                checked={title.selected}
+                onChange={() => toggleTitleSelect(index)}
+              />
+              {title.text.replace(/^\d+\.\s*/, "")}
+              <FaCopy
+                className="copy-icon ml-2 cursor-pointer"
+                onClick={() => copyToClipboard(title.text.replace(/^\d+\.\s*/, ""))}
+              />
+            </div>
+          ))}
+        </div>
+        <div className="d-flex">
+          {generateHashTag.some((title) => title.selected) && (
+            <FaCopy
+              onClick={copySelectedTitles}
+              className="text-center text-red-500 cursor-pointer ms-2 fs-4"
+            />
+          )}
+          {generateHashTag.some((title) => title.selected) && (
+            <FaDownload
+              onClick={downloadSelectedTitles}
+              className="text-center text-red-500 cursor-pointer ms-2 fs-4"
+            />
+          )}
+        </div>
+        <div></div>
+        <div className="content pt-6 pb-5">
+          <div
+            dangerouslySetInnerHTML={{ __html: existingContent }}
+            style={{ listStyleType: "none" }}
+          ></div>
+        </div>
 
-)}
-{generateHashTag.some((title) => title.selected) && (
-
-  <FaDownload onClick={downloadSelectedTitles}  className="text-center text-red-500 cursor-pointer ms-2 fs-4"/>
-
-)}
-</div>
-  <div>
-
-  </div>
-      <div className="content pt-6 pb-5">
-        <div
-          dangerouslySetInnerHTML={{ __html: existingContent }}
-          style={{ listStyleType: "none" }}
-        ></div>
-      </div>
-
-       {/* Reviews Section */}
-       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
+        {/* Reviews Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
           {[5, 4, 3, 2, 1].map((rating) => (
             <div key={rating} className="flex items-center">
               <div className="w-12 text-right mr-4">{rating}-star</div>
@@ -613,10 +611,34 @@ const YouTubeHashtagGenerator = () => {
             ))}
           </Slider>
         </div>
-     
       </div>
     </>
   );
 };
+
+export async function getServerSideProps(context) {
+  const { req } = context;
+  const host = req.headers.host;
+  const protocol = req.headers["x-forwarded-proto"] || "http";
+  const apiUrl = `${protocol}://${host}`;
+
+  const response = await fetch(
+    `${apiUrl}/api/content?category=YouTube-Hashtag-Generator`
+  );
+  const data = await response.json();
+
+  const meta = {
+    title: data[0]?.title || "",
+    description: data[0]?.description || "",
+    image: data[0]?.image || "",
+    url: `${apiUrl}/tools/YouTube-Hashtag-Generator`,
+  };
+
+  return {
+    props: {
+      meta,
+    },
+  };
+}
 
 export default YouTubeHashtagGenerator;

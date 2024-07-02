@@ -23,7 +23,8 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Head from "next/head";
-const YtThumbnailDw = () => {
+
+const YtThumbnailDw = ({ meta }) => {
   const { isLoggedIn, user, updateUserProfile, logout } = useAuth(); // Added logout
   const [videoUrl, setVideoUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,7 +34,6 @@ const YtThumbnailDw = () => {
   const [generateCount, setGenerateCount] = useState(0);
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [content, setContent] = useState("");
-  const [meta, setMeta] = useState("");
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
   const [quillContent, setQuillContent] = useState("");
@@ -208,8 +208,6 @@ const YtThumbnailDw = () => {
     window.location.href = url;
   };
   
-  
-  
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
     const ratingCount = reviews.filter(
@@ -228,47 +226,47 @@ const YtThumbnailDw = () => {
 
   return (
     <>
-    <div className="bg-box">
-      <div>
-        <Image className="shape1" src={announce} alt="announce" />
-        <Image className="shape2" src={cloud} alt="announce" />
-        <Image className="shape3" src={cloud2} alt="announce" />
-        <Image className="shape4" src={chart} alt="announce" />
-      </div>
+      <div className="bg-box">
+        <div>
+          <Image className="shape1" src={announce} alt="announce" />
+          <Image className="shape2" src={cloud} alt="announce" />
+          <Image className="shape3" src={cloud2} alt="announce" />
+          <Image className="shape4" src={chart} alt="announce" />
+        </div>
 
-      <div className="max-w-7xl mx-auto p-4">
-      <Head>
-        <title>{meta.title}</title>
-        <meta name="description" content={meta.description} />
-        <meta
-          property="og:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta property="og:title" content={meta.title} />
-        <meta property="og:description" content={meta.description} />
-        <meta property="og:image" content={meta.image} />
-        <meta name="twitter:card" content={meta.image} />
-        <meta
-          property="twitter:domain"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta
-          property="twitter:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta name="twitter:title" content={meta.title} />
-        <meta name="twitter:description" content={meta.description} />
-        <meta name="twitter:image" content={meta.image} />
-      </Head>
-      <h2 className="text-3xl pt-5 text-white">YouTube Thumbnails Downloader</h2>
-      <ToastContainer />
-      {modalVisible && (
+        <div className="max-w-7xl mx-auto p-4">
+          <Head>
+            <title>{meta.title}</title>
+            <meta name="description" content={meta.description} />
+            <meta
+              property="og:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/youtube-thumbnail-downloader"
+            />
+            <meta property="og:title" content={meta.title} />
+            <meta property="og:description" content={meta.description} />
+            <meta property="og:image" content={meta.image} />
+            <meta name="twitter:card" content={meta.image} />
+            <meta
+              property="twitter:domain"
+              content="https://youtube-tool-frontend.vercel.app/"
+            />
+            <meta
+              property="twitter:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/youtube-thumbnail-downloader"
+            />
+            <meta name="twitter:title" content={meta.title} />
+            <meta name="twitter:description" content={meta.description} />
+            <meta name="twitter:image" content={meta.image} />
+          </Head>
+          <h2 className="text-3xl pt-5 text-white">YouTube Thumbnails Downloader</h2>
+          <ToastContainer />
+          {modalVisible && (
             <div
               className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
               role="alert"
             >
               <div className="flex">
-              <div className="mt-4">
+                <div className="mt-4">
                   {user ? (
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
@@ -297,105 +295,100 @@ const YtThumbnailDw = () => {
             </div>
           )}
 
+          <div className="row justify-content-center pt-5">
+            <div className="col-md-6">
+              <div className="input-group mb-3">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Enter YouTube Video URL..."
+                  aria-label="YouTube Video URL"
+                  value={videoUrl}
+                  onChange={handleUrlChange}
+                />
+                <button
+                  className="btn btn-danger"
+                  type="button"
+                  onClick={fetchYouTubeData}
+                  disabled={loading}
+                >
+                  {loading ? "Loading..." : "Fetch Thumbnail"}
+                </button>
+              </div>
+              <small className="text-white">
+                Example: https://www.youtube.com/watch?v=j6X9tH9y_cs
+              </small>
+              <br />
+              <div className="ms-5">
+                <button className="btn btn-danger mt-3" onClick={handleShareClick}>
+                  <FaShareAlt />
+                </button>
+                {showShareIcons && (
+                  <div className="share-icons mt-3">
+                    <FaFacebook className="facebook-icon" />
+                    <FaInstagram className="instagram-icon" />
+                    <FaTwitter className="twitter-icon" />
+                    <FaLinkedin className="linkedin-icon" />
+                  </div>
+                )}
+              </div>
+            </div>
 
-      <div className="row justify-content-center pt-5">
-        <div className="col-md-6">
-          <div className="input-group mb-3">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Enter YouTube Video URL..."
-              aria-label="YouTube Video URL"
-              value={videoUrl}
-              onChange={handleUrlChange}
-            />
-            <button
-              className="btn btn-danger"
-              type="button"
-              onClick={fetchYouTubeData}
-              disabled={loading}
-            >
-              {loading ? "Loading..." : "Fetch Thumbnail"}
-            </button>
-          </div>
-          <small className="text-white">
-            Example: https://www.youtube.com/watch?v=j6X9tH9y_cs
-          </small>
-          <br />
-          <div className="ms-5">
-            <button className="btn btn-danger mt-3" onClick={handleShareClick}>
-              <FaShareAlt />
-            </button>
-            {showShareIcons && (
-              <div className="share-icons mt-3">
-                <FaFacebook className="facebook-icon" />
-                <FaInstagram className="instagram-icon" />
-                <FaTwitter className="twitter-icon" />
-                <FaLinkedin className="linkedin-icon" />
+            {error && (
+              <div className="alert alert-danger" role="alert">
+                {error}
               </div>
             )}
           </div>
-          </div>
-          
-          {error && (
-            <div className="alert alert-danger" role="alert">
-              {error}
-            </div>
-          )}
-          </div>
-          </div>
-          </div>
-          <div className="max-w-7xl mx-auto p-4">
-          <div className="d-flex flex-wrap justify-content-center">
-            {thumbnails &&
-              Object.entries(thumbnails).map(([resolution, { url }]) => (
-                <div
-                  key={resolution}
-                  className={`p-2 ${
-                    url === selectedThumbnailUrl ? "selected" : ""
-                  }`}
-                  onClick={() => setSelectedThumbnailUrl(url)}
-                >
-                  <Image
-                    src={url}
-                    alt={`Thumbnail ${resolution}`}
-                    width={200}
-                    height={150}
-                    className="img-thumbnail"
-                    style={{
-                      border:
-                        url === selectedThumbnailUrl
-                          ? "3px solid blue"
-                          : "none",
-                      cursor: "pointer",
-                    }}
-                  />
-                  <p className="text-center">{resolution}</p>
-                </div>
-              ))}
-          </div>
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto p-4">
+        <div className="d-flex flex-wrap justify-content-center">
+          {thumbnails &&
+            Object.entries(thumbnails).map(([resolution, { url }]) => (
+              <div
+                key={resolution}
+                className={`p-2 ${
+                  url === selectedThumbnailUrl ? "selected" : ""
+                }`}
+                onClick={() => setSelectedThumbnailUrl(url)}
+              >
+                <Image
+                  src={url}
+                  alt={`Thumbnail ${resolution}`}
+                  width={200}
+                  height={150}
+                  className="img-thumbnail"
+                  style={{
+                    border:
+                      url === selectedThumbnailUrl
+                        ? "3px solid blue"
+                        : "none",
+                    cursor: "pointer",
+                  }}
+                />
+                <p className="text-center">{resolution}</p>
+              </div>
+            ))}
+        </div>
         <div className="text-center mt-4">  
           {selectedThumbnailUrl && (
-             <button className="btn btn-danger">
-          <Link  target="_blank" href={selectedThumbnailUrl} download="YouTube_thumbnail.jpg">
-         
-            <FaDownload  className="text-white"/>
-          
-        </Link>
-        </button>
-        
-         
+            <button className="btn btn-danger">
+              <Link target="_blank" href={selectedThumbnailUrl} download="YouTube_thumbnail.jpg">
+                <FaDownload className="text-white"/>
+              </Link>
+            </button>
           )}
-          </div>
-    
+        </div>
+        
         <div className="content pt-6 pb-5">
           <div
             dangerouslySetInnerHTML={{ __html: existingContent }}
             style={{ listStyleType: "none" }}
           ></div>
         </div>
-        <div>
-                   {/* Reviews Section */}
+
+        {/* Reviews Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
           {[5, 4, 3, 2, 1].map((rating) => (
             <div key={rating} className="flex items-center">
@@ -488,31 +481,55 @@ const YtThumbnailDw = () => {
             ))}
           </Slider>
         </div>
-      
-          </div>
-      <style jsx>{`
-        .selected {
-          border: 3px solid blue;
-        }
-        .img-thumbnail {
-          cursor: pointer;
-        }
-        .review-card {
-          margin-top: 20px;
-          padding: 20px;
-          background-color: #f9f9f9;
-          border: 1px solid #e0e0e0;
-          border-radius: 8px;
-        }
-        .share-icons {
-          display: flex;
-          justify-content: space-between;
-          width: 150px;
-        }
-      `}</style>
+
+        <style jsx>{`
+          .selected {
+            border: 3px solid blue;
+          }
+          .img-thumbnail {
+            cursor: pointer;
+          }
+          .review-card {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+          }
+          .share-icons {
+            display: flex;
+            justify-content: space-between;
+            width: 150px;
+          }
+        `}</style>
       </div>
     </>
   );
 };
+
+export async function getServerSideProps(context) {
+  const { req } = context;
+  const host = req.headers.host;
+  const protocol = req.headers["x-forwarded-proto"] || "http";
+  const apiUrl = `${protocol}://${host}`;
+
+  const response = await fetch(
+    `${apiUrl}/api/content?category=Youtube-Thumbnails-Generator`
+  );
+  const data = await response.json();
+
+  const meta = {
+    title: data[0]?.title || "",
+    description: data[0]?.description || "",
+    image: data[0]?.image || "",
+    url: `${apiUrl}/tools/youtube-thumbnail-downloader`,
+  };
+
+  return {
+    props: {
+      meta,
+    },
+  };
+}
 
 export default YtThumbnailDw;
