@@ -29,7 +29,6 @@ const navigation = [
       { name: 'Monetization Checker', href: '/tools/monetization-checker', icon: '💰' },
       { name: 'YouTube Channel Search', href: '/tools/YouTube-Channel-Search', icon: '🔍' },
       { name: 'YouTube Video Summary Generator', href: '/tools/YouTube-Video-Summary-Generator', icon: '📝' },
-      { name: 'Case Converter', href: '/tools/case-converter', icon: '🔄' },
       { name: 'YouTube Trending Videos', href: '/tools/trendingVideos', icon: '🔥' },
       { name: 'YouTube Money Calculator', href: '/tools/YouTube-Money-Calculator', icon: '💰' },
       { name: 'YouTube Keyword Research', href: '/tools/keyword-research', icon: '🔍' },
