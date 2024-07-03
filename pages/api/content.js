@@ -34,9 +34,9 @@ const handleGet = async (req, res) => {
   }
 
   const { db } = await connectToDatabase();
-  const result = await db.collection('content').find({ category }).toArray();
+  const result = await db.collection('content').findOne({ category });
 
-  res.status(200).json(result);
+  res.status(200).json(result ? { content: result.content, faqs: result.faqs } : {});
 };
 
 const handlePost = async (req, res) => {
@@ -46,10 +46,10 @@ const handlePost = async (req, res) => {
     }
 
     const { category } = req.query;
-    const { content, title, description } = req.body;
+    const { content, title, description, faqs } = req.body;
     const image = req.file;
 
-    if (!category || !content || !title || !description) {
+    if (!category || !content || !title || !description || !faqs) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -61,6 +61,7 @@ const handlePost = async (req, res) => {
       description,
       image: imageUrl,
       category,
+      faqs: JSON.parse(faqs), // Assuming faqs is sent as JSON string
     };
 
     const { db } = await connectToDatabase();
@@ -81,10 +82,10 @@ const handlePut = async (req, res) => {
     }
 
     const { category } = req.query;
-    const { content, title, description } = req.body;
+    const { content, title, description, faqs } = req.body;
     const image = req.file;
 
-    if (!category || !content || !title || !description) {
+    if (!category || !content || !title || !description || !faqs) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -95,6 +96,7 @@ const handlePut = async (req, res) => {
       title,
       description,
       ...(imageUrl && { image: imageUrl }),
+      faqs: JSON.parse(faqs), // Assuming faqs is sent as JSON string
     };
 
     const { db } = await connectToDatabase();

@@ -16,10 +16,12 @@ function Content() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
+  const [faqs, setFaqs] = useState([]);
+  const [newFaq, setNewFaq] = useState({ question: '', answer: '' });
 
   useEffect(() => {
     fetchContent();
-  }, [selectedCategory]); // Fetch content when category changes
+  }, [selectedCategory]); // Fetch content and FAQs when category changes
 
   const fetchContent = async () => {
     try {
@@ -28,10 +30,13 @@ function Content() {
         throw new Error('Failed to fetch content');
       }
       const data = await response.json();
-      const contentData = data.length > 0 ? data[0].content : ''; // Get content if available
+      const contentData = data.content || '';
+      const faqsData = data.faqs || [];
+      
       setQuillContent(contentData);
       setExistingContent(contentData);
-      setIsEditing(data.length > 0); // Set editing mode based on whether content exists
+      setFaqs(faqsData);
+      setIsEditing(!!contentData); // Set editing mode based on whether content exists
     } catch (error) {
       console.error('Error fetching content:', error.message);
       setError(error.message);
@@ -40,7 +45,6 @@ function Content() {
 
   const handleSubmit = useCallback(async () => {
     try {
-      console.log("Submitting Data:", quillContent);
       const method = isEditing ? 'PUT' : 'POST';
       
       // Prepare form data
@@ -51,6 +55,7 @@ function Content() {
       if (image) {
         formData.append('image', image);
       }
+      formData.append('faqs', JSON.stringify(faqs));
 
       const response = await fetch(`/api/content?category=${selectedCategory}`, {
         method,
@@ -63,7 +68,6 @@ function Content() {
       }
 
       // Handle success
-      console.log('Content posted successfully');
       setError(null);
       setExistingContent(quillContent);
       toast.success('Content uploaded successfully!');
@@ -71,7 +75,7 @@ function Content() {
       console.error('Error posting content:', error.message);
       setError(error.message);
     }
-  }, [quillContent, selectedCategory, isEditing, title, description, image]);
+  }, [quillContent, selectedCategory, isEditing, title, description, image, faqs]);
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
@@ -83,6 +87,21 @@ function Content() {
 
   const handleImageChange = (e) => {
     setImage(e.target.files[0]);
+  };
+
+  const handleFaqChange = (index, key, value) => {
+    const updatedFaqs = [...faqs];
+    updatedFaqs[index][key] = value;
+    setFaqs(updatedFaqs);
+  };
+
+  const addFaq = () => {
+    setFaqs([...faqs, { question: '', answer: '' }]);
+  };
+
+  const removeFaq = (index) => {
+    const updatedFaqs = faqs.filter((_, i) => i !== index);
+    setFaqs(updatedFaqs);
   };
 
   const renderHeader = () => {
@@ -103,12 +122,12 @@ function Content() {
         return 'YouTube Embed Code Generator';
       case 'YouTube-Hashtag-Generator':
         return 'YouTube Hashtag Generator';
-      case 'Youtube-Thumbnails-Generator':
-        return 'Youtube Thumbnaile Generator';
       case 'youtube-title-and-description-extractor':
         return 'YouTube Title and Description Extractor';
       case 'channel-id-finder':
         return 'YouTube Channel ID Finder';
+      case 'Youtube-Thumbnails-Generator':
+        return 'Youtube Thumbnails Generator';
       case 'video-data-viewer':
         return 'YouTube Video Data Viewer';
       case 'monetization-checker':
@@ -126,7 +145,7 @@ function Content() {
       case 'youtube-comment-picker':
         return 'Youtube Comment Picker';
       case 'keyword-research':
-        return 'Youtube Keyword Research';
+        return 'YouTube Keyword Research';
       default:
         return 'Unknown Category';
     }
@@ -217,7 +236,31 @@ function Content() {
         {error && <div className="text-red-500">Error: {error}</div>}
         <QuillWrapper initialContent={quillContent} onChange={handleQuillChange} />
         <button className='btn btn-primary p-2 mt-3' onClick={handleSubmit}>Submit Content</button>
-        
+        <div className='mt-10'>
+          <h2>Manage FAQs</h2>
+          {faqs.map((faq, index) => (
+            <div key={index} className="mb-3">
+              <div className="flex items-center mb-2">
+                <input
+                  type="text"
+                  placeholder="Question"
+                  value={faq.question}
+                  onChange={(e) => handleFaqChange(index, 'question', e.target.value)}
+                  className="flex-1 border rounded py-2 px-3 mr-2"
+                />
+                <button onClick={() => removeFaq(index)} className="text-red-500 hover:text-red-700">Remove</button>
+              </div>
+              <textarea
+                placeholder="Answer"
+                value={faq.answer}
+                onChange={(e) => handleFaqChange(index, 'answer', e.target.value)}
+                className="w-full border rounded py-2 px-3"
+              />
+            </div>
+          ))}
+          <button onClick={addFaq} className="btn btn-secondary p-2 mt-3">Add New FAQ</button>
+        </div>
+        <button onClick={handleSubmit} className="btn btn-primary p-2 mt-3">Submit FAQs</button>
         <div className='mt-10'>
           <h2>{renderHeader()} Content</h2>
           <div dangerouslySetInnerHTML={{ __html: existingContent }}></div>

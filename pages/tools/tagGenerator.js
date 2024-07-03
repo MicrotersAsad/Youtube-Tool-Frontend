@@ -39,6 +39,7 @@ const TagGenerator = () => {
   const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [faqs, setFaqs] = useState([]);
   const [newReview, setNewReview] = useState({
     name: "",
     title: "",
@@ -49,8 +50,13 @@ const TagGenerator = () => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [openIndex, setOpenIndex] = useState(null);
 
+  const toggleFAQ = (index) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
   const closeModal = () => setModalVisible(false);
+
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -58,9 +64,10 @@ const TagGenerator = () => {
         const response = await fetch(`/api/content?category=tagGenerator`);
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
-        setQuillContent(data[0]?.content || "");
-        setExistingContent(data[0]?.content || "");
-        setMeta(data[0]);
+        setQuillContent(data.content || "");
+        setExistingContent(data.content || "");
+        setMeta(data);
+        setFaqs(data.faqs || []);
       } catch (error) {
         console.error("Error fetching content:", error);
         toast.error("Error fetching content");
@@ -596,6 +603,29 @@ const TagGenerator = () => {
             style={{ listStyleType: "none" }}
           ></div>
         </div>
+      
+        <div className="faq-section">
+      <h2 className="text-2xl font-bold text-center mb-4">Frequently Asked Questions</h2>
+      <div className="faq-container grid grid-cols-1 md:grid-cols-2 gap-4 border">
+        {faqs.map((faq, index) => (
+          <div
+            key={index}
+            className={`faq-item text-white border  p-4 ${
+              openIndex === index ? 'shadow bg-red-500' : ''
+            }`}
+          >
+            <div
+              className="cursor-pointer flex justify-between items-center"
+              onClick={() => toggleFAQ(index)}
+            >
+              <h3 className="font-bold text-black">{faq.question}</h3>
+              <span className="text-black">{openIndex === index ? '-' : '+'}</span>
+            </div>
+            {openIndex === index && <p className="mt-2 text-white">{faq.answer}</p>}
+          </div>
+        ))}
+      </div>
+    </div>
         <div className="row pt-3">
         <div className="col-md-4">
           <div className=" text-3xl font-bold mb-2">Customer reviews</div>
