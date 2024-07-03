@@ -81,7 +81,13 @@ const CaseConverter = () => {
     });
   };
 
-
+  const openReviewForm = () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    setShowReviewForm(true);
+  };
   const fetchReviews = async () => {
     try {
       const response = await fetch("/api/reviews?tool=tagGenerator");
