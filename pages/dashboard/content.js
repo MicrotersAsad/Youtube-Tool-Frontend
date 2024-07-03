@@ -32,9 +32,12 @@ function Content() {
       const data = await response.json();
       const contentData = data.content || '';
       const faqsData = data.faqs || [];
-      
+      const metaData = data.meta || {};
+
       setQuillContent(contentData);
       setExistingContent(contentData);
+      setTitle(metaData.title || '');
+      setDescription(metaData.description || '');
       setFaqs(faqsData);
       setIsEditing(!!contentData); // Set editing mode based on whether content exists
     } catch (error) {

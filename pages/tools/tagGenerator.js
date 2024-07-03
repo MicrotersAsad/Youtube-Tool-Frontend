@@ -363,7 +363,6 @@ const TagGenerator = () => {
     setModalVisible(true);
   };
 
-
   return (
     <>
       <div className="bg-box">
@@ -419,7 +418,6 @@ const TagGenerator = () => {
               })}
             </script>
             {/* - Review Schema */}
-
             <script type="application/ld+json">
               {JSON.stringify({
                 "@context": "https://schema.org",
@@ -447,6 +445,21 @@ const TagGenerator = () => {
                     ratingValue: review.rating,
                   },
                 })),
+              })}
+            </script>
+            {/* - FAQ Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": faqs.map(faq => ({
+                  "@type": "Question",
+                  "name": faq.question,
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": faq.answer
+                  }
+                }))
               })}
             </script>
           </Head>
