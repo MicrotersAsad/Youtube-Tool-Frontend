@@ -217,7 +217,7 @@ function Content() {
           </div>
         </div>
         <div className="mb-3">
-          <label htmlFor="description" className="block text-sm font-medium">Description:</label>
+          <label htmlFor="description" className="block text-sm font-medium">Meta Description:</label>
           <textarea
             id="description"
             value={description}
@@ -238,8 +238,8 @@ function Content() {
         </div>
         {error && <div className="text-red-500">Error: {error}</div>}
         <QuillWrapper initialContent={quillContent} onChange={handleQuillChange} />
-        <button className='btn btn-primary p-2 mt-3' onClick={handleSubmit}>Submit Content</button>
-        <div className='mt-10'>
+        
+        <div className='faq-section mt-10'>
           <h2>Manage FAQs</h2>
           {faqs.map((faq, index) => (
             <div key={index} className="mb-3">
@@ -262,9 +262,11 @@ function Content() {
             </div>
           ))}
           <button onClick={addFaq} className="btn btn-secondary p-2 mt-3">Add New FAQ</button>
+          <button onClick={handleSubmit} className="btn btn-primary p-2 mt-3 ms-5">Submit FAQs</button>
         </div>
-        <button onClick={handleSubmit} className="btn btn-primary p-2 mt-3">Submit FAQs</button>
-        <div className='mt-10'>
+       
+        <button className='btn btn-primary p-2 mt-3' onClick={handleSubmit}>Submit Content</button>
+        <div className='existing-content-section mt-10'>
           <h2>{renderHeader()} Content</h2>
           <div dangerouslySetInnerHTML={{ __html: existingContent }}></div>
         </div>

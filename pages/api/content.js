@@ -1,3 +1,4 @@
+
 import { connectToDatabase } from '../../utils/mongodb';
 import uploadMiddleware from '../../middleware/uploadMiddleware';
 
@@ -33,10 +34,18 @@ const handleGet = async (req, res) => {
     return res.status(400).json({ message: 'Category is required' });
   }
 
-  const { db } = await connectToDatabase();
-  const result = await db.collection('content').findOne({ category });
+  try {
+    const { db } = await connectToDatabase();
+    const result = await db.collection('content').findOne({ category });
 
-  res.status(200).json(result ? { content: result.content, faqs: result.faqs } : {});
+    if (!result) {
+      return res.status(404).json({ message: 'Content not found' });
+    }
+
+    res.status(200).json({ content: result.content, faqs: result.faqs, title: result.title, description: result.description, image: result.image });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
 };
 
 const handlePost = async (req, res) => {
@@ -64,14 +73,18 @@ const handlePost = async (req, res) => {
       faqs: JSON.parse(faqs), // Assuming faqs is sent as JSON string
     };
 
-    const { db } = await connectToDatabase();
-    const result = await db.collection('content').insertOne(doc);
+    try {
+      const { db } = await connectToDatabase();
+      const result = await db.collection('content').insertOne(doc);
 
-    if (!result.insertedId) {
-      return res.status(500).json({ message: 'Failed to insert document' });
+      if (!result.insertedId) {
+        return res.status(500).json({ message: 'Failed to insert document' });
+      }
+
+      res.status(201).json({ _id: result.insertedId, ...doc });
+    } catch (error) {
+      res.status(500).json({ message: 'Internal server error', error: error.message });
     }
-
-    res.status(201).json({ _id: result.insertedId, ...doc });
   });
 };
 
@@ -99,16 +112,20 @@ const handlePut = async (req, res) => {
       faqs: JSON.parse(faqs), // Assuming faqs is sent as JSON string
     };
 
-    const { db } = await connectToDatabase();
-    const filter = { category };
-    const updateDoc = { $set: doc };
-    const result = await db.collection('content').updateOne(filter, updateDoc, { upsert: true });
+    try {
+      const { db } = await connectToDatabase();
+      const filter = { category };
+      const updateDoc = { $set: doc };
+      const result = await db.collection('content').updateOne(filter, updateDoc, { upsert: true });
 
-    if (!result.matchedCount && !result.upsertedCount) {
-      return res.status(500).json({ message: 'Failed to update document' });
+      if (!result.matchedCount && !result.upsertedCount) {
+        return res.status(500).json({ message: 'Failed to update document' });
+      }
+
+      res.status(200).json({ message: 'Document updated successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Internal server error', error: error.message });
     }
-
-    res.status(200).json({ message: 'Document updated successfully' });
   });
 };
 

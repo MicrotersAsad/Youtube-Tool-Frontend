@@ -44,7 +44,7 @@ const ChannelIdFinder = ({ meta }) => {
                 const data = await response.json();
                 setQuillContent(data[0]?.content || '');
                 setExistingContent(data[0]?.content || '');
-                setMeta(data[0]);
+              
             } catch (error) {
                 toast.error("Error fetching content");
             }
