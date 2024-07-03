@@ -5,9 +5,6 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../../contexts/AuthContext';
 import Head from 'next/head';
 import StarRating from "./StarRating";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
@@ -36,7 +33,7 @@ const CaseConverter = () => {
     userProfile: "",
   });
   const [modalVisible, setModalVisible] = useState(true);
-
+  const [showAllReviews, setShowAllReviews] = useState(false);
   const closeModal = () => {
     setModalVisible(false);
   };
@@ -61,15 +58,7 @@ const CaseConverter = () => {
     fetchReviews();
   }, []);
 
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch("/api/reviews?tool=case-converter");
-      const data = await response.json();
-      setReviews(data);
-    } catch (error) {
-      console.error("Failed to fetch reviews:", error);
-    }
-  };
+
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -92,7 +81,27 @@ const CaseConverter = () => {
     });
   };
 
+
+  const fetchReviews = async () => {
+    try {
+      const response = await fetch("/api/reviews?tool=tagGenerator");
+      const data = await response.json();
+      const formattedData = data.map((review) => ({
+        ...review,
+        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"), // Format the date here
+      }));
+      setReviews(formattedData);
+    } catch (error) {
+      console.error("Failed to fetch reviews:", error);
+    }
+  };
+
   const handleReviewSubmit = async () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
     if (!newReview.rating || !newReview.comment) {
       toast.error("All fields are required.");
       return;
@@ -105,50 +114,45 @@ const CaseConverter = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          tool: "case-converter",
+          tool: "tagGenerator",
           ...newReview,
-          userProfile: user?.profileImage || "", // Assuming user has a profileImage property
+          userProfile: user?.profileImage || "not available",
+          userName: user?.username,
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to submit review");
-      }
+      if (!response.ok) throw new Error("Failed to submit review");
 
       toast.success("Review submitted successfully!");
-      setNewReview({ name: "", rating: 0, comment: "", userProfile: "" });
+      setNewReview({
+        name: "",
+        rating: 0,
+        comment: "",
+        title: "", // Reset title field
+        userProfile: "",
+      });
       setShowReviewForm(false);
-      fetchReviews(); // Refresh the reviews
+      fetchReviews();
     } catch (error) {
+      console.error("Failed to submit review:", error);
       toast.error("Failed to submit review");
     }
   };
 
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
-    const ratingCount = reviews.filter(
-      (review) => review.rating === rating
-    ).length;
+    const ratingCount = reviews.filter((review) => review.rating === rating)
+      .length;
     return totalReviews ? (ratingCount / totalReviews) * 100 : 0;
   };
 
-  const settings = {
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 2,
-    responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
-          infinite: true,
-        },
-      },
-    ],
-  };
+  const overallRating = (
+    reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+  ).toFixed(1);
 
+  const handleShowMoreReviews = () => {
+    setShowAllReviews(true);
+  };
   // Function to convert the text based on the type of conversion
   const convertText = (type) => {
     let convertedText = '';
@@ -306,42 +310,142 @@ const CaseConverter = () => {
             style={{ listStyleType: "none" }}
           ></div>
         </div>
-         {/* Reviews Section */}
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 pb-5 border shadow p-5">
-          {[5, 4, 3, 2, 1].map((rating) => (
-            <div key={rating} className="flex items-center">
-              <div className="w-12 text-right mr-4">{rating}-star</div>
-              <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
-                <div
-                  className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0"
-                  style={{ width: `${calculateRatingPercentage(rating)}%` }}
-                ></div>
+        <div className="row pt-3">
+        <div className="col-md-4">
+          <div className=" text-3xl font-bold mb-2">Customer reviews</div>
+          <div className="flex items-center mb-2">
+            <div className="text-3xl font-bold mr-2">{overallRating}</div>
+            <div className="flex">
+              {[...Array(5)].map((_, i) => (
+                <FaStar key={i} color={i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"} />
+              ))}
+            </div>
+            <div className="ml-2 text-sm text-gray-500">{reviews.length} global ratings</div>
+          </div>
+          <div>
+            {[5, 4, 3, 2, 1].map((rating) => (
+              <div key={rating} className="flex items-center mb-1">
+                <div className="w-12 text-right mr-4">{rating}-star</div>
+                <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
+                  <div
+                    className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0"
+                    style={{ width: `${calculateRatingPercentage(rating)}%` }}
+                  ></div>
+                </div>
+                <div className="w-12 text-left ml-4">
+                  {calculateRatingPercentage(rating).toFixed(1)}%
+                </div>
               </div>
-              <div className="w-12 text-left ml-4">
-                {calculateRatingPercentage(rating).toFixed(1)}%
+            ))}
+          </div>
+          <hr />
+          <div className="pt-3">
+            <h4>Review This Tool</h4>
+            <p>Share Your Thoughts With Other Customers</p>
+            <button
+              className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
+              onClick={openReviewForm}
+              
+            >
+              Write a customer review
+            </button>
+          </div>
+        </div>
+
+        <div className="col-md-8">
+          {reviews.slice(0, 5).map((review, index) => (
+            <div
+              key={index}
+              className="border p-6 m-5 bg-white"
+            >
+              <div className="flex items-center mb-4">
+                <Image
+                  src={`data:image/jpeg;base64,${review?.userProfile}`}
+                  alt={review.name}
+                  className="w-12 h-12 rounded-full"
+                  width={48}
+                  height={48}
+                />
+                <div className="ml-4">
+                  <div className="font-bold">{review?.userName}</div>
+                  <div className="text-gray-500 text-sm">Verified Purchase</div>
+                </div>
               </div>
+              <div className="flex items-center">
+                {[...Array(5)].map((_, i) => (
+                  <FaStar key={i} size={20} color={i < review.rating ? "#ffc107" : "#e4e5e9"} />
+                ))}
+              <div>
+              <span className="fw-bold mt-2 ms-2">{review?.title}</span>
+              </div>
+              </div>
+            
+              <div className="text-gray-500 text-sm mb-4">Reviewed On {review.createdAt}</div>
+              <div className="text-lg mb-4">{review.comment}</div>
+             
             </div>
           ))}
+          {!showAllReviews && reviews.length > 5 && (
+            <button
+              className="btn btn-primary mt-4 mb-5"
+              onClick={handleShowMoreReviews}
+            >
+              See More Reviews
+            </button>
+          )}
+          {showAllReviews &&
+            reviews.slice(5).map((review, index) => (
+              <div
+                key={index}
+                className="border p-6 m-5 bg-white"
+              >
+                <div className="flex items-center mb-4">
+                  <Image
+                    src={`data:image/jpeg;base64,${review?.userProfile}`}
+                    alt={review.name}
+                    className="w-12 h-12 rounded-full"
+                    width={48}
+                    height={48}
+                  />
+                  <div className="ml-4">
+                    <div className="font-bold">{review?.userName}</div>
+                    <div className="text-gray-500 text-sm">Verified Purchase</div>
+                    <p className="text-muted">Reviewed On {review?.createdAt}</p>
+                  </div>
+                </div>
+                <div className="text-lg font-semibold">{review.title}</div>
+                <div className="text-gray-500 mb-4">{review.date}</div>
+                <div className="text-lg mb-4">{review.comment}</div>
+                <div className="flex items-center">
+                  {[...Array(5)].map((_, i) => (
+                    <FaStar key={i} size={20} color={i < review.rating ? "#ffc107" : "#e4e5e9"} />
+                  ))}
+                </div>
+              </div>
+            ))}
         </div>
-        
-        {/* Review Form Toggle */}
-        {user && !showReviewForm && (
-          <button
-            className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
-            onClick={() => setShowReviewForm(true)}
-          >
-            Add Review
-          </button>
-        )}
+      </div>
 
-        {/* Review Form */}
-        {user && showReviewForm && (
-          <div className="mt-8 review-card">
+      {modalVisible && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black opacity-50"></div>
+          <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
             <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
             <div className="mb-4">
               <StarRating
                 rating={newReview.rating}
                 setRating={(rating) => setNewReview({ ...newReview, rating })}
+              />
+            </div>
+            <div className="mb-4">
+              <input
+                type="text"
+                className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                placeholder="Title"
+                value={newReview.title}
+                onChange={(e) =>
+                  setNewReview({ ...newReview, title: e.target.value })
+                }
               />
             </div>
             <div className="mb-4">
@@ -360,45 +464,15 @@ const CaseConverter = () => {
             >
               Submit Review
             </button>
+            <button
+              className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
+              onClick={closeModal}
+            >
+              Cancel
+            </button>
           </div>
-        )}
-    
-        <div className="review-card pb-5">
-      <Slider {...settings}>
-        {reviews.map((review, index) => (
-          <div key={index} className="p-6 bg-white shadow-lg rounded-lg relative mt-5 max-w-sm mx-auto">
-            <div className="flex justify-center">
-              <Image
-                src={`data:image/jpeg;base64,${review?.userProfile}`}
-                alt={review.name}
-                className="w-16 h-16 rounded-full -mt-12 border-2 border-white"
-                width={64}
-                height={64}
-              />
-            </div>
-            <div className="mt-6 text-center">
-              <p className="text-lg italic text-gray-700 mb-4">
-                “{review.comment}”
-              </p>
-              <h3 className="text-xl font-bold text-gray-800">{review.name}</h3>
-              <p className="text-sm text-gray-500">User</p>
-              <div className="flex justify-center mt-3">
-                {[...Array(5)].map((_, i) => (
-                  <FaStar
-                    key={i}
-                    size={24}
-                    color={i < review.rating ? "#ffc107" : "#e4e5e9"}
-                  />
-                ))}
-              </div>
-              <span className="text-xl font-bold mt-2">{review.rating.toFixed(1)}</span>
-            </div>
-            <div className="absolute top-2 left-2 text-red-600 text-7xl">“</div>
-            <div className="absolute bottom-2 right-2 text-red-600 text-7xl">”</div>
-          </div>
-        ))}
-      </Slider>
-    </div>
+        </div>
+      )}
        
   
 

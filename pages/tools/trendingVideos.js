@@ -228,7 +228,7 @@ const TrendingVideos = ({ meta }) => {
       setLoading(false);
     }
   };
-
+console.log(reviews);
   return (
     <>
       <div className="bg-box">

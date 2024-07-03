@@ -1,4 +1,3 @@
-// pages/api/reviews.js
 import { connectToDatabase, ObjectId } from '../../utils/mongodb';
 
 export default async function handler(req, res) {
@@ -19,9 +18,9 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'POST') {
     // Post a new review
-    const { tool, rating, comment, userName, userProfile } = req.body;
+    const { tool, rating, comment, userName, userProfile, title } = req.body;
 
-    if (!tool || !rating || !comment || !userName || !userProfile) {
+    if (!tool || !rating || !comment || !userName || !userProfile || !title) {
       return res.status(400).json({ message: 'All fields are required.' });
     }
 
@@ -32,6 +31,7 @@ export default async function handler(req, res) {
         comment,
         userName,
         userProfile,
+        title,
         createdAt: new Date(),
       };
 
