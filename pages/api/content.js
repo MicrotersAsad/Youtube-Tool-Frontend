@@ -1,4 +1,3 @@
-
 import { connectToDatabase } from '../../utils/mongodb';
 import uploadMiddleware from '../../middleware/uploadMiddleware';
 
@@ -34,18 +33,10 @@ const handleGet = async (req, res) => {
     return res.status(400).json({ message: 'Category is required' });
   }
 
-  try {
-    const { db } = await connectToDatabase();
-    const result = await db.collection('content').findOne({ category });
+  const { db } = await connectToDatabase();
+  const result = await db.collection('content').find({ category }).toArray();
 
-    if (!result) {
-      return res.status(404).json({ message: 'Content not found' });
-    }
-
-    res.status(200).json({ content: result.content, faqs: result.faqs, title: result.title, description: result.description, image: result.image });
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error', error: error.message });
-  }
+  res.status(200).json(result);
 };
 
 const handlePost = async (req, res) => {
@@ -58,7 +49,7 @@ const handlePost = async (req, res) => {
     const { content, title, description, faqs } = req.body;
     const image = req.file;
 
-    if (!category || !content || !title || !description || !faqs) {
+    if (!category || !content || !title || !description) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -70,21 +61,17 @@ const handlePost = async (req, res) => {
       description,
       image: imageUrl,
       category,
-      faqs: JSON.parse(faqs), // Assuming faqs is sent as JSON string
+      faqs: faqs ? JSON.parse(faqs) : [],
     };
 
-    try {
-      const { db } = await connectToDatabase();
-      const result = await db.collection('content').insertOne(doc);
+    const { db } = await connectToDatabase();
+    const result = await db.collection('content').insertOne(doc);
 
-      if (!result.insertedId) {
-        return res.status(500).json({ message: 'Failed to insert document' });
-      }
-
-      res.status(201).json({ _id: result.insertedId, ...doc });
-    } catch (error) {
-      res.status(500).json({ message: 'Internal server error', error: error.message });
+    if (!result.insertedId) {
+      return res.status(500).json({ message: 'Failed to insert document' });
     }
+
+    res.status(201).json({ _id: result.insertedId, ...doc });
   });
 };
 
@@ -98,7 +85,7 @@ const handlePut = async (req, res) => {
     const { content, title, description, faqs } = req.body;
     const image = req.file;
 
-    if (!category || !content || !title || !description || !faqs) {
+    if (!category || !content || !title || !description) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -109,23 +96,19 @@ const handlePut = async (req, res) => {
       title,
       description,
       ...(imageUrl && { image: imageUrl }),
-      faqs: JSON.parse(faqs), // Assuming faqs is sent as JSON string
+      faqs: faqs ? JSON.parse(faqs) : [],
     };
 
-    try {
-      const { db } = await connectToDatabase();
-      const filter = { category };
-      const updateDoc = { $set: doc };
-      const result = await db.collection('content').updateOne(filter, updateDoc, { upsert: true });
+    const { db } = await connectToDatabase();
+    const filter = { category };
+    const updateDoc = { $set: doc };
+    const result = await db.collection('content').updateOne(filter, updateDoc, { upsert: true });
 
-      if (!result.matchedCount && !result.upsertedCount) {
-        return res.status(500).json({ message: 'Failed to update document' });
-      }
-
-      res.status(200).json({ message: 'Document updated successfully' });
-    } catch (error) {
-      res.status(500).json({ message: 'Internal server error', error: error.message });
+    if (!result.matchedCount && !result.upsertedCount) {
+      return res.status(500).json({ message: 'Failed to update document' });
     }
+
+    res.status(200).json({ message: 'Document updated successfully' });
   });
 };
 

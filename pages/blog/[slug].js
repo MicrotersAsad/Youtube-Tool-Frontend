@@ -17,9 +17,7 @@ import { ClipLoader } from 'react-spinners';
 import { useAuth } from '../../contexts/AuthContext';
 import { FaEye } from 'react-icons/fa';
 
-const BASE_URL = "https://youtube-tool-frontend.vercel.app/";
-
-const BlogPost = () => {
+const BlogPost = ({ baseUrl }) => {
   const router = useRouter();
   const { slug } = router.query;
   const { user } = useAuth();
@@ -99,7 +97,7 @@ const BlogPost = () => {
       console.error('Error fetching comments:', error);
     }
   };
-console.log(comments);
+
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
 
@@ -183,23 +181,82 @@ console.log(comments);
     );
   }
 
-  const shareUrl = `https://your-domain.com/blog/${slug}`;
+  const shareUrl = `${baseUrl}blog/${slug}`;
+
+  const schemaData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": blog?.title || "",
+    "image": [
+      `${baseUrl}${blog?.image || "default-image.jpg"}`,
+    ],
+    "datePublished": blog?.createdAt || "",
+    "dateModified": blog?.updatedAt || blog?.createdAt || "",
+    "author": {
+      "@type": "Person",
+      "name": blog?.author || "Author Name"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "YtTools",
+      "logo": {
+        "@type": "ImageObject",
+        "url": blog?.image || ""
+      }
+    },
+    "description": blog?.metaDescription || "A brief description of your blog post.",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `${baseUrl}blog/${slug}`
+    }
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": `${baseUrl}`
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Blog",
+        "item": `${baseUrl}blog`
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": blog?.title || "",
+        "item": `${baseUrl}blog/${slug}`
+      }
+    ]
+  };
 
   return (
     <>
       <Head>
         <title>{blog?.metaTitle}</title>
         <meta name="description" content={blog?.metaDescription} />
-        <meta property="og:url" content={`${BASE_URL}${blog.slug}`} />
+        <meta property="og:url" content={`${baseUrl}${blog.slug}`} />
         <meta property="og:title" content={blog?.metaTitle} />
         <meta property="og:description" content={blog?.metaDescription} />
-        <meta property="og:image" content={`${BASE_URL}${blog.image}`} />
-        <meta name="twitter:card" content={`${BASE_URL}${blog.image}`} />
+        <meta property="og:image" content={`${baseUrl}${blog.image}`} />
+        <meta name="twitter:card" content={`${baseUrl}${blog.image}`} />
         <meta property="twitter:domain" content="youtube-tool-frontend.vercel.app" />
-        <meta property="twitter:url" content={`${BASE_URL}${blog.slug}`} />
+        <meta property="twitter:url" content={`${baseUrl}${blog.slug}`} />
         <meta name="twitter:title" content={blog?.metaTitle} />
         <meta name="twitter:description" content={blog?.metaDescription} />
-        <meta name="twitter:image" content={`${BASE_URL}${blog.image}`} />
+        <meta name="twitter:image" content={`${baseUrl}${blog.image}`} />
+        <script type="application/ld+json">
+          {JSON.stringify(schemaData)}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbSchema)}
+        </script>
       </Head>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
         <Breadcrumb blogTitle={blog.title} />
@@ -334,5 +391,18 @@ console.log(comments);
     </>
   );
 };
+
+export async function getServerSideProps(context) {
+  const { req } = context;
+  const host = req.headers.host;
+  const protocol = req.headers['x-forwarded-proto'] || 'http';
+  const baseUrl = `${protocol}://${host}`;
+
+  return {
+    props: {
+      baseUrl
+    }
+  };
+}
 
 export default BlogPost;

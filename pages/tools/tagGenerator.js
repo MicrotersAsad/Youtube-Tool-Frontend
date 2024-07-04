@@ -23,8 +23,7 @@ import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 
-const TagGenerator = () => {
-
+const TagGenerator = ({meta}) => {
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();
   const [tags, setTags] = useState([]);
@@ -34,13 +33,13 @@ const TagGenerator = () => {
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
-  const [meta, setMeta] = useState({ title: "", description: "", image: "" });
+  const [faqs,setFaqs]=useState([])
   const [isUpdated, setIsUpdated] = useState(false);
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [faqs, setFaqs] = useState([]);
+ 
   const [newReview, setNewReview] = useState({
     name: "",
     title: "",
@@ -64,10 +63,11 @@ const TagGenerator = () => {
         const response = await fetch(`/api/content?category=tagGenerator`);
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
-        setQuillContent(data.content || "");
-        setExistingContent(data.content || "");
-        setFaqs(data.faqs || []);
-        setMeta(data)
+        console.log(data);
+        setQuillContent(data[0].content || "");
+        setExistingContent(data[0].content || "");
+        setFaqs(data[0]?.faqs || "")
+        
       } catch (error) {
         console.error("Error fetching content:", error);
         toast.error("Error fetching content");
@@ -370,16 +370,16 @@ const TagGenerator = () => {
   return (
     <>
      <Head>
-            <title>{meta.title}</title>
-            <meta name="description" content={meta.description} />
+            <title>{meta?.title}</title>
+            <meta name="description" content={meta?.description || "AI Youtube Tag Generator"} />
             <meta
               property="og:url"
               content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
             />
-            <meta property="og:title" content={meta.title} />
-            <meta property="og:description" content={meta.description} />
-            <meta property="og:image" content={meta.image} />
-            <meta name="twitter:card" content={meta.image} />
+            <meta property="og:title" content={meta?.title || "AI Youtube Tag Generator"} />
+            <meta property="og:description" content={meta?.description ||"Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights" }/>
+            <meta property="og:image" content={meta?.image || ""} />
+            <meta name="twitter:card" content={meta?.image || ""} />
             <meta
               property="twitter:domain"
               content="https://youtube-tool-frontend.vercel.app/"
@@ -388,9 +388,9 @@ const TagGenerator = () => {
               property="twitter:url"
               content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
             />
-            <meta name="twitter:title" content={meta.title} />
-            <meta name="twitter:description" content={meta.description} />
-            <meta name="twitter:image" content={meta.image} />
+            <meta name="twitter:title" content={meta?.title || "AI Youtube Tag Generator"} />
+            <meta name="twitter:description" content={meta?.description ||"Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights" }/>
+            <meta name="twitter:image" content={meta?.image || ""} />
             {/* - Webpage Schema */}
             <script type="application/ld+json">
               {JSON.stringify({
@@ -839,6 +839,42 @@ const TagGenerator = () => {
     </>
   );
 };
+export async function getServerSideProps(context) {
+  const { req } = context;
+  const host = req.headers.host;
+  const protocol = req.headers["x-forwarded-proto"] || "http";
+  const apiUrl = `${protocol}://${host}/api/content?category=tagGenerator`;
+console.log(apiUrl);
+  try {
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
+      throw new Error('Failed to fetch content');
+    }
 
+    const data = await response.json();
+   
+    const meta = {
+      title: data[0]?.title || "",
+      description: data[0]?.description || "",
+      image: data[0]?.image || "",
+      url: `${protocol}://${host}/tools/tagGenerator`,
+    };
+
+    return {
+      props: {
+        meta,
+        faqs: data[0].faqs || [],
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    return {
+      props: {
+        meta: {},
+        faqs: [],
+      },
+    };
+  }
+}
 
 export default TagGenerator;

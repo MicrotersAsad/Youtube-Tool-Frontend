@@ -5,8 +5,13 @@ const Breadcrumb = ({ blogTitle }) => {
     <nav aria-label="breadcrumb">
       <ol className="breadcrumb flex items-center text-sm md:text-base lg:text-lg">
         <li className="breadcrumb-item">
+          <Link href="/">
+            <span className="text-blue-500 hover:underline whitespace-nowrap">Home</span>
+          </Link>
+        </li>
+        <li className="breadcrumb-item">
           <Link href="/blog">
-            <span className="text-blue-500 hover:underline whitespace-nowrap">Blog</span>
+            <span className="text-blue-500 hover:underline whitespace-nowrap"> / Blog</span>
           </Link>
         </li>
         {blogTitle && (

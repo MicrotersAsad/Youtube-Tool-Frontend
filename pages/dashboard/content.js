@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import Layout from './layout';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { data } from 'autoprefixer';
 
 // Dynamically import the QuillWrapper component with SSR disabled
 const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
@@ -17,7 +18,6 @@ function Content() {
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
   const [faqs, setFaqs] = useState([]);
-  const [newFaq, setNewFaq] = useState({ question: '', answer: '' });
 
   useEffect(() => {
     fetchContent();
@@ -30,14 +30,16 @@ function Content() {
         throw new Error('Failed to fetch content');
       }
       const data = await response.json();
-      const contentData = data.content || '';
-      const faqsData = data.faqs || [];
-      const metaData = data.meta || {};
+
+      const contentData = data[0].content || '';
+      const faqsData = data[0].faqs || [];
+      const metatitle = data[0].title || {};
+      const metaDescription = data[0].description || {};
 
       setQuillContent(contentData);
       setExistingContent(contentData);
-      setTitle(metaData.title || '');
-      setDescription(metaData.description || '');
+      setTitle(metatitle || '');
+      setDescription(metaDescription || '');
       setFaqs(faqsData);
       setIsEditing(!!contentData); // Set editing mode based on whether content exists
     } catch (error) {
@@ -180,7 +182,7 @@ function Content() {
               <option value="Youtube-Thumbnails-Generator">Youtube Thumbnails Generator</option>
               <option value="video-data-viewer">YouTube Video Data Viewer</option>
               <option value="monetization-checker">YouTube Monetization Checker</option>
-              <option value="YouTube-Channel-Search">YouTube-Channel-Search</option>
+              <option value="YouTube-Channel-Search">YouTube Channel Search</option>
               <option value="YouTube-Video-Summary-Generator">YouTube Video Summary Generator</option>
               <option value="case-converter">Case Converter</option>
               <option value="trendingVideos">YouTube Trending Videos</option>
@@ -262,7 +264,6 @@ function Content() {
             </div>
           ))}
           <button onClick={addFaq} className="btn btn-secondary p-2 mt-3">Add New FAQ</button>
-          <button onClick={handleSubmit} className="btn btn-primary p-2 mt-3 ms-5">Submit FAQs</button>
         </div>
        
         <button className='btn btn-primary p-2 mt-3' onClick={handleSubmit}>Submit Content</button>
