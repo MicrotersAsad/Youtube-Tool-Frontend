@@ -117,7 +117,7 @@ function Content() {
         return 'Tag Extractor';
       case 'youtube-title-and-description-generator?tab=title':
         return 'Title Generator';
-      case 'DescriptionGenerator':
+      case 'youtube-title-and-description-generator?tab=description':
         return 'Description Generator';
       case 'YouTube-Channel-Banner-Downloader':
         return 'YouTube Channel Banner Downloader';
@@ -132,7 +132,7 @@ function Content() {
       case 'channel-id-finder':
         return 'YouTube Channel ID Finder';
       case 'Youtube-Thumbnails-Generator':
-        return 'Youtube Thumbnails Generator';
+        return 'Youtube Thumbnails Downlaod';
       case 'video-data-viewer':
         return 'YouTube Video Data Viewer';
       case 'monetization-checker':
@@ -172,7 +172,7 @@ function Content() {
               <option value="tagGenerator">Tag Generator</option>
               <option value="tagExtractor">Tag Extractor</option>
               <option value="youtube-title-and-description-generator?tab=title">Title Generator</option>
-              <option value="DescriptionGenerator">Description Generator</option>
+              <option value="youtube-title-and-description-generator?tab=description">Description Generator</option>
               <option value="YouTube-Channel-Banner-Downloader">YouTube Channel Banner Downloader</option>
               <option value="YouTube-Channel-Logo-Downloader">YouTube Channel Logo Downloader</option>
               <option value="YouTube-Embed-Code-Generator">YouTube Embed Code Generator</option>

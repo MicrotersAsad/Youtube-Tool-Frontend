@@ -23,7 +23,7 @@ import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 
-const TagGenerator = ({meta}) => {
+const TagGenerator = ({ meta }) => {
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();
   const [tags, setTags] = useState([]);
@@ -33,13 +33,13 @@ const TagGenerator = ({meta}) => {
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
-  const [faqs,setFaqs]=useState([])
   const [isUpdated, setIsUpdated] = useState(false);
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
+  const [faqs, setFaqs] = useState([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
- 
+
   const [newReview, setNewReview] = useState({
     name: "",
     title: "",
@@ -66,8 +66,7 @@ const TagGenerator = ({meta}) => {
         console.log(data);
         setQuillContent(data[0].content || "");
         setExistingContent(data[0].content || "");
-        setFaqs(data[0]?.faqs || "")
-        
+        setFaqs(data[0].faqs)
       } catch (error) {
         console.error("Error fetching content:", error);
         toast.error("Error fetching content");
@@ -369,95 +368,95 @@ const TagGenerator = ({meta}) => {
 
   return (
     <>
-     <Head>
-            <title>{meta?.title}</title>
-            <meta name="description" content={meta?.description || "AI Youtube Tag Generator"} />
-            <meta
-              property="og:url"
-              content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-            />
-            <meta property="og:title" content={meta?.title || "AI Youtube Tag Generator"} />
-            <meta property="og:description" content={meta?.description ||"Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights" }/>
-            <meta property="og:image" content={meta?.image || ""} />
-            <meta name="twitter:card" content={meta?.image || ""} />
-            <meta
-              property="twitter:domain"
-              content="https://youtube-tool-frontend.vercel.app/"
-            />
-            <meta
-              property="twitter:url"
-              content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-            />
-            <meta name="twitter:title" content={meta?.title || "AI Youtube Tag Generator"} />
-            <meta name="twitter:description" content={meta?.description ||"Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights" }/>
-            <meta name="twitter:image" content={meta?.image || ""} />
-            {/* - Webpage Schema */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "WebPage",
-                name: meta?.title,
-                url: "https://youtube-tool-frontend.vercel.app/tools/tagGenerator",
-                description: meta?.description,
-                breadcrumb: {
-                  "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
-                },
-                about: {
-                  "@type": "Thing",
-                  name: meta?.title,
-                },
-                isPartOf: {
-                  "@type": "WebSite",
-                  url: "https://youtube-tool-frontend.vercel.app",
-                },
-              })}
-            </script>
-            {/* - Review Schema */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "SoftwareApplication",
-                name: meta?.title,
-                url: "https://youtube-tool-frontend.vercel.app/tools/tagGenerator",
-                applicationCategory: "Multimedia",
-                aggregateRating: {
-                  "@type": "AggregateRating",
-                  ratingValue: overallRating,
-                  ratingCount: reviews?.length,
-                  reviewCount: reviews?.length,
-                },
-                review: reviews.map((review) => ({
-                  "@type": "Review",
-                  author: {
-                    "@type": "Person",
-                    name: review.userName,
-                  },
-                  datePublished: review.createdAt,
-                  reviewBody: review.comment,
-                  name: review.title,
-                  reviewRating: {
-                    "@type": "Rating",
-                    ratingValue: review.rating,
-                  },
-                })),
-              })}
-            </script>
-            {/* - FAQ Schema */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                mainEntity: faqs.map((faq) => ({
-                  "@type": "Question",
-                  name: faq.question,
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: faq.answer,
-                  },
-                })),
-              })}
-            </script>
-          </Head>
+      <Head>
+        <title>{meta?.title}</title>
+        <meta name="description" content={meta?.description || "AI Youtube Tag Generator"} />
+        <meta
+          property="og:url"
+          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
+        />
+        <meta property="og:title" content={meta?.title || "AI Youtube Tag Generator"} />
+        <meta property="og:description" content={meta?.description ||"Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights" }/>
+        <meta property="og:image" content={meta?.image || ""} />
+        <meta name="twitter:card" content={meta?.image || ""} />
+        <meta
+          property="twitter:domain"
+          content="https://youtube-tool-frontend.vercel.app/"
+        />
+        <meta
+          property="twitter:url"
+          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
+        />
+        <meta name="twitter:title" content={meta?.title || "AI Youtube Tag Generator"} />
+        <meta name="twitter:description" content={meta?.description ||"Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights" }/>
+        <meta name="twitter:image" content={meta?.image || ""} />
+        {/* - Webpage Schema */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            name: meta?.title,
+            url: "https://youtube-tool-frontend.vercel.app/tools/tagGenerator",
+            description: meta?.description,
+            breadcrumb: {
+              "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
+            },
+            about: {
+              "@type": "Thing",
+              name: meta?.title,
+            },
+            isPartOf: {
+              "@type": "WebSite",
+              url: "https://youtube-tool-frontend.vercel.app",
+            },
+          })}
+        </script>
+        {/* - Review Schema */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: meta?.title,
+            url: "https://youtube-tool-frontend.vercel.app/tools/tagGenerator",
+            applicationCategory: "Multimedia",
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: overallRating,
+              ratingCount: reviews?.length,
+              reviewCount: reviews?.length,
+            },
+            review: reviews.map((review) => ({
+              "@type": "Review",
+              author: {
+                "@type": "Person",
+                name: review.userName,
+              },
+              datePublished: review.createdAt,
+              reviewBody: review.comment,
+              name: review.title,
+              reviewRating: {
+                "@type": "Rating",
+                ratingValue: review.rating,
+              },
+            })),
+          })}
+        </script>
+        {/* - FAQ Schema */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.map((faq) => ({
+              "@type": "Question",
+              name: faq.question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: faq.answer,
+              },
+            })),
+          })}
+        </script>
+      </Head>
       <div className="bg-box">
         <div>
           <Image className="shape1" src={announce} alt="announce" />
@@ -633,12 +632,13 @@ const TagGenerator = ({meta}) => {
           <h2 className="text-2xl font-bold text-center mb-4">
             Frequently Asked Questions
           </h2>
-          <div className="faq-container grid grid-cols-1 md:grid-cols-2 gap-4 border">
+          <p className="text-center">Answered All Frequently Asked Question, Still Confused? Feel Free To Contact Us </p>
+          <div className="faq-container grid grid-cols-1 md:grid-cols-2 gap-4">
             {faqs.map((faq, index) => (
               <div
                 key={index}
                 className={`faq-item text-white border  p-4 ${
-                  openIndex === index ? "shadow bg-red-500" : ""
+                  openIndex === index ? "shadow " : ""
                 }`}
               >
                 <div
@@ -646,7 +646,7 @@ const TagGenerator = ({meta}) => {
                   onClick={() => toggleFAQ(index)}
                 >
                   <h3 className="font-bold text-black">{faq.question}</h3>
-                  <span className="text-black">
+                  <span className="text-white">
                     {openIndex === index ? "-" : "+"}
                   </span>
                 </div>
@@ -657,6 +657,7 @@ const TagGenerator = ({meta}) => {
             ))}
           </div>
         </div>
+        <hr className="mt-4 mb-2"/>
         <div className="row pt-3">
           <div className="col-md-4">
             <div className=" text-3xl font-bold mb-2">Customer reviews</div>
@@ -839,20 +840,21 @@ const TagGenerator = ({meta}) => {
     </>
   );
 };
+
 export async function getServerSideProps(context) {
   const { req } = context;
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
   const apiUrl = `${protocol}://${host}/api/content?category=tagGenerator`;
-console.log(apiUrl);
+  console.log(apiUrl);
   try {
     const response = await fetch(apiUrl);
     if (!response.ok) {
-      throw new Error('Failed to fetch content');
+      throw new Error("Failed to fetch content");
     }
 
     const data = await response.json();
-   
+
     const meta = {
       title: data[0]?.title || "",
       description: data[0]?.description || "",
@@ -863,11 +865,11 @@ console.log(apiUrl);
     return {
       props: {
         meta,
-        faqs: data[0].faqs || [],
+        faqs: data[0]?.faqs || [],
       },
     };
   } catch (error) {
-    console.error('Error fetching data:', error);
+    console.error("Error fetching data:", error);
     return {
       props: {
         meta: {},

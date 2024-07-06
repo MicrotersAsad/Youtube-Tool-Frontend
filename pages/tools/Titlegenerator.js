@@ -16,20 +16,20 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import StarRating from "./StarRating";
 import { format } from "date-fns";
-import { useRouter } from "next/router"; // useRouter হুক ইনিশিয়ালাইজ করুন
+import { useRouter } from "next/router";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
-import { log } from "util";
 
 const TitleGenerator = ({ meta }) => {
   const { user, updateUserProfile } = useAuth();
-  const router = useRouter(); // useRouter হুক ইনিশিয়ালাইজ করুন
+  const router = useRouter();
   const [tags, setTags] = useState([]);
   const [input, setInput] = useState("");
   const [generatedTitles, setGeneratedTitles] = useState([]);
+  const [faqs, setFaqs] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
@@ -49,6 +49,7 @@ const TitleGenerator = ({ meta }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [openIndex, setOpenIndex] = useState(null);
 
   const closeModal = () => {
     setModalVisible(false);
@@ -62,8 +63,10 @@ const TitleGenerator = ({ meta }) => {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
+        console.log(data);
         setQuillContent(data[0]?.content || "");
         setExistingContent(data[0]?.content || "");
+        setFaqs(data[0].faqs);
       } catch (error) {
         toast.error("Error fetching content");
       }
@@ -136,8 +139,7 @@ const TitleGenerator = ({ meta }) => {
     const socialMediaUrls = {
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
       twitter: `https://twitter.com/intent/tweet?url=${url}`,
-      instagram:
-        "You can share this page on Instagram through the Instagram app on your mobile device.",
+      instagram: "You can share this page on Instagram through the Instagram app on your mobile device.",
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
     };
 
@@ -198,11 +200,7 @@ const TitleGenerator = ({ meta }) => {
       return;
     }
 
-    if (
-      user.paymentStatus !== "success" &&
-      user.role !== "admin" &&
-      generateCount <= 0
-    ) {
+    if (user.paymentStatus !== "success" && user.role !== "admin" && generateCount <= 0) {
       toast.error("Upgrade your plan for unlimited use.");
       return;
     }
@@ -333,8 +331,7 @@ const TitleGenerator = ({ meta }) => {
 
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
-    const ratingCount = reviews.filter((review) => review.rating === rating)
-      .length;
+    const ratingCount = reviews.filter((review) => review.rating === rating).length;
     return totalReviews ? (ratingCount / totalReviews) * 100 : 0;
   };
 
@@ -353,7 +350,11 @@ const TitleGenerator = ({ meta }) => {
     }
     setModalVisible(true);
   };
-console.log(meta);
+
+  const toggleFAQ = (index) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
+
   return (
     <>
       <div className="bg-box">
@@ -378,8 +379,8 @@ console.log(meta);
             <meta name="twitter:title" content={meta?.title} />
             <meta name="twitter:description" content={meta?.description} />
             <meta name="twitter:image" content={meta?.image} />
-             {/* - Webpage Schema */}
-             <script type="application/ld+json">
+            {/* - Webpage Schema */}
+            <script type="application/ld+json">
               {JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "WebPage",
@@ -400,7 +401,6 @@ console.log(meta);
               })}
             </script>
             {/* - Review Schema */}
-
             <script type="application/ld+json">
               {JSON.stringify({
                 "@context": "https://schema.org",
@@ -430,10 +430,25 @@ console.log(meta);
                 })),
               })}
             </script>
+            {/* - FAQ Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: faqs?.map((faq) => ({
+                  "@type": "Question",
+                  name: faq?.question,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: faq?.answer,
+                  },
+                })),
+              })}
+            </script>
           </Head>
 
           <h2 className="text-3xl text-white">YouTube Title Generator</h2>
-         
+
           {modalVisible && (
             <div
               className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
@@ -442,24 +457,20 @@ console.log(meta);
               <div className="flex">
                 <div className="mt-4">
                   {user ? (
-                    user.paymentStatus === "success" ||
-                    user.role === "admin" ? (
+                    user.paymentStatus === "success" || user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
                         Congratulations! Now you can generate unlimited tags.
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can generate titles{" "}
-                        {5 - generateCount} more times.{" "}
+                        You are not upgraded. You can generate titles {5 - generateCount} more times.{" "}
                         <Link href="/pricing" className="btn btn-warning ms-3">
                           Upgrade
                         </Link>
                       </p>
                     )
                   ) : (
-                    <p className="text-center p-3 alert-warning">
-                      Please log in to fetch channel data.
-                    </p>
+                    <p className="text-center p-3 alert-warning">Please log in to fetch channel data.</p>
                   )}
                 </div>
                 <button className="text-yellow-700 ml-auto" onClick={closeModal}>
@@ -468,16 +479,13 @@ console.log(meta);
               </div>
             </div>
           )}
- <ToastContainer />
+          <ToastContainer />
           <div className="keywords-input-container">
             <div className="tags-container">
               {tags.map((tag, index) => (
                 <span className="tag" key={index}>
                   {tag}
-                  <span
-                    className="remove-btn"
-                    onClick={() => setTags(tags.filter((_, i) => i !== index))}
-                  >
+                  <span className="remove-btn" onClick={() => setTags(tags.filter((_, i) => i !== index))}>
                     ×
                   </span>
                 </span>
@@ -512,22 +520,10 @@ console.log(meta);
               </button>
               {showShareIcons && (
                 <div className="flex gap-2">
-                  <FaFacebook
-                    className="facebook-icon"
-                    onClick={() => shareOnSocialMedia("facebook")}
-                  />
-                  <FaInstagram
-                    className="instagram-icon"
-                    onClick={() => shareOnSocialMedia("instagram")}
-                  />
-                  <FaTwitter
-                    className="twitter-icon"
-                    onClick={() => shareOnSocialMedia("twitter")}
-                  />
-                  <FaLinkedin
-                    className="linkedin-icon"
-                    onClick={() => shareOnSocialMedia("linkedin")}
-                  />
+                  <FaFacebook className="facebook-icon" onClick={() => shareOnSocialMedia("facebook")} />
+                  <FaInstagram className="instagram-icon" onClick={() => shareOnSocialMedia("instagram")} />
+                  <FaTwitter className="twitter-icon" onClick={() => shareOnSocialMedia("twitter")} />
+                  <FaLinkedin className="linkedin-icon" onClick={() => shareOnSocialMedia("linkedin")} />
                 </div>
               )}
             </div>
@@ -537,27 +533,15 @@ console.log(meta);
       <div className="generated-titles-container">
         {generatedTitles.length > 0 && (
           <div className="select-all-checkbox">
-            <input
-              type="checkbox"
-              checked={selectAll}
-              onChange={handleSelectAll}
-            />
+            <input type="checkbox" checked={selectAll} onChange={handleSelectAll} />
             <span>Select All</span>
           </div>
         )}
         {generatedTitles.map((title, index) => (
           <div key={index} className="title-checkbox">
-            <input
-              className="me-2"
-              type="checkbox"
-              checked={title.selected}
-              onChange={() => toggleTitleSelect(index)}
-            />
+            <input className="me-2" type="checkbox" checked={title.selected} onChange={() => toggleTitleSelect(index)} />
             {title.text}
-            <FaCopy
-              className="copy-icon"
-              onClick={() => copyToClipboard(title.text)}
-            />
+            <FaCopy className="copy-icon" onClick={() => copyToClipboard(title.text)} />
           </div>
         ))}
         {generatedTitles.some((title) => title.selected) && (
@@ -566,21 +550,45 @@ console.log(meta);
           </button>
         )}
         {generatedTitles.some((title) => title.selected) && (
-          <button
-            className="btn btn-primary ms-2"
-            onClick={downloadSelectedTitles}
-          >
+          <button className="btn btn-primary ms-2" onClick={downloadSelectedTitles}>
             Download <FaDownload />
           </button>
         )}
       </div>
       <div className="content pt-6 pb-5">
-        <div
-          dangerouslySetInnerHTML={{ __html: existingContent }}
-          style={{ listStyleType: "none" }}
-        ></div>
+        <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: "none" }}></div>
       </div>
-      <hr />
+    
+      <div className="faq-section">
+          <h2 className="text-2xl font-bold text-center mb-4">
+            Frequently Asked Questions
+          </h2>
+          <p className="text-center">Answered All Frequently Asked Question, Still Confused? Feel Free To Contact Us </p>
+          <div className="faq-container grid grid-cols-1 md:grid-cols-2 gap-4">
+            {faqs.map((faq, index) => (
+              <div
+                key={index}
+                className={`faq-item text-white border  p-4 ${
+                  openIndex === index ? "shadow " : ""
+                }`}
+              >
+                <div
+                  className="cursor-pointer flex justify-between items-center"
+                  onClick={() => toggleFAQ(index)}
+                >
+                  <h3 className="font-bold text-black">{faq.question}</h3>
+                  <span className="text-white">
+                    {openIndex === index ? "-" : "+"}
+                  </span>
+                </div>
+                {openIndex === index && (
+                  <p className="mt-2 text-white">{faq.answer}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+        <hr className="mt-4 mb-2"/>
       <div className="row pt-3">
         <div className="col-md-4">
           <div className=" text-3xl font-bold mb-2">Customer reviews</div>
@@ -603,9 +611,7 @@ console.log(meta);
                     style={{ width: `${calculateRatingPercentage(rating)}%` }}
                   ></div>
                 </div>
-                <div className="w-12 text-left ml-4">
-                  {calculateRatingPercentage(rating).toFixed(1)}%
-                </div>
+                <div className="w-12 text-left ml-4">{calculateRatingPercentage(rating).toFixed(1)}%</div>
               </div>
             ))}
           </div>
@@ -616,19 +622,14 @@ console.log(meta);
             <button
               className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 mb-4"
               onClick={openReviewForm}
-              
             >
               Write a customer review
             </button>
           </div>
         </div>
-
         <div className="col-md-8">
           {reviews.slice(0, 5).map((review, index) => (
-            <div
-              key={index}
-              className="border p-6 m-5 bg-white"
-            >
+            <div key={index} className="border p-6 m-5 bg-white">
               <div className="flex items-center mb-4">
                 <Image
                   src={`data:image/jpeg;base64,${review?.userProfile}`}
@@ -646,30 +647,22 @@ console.log(meta);
                 {[...Array(5)].map((_, i) => (
                   <FaStar key={i} size={20} color={i < review.rating ? "#ffc107" : "#e4e5e9"} />
                 ))}
-              <div>
-              <span className="fw-bold mt-2 ms-2">{review?.title}</span>
+                <div>
+                  <span className="fw-bold mt-2 ms-2">{review?.title}</span>
+                </div>
               </div>
-              </div>
-            
               <div className="text-gray-500 text-sm mb-4">Reviewed On {review.createdAt}</div>
               <div className="text-lg mb-4">{review.comment}</div>
-             
             </div>
           ))}
           {!showAllReviews && reviews.length > 5 && (
-            <button
-              className="btn btn-primary mt-4 mb-5"
-              onClick={handleShowMoreReviews}
-            >
+            <button className="btn btn-primary mt-4 mb-5" onClick={handleShowMoreReviews}>
               See More Reviews
             </button>
           )}
           {showAllReviews &&
             reviews.slice(5).map((review, index) => (
-              <div
-                key={index}
-                className="border p-6 m-5 bg-white"
-              >
+              <div key={index} className="border p-6 m-5 bg-white">
                 <div className="flex items-center mb-4">
                   <Image
                     src={`data:image/jpeg;base64,${review?.userProfile}`}
@@ -714,9 +707,7 @@ console.log(meta);
                 className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
                 placeholder="Title"
                 value={newReview.title}
-                onChange={(e) =>
-                  setNewReview({ ...newReview, title: e.target.value })
-                }
+                onChange={(e) => setNewReview({ ...newReview, title: e.target.value })}
               />
             </div>
             <div className="mb-4">
@@ -724,9 +715,7 @@ console.log(meta);
                 className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
                 placeholder="Your Review"
                 value={newReview.comment}
-                onChange={(e) =>
-                  setNewReview({ ...newReview, comment: e.target.value })
-                }
+                onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
               />
             </div>
             <button
@@ -849,6 +838,19 @@ console.log(meta);
         .btn-secondary {
           background-color: gray;
         }
+
+        .faq-item {
+          background: linear-gradient(135deg, rgba(250, 103, 66, 1) 0%, rgba(255, 94, 58, 1) 50%, rgba(250, 103, 66, 1) 100%);
+          border-radius: 10px;
+          padding: 15px;
+          flex: 1 1 45%;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+        }
+
+        .faq-item:hover {
+          background: linear-gradient(135deg, rgba(255, 94, 58, 1) 0%, rgba(250, 103, 66, 1) 50%, rgba(255, 94, 58, 1) 100%);
+        }
       `}</style>
     </>
   );
@@ -858,23 +860,37 @@ export async function getServerSideProps(context) {
   const { req } = context;
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}`;
+  const apiUrl = `${protocol}://${host}/api/content?category=youtube-title-and-description-generator?tab=title`;
+  console.log(apiUrl);
 
-  const response = await fetch(`${apiUrl}/api/content?category=youtube-title-and-description-generator?tab=title`);
-  const data = await response.json();
-console.log(data);
-  const meta = {
-    title: data[0]?.title || "",
-    description: data[0]?.description || "",
-    image: data[0]?.image || "",
-    url: `${apiUrl}/tools/youtube-title-and-description-generator?tab=title`,
-  };
-console.log(meta);
-  return {
-    props: {
-      meta,
-    },
-  };
+  try {
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
+      throw new Error("Failed to fetch content");
+    }
+
+    const data = await response.json();
+    console.log(data);
+    const meta = {
+      title: data[0]?.title || "",
+      description: data[0]?.description || "",
+      image: data[0]?.image || "",
+      url: `${protocol}://${host}/tools/youtube-title-and-description-generator?tab=title`,
+    };
+
+    return {
+      props: {
+        meta,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return {
+      props: {
+        meta: {},
+      },
+    };
+  }
 }
 
 export default TitleGenerator;

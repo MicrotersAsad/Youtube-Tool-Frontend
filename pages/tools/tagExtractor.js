@@ -27,7 +27,7 @@ import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 import { format } from "date-fns";
 
-const TagExtractor = ({ meta }) => {
+const TagExtractor = ({ meta,faqs }) => {
   const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState("");
   const [tags, setTags] = useState([]);
@@ -40,6 +40,7 @@ const TagExtractor = ({ meta }) => {
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
+  const [openIndex, setOpenIndex] = useState(null);
   const [newReview, setNewReview] = useState({
     name: "",
     rating: 0,
@@ -53,7 +54,9 @@ const TagExtractor = ({ meta }) => {
   const closeModal = () => setModalVisible(false);
 
   const closeReview = () => setShowReviewForm(false);
-
+  const toggleFAQ = (index) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -382,6 +385,21 @@ const TagExtractor = ({ meta }) => {
                 })),
               })}
             </script>
+             {/* - FAQ Schema */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.map((faq) => ({
+              "@type": "Question",
+              name: faq.question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: faq.answer,
+              },
+            })),
+          })}
+        </script>
           </Head>
           <h2 className="text-3xl text-white">YouTube Tag Extractor</h2>
           <ToastContainer />
@@ -531,6 +549,41 @@ const TagExtractor = ({ meta }) => {
             style={{ listStyleType: "none" }}
           ></div>
         </div>
+        <div className="faq-section">
+          <h2 className="text-2xl font-bold text-center mb-4">
+            Frequently Asked Questions
+          </h2>
+          <p className="text-center">Answered All Frequently Asked Question, Still Confused? Feel Free To Contact Us </p>
+          <div className="faq-container grid grid-cols-1 md:grid-cols-2 gap-4">
+            {faqs.map((faq, index) => (
+              <div
+                key={index}
+                className={`faq-item text-white border  p-4 ${
+                  openIndex === index ? "shadow " : ""
+                }`}
+              >
+                <div
+                  className="cursor-pointer flex justify-between items-center"
+                  onClick={() => toggleFAQ(index)}
+                >
+                  <h3 className="font-bold text-black">{faq.question}</h3>
+                 
+                  <span className="text-white">
+                    {openIndex === index ? "-" : "+"}
+                  </span>
+                  
+                </div>
+                <hr/>
+                {openIndex === index && (
+               
+                  <p className="mt-2 text-white">{faq.answer}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+        <hr className="mt-4 mb-2"/>
+        
         <div className="row pt-3">
           <div className="col-md-4">
             <div className=" text-3xl font-bold mb-2">Customer reviews</div>
@@ -718,23 +771,39 @@ export async function getServerSideProps(context) {
   const { req } = context;
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}`;
+  const apiUrl = `${protocol}://${host}/api/content?category=tagExtractor`;
 
-  const response = await fetch(`${apiUrl}/api/content?category=tagExtractor`);
-  const data = await response.json();
+  try {
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
+      throw new Error('Failed to fetch content');
+    }
 
-  const meta = {
-    title: data[0]?.title || "",
-    description: data[0]?.description || "",
-    image: data[0]?.image || "",
-    url: `${apiUrl}/tools/tagExtractor`,
-  };
+    const data = await response.json();
+   
+    const meta = {
+      title: data[0]?.title || "",
+      description: data[0]?.description || "",
+      image: data[0]?.image || "",
+      url: `${protocol}://${host}/tools/tagExtractor`,
+    };
 
-  return {
-    props: {
-      meta,
-    },
-  };
+    return {
+      props: {
+        meta,
+        faqs: data[0].faqs || [],
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    return {
+      props: {
+        meta: {},
+        faqs: [],
+      },
+    };
+  }
 }
+
 
 export default TagExtractor;
