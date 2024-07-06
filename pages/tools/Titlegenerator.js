@@ -652,6 +652,7 @@ const TitleGenerator = ({ meta }) => {
         </div>
       </div>
       <hr className="mt-4 mb-2" />
+     
       <div className="row pt-3">
         <div className="col-md-4">
           <div className=" text-3xl font-bold mb-2">Customer reviews</div>
@@ -930,27 +931,9 @@ const TitleGenerator = ({ meta }) => {
           background-color: gray;
         }
 
-        .faq-item {
-          background: linear-gradient(
-            135deg,
-            rgba(250, 103, 66, 1) 0%,
-            rgba(255, 94, 58, 1) 50%,
-            rgba(250, 103, 66, 1) 100%
-          );
-          border-radius: 10px;
-          padding: 15px;
-          flex: 1 1 45%;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-        }
+       
 
-        .faq-item:hover {
-          background: linear-gradient(
-            135deg,
-            rgba(255, 94, 58, 1) 0%,
-            rgba(250, 103, 66, 1) 50%,
-            rgba(255, 94, 58, 1) 100%
-          );
+      
         }
       `}</style>
     </>
