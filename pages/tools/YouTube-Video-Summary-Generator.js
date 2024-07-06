@@ -46,6 +46,7 @@ const VideoSummarizer = ({ meta, faqs }) => {
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+  
 
   const closeModal = () => setModalVisible(false);
 
@@ -478,43 +479,41 @@ const VideoSummarizer = ({ meta, faqs }) => {
           ></div>
         </div>
         <div className="p-5 shadow">
-          <div className="accordion">
-            <h2 className="faq-title">Frequently Asked Questions</h2>
-            <p className="faq-subtitle">
-              Answered All Frequently Asked Questions, Still Confused? Feel Free
-              To Contact Us
-            </p>
-            <div className="faq-grid">
-              {faqs.map((faq, index) => (
-                <div key={index} className="faq-item">
-                  <span id={`accordion-${index}`} className="target-fix"></span>
-                  <a
-                    href={`#accordion-${index}`}
-                    id={`open-accordion-${index}`}
-                    className="accordion-header"
-                    onClick={() => toggleFAQ(index)}
-                  >
-                    {faq.question}
-                  </a>
-                  <a
-                    href={`#accordion-${index}`}
-                    id={`close-accordion-${index}`}
-                    className="accordion-header"
-                    onClick={() => toggleFAQ(index)}
-                  >
-                    {faq.question}
-                  </a>
-                  <div
-                    className={`accordion-content ${
-                      openIndex === index ? "open" : ""
-                    }`}
-                  >
-                    <p>{faq.answer}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="accordion">
+  <h2 className="faq-title">Frequently Asked Questions</h2>
+  <p className="faq-subtitle">
+    Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us
+  </p>
+  <div className="faq-grid">
+    {faqs.map((faq, index) => (
+      <div key={index} className="faq-item">
+        <span id={`accordion-${index}`} className="target-fix"></span>
+        <a
+          href={`#accordion-${index}`}
+          id={`open-accordion-${index}`}
+          className={`accordion-header ${openIndex === index ? 'active' : ''}`}
+          onClick={() => toggleFAQ(index)}
+        >
+          {faq.question}
+        </a>
+        <a
+          href={`#accordion-${index}`}
+          id={`close-accordion-${index}`}
+          className={`accordion-header ${openIndex === index ? 'active' : ''}`}
+          onClick={() => toggleFAQ(index)}
+        >
+          {faq.question}
+        </a>
+        <div
+          className={`accordion-content ${openIndex === index ? 'open' : ''}`}
+        >
+          <p>{faq.answer}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
         </div>
         <hr className="mt-4 mb-2" />
         <div className="row pt-3">
