@@ -3,6 +3,7 @@ import axios from 'axios';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ClipLoader } from 'react-spinners';
+import { FaNewspaper } from 'react-icons/fa';
 
 const BlogSection = () => {
   const [blogs, setBlogs] = useState([]);
@@ -119,6 +120,51 @@ const BlogSection = () => {
             ))}
           </div>
         </div>
+       
+      <div className="bg-red-500 text-white p-10 rounded-lg relative w-full text-center mt-5 mb-5">
+        <div className="bg-red-500 absolute inset-x-0 -top-10 h-20 rounded-b-full"></div>
+        <div className="mt-10">
+     
+          <h2 className="text-2xl text-white font-bold mb-2">SUBSCRIBE TO OUR NEWSLETTER</h2>
+          <p className="mb-4">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Deleniti aliquid molestias voluptatem fugiat provident tenetur saepe hic consectet.</p>
+          <form className="flex justify-center">
+            <input type="email" placeholder="Email Address" className="w-full max-w-xs p-3 rounded-l-md focus:outline-none" />
+            <button type="submit" className="bg-red-600 p-3 rounded-r-md">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
+    
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+          {currentBlogs.slice(4).map((blog, index) => (
+            <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
+              <Image
+                src={blog.image}
+                alt={blog.title}
+                width={600}
+                height={400}
+                className="object-cover rounded-lg"
+              />
+              <div className="p-4">
+                <h4 className="text-lg font-semibold">
+                  <Link href={`/blog/${blog.slug}`} passHref>
+                    <span className="text-blue-500 hover:underline">{blog.title}</span>
+                  </Link>
+                </h4>
+                <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
+                <div className="mt-2">
+                  {parseCategories(blog.categories).map((category, i) => (
+                    <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        
         <div className="flex justify-center mt-8">
           <nav className="block">
             <ul className="flex pl-0 rounded list-none flex-wrap">

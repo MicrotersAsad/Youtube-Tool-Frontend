@@ -104,7 +104,7 @@ function Blogs() {
 
       setError(null);
       fetchContent(); // Refresh the content list after posting
-      toast.success('Content uploaded successfully!');
+      toast.success('Blog uploaded successfully!');
     } catch (error) {
       console.error('Error posting content:', error.message);
       setError(error.message);
