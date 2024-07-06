@@ -1,24 +1,24 @@
-import { useEffect, useState } from 'react';
-import { FaCopy, FaStar } from 'react-icons/fa';
-import ClipLoader from 'react-spinners/ClipLoader';
+import { useEffect, useState } from "react";
+import { FaCopy, FaStar } from "react-icons/fa";
+import ClipLoader from "react-spinners/ClipLoader";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
-import { useAuth } from '../../contexts/AuthContext';
-import Head from 'next/head';
-import { ToastContainer, toast } from 'react-toastify';
+import { useAuth } from "../../contexts/AuthContext";
+import Head from "next/head";
+import { ToastContainer, toast } from "react-toastify";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import Link from 'next/link';
-import StarRating from './StarRating';
-import { format } from 'date-fns';
+import Link from "next/link";
+import StarRating from "./StarRating";
+import { format } from "date-fns";
 
-const KeywordSearch = ({ meta,faqs }) => {
-  const [keyword, setKeyword] = useState('');
-  const [country, setCountry] = useState('');
+const KeywordSearch = ({ meta, faqs }) => {
+  const [keyword, setKeyword] = useState("");
+  const [country, setCountry] = useState("");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -42,6 +42,7 @@ const KeywordSearch = ({ meta,faqs }) => {
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -69,8 +70,8 @@ const KeywordSearch = ({ meta,faqs }) => {
   }, [user, updateUserProfile, isUpdated]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const count = parseInt(localStorage.getItem('generateCount'), 10) || 0;
+    if (typeof window !== "undefined") {
+      const count = parseInt(localStorage.getItem("generateCount"), 10) || 0;
       setGenerateCount(count);
     }
   }, []);
@@ -118,7 +119,13 @@ const KeywordSearch = ({ meta,faqs }) => {
       if (!response.ok) throw new Error("Failed to submit review");
 
       toast.success("Review submitted successfully!");
-      setNewReview({ name: "", rating: 0, comment: "", userProfile: "", userName: "" });
+      setNewReview({
+        name: "",
+        rating: 0,
+        comment: "",
+        userProfile: "",
+        userName: "",
+      });
       setShowReviewForm(false);
       fetchReviews();
     } catch (error) {
@@ -126,7 +133,6 @@ const KeywordSearch = ({ meta,faqs }) => {
       toast.error("Failed to submit review");
     }
   };
-
 
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
@@ -151,10 +157,10 @@ const KeywordSearch = ({ meta,faqs }) => {
     }
     setShowReviewForm(true);
   };
-const closeReviewForm =()=>{
-  setShowReviewForm(false)
-}
 
+  const closeReviewForm = () => {
+    setShowReviewForm(false);
+  };
 
   const closeModal = () => {
     setModalVisible(false);
@@ -163,13 +169,27 @@ const closeReviewForm =()=>{
   const fetchKeywordData = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/getKeywordData?keyword=${keyword}&country=${country}`);
+      const res = await fetch(`/api/getKeywordData`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ keyword, country }),
+      });
       if (!res.ok) {
         const errorText = await res.text();
         throw new Error(`Error: ${res.status} ${errorText}`);
       }
       const result = await res.json();
-      setData(result.slice(0, 15)); // Limit to top 15 results
+      console.log(result);
+      // Ensure the result is an array and slice it
+      if (Array.isArray(result.data)) {
+        setData(result.data.slice(0, 15)); // Limit to top 15 results
+      } else {
+        setError("Unexpected data format received from API");
+        setData(null);
+      }
+      console.log(data);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -179,12 +199,10 @@ const closeReviewForm =()=>{
       setLoading(false);
     }
   };
-  
-  
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {
-      alert('Keyword copied to clipboard!');
+      alert("Keyword copied to clipboard!");
     });
   };
 
@@ -199,118 +217,152 @@ const closeReviewForm =()=>{
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-        <Head>
-        <title>{meta?.title}</title>
-        <meta name="description" content={meta?.description || "AI Youtube Hashtag Generator"} />
-        <meta
-          property="og:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/keyword-research"
-        />
-        <meta property="og:title" content={meta?.title || "AI Youtube Tag Generator"} />
-        <meta property="og:description" content={meta?.description ||"Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights" }/>
-        <meta property="og:image" content={meta?.image || ""} />
-        <meta name="twitter:card" content={meta?.image || ""} />
-        <meta
-          property="twitter:domain"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta
-          property="twitter:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/keyword-research"
-        />
-        <meta name="twitter:title" content={meta?.title || "AI Youtube Tag Generator"} />
-        <meta name="twitter:description" content={meta?.description ||"Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights" }/>
-        <meta name="twitter:image" content={meta?.image || ""} />
-        {/* - Webpage Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebPage",
-            name: meta?.title,
-            url: "https://youtube-tool-frontend.vercel.app/tools/keyword-research",
-            description: meta?.description,
-            breadcrumb: {
-              "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
-            },
-            about: {
-              "@type": "Thing",
-              name: meta?.title,
-            },
-            isPartOf: {
-              "@type": "WebSite",
-              url: "https://youtube-tool-frontend.vercel.app",
-            },
-          })}
-        </script>
-        {/* - Review Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            name: meta?.title,
-            url: "https://youtube-tool-frontend.vercel.app/tools/keyword-research",
-            applicationCategory: "Multimedia",
-            aggregateRating: {
-              "@type": "AggregateRating",
-              ratingValue: overallRating,
-              ratingCount: reviews?.length,
-              reviewCount: reviews?.length,
-            },
-            review: reviews.map((review) => ({
-              "@type": "Review",
-              author: {
-                "@type": "Person",
-                name: review.userName,
-              },
-              datePublished: review.createdAt,
-              reviewBody: review.comment,
-              name: review.title,
-              reviewRating: {
-                "@type": "Rating",
-                ratingValue: review.rating,
-              },
-            })),
-          })}
-        </script>
-        {/* - FAQ Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faqs.map((faq) => ({
-              "@type": "Question",
-              name: faq.question,
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: faq.answer,
-              },
-            })),
-          })}
-        </script>
-      </Head>
+          <Head>
+            <title>{meta?.title}</title>
+            <meta
+              name="description"
+              content={meta?.description || "AI Youtube Hashtag Generator"}
+            />
+            <meta
+              property="og:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/keyword-research"
+            />
+            <meta
+              property="og:title"
+              content={meta?.title || "AI Youtube Tag Generator"}
+            />
+            <meta
+              property="og:description"
+              content={
+                meta?.description ||
+                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
+              }
+            />
+            <meta property="og:image" content={meta?.image || ""} />
+            <meta name="twitter:card" content={meta?.image || ""} />
+            <meta
+              property="twitter:domain"
+              content="https://youtube-tool-frontend.vercel.app/"
+            />
+            <meta
+              property="twitter:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/keyword-research"
+            />
+            <meta
+              name="twitter:title"
+              content={meta?.title || "AI Youtube Tag Generator"}
+            />
+            <meta
+              name="twitter:description"
+              content={
+                meta?.description ||
+                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
+              }
+            />
+            <meta name="twitter:image" content={meta?.image || ""} />
+            {/* - Webpage Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "WebPage",
+                name: meta?.title,
+                url: "https://youtube-tool-frontend.vercel.app/tools/keyword-research",
+                description: meta?.description,
+                breadcrumb: {
+                  "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
+                },
+                about: {
+                  "@type": "Thing",
+                  name: meta?.title,
+                },
+                isPartOf: {
+                  "@type": "WebSite",
+                  url: "https://youtube-tool-frontend.vercel.app",
+                },
+              })}
+            </script>
+            {/* - Review Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                name: meta?.title,
+                url: "https://youtube-tool-frontend.vercel.app/tools/keyword-research",
+                applicationCategory: "Multimedia",
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: overallRating,
+                  ratingCount: reviews?.length,
+                  reviewCount: reviews?.length,
+                },
+                review: reviews.map((review) => ({
+                  "@type": "Review",
+                  author: {
+                    "@type": "Person",
+                    name: review.userName,
+                  },
+                  datePublished: review.createdAt,
+                  reviewBody: review.comment,
+                  name: review.title,
+                  reviewRating: {
+                    "@type": "Rating",
+                    ratingValue: review.rating,
+                  },
+                })),
+              })}
+            </script>
+            {/* - FAQ Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: faqs.map((faq) => ({
+                  "@type": "Question",
+                  name: faq.question,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: faq.answer,
+                  },
+                })),
+              })}
+            </script>
+          </Head>
           <h2 className="text-3xl pt-5 text-white">YouTube Keyword Research</h2>
           <ToastContainer />
           {modalVisible && (
-            <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3" role="alert">
+            <div
+              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+              role="alert"
+            >
               <div className="flex">
                 <div className="mt-4">
                   {user ? (
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        Congratulations! Now you can  unlimited Keyword Research.
+                        Congratulations! Now you can unlimited Keyword Research.
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can  Keyword Research {5 - generateCount} more times.{" "}
-                        <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                        You are not upgraded. You can Keyword Research{" "}
+                        {5 - generateCount} more times.{" "}
+                        <Link href="/pricing" className="btn btn-warning ms-3">
+                          Upgrade
+                        </Link>
                       </p>
                     )
                   ) : (
-                    <p className="text-center p-3 alert-warning">Please log in to fetch channel data.</p>
+                    <p className="text-center p-3 alert-warning">
+                      Please log in to fetch channel data.
+                    </p>
                   )}
                 </div>
-                <button className="text-yellow-700 ml-auto" onClick={closeModal}>×</button>
+                <button
+                  className="text-yellow-700 ml-auto"
+                  onClick={closeModal}
+                >
+                  ×
+                </button>
               </div>
             </div>
           )}
@@ -329,7 +381,10 @@ const closeReviewForm =()=>{
               placeholder="Enter a country code"
               className="p-2 m-2 border md:mt-2 border-gray-300 rounded mr-2"
             />
-            <button onClick={fetchKeywordData} className="p-2 sm:mt-3 bg-red-500 text-white rounded">
+            <button
+              onClick={fetchKeywordData}
+              className="p-2 sm:mt-3 bg-red-500 text-white rounded"
+            >
               Search
             </button>
           </div>
@@ -344,7 +399,7 @@ const closeReviewForm =()=>{
         </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
-        {data && !loading && (
+        {data && !loading && data.length > 0 && (
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white border border-gray-200">
               <thead>
@@ -353,64 +408,91 @@ const closeReviewForm =()=>{
                   <th className="px-4 py-2 border-b">CPC</th>
                   <th className="px-4 py-2 border-b">Volume</th>
                   <th className="px-4 py-2 border-b">Competition</th>
-                  <th className="px-4 py-2 border-b">Score</th>
+                  <th className="px-4 py-2 border-b">Trend</th>
                 </tr>
               </thead>
               <tbody>
                 {data.map((item, index) => (
                   <tr key={index} className="hover:bg-gray-100">
                     <td className="px-4 py-2 border-b flex items-center">
-                      {item.text}
-                      <FaCopy className="ml-2 cursor-pointer text-blue-500" onClick={() => copyToClipboard(item.text)} />
+                      {item.keyword}
+                      <FaCopy
+                        className="ml-2 cursor-pointer text-blue-500"
+                        onClick={() => copyToClipboard(item.keyword)}
+                      />
                     </td>
-                    <td className="px-4 py-2 border-b">{item.cpc}</td>
+                    <td className="px-4 py-2 border-b">
+                      {item.cpc.currency} {item.cpc.value}
+                    </td>
                     <td className="px-4 py-2 border-b">{item.vol}</td>
                     <td className="px-4 py-2 border-b">{item.competition}</td>
-                    <td className="px-4 py-2 border-b">{item.score}</td>
+                    <td className="px-4 py-2 border-b">
+                      <select className="p-2 border border-gray-300 rounded">
+                        {item.trend.map((trendItem, trendIndex) => (
+                          <option key={trendIndex} value={trendItem.value}>
+                            {trendItem.month} {trendItem.year}:{" "}
+                            {trendItem.value}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
+
         <div className="content pt-6 pb-5">
           <div
             dangerouslySetInnerHTML={{ __html: existingContent }}
             style={{ listStyleType: "none" }}
           ></div>
         </div>
-        <div className="faq-section">
-          <h2 className="text-2xl font-bold text-center mb-4">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-center">
-            Answered All Frequently Asked Question, Still Confused? Feel Free
-            To Contact Us{" "}
-          </p>
-          <div className="faq-container grid grid-cols-1 md:grid-cols-2 gap-4">
-            {faqs.map((faq, index) => (
-              <div
-                key={index}
-                className={`faq-item text-white border  p-4 ${
-                  openIndex === index ? "shadow " : ""
-                }`}
-              >
-                <div
-                  className="cursor-pointer flex justify-between items-center"
-                  onClick={() => toggleFAQ(index)}
-                >
-                  <h3 className="font-bold text-black">{faq.question}</h3>
-                  <span className="text-white">
-                    {openIndex === index ? "-" : "+"}
-                  </span>
+        <div className="p-5 shadow">
+          <div className="accordion">
+            <h2 className="faq-title">Frequently Asked Questions</h2>
+            <p className="faq-subtitle">
+              Answered All Frequently Asked Questions, Still Confused? Feel Free
+              To Contact Us
+            </p>
+            <div className="faq-grid">
+              {faqs.map((faq, index) => (
+                <div key={index} className="faq-item">
+                  <span id={`accordion-${index}`} className="target-fix"></span>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`open-accordion-${index}`}
+                    className={`accordion-header ${
+                      openIndex === index ? "active" : ""
+                    }`}
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`close-accordion-${index}`}
+                    className={`accordion-header ${
+                      openIndex === index ? "active" : ""
+                    }`}
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <div
+                    className={`accordion-content ${
+                      openIndex === index ? "open" : ""
+                    }`}
+                  >
+                    <p>{faq.answer}</p>
+                  </div>
                 </div>
-                {openIndex === index && (
-                  <p className="mt-2 text-white">{faq.answer}</p>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
+
         <hr className="mt-4 mb-2" />
         <div className="row pt-3">
           <div className="col-md-4">
@@ -590,8 +672,7 @@ const closeReviewForm =()=>{
             </div>
           </div>
         )}
-        </div>
-      
+      </div>
     </>
   );
 };
@@ -633,6 +714,5 @@ export async function getServerSideProps(context) {
     };
   }
 }
-
 
 export default KeywordSearch;
