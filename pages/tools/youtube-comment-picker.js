@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { FaHeart, FaComment, FaStar } from 'react-icons/fa';
-import Link from 'next/link';
-import { useAuth } from '../../contexts/AuthContext';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { FaHeart, FaComment, FaStar } from "react-icons/fa";
+import Link from "next/link";
+import { useAuth } from "../../contexts/AuthContext";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -13,16 +13,16 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
-import StarRating from './StarRating';
-import Head from 'next/head';
-import { format } from 'date-fns';
+import StarRating from "./StarRating";
+import Head from "next/head";
+import { format } from "date-fns";
 
-const YouTubeCommentPicker = ({ meta,faqs }) => {
+const YouTubeCommentPicker = ({ meta, faqs }) => {
   const { user, updateUserProfile } = useAuth();
-  const [videoUrl, setVideoUrl] = useState('');
+  const [videoUrl, setVideoUrl] = useState("");
   const [includeReplies, setIncludeReplies] = useState(false);
   const [filterDuplicates, setFilterDuplicates] = useState(false);
-  const [filterText, setFilterText] = useState('');
+  const [filterText, setFilterText] = useState("");
   const [numberOfWinners, setNumberOfWinners] = useState(1);
   const [comments, setComments] = useState([]);
   const [winners, setWinners] = useState([]);
@@ -33,18 +33,20 @@ const YouTubeCommentPicker = ({ meta,faqs }) => {
   const [reviews, setReviews] = useState([]);
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
-  const [newReview, setNewReview] = useState({ rating: 0, comment: '' });
+  const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
-
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch(`/api/content?category=youtube-comment-picker`);
+        const response = await fetch(
+          `/api/content?category=youtube-comment-picker`
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch content");
         }
@@ -97,7 +99,13 @@ const YouTubeCommentPicker = ({ meta,faqs }) => {
       if (!response.ok) throw new Error("Failed to submit review");
 
       toast.success("Review submitted successfully!");
-      setNewReview({ name: "", rating: 0, comment: "", userProfile: "", userName: "" });
+      setNewReview({
+        name: "",
+        rating: 0,
+        comment: "",
+        userProfile: "",
+        userName: "",
+      });
       setShowReviewForm(false);
       fetchReviews();
     } catch (error) {
@@ -129,43 +137,50 @@ const YouTubeCommentPicker = ({ meta,faqs }) => {
     }
     setShowReviewForm(true);
   };
-const closeReviewForm =()=>{
-  setShowReviewForm(false)
-}
+  const closeReviewForm = () => {
+    setShowReviewForm(false);
+  };
+
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const count = parseInt(localStorage.getItem('generateCount'), 10) || 0;
+    if (typeof window !== "undefined") {
+      const count = parseInt(localStorage.getItem("generateCount"), 10) || 0;
       setGenerateCount(count);
     }
   }, []);
 
   useEffect(() => {
-    if (user && user.paymentStatus !== 'success' && !isUpdated) {
+    if (user && user.paymentStatus !== "success" && !isUpdated) {
       updateUserProfile().then(() => setIsUpdated(true));
     }
   }, [user, updateUserProfile, isUpdated]);
 
   useEffect(() => {
-    if (user && user.paymentStatus !== 'success' && user.role !== 'admin') {
+    if (user && user.paymentStatus !== "success" && user.role !== "admin") {
       setGenerateCount(5);
     }
   }, [user]);
 
   const handlePickWinner = async () => {
     if (!user) {
-      toast.error('Please log in to use this tool.');
+      toast.error("Please log in to use this tool.");
       return;
     }
 
-    if (generateCount >= 5 && user?.paymentStatus !== 'success' && user?.role !== 'admin') {
-      toast.error('You have reached the limit of generating winners. Please upgrade your plan for unlimited use.');
+    if (
+      generateCount >= 5 &&
+      user?.paymentStatus !== "success" &&
+      user?.role !== "admin"
+    ) {
+      toast.error(
+        "You have reached the limit of generating winners. Please upgrade your plan for unlimited use."
+      );
       return;
     }
 
     setLoading(true);
     try {
-      const videoId = new URLSearchParams(new URL(videoUrl).search).get('v');
-      const response = await axios.get('/api/commentswinner', {
+      const videoId = new URLSearchParams(new URL(videoUrl).search).get("v");
+      const response = await axios.get("/api/commentswinner", {
         params: { videoId, includeReplies },
       });
       let allComments = response.data;
@@ -188,7 +203,10 @@ const closeReviewForm =()=>{
       if (allComments.length > 0) {
         const selectedWinners = [];
         const uniqueIndexes = new Set();
-        while (selectedWinners.length < numberOfWinners && uniqueIndexes.size < allComments.length) {
+        while (
+          selectedWinners.length < numberOfWinners &&
+          uniqueIndexes.size < allComments.length
+        ) {
           const randomIndex = Math.floor(Math.random() * allComments.length);
           if (!uniqueIndexes.has(randomIndex)) {
             uniqueIndexes.add(randomIndex);
@@ -198,15 +216,15 @@ const closeReviewForm =()=>{
         setWinners(selectedWinners);
         setGenerateCount((prevCount) => {
           const newCount = prevCount + 1;
-          localStorage.setItem('generateCount', newCount);
+          localStorage.setItem("generateCount", newCount);
           return newCount;
         });
       } else {
         setWinners([]);
       }
     } catch (error) {
-      console.error('Error fetching comments:', error.message);
-      toast.error('Error fetching comments');
+      console.error("Error fetching comments:", error.message);
+      toast.error("Error fetching comments");
     } finally {
       setLoading(false);
     }
@@ -227,99 +245,120 @@ const closeReviewForm =()=>{
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-        <Head>
-        <title>{meta?.title}</title>
-        <meta name="description" content={meta?.description || "AI Youtube Hashtag Generator"} />
-        <meta
-          property="og:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/youtube-comment-picker"
-        />
-        <meta property="og:title" content={meta?.title || "AI Youtube Tag Generator"} />
-        <meta property="og:description" content={meta?.description ||"Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights" }/>
-        <meta property="og:image" content={meta?.image || ""} />
-        <meta name="twitter:card" content={meta?.image || ""} />
-        <meta
-          property="twitter:domain"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta
-          property="twitter:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/youtube-comment-picker"
-        />
-        <meta name="twitter:title" content={meta?.title || "AI Youtube Tag Generator"} />
-        <meta name="twitter:description" content={meta?.description ||"Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights" }/>
-        <meta name="twitter:image" content={meta?.image || ""} />
-        {/* - Webpage Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebPage",
-            name: meta?.title,
-            url: "https://youtube-tool-frontend.vercel.app/tools/youtube-comment-picker",
-            description: meta?.description,
-            breadcrumb: {
-              "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
-            },
-            about: {
-              "@type": "Thing",
-              name: meta?.title,
-            },
-            isPartOf: {
-              "@type": "WebSite",
-              url: "https://youtube-tool-frontend.vercel.app",
-            },
-          })}
-        </script>
-        {/* - Review Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            name: meta?.title,
-            url: "https://youtube-tool-frontend.vercel.app/tools/youtube-comment-picker",
-            applicationCategory: "Multimedia",
-            aggregateRating: {
-              "@type": "AggregateRating",
-              ratingValue: overallRating,
-              ratingCount: reviews?.length,
-              reviewCount: reviews?.length,
-            },
-            review: reviews.map((review) => ({
-              "@type": "Review",
-              author: {
-                "@type": "Person",
-                name: review.userName,
-              },
-              datePublished: review.createdAt,
-              reviewBody: review.comment,
-              name: review.title,
-              reviewRating: {
-                "@type": "Rating",
-                ratingValue: review.rating,
-              },
-            })),
-          })}
-        </script>
-        {/* - FAQ Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faqs.map((faq) => ({
-              "@type": "Question",
-              name: faq.question,
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: faq.answer,
-              },
-            })),
-          })}
-        </script>
-      </Head>
+          <Head>
+            <title>{meta?.title}</title>
+            <meta
+              name="description"
+              content={meta?.description || "AI Youtube Hashtag Generator"}
+            />
+            <meta
+              property="og:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/youtube-comment-picker"
+            />
+            <meta
+              property="og:title"
+              content={meta?.title || "AI Youtube Tag Generator"}
+            />
+            <meta
+              property="og:description"
+              content={
+                meta?.description ||
+                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
+              }
+            />
+            <meta property="og:image" content={meta?.image || ""} />
+            <meta name="twitter:card" content={meta?.image || ""} />
+            <meta
+              property="twitter:domain"
+              content="https://youtube-tool-frontend.vercel.app/"
+            />
+            <meta
+              property="twitter:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/youtube-comment-picker"
+            />
+            <meta
+              name="twitter:title"
+              content={meta?.title || "AI Youtube Tag Generator"}
+            />
+            <meta
+              name="twitter:description"
+              content={
+                meta?.description ||
+                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
+              }
+            />
+            <meta name="twitter:image" content={meta?.image || ""} />
+            {/* - Webpage Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "WebPage",
+                name: meta?.title,
+                url: "https://youtube-tool-frontend.vercel.app/tools/youtube-comment-picker",
+                description: meta?.description,
+                breadcrumb: {
+                  "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
+                },
+                about: {
+                  "@type": "Thing",
+                  name: meta?.title,
+                },
+                isPartOf: {
+                  "@type": "WebSite",
+                  url: "https://youtube-tool-frontend.vercel.app",
+                },
+              })}
+            </script>
+            {/* - Review Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                name: meta?.title,
+                url: "https://youtube-tool-frontend.vercel.app/tools/youtube-comment-picker",
+                applicationCategory: "Multimedia",
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: overallRating,
+                  ratingCount: reviews?.length,
+                  reviewCount: reviews?.length,
+                },
+                review: reviews.map((review) => ({
+                  "@type": "Review",
+                  author: {
+                    "@type": "Person",
+                    name: review.userName,
+                  },
+                  datePublished: review.createdAt,
+                  reviewBody: review.comment,
+                  name: review.title,
+                  reviewRating: {
+                    "@type": "Rating",
+                    ratingValue: review.rating,
+                  },
+                })),
+              })}
+            </script>
+            {/* - FAQ Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: faqs.map((faq) => ({
+                  "@type": "Question",
+                  name: faq.question,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: faq.answer,
+                  },
+                })),
+              })}
+            </script>
+          </Head>
 
           <ToastContainer />
           <div className="bg-white p-4 rounded-lg shadow-md">
-            <h1 className='text-center'>YouTube Comment Picker</h1>
+            <h1 className="text-center">YouTube Comment Picker</h1>
             {modalVisible && (
               <div
                 className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
@@ -328,14 +367,19 @@ const closeReviewForm =()=>{
                 <div className="flex">
                   <div className="mt-4">
                     {user ? (
-                      user.paymentStatus === 'success' || user.role === 'admin' ? (
+                      user.paymentStatus === "success" ||
+                      user.role === "admin" ? (
                         <p className="text-center p-3 alert-warning">
                           Congratulations!! Now you can pick unlimited winners.
                         </p>
                       ) : (
                         <p className="text-center p-3 alert-warning">
-                          You are not upgraded. You can pick winners {5 - generateCount} more times.{' '}
-                          <Link href="/pricing" className="btn btn-warning ms-3">
+                          You are not upgraded. You can pick winners{" "}
+                          {5 - generateCount} more times.{" "}
+                          <Link
+                            href="/pricing"
+                            className="btn btn-warning ms-3"
+                          >
                             Upgrade
                           </Link>
                         </p>
@@ -346,7 +390,10 @@ const closeReviewForm =()=>{
                       </p>
                     )}
                   </div>
-                  <button className="ml-auto text-yellow-700" onClick={closeModal}>
+                  <button
+                    className="ml-auto text-yellow-700"
+                    onClick={closeModal}
+                  >
                     ×
                   </button>
                 </div>
@@ -365,15 +412,19 @@ const closeReviewForm =()=>{
                 className="bg-red-500 text-white p-2 rounded"
                 disabled={loading}
               >
-                {loading ? 'Loading...' : 'Pick a Winner'}
+                {loading ? "Loading..." : "Pick a Winner"}
               </button>
             </div>
             <div className="container mx-auto p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-gray-100 rounded-lg shadow-lg">
                 <div className="bg-white p-4 rounded-lg shadow-md">
-                  <h3 className="text-xl font-bold mb-4 text-blue-600">YouTube Comment Options:</h3>
+                  <h3 className="text-xl font-bold mb-4 text-blue-600">
+                    YouTube Comment Options:
+                  </h3>
                   <div className="flex items-center space-x-4 mb-4">
-                    <label className="text-gray-700">Include replies to comments</label>
+                    <label className="text-gray-700">
+                      Include replies to comments
+                    </label>
                     <input
                       type="checkbox"
                       checked={includeReplies}
@@ -382,7 +433,9 @@ const closeReviewForm =()=>{
                     />
                   </div>
                   <div className="flex items-center space-x-4 mb-4">
-                    <label className="text-gray-700">Filter duplicate users/names</label>
+                    <label className="text-gray-700">
+                      Filter duplicate users/names
+                    </label>
                     <input
                       type="checkbox"
                       checked={filterDuplicates}
@@ -391,7 +444,9 @@ const closeReviewForm =()=>{
                     />
                   </div>
                   <div className="flex items-center space-x-4 mb-4">
-                    <label className="text-gray-700">Filter comments on specific text</label>
+                    <label className="text-gray-700">
+                      Filter comments on specific text
+                    </label>
                     <input
                       type="text"
                       className="border p-2 rounded-lg w-full focus:border-blue-500"
@@ -401,12 +456,16 @@ const closeReviewForm =()=>{
                   </div>
                 </div>
                 <div className="bg-white p-4 rounded-lg shadow-md">
-                  <h3 className="text-xl font-bold mb-4 text-blue-600">YouTube Raffle Options:</h3>
+                  <h3 className="text-xl font-bold mb-4 text-blue-600">
+                    YouTube Raffle Options:
+                  </h3>
                   <div className="flex items-center space-x-4 mb-4">
                     <label className="text-gray-700">No. of winners:</label>
                     <select
                       value={numberOfWinners}
-                      onChange={(e) => setNumberOfWinners(parseInt(e.target.value))}
+                      onChange={(e) =>
+                        setNumberOfWinners(parseInt(e.target.value))
+                      }
                       className="border p-2 rounded-lg focus:border-blue-500"
                     >
                       {[1, 2, 3, 4, 5].map((num) => (
@@ -422,12 +481,19 @@ const closeReviewForm =()=>{
                 <div className="bg-white p-4 rounded-lg sm:w-1/3 mx-auto shadow-md mt-5 winner-card">
                   <h3 className="text-xl font-bold text-center mb-4">Winner</h3>
                   {winners.map((winner, index) => (
-                    <div key={index} className="flex flex-col items-center mb-4">
+                    <div
+                      key={index}
+                      className="flex flex-col items-center mb-4"
+                    >
                       <div className="w-24 h-24 mb-4">
-                        <img src={winner.avatar} alt={winner.user} className="w-full h-full rounded-full object-cover" />
+                        <img
+                          src={winner.avatar}
+                          alt={winner.user}
+                          className="w-full h-full rounded-full object-cover"
+                        />
                       </div>
                       <p className="text-lg font-bold">
-                        <Link target='_blank' href={winner.channelUrl}>
+                        <Link target="_blank" href={winner.channelUrl}>
                           @{winner.user}
                         </Link>
                       </p>
@@ -447,39 +513,44 @@ const closeReviewForm =()=>{
                 </div>
               )}
               {winners.length > 1 && (
-             <>
-                <h2 className='text-center pt-5'>Winner</h2>
-             
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
-                  {winners.map((winner, index) => (
-                    <div key={index} className="bg-white p-4 rounded-lg shadow-md winner-card">
-                      <div className="flex flex-col items-center mb-4">
-                        <div className="w-24 h-24 mb-4">
-                          <img src={winner.avatar} alt={winner.user} className="w-full h-full rounded-full object-cover" />
-                        </div>
-                        <p className="text-lg font-bold">
-                          <Link target='_blank' href={winner.channelUrl}>
-                            @{winner.user}
-                          </Link>
-                        </p>
-                        <p className="text-gray-600">{winner.text}</p>
-                        <div className="flex space-x-4 mt-2">
-                          <div className="flex items-center space-x-1 text-red-500">
-                            <FaHeart />
-                            <span>{winner.likes}</span>
+                <>
+                  <h2 className="text-center pt-5">Winner</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
+                    {winners.map((winner, index) => (
+                      <div
+                        key={index}
+                        className="bg-white p-4 rounded-lg shadow-md winner-card"
+                      >
+                        <div className="flex flex-col items-center mb-4">
+                          <div className="w-24 h-24 mb-4">
+                            <img
+                              src={winner.avatar}
+                              alt={winner.user}
+                              className="w-full h-full rounded-full object-cover"
+                            />
                           </div>
-                          <div className="flex items-center space-x-1 text-blue-500">
-                            <FaComment />
-                            <span>{winner.replies}</span>
+                          <p className="text-lg font-bold">
+                            <Link target="_blank" href={winner.channelUrl}>
+                              @{winner.user}
+                            </Link>
+                          </p>
+                          <p className="text-gray-600">{winner.text}</p>
+                          <div className="flex space-x-4 mt-2">
+                            <div className="flex items-center space-x-1 text-red-500">
+                              <FaHeart />
+                              <span>{winner.likes}</span>
+                            </div>
+                            <div className="flex items-center space-x-1 text-blue-500">
+                              <FaComment />
+                              <span>{winner.replies}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
                 </>
               )}
-              
             </div>
           </div>
         </div>
@@ -491,36 +562,43 @@ const closeReviewForm =()=>{
             style={{ listStyleType: "none" }}
           ></div>
         </div>
-        <div className="faq-section">
-          <h2 className="text-2xl font-bold text-center mb-4">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-center">
-            Answered All Frequently Asked Question, Still Confused? Feel Free
-            To Contact Us{" "}
-          </p>
-          <div className="faq-container grid grid-cols-1 md:grid-cols-2 gap-4">
-            {faqs.map((faq, index) => (
-              <div
-                key={index}
-                className={`faq-item text-white border  p-4 ${
-                  openIndex === index ? "shadow " : ""
-                }`}
-              >
-                <div
-                  className="cursor-pointer flex justify-between items-center"
-                  onClick={() => toggleFAQ(index)}
-                >
-                  <h3 className="font-bold text-black">{faq.question}</h3>
-                  <span className="text-white">
-                    {openIndex === index ? "-" : "+"}
-                  </span>
+        <div className="p-5 shadow">
+          <div className="accordion">
+            <h2 className="faq-title">Frequently Asked Questions</h2>
+            <p className="faq-subtitle">
+              Answered All Frequently Asked Questions, Still Confused? Feel Free
+              To Contact Us
+            </p>
+            <div className="faq-grid">
+              {faqs.map((faq, index) => (
+                <div key={index} className="faq-item">
+                  <span id={`accordion-${index}`} className="target-fix"></span>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`open-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`close-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <div
+                    className={`accordion-content ${
+                      openIndex === index ? "open" : ""
+                    }`}
+                  >
+                    <p>{faq.answer}</p>
+                  </div>
                 </div>
-                {openIndex === index && (
-                  <p className="mt-2 text-white">{faq.answer}</p>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
         <hr className="mt-4 mb-2" />

@@ -1,39 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { useAuth } from '../../contexts/AuthContext';
-import Head from 'next/head';
-import Link from 'next/link';
-import StarRating from './StarRating'; // Import StarRating component
-import Slider from 'react-slick';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-import { FaStar } from 'react-icons/fa';
-import Image from 'next/image';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useAuth } from "../../contexts/AuthContext";
+import Head from "next/head";
+import Link from "next/link";
+import StarRating from "./StarRating"; // Import StarRating component
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import { FaStar } from "react-icons/fa";
+import Image from "next/image";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
-import { format } from 'date-fns';
+import { format } from "date-fns";
 
-const YouTubeChannelScraper = ({ meta,faqs }) => {
+const YouTubeChannelScraper = ({ meta, faqs }) => {
   const { user, updateUserProfile, logout } = useAuth();
-  const [keyword, setKeyword] = useState('');
+  const [keyword, setKeyword] = useState("");
   const [channels, setChannels] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [filteredChannels, setFilteredChannels] = useState([]);
   const [minSubscriber, setMinSubscriber] = useState(0);
   const [maxSubscriber, setMaxSubscriber] = useState(Infinity);
   const [page, setPage] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);
-  const [quillContent, setQuillContent] = useState('');
-  const [existingContent, setExistingContent] = useState('');
+  const [quillContent, setQuillContent] = useState("");
+  const [existingContent, setExistingContent] = useState("");
   const [showReviewForm, setShowReviewForm] = useState(false);
 
   const [generateCount, setGenerateCount] = useState(
-    typeof window !== 'undefined' ? Number(localStorage.getItem('generateCount')) || 0 : 0
+    typeof window !== "undefined"
+      ? Number(localStorage.getItem("generateCount")) || 0
+      : 0
   );
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({
@@ -55,15 +57,17 @@ const YouTubeChannelScraper = ({ meta,faqs }) => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch(`/api/content?category=YouTube-Channel-Search`);
+        const response = await fetch(
+          `/api/content?category=YouTube-Channel-Search`
+        );
         if (!response.ok) {
-          throw new Error('Failed to fetch content');
+          throw new Error("Failed to fetch content");
         }
         const data = await response.json();
-        setQuillContent(data[0]?.content || ''); // Ensure content is not undefined
-        setExistingContent(data[0]?.content || ''); // Ensure existing content is not undefined
+        setQuillContent(data[0]?.content || ""); // Ensure content is not undefined
+        setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
       } catch (error) {
-        toast.error('Error fetching content');
+        toast.error("Error fetching content");
       }
     };
 
@@ -108,7 +112,13 @@ const YouTubeChannelScraper = ({ meta,faqs }) => {
       if (!response.ok) throw new Error("Failed to submit review");
 
       toast.success("Review submitted successfully!");
-      setNewReview({ name: "", rating: 0, comment: "", userProfile: "", userName: "" });
+      setNewReview({
+        name: "",
+        rating: 0,
+        comment: "",
+        userProfile: "",
+        userName: "",
+      });
       setShowReviewForm(false);
       fetchReviews();
     } catch (error) {
@@ -117,15 +127,14 @@ const YouTubeChannelScraper = ({ meta,faqs }) => {
     }
   };
 
-
   useEffect(() => {
-    if (user && user.paymentStatus !== 'success' && !isUpdated) {
+    if (user && user.paymentStatus !== "success" && !isUpdated) {
       updateUserProfile().then(() => setIsUpdated(true));
     }
   }, [user, updateUserProfile, isUpdated]);
 
   useEffect(() => {
-    if (user && user.paymentStatus !== 'success' && user.role !== 'admin') {
+    if (user && user.paymentStatus !== "success" && user.role !== "admin") {
       setGenerateCount(5);
     }
   }, [user]);
@@ -133,78 +142,95 @@ const YouTubeChannelScraper = ({ meta,faqs }) => {
   const handleSearchClick = async (e) => {
     e.preventDefault();
     if (!user) {
-      toast.error('Please log in to fetch channel data.');
+      toast.error("Please log in to fetch channel data.");
       return;
     }
     setLoading(true);
     setChannels([]);
     setFilteredChannels([]);
-    setError('');
-    if (user && user.paymentStatus !== 'success' && user.role !== 'admin' && generateCount >= 5) {
-      toast.error('You have reached the limit of generating tags. Please upgrade your plan for unlimited use.');
+    setError("");
+    if (
+      user &&
+      user.paymentStatus !== "success" &&
+      user.role !== "admin" &&
+      generateCount >= 5
+    ) {
+      toast.error(
+        "You have reached the limit of generating tags. Please upgrade your plan for unlimited use."
+      );
       setLoading(false);
       return;
     }
-  
+
     try {
       const tokensResponse = await fetch("/api/tokens");
       if (!tokensResponse.ok) throw new Error("Failed to fetch API tokens");
-  
+
       const tokens = await tokensResponse.json();
-      let nextPageToken = '';
+      let nextPageToken = "";
       let totalChannelsData = [];
       let tokenIndex = 0;
-  
-      while (totalChannelsData.length < 200 && nextPageToken !== null && tokenIndex < tokens.length) {
+
+      while (
+        totalChannelsData.length < 200 &&
+        nextPageToken !== null &&
+        tokenIndex < tokens.length
+      ) {
         const apiKey = tokens[tokenIndex].token;
         const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=50&q=${encodeURIComponent(
           keyword
         )}&key=${apiKey}&pageToken=${nextPageToken}`;
         const searchResponse = await fetch(searchUrl);
-  
+
         if (!searchResponse.ok) {
-          if (searchResponse.status === 403) { // quota exceeded or invalid API key
+          if (searchResponse.status === 403) {
+            // quota exceeded or invalid API key
             tokenIndex++;
             continue; // try the next token
           } else {
             throw new Error(`HTTP error! status: ${searchResponse.status}`);
           }
         }
-  
+
         const searchData = await searchResponse.json();
-        const channelIds = searchData.items.map((item) => item.snippet.channelId);
+        const channelIds = searchData.items.map(
+          (item) => item.snippet.channelId
+        );
         const uniqueChannelIds = [...new Set(channelIds)];
         const channelsData = await getChannelsData(uniqueChannelIds, apiKey);
         totalChannelsData = totalChannelsData.concat(channelsData);
         nextPageToken = searchData.nextPageToken || null;
       }
-  
+
       const filtered = filterChannels(totalChannelsData);
       setFilteredChannels(filtered);
       setChannels(filtered.slice(0, 50));
       setGenerateCount(generateCount + 1);
-      localStorage.setItem('generateCount', generateCount + 1);
+      localStorage.setItem("generateCount", generateCount + 1);
     } catch (error) {
-      console.error('Error:', error);
-      setError(`An error occurred while fetching channel data: ${error.message}`);
+      console.error("Error:", error);
+      setError(
+        `An error occurred while fetching channel data: ${error.message}`
+      );
     } finally {
       setLoading(false);
     }
   };
-  
+
   const filterChannels = (channels) => {
     return channels.filter((channel) => {
       const subscribers = parseInt(channel.statistics.subscriberCount);
       return subscribers >= minSubscriber && subscribers <= maxSubscriber;
     });
   };
-  
+
   const getChannelsData = async (channelIds, apiKey) => {
     const detailsPromises = channelIds.map(async (channelId) => {
       const detailsUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,contentDetails,statistics&id=${channelId}&key=${apiKey}`;
       const response = await fetch(detailsUrl);
       if (!response.ok) {
-        if (response.status === 403) { // quota exceeded or invalid API key
+        if (response.status === 403) {
+          // quota exceeded or invalid API key
           throw new Error(`Quota exceeded for key: ${apiKey}`);
         } else {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -213,10 +239,9 @@ const YouTubeChannelScraper = ({ meta,faqs }) => {
       const data = await response.json();
       return data.items[0];
     });
-  
+
     return Promise.all(detailsPromises);
   };
-  
 
   const handlePagination = (pageIndex) => {
     const startIdx = pageIndex * 50;
@@ -254,19 +279,18 @@ const YouTubeChannelScraper = ({ meta,faqs }) => {
     setShowReviewForm(false);
   };
 
-
   return (
     <>
-    <div className="bg-box">
-      <div>
-        <Image className="shape1" src={announce} alt="announce" />
-        <Image className="shape2" src={cloud} alt="announce" />
-        <Image className="shape3" src={cloud2} alt="announce" />
-        <Image className="shape4" src={chart} alt="announce" />
-      </div>
+      <div className="bg-box">
+        <div>
+          <Image className="shape1" src={announce} alt="announce" />
+          <Image className="shape2" src={cloud} alt="announce" />
+          <Image className="shape3" src={cloud2} alt="announce" />
+          <Image className="shape4" src={chart} alt="announce" />
+        </div>
 
-      <div className="max-w-7xl mx-auto p-4">
-      <Head>
+        <div className="max-w-7xl mx-auto p-4">
+          <Head>
             <title>{meta?.title}</title>
             <meta
               name="description"
@@ -376,23 +400,26 @@ const YouTubeChannelScraper = ({ meta,faqs }) => {
               })}
             </script>
           </Head>
-      <h1 className="text-center text-white text-2xl font-bold mb-4">YouTube Channel Search</h1>
-      {modalVisible && (
+          <h1 className="text-center text-white text-2xl font-bold mb-4">
+            YouTube Channel Search
+          </h1>
+          {modalVisible && (
             <div
               className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
               role="alert"
             >
               <div className="flex">
-              <div className="mt-4">
+                <div className="mt-4">
                   {user ? (
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        Congratulations! Now you can get unlimited Channel Details.
+                        Congratulations! Now you can get unlimited Channel
+                        Details.
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can get  Channel Details{" "}
+                        You are not upgraded. You can get Channel Details{" "}
                         {5 - generateCount} more times.{" "}
                         <Link href="/pricing" className="btn btn-warning ms-3">
                           Upgrade
@@ -405,116 +432,178 @@ const YouTubeChannelScraper = ({ meta,faqs }) => {
                     </p>
                   )}
                 </div>
-                <button className="text-yellow-700 ml-auto" onClick={closeModal}>
+                <button
+                  className="text-yellow-700 ml-auto"
+                  onClick={closeModal}
+                >
                   ×
                 </button>
               </div>
             </div>
           )}
 
-      <form className="max-w-sm mx-auto" onSubmit={handleSearchClick}>
-        <div className="mb-3">
-          <label htmlFor="text" className="block mb-2 text-sm font-medium text-white dark:text-white">Enter Keyword</label>
-          <input
-            type="text"
-            id="text"
-            className="shadow-sm bg-gray-50 border border-gray-300 text-whitetext-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
-            placeholder="Enter Keyword"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="number" className="block mb-2 text-sm font-medium text-white dark:text-white">Min Subscriber</label>
-          <input
-            type="number"
-            id="number"
-            className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900  text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
-            placeholder="Min Subscriber"
-            value={minSubscriber}
-            onChange={(e) => setMinSubscriber(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="repeat-number" className="block mb-2 text-sm font-medium text-white dark:text-white">Max Subscriber</label>
-          <input
-            type="number"
-            id="repeat-number"
-            className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
-            placeholder="Max Subscriber"
-            value={maxSubscriber}
-            onChange={(e) => setMaxSubscriber(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-md">
-          Search
-        </button>
-      </form>
+          <form className="max-w-sm mx-auto" onSubmit={handleSearchClick}>
+            <div className="mb-3">
+              <label
+                htmlFor="text"
+                className="block mb-2 text-sm font-medium text-white dark:text-white"
+              >
+                Enter Keyword
+              </label>
+              <input
+                type="text"
+                id="text"
+                className="shadow-sm bg-gray-50 border border-gray-300 text-whitetext-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
+                placeholder="Enter Keyword"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label
+                htmlFor="number"
+                className="block mb-2 text-sm font-medium text-white dark:text-white"
+              >
+                Min Subscriber
+              </label>
+              <input
+                type="number"
+                id="number"
+                className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900  text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
+                placeholder="Min Subscriber"
+                value={minSubscriber}
+                onChange={(e) => setMinSubscriber(e.target.value)}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label
+                htmlFor="repeat-number"
+                className="block mb-2 text-sm font-medium text-white dark:text-white"
+              >
+                Max Subscriber
+              </label>
+              <input
+                type="number"
+                id="repeat-number"
+                className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
+                placeholder="Max Subscriber"
+                value={maxSubscriber}
+                onChange={(e) => setMaxSubscriber(e.target.value)}
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              className="bg-blue-500 text-white px-4 py-2 rounded-md"
+            >
+              Search
+            </button>
+          </form>
 
-      {loading && <div className="loader mt-4 mx-auto"></div>}
-      {error && <div className="text-red-500 text-center mt-4">{error}</div>}
-      </div>
+          {loading && <div className="loader mt-4 mx-auto"></div>}
+          {error && (
+            <div className="text-red-500 text-center mt-4">{error}</div>
+          )}
+        </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
-      <div id="channelList" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 channels-grid">
-        {channels.map((channel, index) => (
-          <div key={index} className="bg-white shadow-md rounded-lg p-4 channel-card">
-            <img src={channel.snippet.thumbnails.high.url} alt={channel.snippet.title} className="w-full h-auto rounded-md mb-4" />
-            <div className="channel-info">
-              <Link href={`https://www.youtube.com/channel/${channel.id}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 font-bold text-xl">
-                {channel.snippet.title}
-              </Link>
-              <p className="text-gray-700">Subscribers: {channel.statistics.subscriberCount}</p>
-              <p className="text-gray-700">Total Views: {channel.statistics.viewCount}</p>
-              <p className="text-gray-700">Videos: {channel.statistics.videoCount}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div id="pagination" className="text-center mt-3">
-        {[...Array(Math.ceil(filteredChannels.length / 50)).keys()].map((_, i) => (
-          <button key={i} className={`btn btn-sm btn-outline-primary me-2 ${page === i ? 'active' : ''}`} onClick={() => handlePagination(i)}>
-            {i + 1}
-          </button>
-        ))}
-      </div>
-      <div className="content pt-6 pb-5">
-        <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
-      </div>
-     
-      <div className="faq-section">
-          <h2 className="text-2xl font-bold text-center mb-4">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-center">
-            Answered All Frequently Asked Question, Still Confused? Feel Free
-            To Contact Us{" "}
-          </p>
-          <div className="faq-container grid grid-cols-1 md:grid-cols-2 gap-4">
-            {faqs.map((faq, index) => (
-              <div
-                key={index}
-                className={`faq-item text-white border  p-4 ${
-                  openIndex === index ? "shadow " : ""
-                }`}
-              >
-                <div
-                  className="cursor-pointer flex justify-between items-center"
-                  onClick={() => toggleFAQ(index)}
+        <div
+          id="channelList"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 channels-grid"
+        >
+          {channels.map((channel, index) => (
+            <div
+              key={index}
+              className="bg-white shadow-md rounded-lg p-4 channel-card"
+            >
+              <img
+                src={channel.snippet.thumbnails.high.url}
+                alt={channel.snippet.title}
+                className="w-full h-auto rounded-md mb-4"
+              />
+              <div className="channel-info">
+                <Link
+                  href={`https://www.youtube.com/channel/${channel.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 font-bold text-xl"
                 >
-                  <h3 className="font-bold text-black">{faq.question}</h3>
-                  <span className="text-white">
-                    {openIndex === index ? "-" : "+"}
-                  </span>
-                </div>
-                {openIndex === index && (
-                  <p className="mt-2 text-white">{faq.answer}</p>
-                )}
+                  {channel.snippet.title}
+                </Link>
+                <p className="text-gray-700">
+                  Subscribers: {channel.statistics.subscriberCount}
+                </p>
+                <p className="text-gray-700">
+                  Total Views: {channel.statistics.viewCount}
+                </p>
+                <p className="text-gray-700">
+                  Videos: {channel.statistics.videoCount}
+                </p>
               </div>
-            ))}
+            </div>
+          ))}
+        </div>
+        <div id="pagination" className="text-center mt-3">
+          {[...Array(Math.ceil(filteredChannels.length / 50)).keys()].map(
+            (_, i) => (
+              <button
+                key={i}
+                className={`btn btn-sm btn-outline-primary me-2 ${
+                  page === i ? "active" : ""
+                }`}
+                onClick={() => handlePagination(i)}
+              >
+                {i + 1}
+              </button>
+            )
+          )}
+        </div>
+        <div className="content pt-6 pb-5">
+          <div
+            dangerouslySetInnerHTML={{ __html: existingContent }}
+            style={{ listStyleType: "none" }}
+          ></div>
+        </div>
+
+        <div className="p-5 shadow">
+          <div className="accordion">
+            <h2 className="faq-title">Frequently Asked Questions</h2>
+            <p className="faq-subtitle">
+              Answered All Frequently Asked Questions, Still Confused? Feel Free
+              To Contact Us
+            </p>
+            <div className="faq-grid">
+              {faqs.map((faq, index) => (
+                <div key={index} className="faq-item">
+                  <span id={`accordion-${index}`} className="target-fix"></span>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`open-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`close-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <div
+                    className={`accordion-content ${
+                      openIndex === index ? "open" : ""
+                    }`}
+                  >
+                    <p>{faq.answer}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
         <hr className="mt-4 mb-2" />
@@ -697,9 +786,8 @@ const YouTubeChannelScraper = ({ meta,faqs }) => {
           </div>
         )}
       </div>
-        
+
       <ToastContainer />
-    
     </>
   );
 };

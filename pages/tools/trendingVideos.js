@@ -26,7 +26,7 @@ import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import { format } from "date-fns";
 
-const TrendingVideos = ({ meta,faqs }) => {
+const TrendingVideos = ({ meta, faqs }) => {
   const [country, setCountry] = useState("All");
   const [categories, setCategories] = useState([]);
   const [category, setCategory] = useState("All");
@@ -65,7 +65,6 @@ const TrendingVideos = ({ meta,faqs }) => {
         const data = await response.json();
         setQuillContent(data[0]?.content || ""); // Ensure content is not undefined
         setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
-  
       } catch (error) {
         console.error("Error fetching content");
       }
@@ -124,7 +123,13 @@ const TrendingVideos = ({ meta,faqs }) => {
       if (!response.ok) throw new Error("Failed to submit review");
 
       toast.success("Review submitted successfully!");
-      setNewReview({ name: "", rating: 0, comment: "", userProfile: "", userName: "" });
+      setNewReview({
+        name: "",
+        rating: 0,
+        comment: "",
+        userProfile: "",
+        userName: "",
+      });
       setShowReviewForm(false);
       fetchReviews();
     } catch (error) {
@@ -132,7 +137,6 @@ const TrendingVideos = ({ meta,faqs }) => {
       toast.error("Failed to submit review");
     }
   };
-
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -234,9 +238,9 @@ const TrendingVideos = ({ meta,faqs }) => {
     }
     setShowReviewForm(true);
   };
-const closeReviewForm =()=>{
-  setShowReviewForm(false)
-}
+  const closeReviewForm = () => {
+    setShowReviewForm(false);
+  };
 
   return (
     <>
@@ -249,100 +253,120 @@ const closeReviewForm =()=>{
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-       
-        <Head>
-        <title>{meta?.title}</title>
-        <meta name="description" content={meta?.description || "AI Youtube Hashtag Generator"} />
-        <meta
-          property="og:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/trendingVideos"
-        />
-        <meta property="og:title" content={meta?.title || "AI Youtube Tag Generator"} />
-        <meta property="og:description" content={meta?.description ||"Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights" }/>
-        <meta property="og:image" content={meta?.image || ""} />
-        <meta name="twitter:card" content={meta?.image || ""} />
-        <meta
-          property="twitter:domain"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta
-          property="twitter:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/trendingVideos"
-        />
-        <meta name="twitter:title" content={meta?.title || "AI Youtube Tag Generator"} />
-        <meta name="twitter:description" content={meta?.description ||"Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights" }/>
-        <meta name="twitter:image" content={meta?.image || ""} />
-        {/* - Webpage Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebPage",
-            name: meta?.title,
-            url: "https://youtube-tool-frontend.vercel.app/tools/trendingVideos",
-            description: meta?.description,
-            breadcrumb: {
-              "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
-            },
-            about: {
-              "@type": "Thing",
-              name: meta?.title,
-            },
-            isPartOf: {
-              "@type": "WebSite",
-              url: "https://youtube-tool-frontend.vercel.app",
-            },
-          })}
-        </script>
-        {/* - Review Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            name: meta?.title,
-            url: "https://youtube-tool-frontend.vercel.app/tools/trendingVideos",
-            applicationCategory: "Multimedia",
-            aggregateRating: {
-              "@type": "AggregateRating",
-              ratingValue: overallRating,
-              ratingCount: reviews?.length,
-              reviewCount: reviews?.length,
-            },
-            review: reviews.map((review) => ({
-              "@type": "Review",
-              author: {
-                "@type": "Person",
-                name: review.userName,
-              },
-              datePublished: review.createdAt,
-              reviewBody: review.comment,
-              name: review.title,
-              reviewRating: {
-                "@type": "Rating",
-                ratingValue: review.rating,
-              },
-            })),
-          })}
-        </script>
-        {/* - FAQ Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faqs.map((faq) => ({
-              "@type": "Question",
-              name: faq.question,
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: faq.answer,
-              },
-            })),
-          })}
-        </script>
-      </Head>
+          <Head>
+            <title>{meta?.title}</title>
+            <meta
+              name="description"
+              content={meta?.description || "AI Youtube Hashtag Generator"}
+            />
+            <meta
+              property="og:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/trendingVideos"
+            />
+            <meta
+              property="og:title"
+              content={meta?.title || "AI Youtube Tag Generator"}
+            />
+            <meta
+              property="og:description"
+              content={
+                meta?.description ||
+                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
+              }
+            />
+            <meta property="og:image" content={meta?.image || ""} />
+            <meta name="twitter:card" content={meta?.image || ""} />
+            <meta
+              property="twitter:domain"
+              content="https://youtube-tool-frontend.vercel.app/"
+            />
+            <meta
+              property="twitter:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/trendingVideos"
+            />
+            <meta
+              name="twitter:title"
+              content={meta?.title || "AI Youtube Tag Generator"}
+            />
+            <meta
+              name="twitter:description"
+              content={
+                meta?.description ||
+                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
+              }
+            />
+            <meta name="twitter:image" content={meta?.image || ""} />
+            {/* - Webpage Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "WebPage",
+                name: meta?.title,
+                url: "https://youtube-tool-frontend.vercel.app/tools/trendingVideos",
+                description: meta?.description,
+                breadcrumb: {
+                  "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
+                },
+                about: {
+                  "@type": "Thing",
+                  name: meta?.title,
+                },
+                isPartOf: {
+                  "@type": "WebSite",
+                  url: "https://youtube-tool-frontend.vercel.app",
+                },
+              })}
+            </script>
+            {/* - Review Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                name: meta?.title,
+                url: "https://youtube-tool-frontend.vercel.app/tools/trendingVideos",
+                applicationCategory: "Multimedia",
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: overallRating,
+                  ratingCount: reviews?.length,
+                  reviewCount: reviews?.length,
+                },
+                review: reviews.map((review) => ({
+                  "@type": "Review",
+                  author: {
+                    "@type": "Person",
+                    name: review.userName,
+                  },
+                  datePublished: review.createdAt,
+                  reviewBody: review.comment,
+                  name: review.title,
+                  reviewRating: {
+                    "@type": "Rating",
+                    ratingValue: review.rating,
+                  },
+                })),
+              })}
+            </script>
+            {/* - FAQ Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: faqs.map((faq) => ({
+                  "@type": "Question",
+                  name: faq.question,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: faq.answer,
+                  },
+                })),
+              })}
+            </script>
+          </Head>
           {/* Toast container for notifications */}
           <ToastContainer />
           {/* Page title */}
-          
+
           {/* Alert message for logged in/out users */}
           {modalVisible && (
             <div
@@ -355,7 +379,8 @@ const closeReviewForm =()=>{
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        Congratulations! Now you can get unlimited Trending Video.
+                        Congratulations! Now you can get unlimited Trending
+                        Video.
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
@@ -368,11 +393,15 @@ const closeReviewForm =()=>{
                     )
                   ) : (
                     <p className="text-center p-3 alert-warning">
-                      Please <Link href="/login">log</Link> in to fetch channel data.
+                      Please <Link href="/login">log</Link> in to fetch channel
+                      data.
                     </p>
                   )}
                 </div>
-                <button className="text-yellow-700 ml-auto" onClick={closeModal}>
+                <button
+                  className="text-yellow-700 ml-auto"
+                  onClick={closeModal}
+                >
                   ×
                 </button>
               </div>
@@ -485,36 +514,43 @@ const closeReviewForm =()=>{
           ></div>
         </div>
         {/* Reviews Section */}
-        <div className="faq-section">
-          <h2 className="text-2xl font-bold text-center mb-4">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-center">
-            Answered All Frequently Asked Question, Still Confused? Feel Free
-            To Contact Us{" "}
-          </p>
-          <div className="faq-container grid grid-cols-1 md:grid-cols-2 gap-4">
-            {faqs.map((faq, index) => (
-              <div
-                key={index}
-                className={`faq-item text-white border  p-4 ${
-                  openIndex === index ? "shadow " : ""
-                }`}
-              >
-                <div
-                  className="cursor-pointer flex justify-between items-center"
-                  onClick={() => toggleFAQ(index)}
-                >
-                  <h3 className="font-bold text-black">{faq.question}</h3>
-                  <span className="text-white">
-                    {openIndex === index ? "-" : "+"}
-                  </span>
+        <div className="p-5 shadow">
+          <div className="accordion">
+            <h2 className="faq-title">Frequently Asked Questions</h2>
+            <p className="faq-subtitle">
+              Answered All Frequently Asked Questions, Still Confused? Feel Free
+              To Contact Us
+            </p>
+            <div className="faq-grid">
+              {faqs.map((faq, index) => (
+                <div key={index} className="faq-item">
+                  <span id={`accordion-${index}`} className="target-fix"></span>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`open-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`close-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <div
+                    className={`accordion-content ${
+                      openIndex === index ? "open" : ""
+                    }`}
+                  >
+                    <p>{faq.answer}</p>
+                  </div>
                 </div>
-                {openIndex === index && (
-                  <p className="mt-2 text-white">{faq.answer}</p>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
         <hr className="mt-4 mb-2" />
@@ -738,6 +774,5 @@ export async function getServerSideProps(context) {
     };
   }
 }
-
 
 export default TrendingVideos;

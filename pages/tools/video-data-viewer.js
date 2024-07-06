@@ -90,7 +90,6 @@ const VideoDataViewer = ({ meta, faqs }) => {
         const data = await response.json();
         setQuillContent(data[0]?.content || ""); // Ensure content is not undefined
         setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
-       
       } catch (error) {
         console.error("Error fetching content");
       }
@@ -268,9 +267,9 @@ const VideoDataViewer = ({ meta, faqs }) => {
     }
     setShowReviewForm(true);
   };
-  const closeReviewForm =()=>{
-    setShowReviewForm(false)
-  }
+  const closeReviewForm = () => {
+    setShowReviewForm(false);
+  };
   return (
     <>
       <div className="bg-box">
@@ -282,95 +281,116 @@ const VideoDataViewer = ({ meta, faqs }) => {
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-        <Head>
-        <title>{meta?.title}</title>
-        <meta name="description" content={meta?.description || "Youtube video-data-viewer"} />
-        <meta
-          property="og:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/video-data-viewer"
-        />
-        <meta property="og:title" content={meta?.title || "Youtube video-data-viewer"} />
-        <meta property="og:description" content={meta?.description ||"Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights" }/>
-        <meta property="og:image" content={meta?.image || ""} />
-        <meta name="twitter:card" content={meta?.image || ""} />
-        <meta
-          property="twitter:domain"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta
-          property="twitter:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/video-data-viewer"
-        />
-        <meta name="twitter:title" content={meta?.title || "Youtube video-data-viewer"} />
-        <meta name="twitter:description" content={meta?.description ||"Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights" }/>
-        <meta name="twitter:image" content={meta?.image || ""} />
-        {/* - Webpage Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebPage",
-            name: meta?.title,
-            url: "https://youtube-tool-frontend.vercel.app/tools/video-data-viewer",
-            description: meta?.description,
-            breadcrumb: {
-              "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
-            },
-            about: {
-              "@type": "Thing",
-              name: meta?.title,
-            },
-            isPartOf: {
-              "@type": "WebSite",
-              url: "https://youtube-tool-frontend.vercel.app",
-            },
-          })}
-        </script>
-        {/* - Review Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            name: meta?.title,
-            url: "https://youtube-tool-frontend.vercel.app/tools/video-data-viewer",
-            applicationCategory: "Multimedia",
-            aggregateRating: {
-              "@type": "AggregateRating",
-              ratingValue: overallRating,
-              ratingCount: reviews?.length,
-              reviewCount: reviews?.length,
-            },
-            review: reviews.map((review) => ({
-              "@type": "Review",
-              author: {
-                "@type": "Person",
-                name: review.userName,
-              },
-              datePublished: review.createdAt,
-              reviewBody: review.comment,
-              name: review.title,
-              reviewRating: {
-                "@type": "Rating",
-                ratingValue: review.rating,
-              },
-            })),
-          })}
-        </script>
-        {/* - FAQ Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faqs.map((faq) => ({
-              "@type": "Question",
-              name: faq.question,
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: faq.answer,
-              },
-            })),
-          })}
-        </script>
-      </Head>
+          <Head>
+            <title>{meta?.title}</title>
+            <meta
+              name="description"
+              content={meta?.description || "Youtube video-data-viewer"}
+            />
+            <meta
+              property="og:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/video-data-viewer"
+            />
+            <meta
+              property="og:title"
+              content={meta?.title || "Youtube video-data-viewer"}
+            />
+            <meta
+              property="og:description"
+              content={
+                meta?.description ||
+                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
+              }
+            />
+            <meta property="og:image" content={meta?.image || ""} />
+            <meta name="twitter:card" content={meta?.image || ""} />
+            <meta
+              property="twitter:domain"
+              content="https://youtube-tool-frontend.vercel.app/"
+            />
+            <meta
+              property="twitter:url"
+              content="https://youtube-tool-frontend.vercel.app/tools/video-data-viewer"
+            />
+            <meta
+              name="twitter:title"
+              content={meta?.title || "Youtube video-data-viewer"}
+            />
+            <meta
+              name="twitter:description"
+              content={
+                meta?.description ||
+                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
+              }
+            />
+            <meta name="twitter:image" content={meta?.image || ""} />
+            {/* - Webpage Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "WebPage",
+                name: meta?.title,
+                url: "https://youtube-tool-frontend.vercel.app/tools/video-data-viewer",
+                description: meta?.description,
+                breadcrumb: {
+                  "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
+                },
+                about: {
+                  "@type": "Thing",
+                  name: meta?.title,
+                },
+                isPartOf: {
+                  "@type": "WebSite",
+                  url: "https://youtube-tool-frontend.vercel.app",
+                },
+              })}
+            </script>
+            {/* - Review Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                name: meta?.title,
+                url: "https://youtube-tool-frontend.vercel.app/tools/video-data-viewer",
+                applicationCategory: "Multimedia",
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: overallRating,
+                  ratingCount: reviews?.length,
+                  reviewCount: reviews?.length,
+                },
+                review: reviews.map((review) => ({
+                  "@type": "Review",
+                  author: {
+                    "@type": "Person",
+                    name: review.userName,
+                  },
+                  datePublished: review.createdAt,
+                  reviewBody: review.comment,
+                  name: review.title,
+                  reviewRating: {
+                    "@type": "Rating",
+                    ratingValue: review.rating,
+                  },
+                })),
+              })}
+            </script>
+            {/* - FAQ Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: faqs.map((faq) => ({
+                  "@type": "Question",
+                  name: faq.question,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: faq.answer,
+                  },
+                })),
+              })}
+            </script>
+          </Head>
           <h2 className="text-3xl pt-5 text-white">
             YouTube Video Data Viewer{" "}
           </h2>
@@ -587,37 +607,43 @@ const VideoDataViewer = ({ meta, faqs }) => {
           ></div>
         </div>
 
-        
-        <div className="faq-section">
-          <h2 className="text-2xl font-bold text-center mb-4">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-center">
-            Answered All Frequently Asked Question, Still Confused? Feel Free
-            To Contact Us{" "}
-          </p>
-          <div className="faq-container grid grid-cols-1 md:grid-cols-2 gap-4">
-            {faqs.map((faq, index) => (
-              <div
-                key={index}
-                className={`faq-item text-white border  p-4 ${
-                  openIndex === index ? "shadow " : ""
-                }`}
-              >
-                <div
-                  className="cursor-pointer flex justify-between items-center"
-                  onClick={() => toggleFAQ(index)}
-                >
-                  <h3 className="font-bold text-black">{faq.question}</h3>
-                  <span className="text-white">
-                    {openIndex === index ? "-" : "+"}
-                  </span>
+        <div className="p-5 shadow">
+          <div className="accordion">
+            <h2 className="faq-title">Frequently Asked Questions</h2>
+            <p className="faq-subtitle">
+              Answered All Frequently Asked Questions, Still Confused? Feel Free
+              To Contact Us
+            </p>
+            <div className="faq-grid">
+              {faqs.map((faq, index) => (
+                <div key={index} className="faq-item">
+                  <span id={`accordion-${index}`} className="target-fix"></span>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`open-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`close-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <div
+                    className={`accordion-content ${
+                      openIndex === index ? "open" : ""
+                    }`}
+                  >
+                    <p>{faq.answer}</p>
+                  </div>
                 </div>
-                {openIndex === index && (
-                  <p className="mt-2 text-white">{faq.answer}</p>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
         <hr className="mt-4 mb-2" />
@@ -799,7 +825,6 @@ const VideoDataViewer = ({ meta, faqs }) => {
             </div>
           </div>
         )}
-      
       </div>
     </>
   );
@@ -813,7 +838,9 @@ export async function getServerSideProps(context) {
   const protocol = req.headers["x-forwarded-proto"] || "http";
   const apiUrl = `${protocol}://${host}`;
 
-  const response = await fetch(`${apiUrl}/api/content?category=video-data-viewer`);
+  const response = await fetch(
+    `${apiUrl}/api/content?category=video-data-viewer`
+  );
   const data = await response.json();
 
   const meta = {

@@ -27,7 +27,7 @@ import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 import { format } from "date-fns";
 
-const TagExtractor = ({ meta,faqs }) => {
+const TagExtractor = ({ meta, faqs }) => {
   const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState("");
   const [tags, setTags] = useState([]);
@@ -385,21 +385,21 @@ const TagExtractor = ({ meta,faqs }) => {
                 })),
               })}
             </script>
-             {/* - FAQ Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faqs.map((faq) => ({
-              "@type": "Question",
-              name: faq.question,
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: faq.answer,
-              },
-            })),
-          })}
-        </script>
+            {/* - FAQ Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: faqs.map((faq) => ({
+                  "@type": "Question",
+                  name: faq.question,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: faq.answer,
+                  },
+                })),
+              })}
+            </script>
           </Head>
           <h2 className="text-3xl text-white">YouTube Tag Extractor</h2>
           <ToastContainer />
@@ -549,41 +549,47 @@ const TagExtractor = ({ meta,faqs }) => {
             style={{ listStyleType: "none" }}
           ></div>
         </div>
-        <div className="faq-section">
-          <h2 className="text-2xl font-bold text-center mb-4">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-center">Answered All Frequently Asked Question, Still Confused? Feel Free To Contact Us </p>
-          <div className="faq-container grid grid-cols-1 md:grid-cols-2 gap-4">
-            {faqs.map((faq, index) => (
-              <div
-                key={index}
-                className={`faq-item text-white border  p-4 ${
-                  openIndex === index ? "shadow " : ""
-                }`}
-              >
-                <div
-                  className="cursor-pointer flex justify-between items-center"
-                  onClick={() => toggleFAQ(index)}
-                >
-                  <h3 className="font-bold text-black">{faq.question}</h3>
-                 
-                  <span className="text-white">
-                    {openIndex === index ? "-" : "+"}
-                  </span>
-                  
+        <div className="p-5 shadow">
+          <div className="accordion">
+            <h2 className="faq-title">Frequently Asked Questions</h2>
+            <p className="faq-subtitle">
+              Answered All Frequently Asked Questions, Still Confused? Feel Free
+              To Contact Us
+            </p>
+            <div className="faq-grid">
+              {faqs.map((faq, index) => (
+                <div key={index} className="faq-item">
+                  <span id={`accordion-${index}`} className="target-fix"></span>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`open-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`close-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <div
+                    className={`accordion-content ${
+                      openIndex === index ? "open" : ""
+                    }`}
+                  >
+                    <p>{faq.answer}</p>
+                  </div>
                 </div>
-                <hr/>
-                {openIndex === index && (
-               
-                  <p className="mt-2 text-white">{faq.answer}</p>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-        <hr className="mt-4 mb-2"/>
-        
+        <hr className="mt-4 mb-2" />
+
         <div className="row pt-3">
           <div className="col-md-4">
             <div className=" text-3xl font-bold mb-2">Customer reviews</div>
@@ -776,11 +782,11 @@ export async function getServerSideProps(context) {
   try {
     const response = await fetch(apiUrl);
     if (!response.ok) {
-      throw new Error('Failed to fetch content');
+      throw new Error("Failed to fetch content");
     }
 
     const data = await response.json();
-   
+
     const meta = {
       title: data[0]?.title || "",
       description: data[0]?.description || "",
@@ -795,7 +801,7 @@ export async function getServerSideProps(context) {
       },
     };
   } catch (error) {
-    console.error('Error fetching data:', error);
+    console.error("Error fetching data:", error);
     return {
       props: {
         meta: {},
@@ -804,6 +810,5 @@ export async function getServerSideProps(context) {
     };
   }
 }
-
 
 export default TagExtractor;

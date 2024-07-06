@@ -1,18 +1,18 @@
 /* eslint-disable react/no-unescaped-entities */
-import Head from 'next/head';
-import React, { useEffect, useState } from 'react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { FaEye, FaEyeSlash, FaStar } from 'react-icons/fa';
-import { ToastContainer, toast } from 'react-toastify';
-import Slider from 'react-slick';
-import 'react-toastify/dist/ReactToastify.css';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-import StarRating from './StarRating';
-import { useAuth } from '../../contexts/AuthContext';
-import Image from 'next/image';
-import { format } from 'date-fns';
-import { useRouter } from 'next/router';
+import Head from "next/head";
+import React, { useEffect, useState } from "react";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { FaEye, FaEyeSlash, FaStar } from "react-icons/fa";
+import { ToastContainer, toast } from "react-toastify";
+import Slider from "react-slick";
+import "react-toastify/dist/ReactToastify.css";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import StarRating from "./StarRating";
+import { useAuth } from "../../contexts/AuthContext";
+import Image from "next/image";
+import { format } from "date-fns";
+import { useRouter } from "next/router";
 
 const YouTubeDescriptionGenerator = ({ meta }) => {
   const { user, updateUserProfile } = useAuth();
@@ -27,42 +27,57 @@ const YouTubeDescriptionGenerator = ({ meta }) => {
     aboutCompany: `Check out our company and our products at [Company Website]. We offer [Products/Services Offered].`,
     website: `Find us at:\n[Website URL]`,
     contactSocial: `Get in Touch with Us:\nEmail: [Your Email]\nFollow us on Social Media:\nTwitter: [Your Twitter Handle]\nLinkedIn: [Your LinkedIn Profile]\nGitHub: [Your GitHub Repository]`,
-    keywords: 'full stack development, coding, programming, web development'
+    keywords: "full stack development, coding, programming, web development",
   });
 
   const [sections, setSections] = useState([
-    { id: 'aboutVideo', title: 'About the Video', visible: true },
-    { id: 'timestamps', title: 'Timestamps', visible: true },
-    { id: 'aboutChannel', title: 'About the Channel', visible: true },
-    { id: 'recommendedVideos', title: 'Recommended Videos/Playlists', visible: true },
-    { id: 'aboutCompany', title: 'About Our Company & Products', visible: true },
-    { id: 'website', title: 'Our Website', visible: true },
-    { id: 'contactSocial', title: 'Contact & Social', visible: true },
-    { id: 'keywords', title: 'Keywords to Target (Optional)', visible: true }
+    { id: "aboutVideo", title: "About the Video", visible: true },
+    { id: "timestamps", title: "Timestamps", visible: true },
+    { id: "aboutChannel", title: "About the Channel", visible: true },
+    {
+      id: "recommendedVideos",
+      title: "Recommended Videos/Playlists",
+      visible: true,
+    },
+    {
+      id: "aboutCompany",
+      title: "About Our Company & Products",
+      visible: true,
+    },
+    { id: "website", title: "Our Website", visible: true },
+    { id: "contactSocial", title: "Contact & Social", visible: true },
+    { id: "keywords", title: "Keywords to Target (Optional)", visible: true },
   ]);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
-  const [content, setContent] = useState('');
-  const [quillContent, setQuillContent] = useState('');
-  const [existingContent, setExistingContent] = useState('');
+  const [content, setContent] = useState("");
+  const [quillContent, setQuillContent] = useState("");
+  const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
-  const [newReview, setNewReview] = useState({ rating: 0, comment: '', title: '', userProfile: '' });
+  const [newReview, setNewReview] = useState({
+    rating: 0,
+    comment: "",
+    title: "",
+    userProfile: "",
+  });
   const [showReviewForm, setShowReviewForm] = useState(false);
 
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch(`/api/content?category=youtube-title-and-description-generator?tab=description`);
+        const response = await fetch(
+          `/api/content?category=youtube-title-and-description-generator?tab=description`
+        );
         if (!response.ok) {
-          throw new Error('Failed to fetch content');
+          throw new Error("Failed to fetch content");
         }
         const data = await response.json();
-        setQuillContent(data[0]?.content || '');
-        setExistingContent(data[0]?.content || '');
+        setQuillContent(data[0]?.content || "");
+        setExistingContent(data[0]?.content || "");
         setFaqs(data[0].faqs || []);
       } catch (error) {
-        toast.error('Error fetching content');
+        toast.error("Error fetching content");
       }
     };
 
@@ -114,9 +129,9 @@ const YouTubeDescriptionGenerator = ({ meta }) => {
       toast.success("Review submitted successfully!");
       setNewReview({
         rating: 0,
-        comment: '',
-        title: '',
-        userProfile: '',
+        comment: "",
+        title: "",
+        userProfile: "",
       });
       setShowReviewForm(false);
       fetchReviews();
@@ -128,7 +143,9 @@ const YouTubeDescriptionGenerator = ({ meta }) => {
 
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
-    const ratingCount = reviews.filter((review) => review.rating === rating).length;
+    const ratingCount = reviews.filter(
+      (review) => review.rating === rating
+    ).length;
     return totalReviews ? (ratingCount / totalReviews) * 100 : 0;
   };
 
@@ -140,12 +157,21 @@ const YouTubeDescriptionGenerator = ({ meta }) => {
     const { name, value } = e.target;
     setVideoInfo((prevInfo) => ({
       ...prevInfo,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const generateDescription = () => {
-    const { aboutVideo, timestamps, aboutChannel, recommendedVideos, aboutCompany, website, contactSocial, keywords } = videoInfo;
+    const {
+      aboutVideo,
+      timestamps,
+      aboutChannel,
+      recommendedVideos,
+      aboutCompany,
+      website,
+      contactSocial,
+      keywords,
+    } = videoInfo;
     return `
 ${aboutVideo}
 
@@ -209,8 +235,6 @@ ${keywords}
   const handleShowMoreReviews = () => {
     setShowAllReviews(true);
   };
-
-
 
   return (
     <div className="container mx-auto p-6">
@@ -283,19 +307,23 @@ ${keywords}
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "FAQPage",
-            mainEntity: Array.isArray(faqs) ? faqs.map((faq) => ({
-              "@type": "Question",
-              name: faq.question,
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: faq.answer,
-              },
-            })) : [],
+            mainEntity: Array.isArray(faqs)
+              ? faqs.map((faq) => ({
+                  "@type": "Question",
+                  name: faq.question,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: faq.answer,
+                  },
+                }))
+              : [],
           })}
         </script>
       </Head>
       <ToastContainer />
-      <h1 className="text-2xl font-bold mb-4 text-center">YouTube Description Generator</h1>
+      <h1 className="text-2xl font-bold mb-4 text-center">
+        YouTube Description Generator
+      </h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <DragDropContext onDragEnd={handleDragEnd}>
@@ -312,8 +340,16 @@ ${keywords}
                           className="mb-4 border p-4 rounded shadow"
                         >
                           <div className="flex justify-between items-center">
-                            <label className="block font-semibold mb-1" htmlFor={id}>{title}</label>
-                            <button onClick={() => toggleVisibility(id)} className="text-gray-600">
+                            <label
+                              className="block font-semibold mb-1"
+                              htmlFor={id}
+                            >
+                              {title}
+                            </label>
+                            <button
+                              onClick={() => toggleVisibility(id)}
+                              className="text-gray-600"
+                            >
                               {visible ? <FaEyeSlash /> : <FaEye />}
                             </button>
                           </div>
@@ -337,7 +373,9 @@ ${keywords}
           </DragDropContext>
         </div>
         <div>
-          <h2 className="text-xl font-semibold mb-4 text-center">Generated Video Description</h2>
+          <h2 className="text-xl font-semibold mb-4 text-center">
+            Generated Video Description
+          </h2>
           <div className="p-4 border border-gray-300 rounded bg-gray-100 whitespace-pre-wrap">
             {generateDescription()}
           </div>
@@ -350,38 +388,51 @@ ${keywords}
         </div>
       </div>
       <div className="content pt-6 pb-5">
-        <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
+        <div
+          dangerouslySetInnerHTML={{ __html: existingContent }}
+          style={{ listStyleType: "none" }}
+        ></div>
       </div>
-      <div className="faq-section">
-          <h2 className="text-2xl font-bold text-center mb-4">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-center">Answered All Frequently Asked Question, Still Confused? Feel Free To Contact Us </p>
-          <div className="faq-container grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="p-5 shadow">
+        <div className="accordion">
+          <h2 className="faq-title">Frequently Asked Questions</h2>
+          <p className="faq-subtitle">
+            Answered All Frequently Asked Questions, Still Confused? Feel Free
+            To Contact Us
+          </p>
+          <div className="faq-grid">
             {faqs.map((faq, index) => (
-              <div
-                key={index}
-                className={`faq-item text-white border  p-4 ${
-                  openIndex === index ? "shadow " : ""
-                }`}
-              >
-                <div
-                  className="cursor-pointer flex justify-between items-center"
+              <div key={index} className="faq-item">
+                <span id={`accordion-${index}`} className="target-fix"></span>
+                <a
+                  href={`#accordion-${index}`}
+                  id={`open-accordion-${index}`}
+                  className="accordion-header"
                   onClick={() => toggleFAQ(index)}
                 >
-                  <h3 className="font-bold text-black">{faq.question}</h3>
-                  <span className="text-white">
-                    {openIndex === index ? "-" : "+"}
-                  </span>
+                  {faq.question}
+                </a>
+                <a
+                  href={`#accordion-${index}`}
+                  id={`close-accordion-${index}`}
+                  className="accordion-header"
+                  onClick={() => toggleFAQ(index)}
+                >
+                  {faq.question}
+                </a>
+                <div
+                  className={`accordion-content ${
+                    openIndex === index ? "open" : ""
+                  }`}
+                >
+                  <p>{faq.answer}</p>
                 </div>
-                {openIndex === index && (
-                  <p className="mt-2 text-white">{faq.answer}</p>
-                )}
               </div>
             ))}
           </div>
         </div>
-        <hr className="mt-4 mb-2"/>
+      </div>
+      <hr className="mt-4 mb-2" />
       <div className="row pt-3">
         <div className="col-md-4">
           <div className=" text-3xl font-bold mb-2">Customer reviews</div>
@@ -389,10 +440,15 @@ ${keywords}
             <div className="text-3xl font-bold mr-2">{overallRating}</div>
             <div className="flex">
               {[...Array(5)].map((_, i) => (
-                <FaStar key={i} color={i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"} />
+                <FaStar
+                  key={i}
+                  color={i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"}
+                />
               ))}
             </div>
-            <div className="ml-2 text-sm text-gray-500">{reviews.length} global ratings</div>
+            <div className="ml-2 text-sm text-gray-500">
+              {reviews.length} global ratings
+            </div>
           </div>
           <div>
             {[5, 4, 3, 2, 1].map((rating) => (
@@ -404,7 +460,9 @@ ${keywords}
                     style={{ width: `${calculateRatingPercentage(rating)}%` }}
                   ></div>
                 </div>
-                <div className="w-12 text-left ml-4">{calculateRatingPercentage(rating).toFixed(1)}%</div>
+                <div className="w-12 text-left ml-4">
+                  {calculateRatingPercentage(rating).toFixed(1)}%
+                </div>
               </div>
             ))}
           </div>
@@ -438,18 +496,27 @@ ${keywords}
               </div>
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
-                  <FaStar key={i} size={20} color={i < review.rating ? "#ffc107" : "#e4e5e9"} />
+                  <FaStar
+                    key={i}
+                    size={20}
+                    color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                  />
                 ))}
                 <div>
                   <span className="fw-bold mt-2 ms-2">{review?.title}</span>
                 </div>
               </div>
-              <div className="text-gray-500 text-sm mb-4">Reviewed On {review.createdAt}</div>
+              <div className="text-gray-500 text-sm mb-4">
+                Reviewed On {review.createdAt}
+              </div>
               <div className="text-lg mb-4">{review.comment}</div>
             </div>
           ))}
           {!showAllReviews && reviews.length > 5 && (
-            <button className="btn btn-primary mt-4 mb-5" onClick={handleShowMoreReviews}>
+            <button
+              className="btn btn-primary mt-4 mb-5"
+              onClick={handleShowMoreReviews}
+            >
               See More Reviews
             </button>
           )}
@@ -466,8 +533,12 @@ ${keywords}
                   />
                   <div className="ml-4">
                     <div className="font-bold">{review?.userName}</div>
-                    <div className="text-gray-500 text-sm">Verified Purchase</div>
-                    <p className="text-muted">Reviewed On {review?.createdAt}</p>
+                    <div className="text-gray-500 text-sm">
+                      Verified Purchase
+                    </div>
+                    <p className="text-muted">
+                      Reviewed On {review?.createdAt}
+                    </p>
                   </div>
                 </div>
                 <div className="text-lg font-semibold">{review.title}</div>
@@ -475,7 +546,11 @@ ${keywords}
                 <div className="text-lg mb-4">{review.comment}</div>
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
-                    <FaStar key={i} size={20} color={i < review.rating ? "#ffc107" : "#e4e5e9"} />
+                    <FaStar
+                      key={i}
+                      size={20}
+                      color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                    />
                   ))}
                 </div>
               </div>
@@ -500,7 +575,9 @@ ${keywords}
                 className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
                 placeholder="Title"
                 value={newReview.title}
-                onChange={(e) => setNewReview({ ...newReview, title: e.target.value })}
+                onChange={(e) =>
+                  setNewReview({ ...newReview, title: e.target.value })
+                }
               />
             </div>
             <div className="mb-4">
@@ -508,7 +585,9 @@ ${keywords}
                 className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
                 placeholder="Your Review"
                 value={newReview.comment}
-                onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                onChange={(e) =>
+                  setNewReview({ ...newReview, comment: e.target.value })
+                }
               />
             </div>
             <button
@@ -539,7 +618,7 @@ export async function getServerSideProps(context) {
   try {
     const response = await fetch(apiUrl);
     if (!response.ok) {
-      throw new Error('Failed to fetch content');
+      throw new Error("Failed to fetch content");
     }
 
     const data = await response.json();
@@ -557,7 +636,7 @@ export async function getServerSideProps(context) {
       },
     };
   } catch (error) {
-    console.error('Error fetching data:', error);
+    console.error("Error fetching data:", error);
     return {
       props: {
         meta: {},

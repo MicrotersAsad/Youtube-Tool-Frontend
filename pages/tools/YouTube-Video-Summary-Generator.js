@@ -1,30 +1,30 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { FaCopy, FaStar } from 'react-icons/fa';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import ClipLoader from 'react-spinners/ClipLoader';
-import Slider from 'react-slick';
-import Head from 'next/head';
-import { useAuth } from '../../contexts/AuthContext';
-import Link from 'next/link';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-import StarRating from './StarRating';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { FaCopy, FaStar } from "react-icons/fa";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import ClipLoader from "react-spinners/ClipLoader";
+import Slider from "react-slick";
+import Head from "next/head";
+import { useAuth } from "../../contexts/AuthContext";
+import Link from "next/link";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import StarRating from "./StarRating";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
-import Image from 'next/image';
-import { format } from 'date-fns';
+import Image from "next/image";
+import { format } from "date-fns";
 
 const VideoSummarizer = ({ meta, faqs }) => {
   const { user, updateUserProfile } = useAuth();
-  const [videoUrl, setVideoUrl] = useState('');
+  const [videoUrl, setVideoUrl] = useState("");
   const [videoInfo, setVideoInfo] = useState(null);
   const [transcript, setTranscript] = useState([]);
   const [summary, setSummary] = useState([]);
-  const [activeTab, setActiveTab] = useState('Transcript');
+  const [activeTab, setActiveTab] = useState("Transcript");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [generateCount, setGenerateCount] = useState(5);
@@ -52,14 +52,15 @@ const VideoSummarizer = ({ meta, faqs }) => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch(`/api/content?category=YouTube-Video-Summary-Generator`);
+        const response = await fetch(
+          `/api/content?category=YouTube-Video-Summary-Generator`
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
         setQuillContent(data[0]?.content || "");
         setExistingContent(data[0]?.content || "");
-
       } catch (error) {
         toast.error("Error fetching content");
       }
@@ -71,7 +72,9 @@ const VideoSummarizer = ({ meta, faqs }) => {
 
   const fetchReviews = async () => {
     try {
-      const response = await fetch("/api/reviews?tool=YouTube-Video-Summary-Generator");
+      const response = await fetch(
+        "/api/reviews?tool=YouTube-Video-Summary-Generator"
+      );
       const data = await response.json();
       const formattedData = data.map((review) => ({
         ...review,
@@ -91,13 +94,15 @@ const VideoSummarizer = ({ meta, faqs }) => {
 
   const fetchSummary = async () => {
     if (user && user.paymentStatus !== "success" && generateCount <= 0) {
-      toast.error("You have reached the limit. Please upgrade for unlimited use.");
+      toast.error(
+        "You have reached the limit. Please upgrade for unlimited use."
+      );
       return;
     }
     setLoading(true);
-    setError('');
+    setError("");
     try {
-      const response = await axios.post('/api/summarize', { videoUrl });
+      const response = await axios.post("/api/summarize", { videoUrl });
       setVideoInfo(response.data.videoInfo);
       setTranscript(response.data.captions);
       setSummary(response.data.summaries);
@@ -105,54 +110,57 @@ const VideoSummarizer = ({ meta, faqs }) => {
         setGenerateCount(generateCount - 1);
       }
     } catch (error) {
-      console.error('Error summarizing video:', error);
-      setError('Failed to summarize video');
-      toast.error('Failed to summarize video');
+      console.error("Error summarizing video:", error);
+      setError("Failed to summarize video");
+      toast.error("Failed to summarize video");
     } finally {
       setLoading(false);
     }
   };
 
   const handleCopy = (text) => {
-    navigator.clipboard.writeText(text).then(() => {
-      toast.success('Copied to clipboard!');
-    }).catch((error) => {
-      console.error('Error copying text:', error);
-      toast.error('Failed to copy text');
-    });
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        toast.success("Copied to clipboard!");
+      })
+      .catch((error) => {
+        console.error("Error copying text:", error);
+        toast.error("Failed to copy text");
+      });
   };
 
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
-      toast.error('All fields are required.');
+      toast.error("All fields are required.");
       return;
     }
 
     try {
-      const response = await fetch('/api/reviews', {
-        method: 'POST',
+      const response = await fetch("/api/reviews", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          tool: 'YouTube-Video-Summary-Generator',
+          tool: "YouTube-Video-Summary-Generator",
           ...newReview,
-          userProfile: user?.profileImage || '',
+          userProfile: user?.profileImage || "",
           userName: user?.username,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit review');
+        throw new Error("Failed to submit review");
       }
 
-      toast.success('Review submitted successfully!');
-      setNewReview({ rating: 0, comment: '', userProfile: '', userName: '' });
+      toast.success("Review submitted successfully!");
+      setNewReview({ rating: 0, comment: "", userProfile: "", userName: "" });
       setShowReviewForm(false);
       fetchReviews();
     } catch (error) {
-      console.error('Failed to submit review:', error);
-      toast.error('Failed to submit review');
+      console.error("Failed to submit review:", error);
+      toast.error("Failed to submit review");
     }
   };
 
@@ -185,24 +193,36 @@ const VideoSummarizer = ({ meta, faqs }) => {
 
   return (
     <>
-      <div className='bg-box'>
+      <div className="bg-box">
         <div>
-          <Image className='shape1' src={announce} alt="announce" />
-          <Image className='shape2' src={cloud} alt="cloud" />
-          <Image className='shape3' src={cloud2} alt="cloud2" />
-          <Image className='shape4' src={chart} alt="chart" />
+          <Image className="shape1" src={announce} alt="announce" />
+          <Image className="shape2" src={cloud} alt="cloud" />
+          <Image className="shape3" src={cloud2} alt="cloud2" />
+          <Image className="shape4" src={chart} alt="chart" />
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
           <Head>
             <title>{meta?.title}</title>
-            <meta name="description" content={meta?.description || "AI Youtube Hashtag Generator"} />
+            <meta
+              name="description"
+              content={meta?.description || "AI Youtube Hashtag Generator"}
+            />
             <meta
               property="og:url"
               content="https://youtube-tool-frontend.vercel.app/tools/YouTube-Video-Summary-Generator"
             />
-            <meta property="og:title" content={meta?.title || "AI Youtube Tag Generator"} />
-            <meta property="og:description" content={meta?.description || "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"} />
+            <meta
+              property="og:title"
+              content={meta?.title || "AI Youtube Tag Generator"}
+            />
+            <meta
+              property="og:description"
+              content={
+                meta?.description ||
+                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
+              }
+            />
             <meta property="og:image" content={meta?.image || ""} />
             <meta name="twitter:card" content={meta?.image || ""} />
             <meta
@@ -213,8 +233,17 @@ const VideoSummarizer = ({ meta, faqs }) => {
               property="twitter:url"
               content="https://youtube-tool-frontend.vercel.app/tools/YouTube-Video-Summary-Generator"
             />
-            <meta name="twitter:title" content={meta?.title || "AI Youtube Tag Generator"} />
-            <meta name="twitter:description" content={meta?.description || "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"} />
+            <meta
+              name="twitter:title"
+              content={meta?.title || "AI Youtube Tag Generator"}
+            />
+            <meta
+              name="twitter:description"
+              content={
+                meta?.description ||
+                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
+              }
+            />
             <meta name="twitter:image" content={meta?.image || ""} />
             {/* - Webpage Schema */}
             <script type="application/ld+json">
@@ -284,22 +313,35 @@ const VideoSummarizer = ({ meta, faqs }) => {
             </script>
           </Head>
           <ToastContainer />
-          <h1 className="text-3xl font-bold text-center mb-6 text-white">YouTube Video Summarizer</h1>
+          <h1 className="text-3xl font-bold text-center mb-6 text-white">
+            YouTube Video Summarizer
+          </h1>
           {modalVisible && (
-            <div className="bottom-0 right-0 bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3 z-50" role="alert">
+            <div
+              className="bottom-0 right-0 bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3 z-50"
+              role="alert"
+            >
               <div className="flex">
                 <div className="py-1">
-                  <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
+                  <svg
+                    className="fill-current h-6 w-6 text-yellow-500 mr-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                  ></svg>
                 </div>
                 <div>
                   {user ? (
-                    user.paymentStatus === 'success' || user.role === 'admin' ? (
+                    user.paymentStatus === "success" ||
+                    user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
                         Congratulations! You can generate unlimited summaries.
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        You can generate {generateCount} more summaries. <Link href="/pricing" className="btn btn-warning ms-3">Upgrade</Link>
+                        You can generate {generateCount} more summaries.{" "}
+                        <Link href="/pricing" className="btn btn-warning ms-3">
+                          Upgrade
+                        </Link>
                       </p>
                     )
                   ) : (
@@ -308,7 +350,12 @@ const VideoSummarizer = ({ meta, faqs }) => {
                     </p>
                   )}
                 </div>
-                <button className="text-yellow-700 ml-auto" onClick={closeModal}>×</button>
+                <button
+                  className="text-yellow-700 ml-auto"
+                  onClick={closeModal}
+                >
+                  ×
+                </button>
               </div>
             </div>
           )}
@@ -326,7 +373,7 @@ const VideoSummarizer = ({ meta, faqs }) => {
               onClick={fetchSummary}
               disabled={loading}
             >
-              {loading ? 'Generating...' : 'Generate Summary'}
+              {loading ? "Generating..." : "Generate Summary"}
             </button>
           </div>
           {loading && (
@@ -341,7 +388,11 @@ const VideoSummarizer = ({ meta, faqs }) => {
           <div className="flex flex-col lg:flex-row">
             <div className="w-full lg:w-1/3 mb-4 lg:mb-0">
               <div className="border rounded pt-6 pb-14 pe-4 ps-4 ">
-                <img src={videoInfo.thumbnail} alt="Video Thumbnail" className="mb-4" />
+                <img
+                  src={videoInfo.thumbnail}
+                  alt="Video Thumbnail"
+                  className="mb-4"
+                />
                 <h2 className="text-xl font-bold mb-2">{videoInfo.title}</h2>
                 <p className="mb-1">Author: {videoInfo.author}</p>
                 <p className="mb-1">Video Duration: {videoInfo.duration}</p>
@@ -352,40 +403,60 @@ const VideoSummarizer = ({ meta, faqs }) => {
               <div className="border rounded p-4">
                 <div className="mb-4">
                   <button
-                    className={`py-2 px-4 rounded ${activeTab === 'Transcript' ? 'bg-red-500 text-white' : 'bg-gray-200'}`}
-                    onClick={() => setActiveTab('Transcript')}
+                    className={`py-2 px-4 rounded ${
+                      activeTab === "Transcript"
+                        ? "bg-red-500 text-white"
+                        : "bg-gray-200"
+                    }`}
+                    onClick={() => setActiveTab("Transcript")}
                   >
                     Transcript
                   </button>
                   <button
-                    className={`py-2 px-4 rounded ml-2 ${activeTab === 'Summary' ? 'bg-red-500 text-white' : 'bg-gray-200'}`}
-                    onClick={() => setActiveTab('Summary')}
+                    className={`py-2 px-4 rounded ml-2 ${
+                      activeTab === "Summary"
+                        ? "bg-red-500 text-white"
+                        : "bg-gray-200"
+                    }`}
+                    onClick={() => setActiveTab("Summary")}
                   >
                     Summary
                   </button>
                 </div>
-                {activeTab === 'Transcript' && (
+                {activeTab === "Transcript" && (
                   <div className="overflow-y-auto max-h-96">
                     {transcript.map((segment, index) => (
                       <div key={index} className="mb-4">
                         <div className="flex items-center justify-between">
-                          <h6 className="text-lg font-semibold text-sky-500"> {index + 1}:00</h6>
+                          <h6 className="text-lg font-semibold text-sky-500">
+                            {" "}
+                            {index + 1}:00
+                          </h6>
                           <FaCopy
                             className="cursor-pointer text-red-500 hover:text-gray-700"
-                            onClick={() => handleCopy(segment.map(caption => caption.text).join(' '))}
+                            onClick={() =>
+                              handleCopy(
+                                segment.map((caption) => caption.text).join(" ")
+                              )
+                            }
                           />
                         </div>
-                        <p>{segment.map(caption => caption.text).join(' ')}</p>
+                        <p>
+                          {segment.map((caption) => caption.text).join(" ")}
+                        </p>
                       </div>
                     ))}
                   </div>
                 )}
-                {activeTab === 'Summary' && (
+                {activeTab === "Summary" && (
                   <div className="overflow-y-auto max-h-96">
                     {summary.map((sum, index) => (
                       <div key={index} className="mb-4">
                         <div className="flex items-center justify-between">
-                          <h6 className="text-lg font-semibold text-sky-500"> {index + 1}:00</h6>
+                          <h6 className="text-lg font-semibold text-sky-500">
+                            {" "}
+                            {index + 1}:00
+                          </h6>
                           <FaCopy
                             className="cursor-pointer text-red-500 hover:text-gray-700"
                             onClick={() => handleCopy(sum)}
@@ -401,38 +472,48 @@ const VideoSummarizer = ({ meta, faqs }) => {
           </div>
         )}
         <div className="content pt-6 pb-5">
-          <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
+          <div
+            dangerouslySetInnerHTML={{ __html: existingContent }}
+            style={{ listStyleType: "none" }}
+          ></div>
         </div>
-        <div className="faq-section">
-          <h2 className="text-2xl font-bold text-center mb-4">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-center">
-            Answered All Frequently Asked Question, Still Confused? Feel Free
-            To Contact Us{" "}
-          </p>
-          <div className="faq-container grid grid-cols-1 md:grid-cols-2 gap-4">
-            {faqs.map((faq, index) => (
-              <div
-                key={index}
-                className={`faq-item text-white border  p-4 ${
-                  openIndex === index ? "shadow " : ""
-                }`}
-              >
-                <div
-                  className="cursor-pointer flex justify-between items-center"
-                  onClick={() => toggleFAQ(index)}
-                >
-                  <h3 className="font-bold text-black">{faq.question}</h3>
-                  <span className="text-white">
-                    {openIndex === index ? "-" : "+"}
-                  </span>
+        <div className="p-5 shadow">
+          <div className="accordion">
+            <h2 className="faq-title">Frequently Asked Questions</h2>
+            <p className="faq-subtitle">
+              Answered All Frequently Asked Questions, Still Confused? Feel Free
+              To Contact Us
+            </p>
+            <div className="faq-grid">
+              {faqs.map((faq, index) => (
+                <div key={index} className="faq-item">
+                  <span id={`accordion-${index}`} className="target-fix"></span>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`open-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`close-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <div
+                    className={`accordion-content ${
+                      openIndex === index ? "open" : ""
+                    }`}
+                  >
+                    <p>{faq.answer}</p>
+                  </div>
                 </div>
-                {openIndex === index && (
-                  <p className="mt-2 text-white">{faq.answer}</p>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
         <hr className="mt-4 mb-2" />

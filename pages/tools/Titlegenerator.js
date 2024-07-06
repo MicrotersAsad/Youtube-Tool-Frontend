@@ -58,7 +58,9 @@ const TitleGenerator = ({ meta }) => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch(`/api/content?category=youtube-title-and-description-generator?tab=title`);
+        const response = await fetch(
+          `/api/content?category=youtube-title-and-description-generator?tab=title`
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch content");
         }
@@ -139,7 +141,8 @@ const TitleGenerator = ({ meta }) => {
     const socialMediaUrls = {
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
       twitter: `https://twitter.com/intent/tweet?url=${url}`,
-      instagram: "You can share this page on Instagram through the Instagram app on your mobile device.",
+      instagram:
+        "You can share this page on Instagram through the Instagram app on your mobile device.",
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
     };
 
@@ -200,7 +203,11 @@ const TitleGenerator = ({ meta }) => {
       return;
     }
 
-    if (user.paymentStatus !== "success" && user.role !== "admin" && generateCount <= 0) {
+    if (
+      user.paymentStatus !== "success" &&
+      user.role !== "admin" &&
+      generateCount <= 0
+    ) {
       toast.error("Upgrade your plan for unlimited use.");
       return;
     }
@@ -209,7 +216,8 @@ const TitleGenerator = ({ meta }) => {
 
     try {
       const response = await fetch("/api/openaiKey");
-      if (!response.ok) throw new Error(`Failed to fetch API keys: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`Failed to fetch API keys: ${response.status}`);
 
       const keysData = await response.json();
       const apiKeys = keysData.map((key) => key.token);
@@ -218,27 +226,30 @@ const TitleGenerator = ({ meta }) => {
 
       for (const key of apiKeys) {
         try {
-          const result = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${key}`,
-            },
-            body: JSON.stringify({
-              model: "gpt-3.5-turbo-16k",
-              messages: [
-                {
-                  role: "system",
-                  content: `Generate a list of at least 20 SEO-friendly Title for keywords: "${tags.join(
-                    ", "
-                  )}".`,
-                },
-                { role: "user", content: tags.join(", ") },
-              ],
-              temperature: 0.7,
-              max_tokens: 3500,
-            }),
-          });
+          const result = await fetch(
+            "https://api.openai.com/v1/chat/completions",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${key}`,
+              },
+              body: JSON.stringify({
+                model: "gpt-3.5-turbo-16k",
+                messages: [
+                  {
+                    role: "system",
+                    content: `Generate a list of at least 20 SEO-friendly Title for keywords: "${tags.join(
+                      ", "
+                    )}".`,
+                  },
+                  { role: "user", content: tags.join(", ") },
+                ],
+                temperature: 0.7,
+                max_tokens: 3500,
+              }),
+            }
+          );
 
           const data = await result.json();
           console.log("API response:", data);
@@ -331,7 +342,9 @@ const TitleGenerator = ({ meta }) => {
 
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
-    const ratingCount = reviews.filter((review) => review.rating === rating).length;
+    const ratingCount = reviews.filter(
+      (review) => review.rating === rating
+    ).length;
     return totalReviews ? (ratingCount / totalReviews) * 100 : 0;
   };
 
@@ -457,23 +470,30 @@ const TitleGenerator = ({ meta }) => {
               <div className="flex">
                 <div className="mt-4">
                   {user ? (
-                    user.paymentStatus === "success" || user.role === "admin" ? (
+                    user.paymentStatus === "success" ||
+                    user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
                         Congratulations! Now you can generate unlimited tags.
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can generate titles {5 - generateCount} more times.{" "}
+                        You are not upgraded. You can generate titles{" "}
+                        {5 - generateCount} more times.{" "}
                         <Link href="/pricing" className="btn btn-warning ms-3">
                           Upgrade
                         </Link>
                       </p>
                     )
                   ) : (
-                    <p className="text-center p-3 alert-warning">Please log in to fetch channel data.</p>
+                    <p className="text-center p-3 alert-warning">
+                      Please log in to fetch channel data.
+                    </p>
                   )}
                 </div>
-                <button className="text-yellow-700 ml-auto" onClick={closeModal}>
+                <button
+                  className="text-yellow-700 ml-auto"
+                  onClick={closeModal}
+                >
                   ×
                 </button>
               </div>
@@ -485,7 +505,10 @@ const TitleGenerator = ({ meta }) => {
               {tags.map((tag, index) => (
                 <span className="tag" key={index}>
                   {tag}
-                  <span className="remove-btn" onClick={() => setTags(tags.filter((_, i) => i !== index))}>
+                  <span
+                    className="remove-btn"
+                    onClick={() => setTags(tags.filter((_, i) => i !== index))}
+                  >
                     ×
                   </span>
                 </span>
@@ -520,10 +543,22 @@ const TitleGenerator = ({ meta }) => {
               </button>
               {showShareIcons && (
                 <div className="flex gap-2">
-                  <FaFacebook className="facebook-icon" onClick={() => shareOnSocialMedia("facebook")} />
-                  <FaInstagram className="instagram-icon" onClick={() => shareOnSocialMedia("instagram")} />
-                  <FaTwitter className="twitter-icon" onClick={() => shareOnSocialMedia("twitter")} />
-                  <FaLinkedin className="linkedin-icon" onClick={() => shareOnSocialMedia("linkedin")} />
+                  <FaFacebook
+                    className="facebook-icon"
+                    onClick={() => shareOnSocialMedia("facebook")}
+                  />
+                  <FaInstagram
+                    className="instagram-icon"
+                    onClick={() => shareOnSocialMedia("instagram")}
+                  />
+                  <FaTwitter
+                    className="twitter-icon"
+                    onClick={() => shareOnSocialMedia("twitter")}
+                  />
+                  <FaLinkedin
+                    className="linkedin-icon"
+                    onClick={() => shareOnSocialMedia("linkedin")}
+                  />
                 </div>
               )}
             </div>
@@ -533,15 +568,27 @@ const TitleGenerator = ({ meta }) => {
       <div className="generated-titles-container">
         {generatedTitles.length > 0 && (
           <div className="select-all-checkbox">
-            <input type="checkbox" checked={selectAll} onChange={handleSelectAll} />
+            <input
+              type="checkbox"
+              checked={selectAll}
+              onChange={handleSelectAll}
+            />
             <span>Select All</span>
           </div>
         )}
         {generatedTitles.map((title, index) => (
           <div key={index} className="title-checkbox">
-            <input className="me-2" type="checkbox" checked={title.selected} onChange={() => toggleTitleSelect(index)} />
+            <input
+              className="me-2"
+              type="checkbox"
+              checked={title.selected}
+              onChange={() => toggleTitleSelect(index)}
+            />
             {title.text}
-            <FaCopy className="copy-icon" onClick={() => copyToClipboard(title.text)} />
+            <FaCopy
+              className="copy-icon"
+              onClick={() => copyToClipboard(title.text)}
+            />
           </div>
         ))}
         {generatedTitles.some((title) => title.selected) && (
@@ -550,45 +597,61 @@ const TitleGenerator = ({ meta }) => {
           </button>
         )}
         {generatedTitles.some((title) => title.selected) && (
-          <button className="btn btn-primary ms-2" onClick={downloadSelectedTitles}>
+          <button
+            className="btn btn-primary ms-2"
+            onClick={downloadSelectedTitles}
+          >
             Download <FaDownload />
           </button>
         )}
       </div>
       <div className="content pt-6 pb-5">
-        <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: "none" }}></div>
+        <div
+          dangerouslySetInnerHTML={{ __html: existingContent }}
+          style={{ listStyleType: "none" }}
+        ></div>
       </div>
-    
-      <div className="faq-section">
-          <h2 className="text-2xl font-bold text-center mb-4">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-center">Answered All Frequently Asked Question, Still Confused? Feel Free To Contact Us </p>
-          <div className="faq-container grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      <div className="p-5 shadow">
+        <div className="accordion">
+          <h2 className="faq-title">Frequently Asked Questions</h2>
+          <p className="faq-subtitle">
+            Answered All Frequently Asked Questions, Still Confused? Feel Free
+            To Contact Us
+          </p>
+          <div className="faq-grid">
             {faqs.map((faq, index) => (
-              <div
-                key={index}
-                className={`faq-item text-white border  p-4 ${
-                  openIndex === index ? "shadow " : ""
-                }`}
-              >
-                <div
-                  className="cursor-pointer flex justify-between items-center"
+              <div key={index} className="faq-item">
+                <span id={`accordion-${index}`} className="target-fix"></span>
+                <a
+                  href={`#accordion-${index}`}
+                  id={`open-accordion-${index}`}
+                  className="accordion-header"
                   onClick={() => toggleFAQ(index)}
                 >
-                  <h3 className="font-bold text-black">{faq.question}</h3>
-                  <span className="text-white">
-                    {openIndex === index ? "-" : "+"}
-                  </span>
+                  {faq.question}
+                </a>
+                <a
+                  href={`#accordion-${index}`}
+                  id={`close-accordion-${index}`}
+                  className="accordion-header"
+                  onClick={() => toggleFAQ(index)}
+                >
+                  {faq.question}
+                </a>
+                <div
+                  className={`accordion-content ${
+                    openIndex === index ? "open" : ""
+                  }`}
+                >
+                  <p>{faq.answer}</p>
                 </div>
-                {openIndex === index && (
-                  <p className="mt-2 text-white">{faq.answer}</p>
-                )}
               </div>
             ))}
           </div>
         </div>
-        <hr className="mt-4 mb-2"/>
+      </div>
+      <hr className="mt-4 mb-2" />
       <div className="row pt-3">
         <div className="col-md-4">
           <div className=" text-3xl font-bold mb-2">Customer reviews</div>
@@ -596,10 +659,15 @@ const TitleGenerator = ({ meta }) => {
             <div className="text-3xl font-bold mr-2">{overallRating}</div>
             <div className="flex">
               {[...Array(5)].map((_, i) => (
-                <FaStar key={i} color={i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"} />
+                <FaStar
+                  key={i}
+                  color={i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"}
+                />
               ))}
             </div>
-            <div className="ml-2 text-sm text-gray-500">{reviews.length} global ratings</div>
+            <div className="ml-2 text-sm text-gray-500">
+              {reviews.length} global ratings
+            </div>
           </div>
           <div>
             {[5, 4, 3, 2, 1].map((rating) => (
@@ -611,7 +679,9 @@ const TitleGenerator = ({ meta }) => {
                     style={{ width: `${calculateRatingPercentage(rating)}%` }}
                   ></div>
                 </div>
-                <div className="w-12 text-left ml-4">{calculateRatingPercentage(rating).toFixed(1)}%</div>
+                <div className="w-12 text-left ml-4">
+                  {calculateRatingPercentage(rating).toFixed(1)}%
+                </div>
               </div>
             ))}
           </div>
@@ -645,18 +715,27 @@ const TitleGenerator = ({ meta }) => {
               </div>
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
-                  <FaStar key={i} size={20} color={i < review.rating ? "#ffc107" : "#e4e5e9"} />
+                  <FaStar
+                    key={i}
+                    size={20}
+                    color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                  />
                 ))}
                 <div>
                   <span className="fw-bold mt-2 ms-2">{review?.title}</span>
                 </div>
               </div>
-              <div className="text-gray-500 text-sm mb-4">Reviewed On {review.createdAt}</div>
+              <div className="text-gray-500 text-sm mb-4">
+                Reviewed On {review.createdAt}
+              </div>
               <div className="text-lg mb-4">{review.comment}</div>
             </div>
           ))}
           {!showAllReviews && reviews.length > 5 && (
-            <button className="btn btn-primary mt-4 mb-5" onClick={handleShowMoreReviews}>
+            <button
+              className="btn btn-primary mt-4 mb-5"
+              onClick={handleShowMoreReviews}
+            >
               See More Reviews
             </button>
           )}
@@ -673,8 +752,12 @@ const TitleGenerator = ({ meta }) => {
                   />
                   <div className="ml-4">
                     <div className="font-bold">{review?.userName}</div>
-                    <div className="text-gray-500 text-sm">Verified Purchase</div>
-                    <p className="text-muted">Reviewed On {review?.createdAt}</p>
+                    <div className="text-gray-500 text-sm">
+                      Verified Purchase
+                    </div>
+                    <p className="text-muted">
+                      Reviewed On {review?.createdAt}
+                    </p>
                   </div>
                 </div>
                 <div className="text-lg font-semibold">{review.title}</div>
@@ -682,7 +765,11 @@ const TitleGenerator = ({ meta }) => {
                 <div className="text-lg mb-4">{review.comment}</div>
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
-                    <FaStar key={i} size={20} color={i < review.rating ? "#ffc107" : "#e4e5e9"} />
+                    <FaStar
+                      key={i}
+                      size={20}
+                      color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                    />
                   ))}
                 </div>
               </div>
@@ -707,7 +794,9 @@ const TitleGenerator = ({ meta }) => {
                 className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
                 placeholder="Title"
                 value={newReview.title}
-                onChange={(e) => setNewReview({ ...newReview, title: e.target.value })}
+                onChange={(e) =>
+                  setNewReview({ ...newReview, title: e.target.value })
+                }
               />
             </div>
             <div className="mb-4">
@@ -715,7 +804,9 @@ const TitleGenerator = ({ meta }) => {
                 className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
                 placeholder="Your Review"
                 value={newReview.comment}
-                onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                onChange={(e) =>
+                  setNewReview({ ...newReview, comment: e.target.value })
+                }
               />
             </div>
             <button
@@ -840,7 +931,12 @@ const TitleGenerator = ({ meta }) => {
         }
 
         .faq-item {
-          background: linear-gradient(135deg, rgba(250, 103, 66, 1) 0%, rgba(255, 94, 58, 1) 50%, rgba(250, 103, 66, 1) 100%);
+          background: linear-gradient(
+            135deg,
+            rgba(250, 103, 66, 1) 0%,
+            rgba(255, 94, 58, 1) 50%,
+            rgba(250, 103, 66, 1) 100%
+          );
           border-radius: 10px;
           padding: 15px;
           flex: 1 1 45%;
@@ -849,7 +945,12 @@ const TitleGenerator = ({ meta }) => {
         }
 
         .faq-item:hover {
-          background: linear-gradient(135deg, rgba(255, 94, 58, 1) 0%, rgba(250, 103, 66, 1) 50%, rgba(255, 94, 58, 1) 100%);
+          background: linear-gradient(
+            135deg,
+            rgba(255, 94, 58, 1) 0%,
+            rgba(250, 103, 66, 1) 50%,
+            rgba(255, 94, 58, 1) 100%
+          );
         }
       `}</style>
     </>
