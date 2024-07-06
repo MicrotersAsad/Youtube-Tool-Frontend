@@ -919,3 +919,7 @@ a {
     grid-template-columns: 1fr 1fr;
   }
 }
+svg{
+  vertical-align: middle;
+  display: inline;
+}
