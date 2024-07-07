@@ -1,121 +1,24 @@
-import Script from "next/script";
-import "../styles/globals.css";
-import Head from "next/head";
-import { AuthProvider } from "../contexts/AuthContext";
-import Footer from "./Footer";
-import "react-toastify/dist/ReactToastify.css";
-import { useEffect, useState } from "react";
-import Navbar from "./Navbar";
-import Notice from "./Notice";
-import metaimg from "../public/yt icon.png";
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import Script from 'next/script';
+import Head from 'next/head';
+import '../styles/globals.css';
+import { AuthProvider } from '../contexts/AuthContext';
+import Footer from './Footer';
+import Navbar from './Navbar';
+import Notice from './Notice';
+import { appWithTranslation } from 'next-i18next';
+
+
 
 function MyApp({ Component, pageProps }) {
-  const [showButton, setShowButton] = useState(false);
-
-  useEffect(() => {
-    const logVisit = async () => {
-      try {
-        await fetch("/api/log-visit", {
-          method: "POST",
-        });
-      } catch (error) {
-        console.error("Error logging site visit:", error);
-      }
-    };
-
-    const handleScroll = () => {
-      if (window.scrollY > 300) {
-        setShowButton(true);
-      } else {
-        setShowButton(false);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    logVisit();
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
+  
   return (
     <>
       <Head>
-        <title>Youtube Tools</title>
-        <meta
-          name="description"
-          content="Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
-        />
-        <meta
-          property="og:url"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta property="og:title" content="Youtube Tool" />
-        <meta
-          property="og:description"
-          content="Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
-        />
-        <meta property="og:image" content={metaimg} />
-        <meta name="twitter:card" content={metaimg} />
-        <meta
-          property="twitter:domain"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta
-          property="twitter:url"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta name="twitter:title" content="Youtube Tool" />
-        <meta
-          name="twitter:description"
-          content="Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
-        />
-        <meta name="twitter:image" content={metaimg} />
-
-        {/* - Website Schema */}
-
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            name: "Youtube Tools",
-            url: "https://youtube-tool-frontend.vercel.app",
-            potentialAction: {
-              "@type": "SearchAction",
-              target: "https://youtube-tool-frontend.vercel.app/search?q={search_term_string}",
-              "query-input": "required name=search_term_string",
-            },
-          })}
-        </script>
-
-        {/* - Organization Schema */}
-
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            name: "Youtube Tools",
-            url: "https://youtube-tool-frontend.vercel.app",
-            logo: "https://youtube-tool-frontend.vercel.app/logo.png",
-            contactPoint: {
-              "@type": "ContactPoint",
-              telephone: "+880 162-519-2766",
-              contactType: "Customer Service",
-            },
-            sameAs: [
-              "https://www.facebook.com/yourprofile",
-              "https://www.twitter.com/yourprofile",
-              "https://www.linkedin.com/in/yourprofile",
-            ],
-          })}
-        </script>
-
-        {/* Bootstrap CSS CDN */}
+        <title>Default Title</title>
+        <meta name="description" content="Default Description" />
+        <link rel="icon" href="/favicon.ico" />
         <link
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
           rel="stylesheet"
@@ -123,54 +26,19 @@ function MyApp({ Component, pageProps }) {
           crossOrigin="anonymous"
         />
       </Head>
-      {/* <Head>
-        <title>Youtube Tool</title>
-        <meta name="description" content="Generated by Youtube Tool" />
-        <link rel='icon' href='/favicon.ico' />
-       
-
-      </Head> */}
-
-      {/* Bootstrap JS CDN */}
       <Script
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
         crossOrigin="anonymous"
-      ></Script>
-
+      />
       <AuthProvider>
         <Notice />
         <Navbar />
         <Component {...pageProps} />
         <Footer />
       </AuthProvider>
-
-      {showButton && (
-        <button
-          onClick={scrollToTop}
-          style={{
-            position: "fixed",
-            bottom: "50px",
-            right: "50px",
-            width: "50px",
-            height: "50px",
-            backgroundColor: "red",
-            color: "#fff",
-            border: "none",
-            borderRadius: "50%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            fontSize: "20px",
-            cursor: "pointer",
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-          }}
-        >
-          ↑
-        </button>
-      )}
     </>
   );
 }
 
-export default MyApp;
+export default appWithTranslation(MyApp);

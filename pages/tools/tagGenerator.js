@@ -22,11 +22,15 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
+import { useTranslation } from 'react-i18next';
+import { i18n } from "next-i18next";
 
-const TagGenerator = ({ meta }) => {
+const TagGenerator = ({ meta = [] }) => {
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();
+  const { t } = useTranslation('common');
   const [tags, setTags] = useState([]);
+  const [faqs, setFaqs] = useState([]);
   const [input, setInput] = useState("");
   const [generatedTitles, setGeneratedTitles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +41,6 @@ const TagGenerator = ({ meta }) => {
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
-  const [faqs, setFaqs] = useState([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
 
   const [newReview, setNewReview] = useState({
@@ -58,24 +61,24 @@ const TagGenerator = ({ meta }) => {
   const closeModal = () => setModalVisible(false);
 
   useEffect(() => {
-    const fetchContent = async () => {
+    const fetchContent = async (lng) => {
       try {
-        const response = await fetch(`/api/content?category=tagGenerator`);
+        const response = await fetch(`/api/content?category=tagGenerator&lang=${lng}`);
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
         console.log(data);
         setQuillContent(data[0].content || "");
         setExistingContent(data[0].content || "");
-        setFaqs(data[0].faqs);
+        setFaqs(data[0]?.faqs || [],)
       } catch (error) {
         console.error("Error fetching content:", error);
         toast.error("Error fetching content");
       }
     };
 
-    fetchContent();
+    fetchContent(i18n.language);
     fetchReviews();
-  }, []);
+  }, [i18n.language]);
 
   useEffect(() => {
     if (user && !user.name) {
@@ -172,8 +175,8 @@ const TagGenerator = ({ meta }) => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(
-      () => toast.success(`Copied: "${text}"`),
-      (err) => toast.error("Failed to copy text")
+      () => toast.success(t('copied', { text })),
+      (err) => toast.error(t('failedToCopy'))
     );
   };
 
@@ -201,7 +204,7 @@ const TagGenerator = ({ meta }) => {
 
   const generateTitles = async () => {
     if (!user) {
-      toast.error("You need to be logged in to generate tags.");
+      toast.error(t('loginToGenerateTags'));
       return;
     }
 
@@ -210,7 +213,7 @@ const TagGenerator = ({ meta }) => {
       user.role !== "admin" &&
       generateCount <= 0
     ) {
-      toast.error("Upgrade your plan for unlimited use.");
+      toast.error(t('upgradeForUnlimited'));
       return;
     }
 
@@ -241,9 +244,7 @@ const TagGenerator = ({ meta }) => {
                 messages: [
                   {
                     role: "system",
-                    content: `Generate a list of at least 20 SEO-friendly tags for keywords: "${tags.join(
-                      ", "
-                    )}".`,
+                    content: t('generateTagsPrompt', { tags: tags.join(", ") }),
                   },
                   { role: "user", content: tags.join(", ") },
                 ],
@@ -306,7 +307,7 @@ const TagGenerator = ({ meta }) => {
     }
 
     if (!newReview.rating || !newReview.comment) {
-      toast.error("All fields are required.");
+      toast.error(t('allFieldsRequired'));
       return;
     }
 
@@ -326,7 +327,7 @@ const TagGenerator = ({ meta }) => {
 
       if (!response.ok) throw new Error("Failed to submit review");
 
-      toast.success("Review submitted successfully!");
+      toast.success(t('reviewSubmitted'));
       setNewReview({
         name: "",
         rating: 0,
@@ -338,7 +339,7 @@ const TagGenerator = ({ meta }) => {
       fetchReviews();
     } catch (error) {
       console.error("Failed to submit review:", error);
-      toast.error("Failed to submit review");
+      toast.error(t('reviewSubmitFailed'));
     }
   };
 
@@ -369,10 +370,10 @@ const TagGenerator = ({ meta }) => {
   return (
     <>
       <Head>
-        <title>{meta?.title}</title>
+        <title>{meta?.title || t('title')}</title>
         <meta
           name="description"
-          content={meta?.description || "AI Youtube Tag Generator"}
+          content={meta?.description || t('description')}
         />
         <meta
           property="og:url"
@@ -380,14 +381,11 @@ const TagGenerator = ({ meta }) => {
         />
         <meta
           property="og:title"
-          content={meta?.title || "AI Youtube Tag Generator"}
+          content={meta?.title || t('title')}
         />
         <meta
           property="og:description"
-          content={
-            meta?.description ||
-            "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
-          }
+          content={meta?.description || t('description')}
         />
         <meta property="og:image" content={meta?.image || ""} />
         <meta name="twitter:card" content={meta?.image || ""} />
@@ -401,14 +399,11 @@ const TagGenerator = ({ meta }) => {
         />
         <meta
           name="twitter:title"
-          content={meta?.title || "AI Youtube Tag Generator"}
+          content={meta?.title || t('title')}
         />
         <meta
           name="twitter:description"
-          content={
-            meta?.description ||
-            "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
-          }
+          content={meta?.description || t('description')}
         />
         <meta name="twitter:image" content={meta?.image || ""} />
         {/* - Webpage Schema */}
@@ -416,15 +411,15 @@ const TagGenerator = ({ meta }) => {
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "WebPage",
-            name: meta?.title,
+            name: meta?.title || t('title'),
             url: "https://youtube-tool-frontend.vercel.app/tools/tagGenerator",
-            description: meta?.description,
+            description: meta?.description || t('description'),
             breadcrumb: {
               "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
             },
             about: {
               "@type": "Thing",
-              name: meta?.title,
+              name: meta?.title || t('title'),
             },
             isPartOf: {
               "@type": "WebSite",
@@ -437,7 +432,7 @@ const TagGenerator = ({ meta }) => {
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
-            name: meta?.title,
+            name: meta?.title || t('title'),
             url: "https://youtube-tool-frontend.vercel.app/tools/tagGenerator",
             applicationCategory: "Multimedia",
             aggregateRating: {
@@ -487,7 +482,7 @@ const TagGenerator = ({ meta }) => {
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-          <h2 className="text-3xl text-white">YouTube Tag Generator</h2>
+          <h2 className="text-3xl text-white">{t('YouTube Tag Generator')}</h2>
           <ToastContainer />
           {modalVisible && (
             <div
@@ -506,19 +501,18 @@ const TagGenerator = ({ meta }) => {
                   <div className="mt-4">
                     {!user ? (
                       <p className="text-center p-3 alert-warning">
-                        You need to be logged in to generate tags.
+                        {t('loginToGenerateTags')}
                       </p>
                     ) : user.paymentStatus === "success" ||
                       user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        Congratulations!! Now you can generate unlimited tags.
+                        {t('generateUnlimitedTags')}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can generate Title{" "}
-                        {5 - generateCount} more times.{" "}
+                        {t('notUpgraded')} {5 - generateCount} {t('moreTimes')}.{" "}
                         <Link className="btn btn-warning ms-3" href="/pricing">
-                          Upgrade
+                          {t('upgrade')}
                         </Link>
                       </p>
                     )}
@@ -547,7 +541,7 @@ const TagGenerator = ({ meta }) => {
             </div>
             <input
               type="text"
-              placeholder="Add a keyword"
+              placeholder={t('addKeyword')}
               className="input-box"
               value={input}
               onChange={handleInputChange}
@@ -563,8 +557,9 @@ const TagGenerator = ({ meta }) => {
                 disabled={isLoading || tags.length === 0}
                 style={{ minWidth: "50px" }}
               >
-                {isLoading ? "Generating..." : "Generate Tag"}
+                {isLoading ? t('generating') : t('generateTag')}
               </button>
+             
             </div>
           </div>
         </div>
@@ -573,7 +568,7 @@ const TagGenerator = ({ meta }) => {
         <div className="text-center">
           <div className="flex gap-2">
             <FaShareAlt className="text-danger fs-3" />
-            <span> Share On Social Media</span>
+            <span> {t('shareOnSocialMedia')}</span>
             <FaFacebook
               className="facebook-icon fs-3"
               onClick={() => shareOnSocialMedia("facebook")}
@@ -600,7 +595,7 @@ const TagGenerator = ({ meta }) => {
                 checked={selectAll}
                 onChange={handleSelectAll}
               />
-              <span>Select All</span>
+              <span>{t('selectAll')}</span>
             </div>
           )}
         </div>
@@ -650,10 +645,9 @@ const TagGenerator = ({ meta }) => {
 
         <div className="p-5 shadow">
           <div className="accordion">
-            <h2 className="faq-title">Frequently Asked Questions</h2>
+            <h2 className="faq-title">{t('frequentlyAskedQuestions')}</h2>
             <p className="faq-subtitle">
-              Answered All Frequently Asked Questions, Still Confused? Feel Free
-              To Contact Us
+              {t('answeredAllFAQs')}
             </p>
             <div className="faq-grid">
               {faqs.map((faq, index) => (
@@ -690,7 +684,7 @@ const TagGenerator = ({ meta }) => {
         <hr className="mt-4 mb-2" />
         <div className="row pt-3">
           <div className="col-md-4">
-            <div className=" text-3xl font-bold mb-2">Customer reviews</div>
+            <div className=" text-3xl font-bold mb-2">{t('customerReviews')}</div>
             <div className="flex items-center mb-2">
               <div className="text-3xl font-bold mr-2">{overallRating}</div>
               <div className="flex">
@@ -704,7 +698,7 @@ const TagGenerator = ({ meta }) => {
                 ))}
               </div>
               <div className="ml-2 text-sm text-gray-500">
-                {reviews.length} global ratings
+                {reviews.length} {t('globalRatings')}
               </div>
             </div>
             <div>
@@ -725,13 +719,13 @@ const TagGenerator = ({ meta }) => {
             </div>
             <hr />
             <div className="pt-3">
-              <h4>Review This Tool</h4>
-              <p>Share Your Thoughts With Other Customers</p>
+              <h4>{t('reviewThisTool')}</h4>
+              <p>{t('shareYourThoughts')}</p>
               <button
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
                 onClick={openReviewForm}
               >
-                Write a customer review
+                {t('writeReview')}
               </button>
             </div>
           </div>
@@ -750,7 +744,7 @@ const TagGenerator = ({ meta }) => {
                   <div className="ml-4">
                     <div className="font-bold">{review?.userName}</div>
                     <div className="text-gray-500 text-sm">
-                      Verified Purchase
+                      {t('verifiedPurchase')}
                     </div>
                   </div>
                 </div>
@@ -768,7 +762,7 @@ const TagGenerator = ({ meta }) => {
                 </div>
 
                 <div className="text-gray-500 text-sm mb-4">
-                  Reviewed On {review.createdAt}
+                  {t('reviewedOn')} {review.createdAt}
                 </div>
                 <div className="text-lg mb-4">{review.comment}</div>
               </div>
@@ -778,7 +772,7 @@ const TagGenerator = ({ meta }) => {
                 className="btn btn-primary mt-4 mb-5"
                 onClick={handleShowMoreReviews}
               >
-                See More Reviews
+                {t('seeMoreReviews')}
               </button>
             )}
             {showAllReviews &&
@@ -795,10 +789,10 @@ const TagGenerator = ({ meta }) => {
                     <div className="ml-4">
                       <div className="font-bold">{review?.userName}</div>
                       <div className="text-gray-500 text-sm">
-                        Verified Purchase
+                        {t('verifiedPurchase')}
                       </div>
                       <p className="text-muted">
-                        Reviewed On {review?.createdAt}
+                        {t('reviewedOn')} {review?.createdAt}
                       </p>
                     </div>
                   </div>
@@ -823,7 +817,7 @@ const TagGenerator = ({ meta }) => {
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="fixed inset-0 bg-black opacity-50"></div>
             <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
-              <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+              <h2 className="text-2xl font-semibold mb-4">{t('leaveReview')}</h2>
               <div className="mb-4">
                 <StarRating
                   rating={newReview.rating}
@@ -834,7 +828,7 @@ const TagGenerator = ({ meta }) => {
                 <input
                   type="text"
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder="Title"
+                  placeholder={t('reviewTitle')}
                   value={newReview.title}
                   onChange={(e) =>
                     setNewReview({ ...newReview, title: e.target.value })
@@ -844,7 +838,7 @@ const TagGenerator = ({ meta }) => {
               <div className="mb-4">
                 <textarea
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder="Your Review"
+                  placeholder={t('yourReview')}
                   value={newReview.comment}
                   onChange={(e) =>
                     setNewReview({ ...newReview, comment: e.target.value })
@@ -855,13 +849,13 @@ const TagGenerator = ({ meta }) => {
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
                 onClick={handleReviewSubmit}
               >
-                Submit Review
+                {t('submitReview')}
               </button>
               <button
                 className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
                 onClick={closeModal}
               >
-                Cancel
+                {t('cancel')}
               </button>
             </div>
           </div>
@@ -871,12 +865,12 @@ const TagGenerator = ({ meta }) => {
   );
 };
 
-export async function getServerSideProps(context) {
-  const { req } = context;
+export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}/api/content?category=tagGenerator`;
+  const apiUrl = `${protocol}://${host}/api/content?category=tagGenerator&lang=${locale}`;
   console.log(apiUrl);
+
   try {
     const response = await fetch(apiUrl);
     if (!response.ok) {
@@ -891,11 +885,11 @@ export async function getServerSideProps(context) {
       image: data[0]?.image || "",
       url: `${protocol}://${host}/tools/tagGenerator`,
     };
-
+console.log(meta);
     return {
       props: {
         meta,
-        faqs: data[0]?.faqs || [],
+        ...(await serverSideTranslations(locale, ['common'])),
       },
     };
   } catch (error) {
@@ -903,7 +897,7 @@ export async function getServerSideProps(context) {
     return {
       props: {
         meta: {},
-        faqs: [],
+        ...(await serverSideTranslations(locale, ['common'])),
       },
     };
   }
