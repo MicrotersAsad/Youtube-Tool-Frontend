@@ -2,7 +2,7 @@ import Head from 'next/head';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
 import { useTranslation } from 'react-i18next';
-import TagGenerator from './tools/TagGenerator';
+import TagGenerator from './tools/tagGenerator';
 import styles from '../styles/Home.module.css';
 
 export default function Home() {
