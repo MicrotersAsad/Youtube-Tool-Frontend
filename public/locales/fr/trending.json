@@ -1,0 +1,40 @@
+{
+  "alert": {
+    "Congratulations! Now you can get unlimited Trending Video.": "Félicitations ! Vous pouvez désormais obtenir des vidéos tendances illimitées.",
+    "You are not upgraded. You can get Trending Video {remaining Generations} more times": "Vous n'êtes pas mis à niveau. Vous pouvez obtenir des vidéos tendances {remaining Generations} fois de plus.",
+    "Upgrade": "Mettre à niveau",
+    "Please log in to fetch channel data.": "Veuillez vous connecter pour récupérer les données du canal."
+  },
+  "YouTube Trending Videos": "Vidéos Tendances YouTube",
+  "dropdowns": {
+    "All": "Tous",
+    "Get Your Trends": "Obtenez Vos Tendances"
+  },
+  "Share": "Partager :",
+  "Loading...": "Chargement...",
+  "Uploaded By:": "Mis en ligne par :",
+  "on": "le",
+  "Category": "Catégorie :",
+  "reviews": {
+    "Customer reviews": "Avis des clients",
+    "global ratings": "évaluations globales",
+    "Review This Tool": "Évaluer cet outil",
+    "Share Your Thoughts With Other Customers": "Partagez vos pensées avec d'autres clients",
+    "Write a customer review": "Écrire un avis client",
+    "Verified Purchase": "Achat vérifié",
+    "Reviewed On": "Revu le",
+    "See More Reviews": "Voir plus d'avis",
+    "Leave a Review": "Laisser un avis",
+    "Title": "Titre",
+    "Your Review": "Votre avis",
+    "Submit Review": "Soumettre l'avis",
+    "Cancel": "Annuler"
+  },
+  "faq": {
+    "Frequently Asked Questions": "Questions Fréquemment Posées",
+    "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us": "Réponses à toutes les questions fréquemment posées, toujours confus ? N'hésitez pas à nous contacter"
+  },
+  "relatedTools": {
+    "Related Tools": "Outils Associés"
+  }
+}

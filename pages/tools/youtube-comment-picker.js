@@ -5,9 +5,6 @@ import Link from "next/link";
 import { useAuth } from "../../contexts/AuthContext";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
@@ -16,8 +13,12 @@ import Image from "next/image";
 import StarRating from "./StarRating";
 import Head from "next/head";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
+import { i18n } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 const YouTubeCommentPicker = ({ meta, faqs }) => {
+  const { t } = useTranslation('comment');
   const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState("");
   const [includeReplies, setIncludeReplies] = useState(false);
@@ -36,6 +37,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
   const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [relatedTools, setRelatedTools] = useState([]);
   const [openIndex, setOpenIndex] = useState(null);
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -44,23 +46,23 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch(
-          `/api/content?category=youtube-comment-picker`
-        );
+        const language = i18n.language;
+        const response = await fetch(`/api/content?category=youtube-comment-picker&language=${language}`);
         if (!response.ok) {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
         setQuillContent(data[0]?.content || "");
         setExistingContent(data[0]?.content || "");
+        setRelatedTools(data[0]?.relatedTools || []);
       } catch (error) {
-        toast.error("Error fetching content");
+        toast.error(t("Error fetching content"));
       }
     };
 
     fetchContent();
     fetchReviews();
-  }, []);
+  }, [i18n.language]);
 
   const fetchReviews = async () => {
     try {
@@ -72,13 +74,13 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
       }));
       setReviews(formattedData);
     } catch (error) {
-      console.error("Failed to fetch reviews:", error);
+      console.error(t("Failed to fetch reviews"), error);
     }
   };
 
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
-      toast.error("All fields are required.");
+      toast.error(t("All fields are required."));
       return;
     }
 
@@ -91,14 +93,14 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
         body: JSON.stringify({
           tool: "youtube-comment-picker",
           ...newReview,
-          userProfile: user?.profileImage || "not available",
+          userProfile: user?.profileImage || t("not available"),
           userName: user?.username,
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to submit review");
+      if (!response.ok) throw new Error(t("Failed to submit review"));
 
-      toast.success("Review submitted successfully!");
+      toast.success(t("Review submitted successfully!"));
       setNewReview({
         name: "",
         rating: 0,
@@ -109,8 +111,8 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
       setShowReviewForm(false);
       fetchReviews();
     } catch (error) {
-      console.error("Failed to submit review:", error);
-      toast.error("Failed to submit review");
+      console.error(t("Failed to submit review"), error);
+      toast.error(t("Failed to submit review"));
     }
   };
 
@@ -162,7 +164,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
 
   const handlePickWinner = async () => {
     if (!user) {
-      toast.error("Please log in to use this tool.");
+      toast.error(t("Please log in to use this tool."));
       return;
     }
 
@@ -172,7 +174,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
       user?.role !== "admin"
     ) {
       toast.error(
-        "You have reached the limit of generating winners. Please upgrade your plan for unlimited use."
+        t("You have reached the limit of generating winners. Please upgrade your plan for unlimited use.")
       );
       return;
     }
@@ -223,8 +225,8 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
         setWinners([]);
       }
     } catch (error) {
-      console.error("Error fetching comments:", error.message);
-      toast.error("Error fetching comments");
+      console.error(t("Error fetching comments"), error.message);
+      toast.error(t("Error fetching comments"));
     } finally {
       setLoading(false);
     }
@@ -238,10 +240,10 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
     <>
       <div className="bg-box">
         <div>
-          <Image className="shape1" src={announce} alt="announce" />
-          <Image className="shape2" src={cloud} alt="cloud" />
-          <Image className="shape3" src={cloud2} alt="cloud2" />
-          <Image className="shape4" src={chart} alt="chart" />
+          <Image className="shape1" src={announce} alt={t("announce")} />
+          <Image className="shape2" src={cloud} alt={t("cloud")} />
+          <Image className="shape3" src={cloud2} alt={t("cloud2")} />
+          <Image className="shape4" src={chart} alt={t("chart")} />
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
@@ -249,7 +251,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
             <title>{meta?.title}</title>
             <meta
               name="description"
-              content={meta?.description || "AI Youtube Hashtag Generator"}
+              content={meta?.description || t("AI Youtube Hashtag Generator")}
             />
             <meta
               property="og:url"
@@ -257,13 +259,13 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
             />
             <meta
               property="og:title"
-              content={meta?.title || "AI Youtube Tag Generator"}
+              content={meta?.title || t("AI Youtube Tag Generator")}
             />
             <meta
               property="og:description"
               content={
                 meta?.description ||
-                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
+                t("Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights")
               }
             />
             <meta property="og:image" content={meta?.image || ""} />
@@ -278,13 +280,13 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
             />
             <meta
               name="twitter:title"
-              content={meta?.title || "AI Youtube Tag Generator"}
+              content={meta?.title || t("AI Youtube Tag Generator")}
             />
             <meta
               name="twitter:description"
               content={
                 meta?.description ||
-                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
+                t("Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights")
               }
             />
             <meta name="twitter:image" content={meta?.image || ""} />
@@ -358,7 +360,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
 
           <ToastContainer />
           <div className="bg-white p-4 rounded-lg shadow-md">
-            <h1 className="text-center">YouTube Comment Picker</h1>
+            <h1 className="text-center">{t("YouTube Comment Picker")}</h1>
             {modalVisible && (
               <div
                 className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
@@ -370,23 +372,23 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
                       user.paymentStatus === "success" ||
                       user.role === "admin" ? (
                         <p className="text-center p-3 alert-warning">
-                          Congratulations!! Now you can pick unlimited winners.
+                          {t("Congratulations!! Now you can pick unlimited winners.")}
                         </p>
                       ) : (
                         <p className="text-center p-3 alert-warning">
-                          You are not upgraded. You can pick winners{" "}
-                          {5 - generateCount} more times.{" "}
+                          {t("You are not upgraded. You can pick winners")}{" "}
+                          {5 - generateCount} {t("more times.")}{" "}
                           <Link
                             href="/pricing"
                             className="btn btn-warning ms-3"
                           >
-                            Upgrade
+                            {t("Upgrade")}
                           </Link>
                         </p>
                       )
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        Please log in to use this tool.
+                        {t("Please log in to use this tool.")}
                       </p>
                     )}
                   </div>
@@ -402,7 +404,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
             <div className="flex items-center space-x-4 mb-4">
               <input
                 type="text"
-                placeholder="https://www.youtube.com/watch?v=example"
+                placeholder={t("https://www.youtube.com/watch?v=example")}
                 className="border p-2 rounded sm:w-2/3"
                 value={videoUrl}
                 onChange={(e) => setVideoUrl(e.target.value)}
@@ -412,18 +414,18 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
                 className="bg-red-500 text-white p-2 rounded"
                 disabled={loading}
               >
-                {loading ? "Loading..." : "Pick a Winner"}
+                {loading ? t("Loading...") : t("Pick a Winner")}
               </button>
             </div>
             <div className="container mx-auto p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-gray-100 rounded-lg shadow-lg">
                 <div className="bg-white p-4 rounded-lg shadow-md">
                   <h3 className="text-xl font-bold mb-4 text-blue-600">
-                    YouTube Comment Options:
+                    {t("YouTube Comment Options:")}
                   </h3>
                   <div className="flex items-center space-x-4 mb-4">
                     <label className="text-gray-700">
-                      Include replies to comments
+                      {t("Include replies to comments")}
                     </label>
                     <input
                       type="checkbox"
@@ -434,7 +436,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
                   </div>
                   <div className="flex items-center space-x-4 mb-4">
                     <label className="text-gray-700">
-                      Filter duplicate users/names
+                      {t("Filter duplicate users/names")}
                     </label>
                     <input
                       type="checkbox"
@@ -445,7 +447,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
                   </div>
                   <div className="flex items-center space-x-4 mb-4">
                     <label className="text-gray-700">
-                      Filter comments on specific text
+                      {t("Filter comments on specific text")}
                     </label>
                     <input
                       type="text"
@@ -457,10 +459,10 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
                 </div>
                 <div className="bg-white p-4 rounded-lg shadow-md">
                   <h3 className="text-xl font-bold mb-4 text-blue-600">
-                    YouTube Raffle Options:
+                    {t("YouTube Raffle Options:")}
                   </h3>
                   <div className="flex items-center space-x-4 mb-4">
-                    <label className="text-gray-700">No. of winners:</label>
+                    <label className="text-gray-700">{t("No. of winners:")}</label>
                     <select
                       value={numberOfWinners}
                       onChange={(e) =>
@@ -479,7 +481,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
               </div>
               {winners.length === 1 && (
                 <div className="bg-white p-4 rounded-lg sm:w-1/3 mx-auto shadow-md mt-5 winner-card">
-                  <h3 className="text-xl font-bold text-center mb-4">Winner</h3>
+                  <h3 className="text-xl font-bold text-center mb-4">{t("Winner")}</h3>
                   {winners.map((winner, index) => (
                     <div
                       key={index}
@@ -514,7 +516,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
               )}
               {winners.length > 1 && (
                 <>
-                  <h2 className="text-center pt-5">Winner</h2>
+                  <h2 className="text-center pt-5">{t("Winners")}</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
                     {winners.map((winner, index) => (
                       <div
@@ -564,10 +566,9 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
         </div>
         <div className="p-5 shadow">
           <div className="accordion">
-            <h2 className="faq-title">Frequently Asked Questions</h2>
+            <h2 className="faq-title">{t("Frequently Asked Questions")}</h2>
             <p className="faq-subtitle">
-              Answered All Frequently Asked Questions, Still Confused? Feel Free
-              To Contact Us
+              {t("Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us")}
             </p>
             <div className="faq-grid">
               {faqs.map((faq, index) => (
@@ -604,7 +605,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
         <hr className="mt-4 mb-2" />
         <div className="row pt-3">
           <div className="col-md-4">
-            <div className=" text-3xl font-bold mb-2">Customer reviews</div>
+            <div className=" text-3xl font-bold mb-2">{t("Customer reviews")}</div>
             <div className="flex items-center mb-2">
               <div className="text-3xl font-bold mr-2">{overallRating}</div>
               <div className="flex">
@@ -618,13 +619,13 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
                 ))}
               </div>
               <div className="ml-2 text-sm text-gray-500">
-                {reviews.length} global ratings
+                {reviews.length} {t("global ratings")}
               </div>
             </div>
             <div>
               {[5, 4, 3, 2, 1].map((rating) => (
                 <div key={rating} className="flex items-center mb-1">
-                  <div className="w-12 text-right mr-4">{rating}-star</div>
+                  <div className="w-12 text-right mr-4">{rating}-{t("star")}</div>
                   <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
                     <div
                       className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0"
@@ -639,13 +640,13 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
             </div>
             <hr />
             <div className="pt-3">
-              <h4>Review This Tool</h4>
-              <p>Share Your Thoughts With Other Customers</p>
+              <h4>{t("Review This Tool")}</h4>
+              <p>{t("Share Your Thoughts With Other Customers")}</p>
               <button
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
                 onClick={openReviewForm}
               >
-                Write a customer review
+                {t("Write a customer review")}
               </button>
             </div>
           </div>
@@ -664,7 +665,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
                   <div className="ml-4">
                     <div className="font-bold">{review?.userName}</div>
                     <div className="text-gray-500 text-sm">
-                      Verified Purchase
+                      {t("Verified Purchase")}
                     </div>
                   </div>
                 </div>
@@ -682,7 +683,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
                 </div>
 
                 <div className="text-gray-500 text-sm mb-4">
-                  Reviewed On {review.createdAt}
+                  {t("Reviewed On")} {review.createdAt}
                 </div>
                 <div className="text-lg mb-4">{review.comment}</div>
               </div>
@@ -692,7 +693,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
                 className="btn btn-primary mt-4 mb-5"
                 onClick={handleShowMoreReviews}
               >
-                See More Reviews
+                {t("See More Reviews")}
               </button>
             )}
             {showAllReviews &&
@@ -709,10 +710,10 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
                     <div className="ml-4">
                       <div className="font-bold">{review?.userName}</div>
                       <div className="text-gray-500 text-sm">
-                        Verified Purchase
+                        {t("Verified Purchase")}
                       </div>
                       <p className="text-muted">
-                        Reviewed On {review?.createdAt}
+                        {t("Reviewed On")} {review?.createdAt}
                       </p>
                     </div>
                   </div>
@@ -737,7 +738,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="fixed inset-0 bg-black opacity-50"></div>
             <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
-              <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+              <h2 className="text-2xl font-semibold mb-4">{t("Leave a Review")}</h2>
               <div className="mb-4">
                 <StarRating
                   rating={newReview.rating}
@@ -748,7 +749,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
                 <input
                   type="text"
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder="Title"
+                  placeholder={t("Title")}
                   value={newReview.title}
                   onChange={(e) =>
                     setNewReview({ ...newReview, title: e.target.value })
@@ -758,7 +759,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
               <div className="mb-4">
                 <textarea
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder="Your Review"
+                  placeholder={t("Your Review")}
                   value={newReview.comment}
                   onChange={(e) =>
                     setNewReview({ ...newReview, comment: e.target.value })
@@ -769,57 +770,84 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
                 onClick={handleReviewSubmit}
               >
-                Submit Review
+                {t("Submit Review")}
               </button>
               <button
                 className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
                 onClick={closeReviewForm}
               >
-                Cancel
+                {t("Cancel")}
               </button>
             </div>
           </div>
         )}
+        {/* Related Tools Section */}
+        <div className="related-tools mt-10 shadow p-5">
+          <h2 className="text-2xl font-bold mb-5">{t('Related Tools')}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {relatedTools.map((tool, index) => (
+              <a key={index} href={tool.link} className="flex items-center border  shadow rounded-md p-4 hover:bg-gray-100">
+               <div className="d-flex">
+               <img src={tool?.Banner?.TagGenerator?.src} alt={`${tool.name} Banner`} className="ml-2 w-14 h-14" />
+               <span className="ms-2">{tool.name}</span>
+               </div>
+              </a>
+            ))}
+          </div>
+        </div>
+        {/* End of Related Tools Section */}
       </div>
     </>
   );
 };
 
-export async function getServerSideProps(context) {
-  const { req } = context;
+export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}/api/content?category=youtube-comment-picker`;
-  console.log(apiUrl);
+  const apiUrl = `${protocol}://${host}/api/content?category=youtube-comment-picker&language=${locale}`;
+  const relatedToolsUrl = `${protocol}://${host}/api/content?category=relatedTools&language=${locale}`;
+
   try {
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
-      throw new Error("Failed to fetch content");
+    const [contentResponse] = await Promise.all([
+      fetch(apiUrl),
+      fetch(relatedToolsUrl)
+    ]);
+
+    if (!contentResponse.ok) {
+      throw new Error(t("Failed to fetch content"));
     }
 
-    const data = await response.json();
+    const [contentData] = await Promise.all([
+      contentResponse.json(),
+    ]);
 
     const meta = {
-      title: data[0]?.title || "",
-      description: data[0]?.description || "",
-      image: data[0]?.image || "",
+      title: contentData[0]?.title || "",
+      description: contentData[0]?.description || "",
+      image: contentData[0]?.image || "",
       url: `${protocol}://${host}/tools/youtube-comment-picker`,
     };
 
     return {
       props: {
         meta,
-        faqs: data[0]?.faqs || [],
+        faqs: contentData[0].faqs || [],
+        ...(await serverSideTranslations(locale, ['common','trending','footer','navbar','titlegenerator','videoDataViewer','banner','logo','search','comment'])),
       },
     };
+  
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error fetching data");
     return {
       props: {
         meta: {},
         faqs: [],
+        ...(await serverSideTranslations(locale, ['common', 'trending','footer','navbar','titlegenerator','videoDataViewer','banner','logo','search','comment'])),
       },
+      
     };
+    
   }
+  
 }
 export default YouTubeCommentPicker;

@@ -1,0 +1,50 @@
+{
+  "YouTube Title and Description Generator": "유튜브 제목 및 설명 생성기",
+  "YouTube Keyword Explorer": "유튜브 키워드 탐색기",
+  "YouTube Money Calculator": "유튜브 수익 계산기",
+  "YouTube Video Ideas Generator": "유튜브 영상 아이디어 생성기",
+  "YouTube Video Stats": "유튜브 영상 통계",
+  "Ads Free": "광고 없음",
+  "YouTube Tag Generator": "유튜브 태그 생성기",
+  "YouTube Thumbnail Generator": "유튜브 썸네일 생성기",
+  "YouTube Video Player": "유튜브 영상 플레이어",
+  "YouTube Comment Picker": "유튜브 댓글 선택기",
+  "Yearly Unlimited Plan": "연간 무제한 플랜",
+  "Per year": "연간",
+
+  "Monthly Unlimited Plan": "월간 무제한 플랜",
+  "Per month": "월간",
+
+  "Can I cancel my plan anytime?": "계획을 언제든지 취소할 수 있습니까?",
+  "Yes, you can cancel your plan at any time from your account settings.": "예, 계정 설정에서 언제든지 계획을 취소할 수 있습니다.",
+
+  "What payment methods do you offer?": "어떤 결제 방법을 제공합니까?",
+  "We accept all major credit cards and PayPal.": "우리는 모든 주요 신용 카드와 PayPal을 수락합니다.",
+
+  "How can I switch/change my plan?": "계획을 어떻게 변경/수정할 수 있습니까?",
+  "You can switch or change your plan from the billing section in your account settings.": "계정 설정의 청구 섹션에서 계획을 변경하거나 수정할 수 있습니다.",
+
+  "Can I purchase only one tool?": "도구 하나만 구입할 수 있습니까?",
+  "Currently, we only offer the entire suite of tools as part of our plans.": "현재 우리는 계획의 일부로 전체 도구 모음을 제공하고 있습니다.",
+
+  "Do you offer discounts for yearly plans?": "연간 계획에 대한 할인을 제공합니까?",
+  "Yes, we offer a significant discount for yearly plans as compared to monthly plans.": "예, 월간 계획과 비교하여 연간 계획에 상당한 할인을 제공합니다.",
+
+  "How can I cancel my plan?": "계획을 어떻게 취소할 수 있습니까?",
+  "You can cancel your plan from the account settings. Your access will remain until the end of the billing period.": "계정 설정에서 계획을 취소할 수 있습니다. 청구 기간이 끝날 때까지 액세스가 유지됩니다.",
+
+  "How can I switch to annual billing?": "연간 청구로 어떻게 전환할 수 있습니까?",
+  "You can switch to annual billing from the billing section in your account settings.": "계정 설정의 청구 섹션에서 연간 청구로 전환할 수 있습니다.",
+
+  "What is your refund policy?": "환불 정책은 무엇입니까?",
+  "We offer a 30-day money-back guarantee if you are not satisfied with our service.": "서비스에 만족하지 못하시면 30일 환불 보장을 제공합니다.",
+
+  "Can I use YTubeTool for free?": "YTubeTool을 무료로 사용할 수 있습니까?",
+  "Yes, we offer a free plan with limited features. You can upgrade anytime to access premium features.": "예, 제한된 기능을 갖춘 무료 플랜을 제공합니다. 언제든지 업그레이드하여 프리미엄 기능에 액세스할 수 있습니다.",
+
+  "Still Have Questions?": "여전히 질문이 있습니까?",
+  "Reach out to us at contact@ytubetool.com or scan the QR code below.": "contact@ytubetool.com으로 연락하거나 아래 QR 코드를 스캔하십시오.",
+
+  "PayPal": "PayPal",
+  "Stripe": "Stripe"
+}

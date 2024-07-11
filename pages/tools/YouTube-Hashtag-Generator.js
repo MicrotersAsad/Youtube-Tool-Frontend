@@ -13,9 +13,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
 import Head from "next/head";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import StarRating from "./StarRating"; // Assuming StarRating is a custom component
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
@@ -23,9 +20,13 @@ import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
+import { i18n } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-const YouTubeHashtagGenerator = ({ meta,faqs }) => {
+const YouTubeHashtagGenerator = ({ meta, faqs }) => {
   const { user, updateUserProfile } = useAuth();
+  const { t } = useTranslation('embed');
   const [tags, setTags] = useState([]);
   const [keyword, setKeyword] = useState("");
   const [generateHashTag, setGenerateHashTag] = useState([]);
@@ -43,25 +44,24 @@ const YouTubeHashtagGenerator = ({ meta,faqs }) => {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
-
+  const [relatedTools, setRelatedTools] = useState([]);
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
   const closeModal = () => setModalVisible(false);
 
-
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch(
-          `/api/content?category=YouTube-Hashtag-Generator`
-        );
+        const language = i18n.language;
+        const response = await fetch(`/api/content?category=YouTube-Hashtag-Generator&language=${language}`);
         if (!response.ok) {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
         setQuillContent(data[0]?.content || "");
         setExistingContent(data[0]?.content || "");
+        setRelatedTools(data[0]?.relatedTools || [])
       } catch (error) {
         console.error("Error fetching content");
       }
@@ -69,7 +69,7 @@ const YouTubeHashtagGenerator = ({ meta,faqs }) => {
 
     fetchContent();
     fetchReviews();
-  }, []);
+  }, [i18n.language]);
 
   useEffect(() => {
     fetch("/api/deal")
@@ -154,8 +154,8 @@ const YouTubeHashtagGenerator = ({ meta,faqs }) => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(
-      () => toast.success(`Copied: "${text}"`),
-      (err) => toast.error("Failed to copy text")
+      () => toast.success(t('Copied: "{{text}}"', { text })),
+      (err) => toast.error(t("Failed to copy text"))
     );
   };
 
@@ -183,7 +183,7 @@ const YouTubeHashtagGenerator = ({ meta,faqs }) => {
 
   const generateHashTags = async () => {
     if (!user) {
-      toast.error("You need to be logged in to generate tags.");
+      toast.error(t("You need to be logged in to generate hashtags"));
       return;
     }
 
@@ -192,7 +192,7 @@ const YouTubeHashtagGenerator = ({ meta,faqs }) => {
       user.role !== "admin" &&
       generateCount <= 0
     ) {
-      toast.error("Upgrade your plan for unlimited use.");
+      toast.error(t("Upgrade your plan for unlimited use."));
       return;
     }
 
@@ -265,7 +265,7 @@ const YouTubeHashtagGenerator = ({ meta,faqs }) => {
 
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
-      toast.error("All fields are required.");
+      toast.error(t("All fields are required."));
       return;
     }
 
@@ -285,7 +285,7 @@ const YouTubeHashtagGenerator = ({ meta,faqs }) => {
 
       if (!response.ok) throw new Error("Failed to submit review");
 
-      toast.success("Review submitted successfully!");
+      toast.success(t("Review submitted successfully!"));
       setNewReview({
         name: "",
         rating: 0,
@@ -297,7 +297,7 @@ const YouTubeHashtagGenerator = ({ meta,faqs }) => {
       fetchReviews();
     } catch (error) {
       console.error("Failed to submit review:", error);
-      toast.error("Failed to submit review");
+      toast.error(t("Failed to submit review"));
     }
   };
 
@@ -318,10 +318,9 @@ const YouTubeHashtagGenerator = ({ meta,faqs }) => {
       setReviews(formattedData);
     } catch (error) {
       console.error("Failed to fetch reviews:", error);
-      toast.error("Failed to fetch reviews");
+      toast.error(t("Failed to fetch reviews"));
     }
   };
-
 
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
@@ -346,9 +345,10 @@ const YouTubeHashtagGenerator = ({ meta,faqs }) => {
     }
     setShowReviewForm(true);
   };
-const closeReviewForm =()=>{
-  setShowReviewForm(false)
-}
+  const closeReviewForm =()=>{
+    setShowReviewForm(false)
+  }
+
   return (
     <>
       <div className="bg-box">
@@ -449,7 +449,7 @@ const closeReviewForm =()=>{
           })}
         </script>
       </Head>
-          <h2 className="text-3xl text-white">YouTube HashTag Generator</h2>
+          <h2 className="text-3xl text-white">{t("YouTube Hashtag Generator")}</h2>
           <ToastContainer />
           {modalVisible && (
             <div
@@ -468,17 +468,17 @@ const closeReviewForm =()=>{
                   <div className="mt-4">
                     {!user ? (
                       <p className="text-center p-3 alert-warning">
-                        You need to be logged in to generate HashTag.
+                        {t("You need to be logged in to generate hashtags")}
                       </p>
                     ) : user.paymentStatus === "success" || user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        Congratulations!! Now you can generate unlimited HashTag.
+                        {t("Congratulations!! Now you can generate unlimited hashtags.")}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can generate HashTag {5 - generateCount} more times.{" "}
+                        {t("You have not upgraded. You can generate")} {5 - generateCount} {t("more times")}.{" "}
                         <Link className="btn btn-warning ms-3" href="/pricing">
-                          Upgrade
+                          {t("Upgrade")}
                         </Link>
                       </p>
                     )}
@@ -507,7 +507,7 @@ const closeReviewForm =()=>{
             </div>
             <input
               type="text"
-              placeholder="Add a keyword"
+              placeholder={t("Add a keyword")}
               className="rounded w-100"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
@@ -515,7 +515,7 @@ const closeReviewForm =()=>{
               required
             />
           </div>
-          <p className="text-white text-center"> Example: php, html, css</p>
+          <p className="text-white text-center"> {t("Example: php, html, css")}</p>
           <div className="center">
             <div className="flex flex-wrap gap-2 justify-center">
               <button
@@ -523,7 +523,7 @@ const closeReviewForm =()=>{
                 onClick={generateHashTags}
                 disabled={isLoading || tags.length === 0}
               >
-                <span> {isLoading ? "Generating..." : "Generate HashTag"}</span>
+                <span> {isLoading ? t("Generating...") : t("Generate Hashtag")}</span>
               </button>
             </div>
           </div>
@@ -533,7 +533,7 @@ const closeReviewForm =()=>{
         <div className="text-center">
           <div className="flex gap-2">
             <FaShareAlt className="text-danger fs-3" />
-            <span> Share On Social Media</span>
+            <span> {t("Share on social media")}</span>
             <FaFacebook
               className="facebook-icon fs-3"
               onClick={() => shareOnSocialMedia("facebook")}
@@ -561,7 +561,7 @@ const closeReviewForm =()=>{
                 checked={selectAll}
                 onChange={handleSelectAll}
               />
-              <span>Select All</span>
+              <span>{t("Select All")}</span>
             </div>
           )}
         </div>
@@ -605,45 +605,43 @@ const closeReviewForm =()=>{
         </div>
 
         <div className='p-5 shadow'>
-
-<div className="accordion">
-<h2 className="faq-title">Frequently Asked Questions</h2>
-<p className="faq-subtitle">
-Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us
-</p>
-<div className="faq-grid">
-{faqs.map((faq, index) => (
-<div key={index} className="faq-item">
-<span id={`accordion-${index}`} className="target-fix"></span>
-<a
-  href={`#accordion-${index}`}
-  id={`open-accordion-${index}`}
-  className="accordion-header"
-  onClick={() => toggleFAQ(index)}
->
-  {faq.question}
-</a>
-<a
-  href={`#accordion-${index}`}
-  id={`close-accordion-${index}`}
-  className="accordion-header"
-  onClick={() => toggleFAQ(index)}
->
-  {faq.question}
-</a>
-<div className={`accordion-content ${openIndex === index ? 'open' : ''}`}>
-  <p>{faq.answer}</p>
-</div>
-</div>
-))}
-</div>
-</div>
-
-</div>
+          <div className="accordion">
+            <h2 className="faq-title">{t("Frequently Asked Questions")}</h2>
+            <p className="faq-subtitle">
+              {t("Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us")}
+            </p>
+            <div className="faq-grid">
+              {faqs.map((faq, index) => (
+                <div key={index} className="faq-item">
+                  <span id={`accordion-${index}`} className="target-fix"></span>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`open-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`close-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <div className={`accordion-content ${openIndex === index ? 'open' : ''}`}>
+                    <p>{faq.answer}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
         <hr className="mt-4 mb-2" />
         <div className="row pt-3">
           <div className="col-md-4">
-            <div className=" text-3xl font-bold mb-2">Customer reviews</div>
+            <div className=" text-3xl font-bold mb-2">{t("Customer Reviews")}</div>
             <div className="flex items-center mb-2">
               <div className="text-3xl font-bold mr-2">{overallRating}</div>
               <div className="flex">
@@ -657,7 +655,7 @@ Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us
                 ))}
               </div>
               <div className="ml-2 text-sm text-gray-500">
-                {reviews.length} global ratings
+                {reviews.length} {t("global ratings")}
               </div>
             </div>
             <div>
@@ -678,13 +676,13 @@ Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us
             </div>
             <hr />
             <div className="pt-3">
-              <h4>Review This Tool</h4>
-              <p>Share Your Thoughts With Other Customers</p>
+              <h4>{t("Review This Tool")}</h4>
+              <p>{t("Share Your Thoughts With Other Customers")}</p>
               <button
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
                 onClick={openReviewForm}
               >
-                Write a customer review
+                {t("Write a customer review")}
               </button>
             </div>
           </div>
@@ -703,7 +701,7 @@ Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us
                   <div className="ml-4">
                     <div className="font-bold">{review?.userName}</div>
                     <div className="text-gray-500 text-sm">
-                      Verified Purchase
+                      {t("Verified Purchase")}
                     </div>
                   </div>
                 </div>
@@ -721,7 +719,7 @@ Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us
                 </div>
 
                 <div className="text-gray-500 text-sm mb-4">
-                  Reviewed On {review.createdAt}
+                  {t("Reviewed on")} {review.createdAt}
                 </div>
                 <div className="text-lg mb-4">{review.comment}</div>
               </div>
@@ -731,7 +729,7 @@ Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us
                 className="btn btn-primary mt-4 mb-5"
                 onClick={handleShowMoreReviews}
               >
-                See More Reviews
+                {t("See More Reviews")}
               </button>
             )}
             {showAllReviews &&
@@ -748,10 +746,10 @@ Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us
                     <div className="ml-4">
                       <div className="font-bold">{review?.userName}</div>
                       <div className="text-gray-500 text-sm">
-                        Verified Purchase
+                        {t("Verified Purchase")}
                       </div>
                       <p className="text-muted">
-                        Reviewed On {review?.createdAt}
+                        {t("Reviewed on")} {review?.createdAt}
                       </p>
                     </div>
                   </div>
@@ -776,7 +774,7 @@ Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="fixed inset-0 bg-black opacity-50"></div>
             <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
-              <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+              <h2 className="text-2xl font-semibold mb-4">{t("Leave a Review")}</h2>
               <div className="mb-4">
                 <StarRating
                   rating={newReview.rating}
@@ -787,7 +785,7 @@ Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us
                 <input
                   type="text"
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder="Title"
+                  placeholder={t("Title")}
                   value={newReview.title}
                   onChange={(e) =>
                     setNewReview({ ...newReview, title: e.target.value })
@@ -797,7 +795,7 @@ Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us
               <div className="mb-4">
                 <textarea
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder="Your Review"
+                  placeholder={t("Your Review")}
                   value={newReview.comment}
                   onChange={(e) =>
                     setNewReview({ ...newReview, comment: e.target.value })
@@ -808,60 +806,84 @@ Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
                 onClick={handleReviewSubmit}
               >
-                Submit Review
+                {t("Submit Review")}
               </button>
               <button
                 className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
                 onClick={closeReviewForm}
               >
-                Cancel
+                {t("Cancel")}
               </button>
             </div>
           </div>
         )}
+         {/* Related Tools Section */}
+         <div className="related-tools mt-10 shadow p-5">
+          <h2 className="text-2xl font-bold mb-5">{t('Related Tools')}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {relatedTools.map((tool, index) => (
+              <a key={index} href={tool.link} className="flex items-center border  shadow rounded-md p-4 hover:bg-gray-100">
+               <div className="d-flex">
+               <img src={tool?.Banner?.TagGenerator?.src} alt={`${tool.name} Banner`} className="ml-2 w-14 h-14" />
+               <span className="ms-2">{tool.name}</span>
+               </div>
+              </a>
+            ))}
+          </div>
+        </div>
+        {/* End of Related Tools Section */}
       </div>
     </>
   );
 };
 
-export async function getServerSideProps(context) {
-  const { req } = context;
+export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}/api/content?category=YouTube-Hashtag-Generator`;
-  console.log(apiUrl);
+  const apiUrl = `${protocol}://${host}/api/content?category=YouTube-Hashtag-Generator&language=${locale}`;
+  const relatedToolsUrl = `${protocol}://${host}/api/content?category=relatedTools&language=${locale}`;
+
   try {
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
-      throw new Error("Failed to fetch content");
+    const [contentResponse] = await Promise.all([
+      fetch(apiUrl),
+      fetch(relatedToolsUrl)
+    ]);
+
+    if (!contentResponse.ok) {
+      throw new Error(t("Failed to fetch content"));
     }
 
-    const data = await response.json();
+    const [contentData] = await Promise.all([
+      contentResponse.json(),
+    ]);
 
     const meta = {
-      title: data[0]?.title || "",
-      description: data[0]?.description || "",
-      image: data[0]?.image || "",
+      title: contentData[0]?.title || "",
+      description: contentData[0]?.description || "",
+      image: contentData[0]?.image || "",
       url: `${protocol}://${host}/tools/YouTube-Hashtag-Generator`,
     };
 
     return {
       props: {
         meta,
-        faqs: data[0]?.faqs || [],
+        faqs: contentData[0].faqs || [],
+        ...(await serverSideTranslations(locale, ['common','trending','footer','navbar','titlegenerator','videoDataViewer','banner','logo','search','embed'])),
       },
     };
+  
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error fetching data");
     return {
       props: {
         meta: {},
         faqs: [],
+        ...(await serverSideTranslations(locale, ['common', 'trending','footer','navbar','titlegenerator','videoDataViewer','banner','logo','search','embed'])),
       },
+      
     };
+    
   }
 }
-
-
 
 export default YouTubeHashtagGenerator;

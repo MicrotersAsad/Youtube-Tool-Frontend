@@ -1,0 +1,40 @@
+{
+  "alert": {
+    "Congratulations! Now you can get unlimited Trending Video.": "Herzlichen Glückwunsch! Sie können jetzt unbegrenzt Trendvideos erhalten.",
+    "You are not upgraded. You can get Trending Video {remaining Generations} more times": "Sie sind nicht aktualisiert. Sie können noch {remaining Generations} Mal Trendvideos erhalten.",
+    "Upgrade": "Upgrade",
+    "Please log in to fetch channel data.": "Bitte melden Sie sich an, um Kanaldaten abzurufen."
+  },
+  "YouTube Trending Videos": "YouTube Trendvideos",
+  "dropdowns": {
+    "All": "Alle",
+    "Get Your Trends": "Holen Sie sich Ihre Trends"
+  },
+  "Share": "Teilen:",
+  "Loading...": "Laden...",
+  "Uploaded By:": "Hochgeladen von:",
+  "on": "am",
+  "Category": "Kategorie:",
+  "reviews": {
+    "Customer reviews": "Kundenrezensionen",
+    "global ratings": "globale Bewertungen",
+    "Review This Tool": "Bewerten Sie dieses Tool",
+    "Share Your Thoughts With Other Customers": "Teilen Sie Ihre Gedanken mit anderen Kunden",
+    "Write a customer review": "Schreiben Sie eine Kundenbewertung",
+    "Verified Purchase": "Verifizierter Kauf",
+    "Reviewed On": "Bewertet am",
+    "See More Reviews": "Weitere Bewertungen anzeigen",
+    "Leave a Review": "Eine Bewertung hinterlassen",
+    "Title": "Titel",
+    "Your Review": "Ihre Bewertung",
+    "Submit Review": "Bewertung abschicken",
+    "Cancel": "Abbrechen"
+  },
+  "faq": {
+    "Frequently Asked Questions": "Häufig gestellte Fragen",
+    "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us": "Alle häufig gestellten Fragen beantwortet, immer noch verwirrt? Kontaktieren Sie uns gerne"
+  },
+  "relatedTools": {
+    "Related Tools": "Verwandte Tools"
+  }
+}

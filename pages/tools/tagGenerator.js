@@ -24,6 +24,7 @@ import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 import { useTranslation } from 'react-i18next';
 import { i18n } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 const TagGenerator = ({ meta = [] }) => {
   const { user, updateUserProfile } = useAuth();
@@ -31,6 +32,7 @@ const TagGenerator = ({ meta = [] }) => {
   const { t } = useTranslation('common');
   const [tags, setTags] = useState([]);
   const [faqs, setFaqs] = useState([]);
+  const [relatedTools, setRelatedTools] = useState([]);
   const [input, setInput] = useState("");
   const [generatedTitles, setGeneratedTitles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,6 +44,7 @@ const TagGenerator = ({ meta = [] }) => {
   const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
 
   const [newReview, setNewReview] = useState({
     name: "",
@@ -61,25 +64,26 @@ const TagGenerator = ({ meta = [] }) => {
   const closeModal = () => setModalVisible(false);
 
   useEffect(() => {
-    const fetchContent = async (lng) => {
+    const fetchContent = async () => {
       try {
-        const response = await fetch(`/api/content?category=tagGenerator&lang=${lng}`);
+        const language = i18n.language || "en";
+        const response = await fetch(`/api/content?category=tagGenerator&language=${language}`);
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
-        console.log(data);
         setQuillContent(data[0].content || "");
         setExistingContent(data[0].content || "");
-        setFaqs(data[0]?.faqs || [],)
+        setFaqs(data[0]?.faqs || []);
+        setRelatedTools(data[0]?.relatedTools || []);
       } catch (error) {
         console.error("Error fetching content:", error);
-        toast.error("Error fetching content");
+ 
       }
     };
 
-    fetchContent(i18n.language);
+    fetchContent();
     fetchReviews();
   }, [i18n.language]);
-
+console.log(relatedTools);
   useEffect(() => {
     if (user && !user.name) {
       updateUserProfile().then(() => setIsUpdated(true));
@@ -255,7 +259,6 @@ const TagGenerator = ({ meta = [] }) => {
           );
 
           const data = await result.json();
-          console.log("API response:", data);
 
           if (data.choices) {
             titles = data.choices[0].message.content
@@ -559,7 +562,6 @@ const TagGenerator = ({ meta = [] }) => {
               >
                 {isLoading ? t('generating') : t('generateTag')}
               </button>
-             
             </div>
           </div>
         </div>
@@ -853,13 +855,25 @@ const TagGenerator = ({ meta = [] }) => {
               </button>
               <button
                 className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
-                onClick={closeModal}
+                onClick={() => setModalVisible(false)}
               >
                 {t('cancel')}
               </button>
             </div>
           </div>
         )}
+
+        <div className="related-tools mt-10 shadow p-5">
+          <h2 className="text-2xl font-bold mb-5">{t('Related Tools')}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {relatedTools.map((tool, index) => (
+              <a key={index} href={tool.link} className="flex items-center border  shadow rounded-md p-4 hover:bg-gray-100">
+                  <img src={tool?.logo?.src} alt={`${tool.name} logo`} className="ml-2 w-12 h-12" />
+                <span>{tool.name}</span>
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
     </>
   );
@@ -869,7 +883,6 @@ export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
   const apiUrl = `${protocol}://${host}/api/content?category=tagGenerator&lang=${locale}`;
-  console.log(apiUrl);
 
   try {
     const response = await fetch(apiUrl);
@@ -885,11 +898,11 @@ export async function getServerSideProps({ req, locale }) {
       image: data[0]?.image || "",
       url: `${protocol}://${host}/tools/tagGenerator`,
     };
-console.log(meta);
+
     return {
       props: {
         meta,
-        ...(await serverSideTranslations(locale, ['common'])),
+        ...(await serverSideTranslations(locale, ['common','navbar','footer'])),
       },
     };
   } catch (error) {
@@ -897,7 +910,7 @@ console.log(meta);
     return {
       props: {
         meta: {},
-        ...(await serverSideTranslations(locale, ['common'])),
+        ...(await serverSideTranslations(locale, ['common','navbar','footer'])),
       },
     };
   }

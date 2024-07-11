@@ -1,0 +1,50 @@
+{
+  "YouTube Title and Description Generator": "YouTubeタイトルと説明生成ツール",
+  "YouTube Keyword Explorer": "YouTubeキーワードエクスプローラー",
+  "YouTube Money Calculator": "YouTubeマネー計算機",
+  "YouTube Video Ideas Generator": "YouTube動画アイデア生成ツール",
+  "YouTube Video Stats": "YouTube動画統計",
+  "Ads Free": "広告なし",
+  "YouTube Tag Generator": "YouTubeタグ生成ツール",
+  "YouTube Thumbnail Generator": "YouTubeサムネイル生成ツール",
+  "YouTube Video Player": "YouTube動画プレーヤー",
+  "YouTube Comment Picker": "YouTubeコメントピッカー",
+  "Yearly Unlimited Plan": "年間無制限プラン",
+  "Per year": "年ごと",
+
+  "Monthly Unlimited Plan": "月間無制限プラン",
+  "Per month": "月ごと",
+
+  "Can I cancel my plan anytime?": "プランをいつでもキャンセルできますか？",
+  "Yes, you can cancel your plan at any time from your account settings.": "はい、アカウント設定からいつでもプランをキャンセルできます。",
+
+  "What payment methods do you offer?": "どのような支払い方法を提供していますか？",
+  "We accept all major credit cards and PayPal.": "主要なクレジットカードとPayPalを受け付けています。",
+
+  "How can I switch/change my plan?": "プランをどうやって変更/変更できますか？",
+  "You can switch or change your plan from the billing section in your account settings.": "アカウント設定の請求セクションからプランを変更または変更できます。",
+
+  "Can I purchase only one tool?": "ツールを一つだけ購入できますか？",
+  "Currently, we only offer the entire suite of tools as part of our plans.": "現在、私たちはプランの一部としてのみツール全体のスイートを提供しています。",
+
+  "Do you offer discounts for yearly plans?": "年間プランには割引がありますか？",
+  "Yes, we offer a significant discount for yearly plans as compared to monthly plans.": "はい、月間プランと比較して年間プランには大幅な割引を提供しています。",
+
+  "How can I cancel my plan?": "プランをどうやってキャンセルできますか？",
+  "You can cancel your plan from the account settings. Your access will remain until the end of the billing period.": "アカウント設定からプランをキャンセルできます。請求期間が終了するまでアクセスは維持されます。",
+
+  "How can I switch to annual billing?": "年間請求に切り替えるにはどうすればいいですか？",
+  "You can switch to annual billing from the billing section in your account settings.": "アカウント設定の請求セクションから年間請求に切り替えることができます。",
+
+  "What is your refund policy?": "返金ポリシーは何ですか？",
+  "We offer a 30-day money-back guarantee if you are not satisfied with our service.": "私たちのサービスに満足していない場合、30日間の返金保証を提供します。",
+
+  "Can I use YTubeTool for free?": "YTubeToolを無料で使用できますか？",
+  "Yes, we offer a free plan with limited features. You can upgrade anytime to access premium features.": "はい、制限された機能を備えた無料プランを提供しています。プレミアム機能にアクセスするためにいつでもアップグレードできます。",
+
+  "Still Have Questions?": "まだ質問がありますか？",
+  "Reach out to us at contact@ytubetool.com or scan the QR code below.": "contact@ytubetool.comまでご連絡いただくか、以下のQRコードをスキャンしてください。",
+
+  "PayPal": "PayPal",
+  "Stripe": "Stripe"
+}

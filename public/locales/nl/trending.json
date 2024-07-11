@@ -1,0 +1,40 @@
+{
+  "alert": {
+    "Congratulations! Now you can get unlimited Trending Video.": "Gefeliciteerd! Nu kun je onbeperkt trending video's bekijken.",
+    "You are not upgraded. You can get Trending Video {remaining Generations} more times": "Je bent niet geüpgraded. Je kunt nog {remaining Generations} keer trending video's bekijken.",
+    "Upgrade": "Upgrade",
+    "Please log in to fetch channel data.": "Log in om kanaalgegevens op te halen."
+  },
+  "YouTube Trending Videos": "YouTube Trending Video's",
+  "dropdowns": {
+    "All": "Alle",
+    "Get Your Trends": "Haal je trends op"
+  },
+  "Share": "Delen:",
+  "Loading...": "Laden...",
+  "Uploaded By:": "Geüpload door:",
+  "on": "op",
+  "Category": "Categorie:",
+  "reviews": {
+    "Customer reviews": "Klantrecensies",
+    "global ratings": "globale beoordelingen",
+    "Review This Tool": "Beoordeel deze tool",
+    "Share Your Thoughts With Other Customers": "Deel je mening met andere klanten",
+    "Write a customer review": "Schrijf een klantrecensie",
+    "Verified Purchase": "Geverifieerde aankoop",
+    "Reviewed On": "Beoordeeld op",
+    "See More Reviews": "Meer recensies bekijken",
+    "Leave a Review": "Laat een recensie achter",
+    "Title": "Titel",
+    "Your Review": "Je recensie",
+    "Submit Review": "Recensie indienen",
+    "Cancel": "Annuleren"
+  },
+  "faq": {
+    "Frequently Asked Questions": "Veelgestelde Vragen",
+    "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us": "Alle veelgestelde vragen beantwoord, nog steeds in de war? Neem gerust contact met ons op"
+  },
+  "relatedTools": {
+    "Related Tools": "Gerelateerde Tools"
+  }
+}

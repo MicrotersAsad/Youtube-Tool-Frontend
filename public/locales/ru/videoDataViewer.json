@@ -1,0 +1,51 @@
+{
+   
+      "Congratulations! Now you can get unlimited  Video Data View.": "Поздравляем! Теперь вы можете получать неограниченное количество просмотров данных видео.",
+      "You are not upgraded. You can get Video Data View   { remainingGenerations: 5 - generateCount } more times": "Вы не обновлены. Вы можете получить просмотры данных видео еще { remainingGenerations: 5 - generateCount } раз.",
+      "Upgrade": "Обновить",
+      "Please log in to fetch channel data.": "Пожалуйста, войдите, чтобы получить данные канала.",
+      "Please enter a valid URL.": "Пожалуйста, введите действительный URL.",
+      "Fetch limit exceeded. Please upgrade for unlimited access.": "Превышен лимит получения данных. Пожалуйста, обновитесь для неограниченного доступа.",
+      "Data fetched successfully!": "Данные успешно получены!"
+    ,
+    "YouTube Video Data Viewer": "Просмотр данных видео YouTube",
+    "Enter YouTube Video URL...": "Введите URL видео YouTube...",
+    "Example:https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s": "Пример: https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s",
+    "Loading...": "Загрузка...",
+    "Fetch Data": "Получить данные",
+    "Property": "Свойство",
+    "Value": "Значение",
+    "Duration": "Длительность",
+    "View Count": "Количество просмотров",
+    "Like/Dislike Count": "Количество лайков/дизлайков",
+    "Comment Count": "Количество комментариев",
+    "Published At": "Опубликовано",
+    "Is Embeddable": "Встраиваемое",
+    "Video Tags": "Теги видео",
+    "Description": "Описание",
+
+      "All fields are required.": "Все поля обязательны для заполнения.",
+      "Review submitted successfully!": "Отзыв успешно отправлен!",
+      "Failed to submit review.": "Не удалось отправить отзыв.",
+      "Customer reviews": "Отзывы клиентов",
+      "global ratings": "глобальные рейтинги",
+      "Review This Tool": "Оцените этот инструмент",
+      "Share Your Thoughts With Other Customers": "Поделитесь своими мыслями с другими клиентами",
+      "Write a customer review": "Написать отзыв клиента",
+      "Verified Purchase": "Подтвержденная покупка",
+      "Reviewed On": "Отзыв оставлен",
+      "See More Reviews": "Посмотреть больше отзывов",
+      "Leave a Review": "Оставить отзыв",
+      "Title": "Заголовок",
+      "Your Review": "Ваш отзыв",
+      "Submit Review": "Отправить отзыв",
+      "Cancel": "Отменить"
+   ,
+      "Frequently Asked Questions": "Часто задаваемые вопросы",
+      "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us": "Ответили на все часто задаваемые вопросы, все еще не уверены? Свяжитесь с нами"
+    ,
+    
+      "Related Tools": "Связанные инструменты"
+    
+  }
+  

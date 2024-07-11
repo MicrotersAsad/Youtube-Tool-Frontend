@@ -27,14 +27,14 @@ const handler = async (req, res) => {
 };
 
 const handleGet = async (req, res) => {
-  const { category } = req.query;
+  const { category, language } = req.query;
 
-  if (!category) {
-    return res.status(400).json({ message: 'Category is required' });
+  if (!category || !language) {
+    return res.status(400).json({ message: 'Category and language are required' });
   }
 
   const { db } = await connectToDatabase();
-  const result = await db.collection('content').find({ category }).toArray();
+  const result = await db.collection('content').find({ category, language }).toArray();
 
   res.status(200).json(result);
 };
@@ -45,15 +45,24 @@ const handlePost = async (req, res) => {
       return res.status(500).json({ message: 'File upload failed', error: err.message });
     }
 
-    const { category } = req.query;
-    const { content, title, description, faqs } = req.body;
+    const { category, language } = req.query;
+    const { content, title, description, faqs, relatedTools } = req.body;
     const image = req.file;
 
-    if (!category || !content || !title || !description) {
+    if (!category || !content || !title || !description || !language) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
     const imageUrl = image ? `/uploads/${image.filename}` : null;
+
+    // Process related tools to add the correct image URLs
+    const parsedRelatedTools = relatedTools ? JSON.parse(relatedTools) : [];
+    const processedRelatedTools = parsedRelatedTools.map((tool) => {
+      if (tool.logo && typeof tool.logo === 'object' && tool.logo.path) {
+        return { ...tool, logo: `/uploads/${tool.logo.path}` };
+      }
+      return tool;
+    });
 
     const doc = {
       content,
@@ -61,7 +70,9 @@ const handlePost = async (req, res) => {
       description,
       image: imageUrl,
       category,
+      language,
       faqs: faqs ? JSON.parse(faqs) : [],
+      relatedTools: processedRelatedTools,
     };
 
     const { db } = await connectToDatabase();
@@ -81,11 +92,11 @@ const handlePut = async (req, res) => {
       return res.status(500).json({ message: 'File upload failed', error: err.message });
     }
 
-    const { category } = req.query;
-    const { content, title, description, faqs } = req.body;
+    const { category, language } = req.query;
+    const { content, title, description, faqs, relatedTools } = req.body;
     const image = req.file;
 
-    if (!category || !content || !title || !description) {
+    if (!category || !content || !title || !description || !language) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -97,10 +108,11 @@ const handlePut = async (req, res) => {
       description,
       ...(imageUrl && { image: imageUrl }),
       faqs: faqs ? JSON.parse(faqs) : [],
+      relatedTools: relatedTools ? JSON.parse(relatedTools) : [],
     };
 
     const { db } = await connectToDatabase();
-    const filter = { category };
+    const filter = { category, language };
     const updateDoc = { $set: doc };
     const result = await db.collection('content').updateOne(filter, updateDoc, { upsert: true });
 

@@ -1,0 +1,52 @@
+{
+    
+      "Congratulations! Now you can get unlimited  Video Data View.": "恭喜！现在您可以获得无限的视频数据查看权限。",
+      "You are not upgraded. You can get Video Data View   { remainingGenerations: 5 - generateCount } more times": "您还没有升级。您还可以获得 { remainingGenerations: 5 - generateCount } 次视频数据查看权限。",
+      "Upgrade": "升级",
+      "Please log in to fetch channel data.": "请登录以获取频道数据。",
+      "Please enter a valid URL.": "请输入有效的URL。",
+      "Fetch limit exceeded. Please upgrade for unlimited access.": "获取次数已达上限。请升级以获得无限访问权限。",
+      "Data fetched successfully!": "数据获取成功！"
+    ,
+    "YouTube Video Data Viewer": "YouTube视频数据查看器",
+    "Enter YouTube Video URL...": "输入YouTube视频URL...",
+    "Example:https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s": "示例：https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s",
+    "Loading...": "加载中...",
+    "Fetch Data": "获取数据",
+    "Property": "属性",
+    "Value": "值",
+    "Duration": "时长",
+    "View Count": "观看次数",
+    "Like/Dislike Count": "点赞/踩数",
+    "Comment Count": "评论数",
+    "Published At": "发布时间",
+    "Is Embeddable": "可嵌入",
+    "Video Tags": "视频标签",
+    "Description": "描述",
+  
+      "All fields are required.": "所有字段均为必填项。",
+      "Review submitted successfully!": "评论提交成功！",
+      "Failed to submit review.": "提交评论失败。",
+      "Customer reviews": "客户评论",
+      "global ratings": "全球评分",
+      "Review This Tool": "评论此工具",
+      "Share Your Thoughts With Other Customers": "与其他客户分享您的想法",
+      "Write a customer review": "撰写客户评论",
+      "Verified Purchase": "已验证购买",
+      "Reviewed On": "评论于",
+      "See More Reviews": "查看更多评论",
+      "Leave a Review": "留下评论",
+      "Title": "标题",
+      "Your Review": "您的评论",
+      "Submit Review": "提交评论",
+      "Cancel": "取消"
+    ,
+    
+      "Frequently Asked Questions": "常见问题",
+      "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us": "回答了所有常见问题，仍有疑问？随时联系我们"
+    ,
+
+      "Related Tools": "相关工具"
+    
+  }
+  

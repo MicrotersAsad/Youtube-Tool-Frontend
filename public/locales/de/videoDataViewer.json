@@ -1,0 +1,51 @@
+{
+    
+      "Congratulations! Now you can get unlimited  Video Data View.": "Herzlichen Glückwunsch! Jetzt können Sie unbegrenzt Videodatenansichten erhalten.",
+      "You are not upgraded. You can get Video Data View   { remainingGenerations: 5 - generateCount } more times": "Sie sind nicht aktualisiert. Sie können die Videodatenansicht noch { remainingGenerations: 5 - generateCount } Mal erhalten.",
+      "Upgrade": "Upgrade",
+      "Please log in to fetch channel data.": "Bitte melden Sie sich an, um Kanaldaten abzurufen.",
+      "Please enter a valid URL.": "Bitte geben Sie eine gültige URL ein.",
+      "Fetch limit exceeded. Please upgrade for unlimited access.": "Abruflimit überschritten. Bitte aktualisieren Sie für unbegrenzten Zugang.",
+      "Data fetched successfully!": "Daten erfolgreich abgerufen!",
+ 
+    "YouTube Video Data Viewer": "YouTube-Videodaten-Viewer",
+    "Enter YouTube Video URL...": "Geben Sie die YouTube-Video-URL ein...",
+    "Example:https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s": "Beispiel: https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s",
+    "Loading...": "Lädt...",
+    "Fetch Data": "Daten abrufen",
+    "Property": "Eigenschaft",
+    "Value": "Wert",
+    "Duration": "Dauer",
+    "View Count": "Aufrufanzahl",
+    "Like/Dislike Count": "Gefällt mir/Gefällt mir nicht Anzahl",
+    "Comment Count": "Kommentaranzahl",
+    "Published At": "Veröffentlicht am",
+    "Is Embeddable": "Einbettbar",
+    "Video Tags": "Video-Tags",
+    "Description": "Beschreibung",
+    
+      "All fields are required.": "Alle Felder sind erforderlich.",
+      "Review submitted successfully!": "Bewertung erfolgreich eingereicht!",
+      "Failed to submit review.": "Bewertung konnte nicht eingereicht werden.",
+      "Customer reviews": "Kundenbewertungen",
+      "global ratings": "Globale Bewertungen",
+      "Review This Tool": "Bewerten Sie dieses Tool",
+      "Share Your Thoughts With Other Customers": "Teilen Sie Ihre Gedanken mit anderen Kunden",
+      "Write a customer review": "Schreiben Sie eine Kundenbewertung",
+      "Verified Purchase": "Verifizierter Kauf",
+      "Reviewed On": "Bewertet am",
+      "See More Reviews": "Weitere Bewertungen anzeigen",
+      "Leave a Review": "Bewertung abgeben",
+      "Title": "Titel",
+      "Your Review": "Ihre Bewertung",
+      "Submit Review": "Bewertung einreichen",
+      "Cancel": "Abbrechen",
+   
+      "Frequently Asked Questions": "Häufig gestellte Fragen",
+      "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us": "Alle häufig gestellten Fragen beantwortet, immer noch verwirrt? Kontaktieren Sie uns gerne."
+    ,
+    
+      "Related Tools": "Verwandte Tools"
+    
+  }
+  

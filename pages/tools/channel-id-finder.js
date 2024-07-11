@@ -15,15 +15,17 @@ import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 import Head from "next/head";
 import { format } from "date-fns";
+import { i18n, useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
 const ChannelIdFinder = ({ meta, faqs }) => {
   const { user, updateUserProfile } = useAuth();
   const [modalVisible, setModalVisible] = useState(true);
   const [videoUrl, setVideoUrl] = useState("");
+  const { t } = useTranslation('channelId');
   const [loading, setLoading] = useState(false);
   const [channelData, setChannelData] = useState(null);
   const [error, setError] = useState("");
-  const [content, setContent] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
   const [quillContent, setQuillContent] = useState("");
@@ -35,6 +37,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
     comment: "",
     userProfile: "",
   });
+  const [relatedTools, setRelatedTools] = useState([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
@@ -47,19 +50,24 @@ const ChannelIdFinder = ({ meta, faqs }) => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch(`/api/content?category=channel-id-finder`);
-        if (!response.ok) throw new Error("Failed to fetch content");
+        const language = i18n.language;
+        const response = await fetch(
+          `/api/content?category=channel-id-finder&language=${language}`
+        );
+        if (!response.ok) throw new Error(t("Failed to fetch content"));
         const data = await response.json();
+        
         setQuillContent(data[0]?.content || "");
         setExistingContent(data[0]?.content || "");
+        setRelatedTools(data[0]?.relatedTools || []);
       } catch (error) {
-        toast.error("Error fetching content");
+        toast.error(t("Error fetching content"));
       }
     };
 
     fetchContent();
     fetchReviews();
-  }, []);
+  }, [i18n.language, t]);
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
@@ -93,21 +101,21 @@ const ChannelIdFinder = ({ meta, faqs }) => {
         },
         body: JSON.stringify({ videoUrl }),
       });
-      if (!response.ok) throw new Error("Failed to fetch channel data");
+      if (!response.ok) throw new Error(t("Failed to fetch channel data"));
       return await response.json();
     } catch (error) {
-      throw new Error(error.message || "Unknown error occurred");
+      throw new Error(error.message || t("Unknown error occurred"));
     }
   };
 
   const handleFetch = async () => {
     if (!user) {
-      toast.error("Please log in to fetch channel data.");
+      toast.error(t("Please log in to fetch channel data."));
       return;
     }
 
     if (!videoUrl) {
-      toast.error("Please enter a YouTube video URL.");
+      toast.error(t("Please enter a YouTube video URL."));
       return;
     }
 
@@ -116,7 +124,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
       user.paymentStatus !== "success" &&
       user.role !== "admin"
     ) {
-      toast.error("Fetch limit exceeded. Please upgrade for unlimited access.");
+      toast.error(t("Fetch limit exceeded. Please upgrade for unlimited access."));
       return;
     }
 
@@ -125,7 +133,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
     try {
       const data = await fetchVideoData(videoUrl);
       setChannelData(data);
-      toast.success("Channel data fetched successfully!");
+      toast.success(t("Channel data fetched successfully!"));
       if (user && user.paymentStatus !== "success" && user.role !== "admin") {
         const newCount = generateCount + 1;
         setGenerateCount(newCount);
@@ -149,7 +157,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
       }));
       setReviews(formattedData);
     } catch (error) {
-      console.error("Failed to fetch reviews:", error);
+      console.error(t("Failed to fetch reviews:"), error);
     }
   };
 
@@ -160,7 +168,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
     }
 
     if (!newReview.rating || !newReview.comment) {
-      toast.error("All fields are required.");
+      toast.error(t("All fields are required."));
       return;
     }
 
@@ -178,9 +186,9 @@ const ChannelIdFinder = ({ meta, faqs }) => {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to submit review");
+      if (!response.ok) throw new Error(t("Failed to submit review"));
 
-      toast.success("Review submitted successfully!");
+      toast.success(t("Review submitted successfully!"));
       setNewReview({
         name: "",
         rating: 0,
@@ -191,8 +199,8 @@ const ChannelIdFinder = ({ meta, faqs }) => {
       setShowReviewForm(false);
       fetchReviews();
     } catch (error) {
-      console.error("Failed to submit review:", error);
-      toast.error("Failed to submit review");
+      console.error(t("Failed to submit review:"), error);
+      toast.error(t("Failed to submit review"));
     }
   };
 
@@ -222,6 +230,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
   const closeReviewForm = () => {
     setShowReviewForm(false);
   };
+
   return (
     <>
       <div className="bg-box">
@@ -237,7 +246,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
             <title>{meta?.title}</title>
             <meta
               name="description"
-              content={meta?.description || "AI Youtube Hashtag Generator"}
+              content={meta?.description || t("AI Youtube Hashtag Generator")}
             />
             <meta
               property="og:url"
@@ -245,13 +254,13 @@ const ChannelIdFinder = ({ meta, faqs }) => {
             />
             <meta
               property="og:title"
-              content={meta?.title || "AI Youtube Tag Generator"}
+              content={meta?.title || t("AI Youtube Tag Generator")}
             />
             <meta
               property="og:description"
               content={
                 meta?.description ||
-                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
+                t("Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights")
               }
             />
             <meta property="og:image" content={meta?.image || ""} />
@@ -266,13 +275,13 @@ const ChannelIdFinder = ({ meta, faqs }) => {
             />
             <meta
               name="twitter:title"
-              content={meta?.title || "AI Youtube Tag Generator"}
+              content={meta?.title || t("AI Youtube Tag Generator")}
             />
             <meta
               name="twitter:description"
               content={
                 meta?.description ||
-                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
+                t("Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights")
               }
             />
             <meta name="twitter:image" content={meta?.image || ""} />
@@ -345,7 +354,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
           </Head>
           <ToastContainer />
           <h1 className="text-3xl font-bold text-center text-white mb-6">
-            YouTube Channel ID Finder
+            {t("YouTube Channel ID Finder")}
           </h1>
           {modalVisible && (
             <div
@@ -358,20 +367,19 @@ const ChannelIdFinder = ({ meta, faqs }) => {
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        Congratulations! Now you can get unlimited Channel Data.
+                        {t("Congratulations! Now you can get unlimited Channel Data.")}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can get Channel Data{" "}
-                        {5 - generateCount} more times.{" "}
+                        {t("You are not upgraded. You can get Channel Data {{remainingGenerations}} more times.", { remainingGenerations: 5 - generateCount })}{" "}
                         <Link href="/pricing" className="btn btn-warning ms-3">
-                          Upgrade
+                          {t("Upgrade")}
                         </Link>
                       </p>
                     )
                   ) : (
                     <p className="text-center p-3 alert-warning">
-                      Please log in to fetch channel data.
+                      {t("Please log in to fetch channel data.")}
                     </p>
                   )}
                 </div>
@@ -389,7 +397,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
               <input
                 type="text"
                 className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                placeholder="Enter YouTube Video URL..."
+                placeholder={t("Enter YouTube Video URL...")}
                 value={videoUrl}
                 onChange={(e) => setVideoUrl(e.target.value)}
                 onKeyPress={(event) => {
@@ -397,7 +405,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
                 }}
               />
               <small className="text-white">
-                Example: https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s
+                {t("Example: https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s")}
               </small>
             </div>
             <button
@@ -407,7 +415,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
               onClick={handleFetch}
               disabled={loading}
             >
-              {loading ? "Loading..." : "Fetch Data"}
+              {loading ? t("Loading...") : t("Fetch Data")}
             </button>
           </div>
           {error && (
@@ -421,13 +429,13 @@ const ChannelIdFinder = ({ meta, faqs }) => {
         {channelData && (
           <div className="mt-8">
             <p>
-              <strong>Channel ID:</strong> {channelData.channelId}
+              <strong>{t("Channel ID")}:</strong> {channelData.channelId}
             </p>
             <p className="text-2xl font-semibold">
-              <strong>Channel Name:</strong> {channelData.channelName}
+              <strong>{t("Channel Name")}:</strong> {channelData.channelName}
             </p>
             <p>
-              <strong>Channel URL:</strong>{" "}
+              <strong>{t("Channel URL")}:</strong>{" "}
               <a
                 href={channelData.channelUrl}
                 target="_blank"
@@ -438,19 +446,19 @@ const ChannelIdFinder = ({ meta, faqs }) => {
               </a>
             </p>
             <p>
-              <strong>Description:</strong> {channelData.channelDescription}
+              <strong>{t("Description")}:</strong> {channelData.channelDescription}
             </p>
             <p>
-              <strong>Subscribers:</strong> {channelData.subscribers}
+              <strong>{t("Subscribers")}:</strong> {channelData.subscribers}
             </p>
             <p>
-              <strong>Total Views:</strong> {channelData.totalViews}
+              <strong>{t("Total Views")}:</strong> {channelData.totalViews}
             </p>
             <p>
-              <strong>Video Count:</strong> {channelData.videoCount}
+              <strong>{t("Video Count")}:</strong> {channelData.videoCount}
             </p>
             <p>
-              <strong>Tags:</strong> {channelData.channelTags}
+              <strong>{t("Tags")}:</strong> {channelData.channelTags}
             </p>
             <div className="flex flex-wrap justify-center mt-4">
               <img
@@ -462,7 +470,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
             <div className="flex flex-wrap justify-center mt-4">
               <a href={channelData.channelProfileImage} download>
                 <button className="btn btn-primary mt-2">
-                  Download Profile Image
+                  {t("Download Profile Image")}
                 </button>
               </a>
             </div>
@@ -477,10 +485,9 @@ const ChannelIdFinder = ({ meta, faqs }) => {
 
         <div className="p-5 shadow">
           <div className="accordion">
-            <h2 className="faq-title">Frequently Asked Questions</h2>
+            <h2 className="faq-title">{t("Frequently Asked Questions")}</h2>
             <p className="faq-subtitle">
-              Answered All Frequently Asked Questions, Still Confused? Feel Free
-              To Contact Us
+              {t("Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us")}
             </p>
             <div className="faq-grid">
               {faqs.map((faq, index) => (
@@ -492,7 +499,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
                     className="accordion-header"
                     onClick={() => toggleFAQ(index)}
                   >
-                    {faq.question}
+                    {t(faq.question)}
                   </a>
                   <a
                     href={`#accordion-${index}`}
@@ -500,14 +507,14 @@ const ChannelIdFinder = ({ meta, faqs }) => {
                     className="accordion-header"
                     onClick={() => toggleFAQ(index)}
                   >
-                    {faq.question}
+                    {t(faq.question)}
                   </a>
                   <div
                     className={`accordion-content ${
                       openIndex === index ? "open" : ""
                     }`}
                   >
-                    <p>{faq.answer}</p>
+                    <p>{t(faq.answer)}</p>
                   </div>
                 </div>
               ))}
@@ -517,7 +524,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
         <hr className="mt-4 mb-2" />
         <div className="row pt-3">
           <div className="col-md-4">
-            <div className=" text-3xl font-bold mb-2">Customer reviews</div>
+            <div className=" text-3xl font-bold mb-2">{t("Customer reviews")}</div>
             <div className="flex items-center mb-2">
               <div className="text-3xl font-bold mr-2">{overallRating}</div>
               <div className="flex">
@@ -531,7 +538,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
                 ))}
               </div>
               <div className="ml-2 text-sm text-gray-500">
-                {reviews.length} global ratings
+                {reviews.length} {t("global ratings")}
               </div>
             </div>
             <div>
@@ -552,13 +559,13 @@ const ChannelIdFinder = ({ meta, faqs }) => {
             </div>
             <hr />
             <div className="pt-3">
-              <h4>Review This Tool</h4>
-              <p>Share Your Thoughts With Other Customers</p>
+              <h4>{t("Review This Tool")}</h4>
+              <p>{t("Share Your Thoughts With Other Customers")}</p>
               <button
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
                 onClick={openReviewForm}
               >
-                Write a customer review
+                {t("Write a customer review")}
               </button>
             </div>
           </div>
@@ -577,7 +584,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
                   <div className="ml-4">
                     <div className="font-bold">{review?.userName}</div>
                     <div className="text-gray-500 text-sm">
-                      Verified Purchase
+                      {t("Verified Purchase")}
                     </div>
                   </div>
                 </div>
@@ -595,7 +602,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
                 </div>
 
                 <div className="text-gray-500 text-sm mb-4">
-                  Reviewed On {review.createdAt}
+                  {t("Reviewed On")} {review.createdAt}
                 </div>
                 <div className="text-lg mb-4">{review.comment}</div>
               </div>
@@ -605,7 +612,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
                 className="btn btn-primary mt-4 mb-5"
                 onClick={handleShowMoreReviews}
               >
-                See More Reviews
+                {t("See More Reviews")}
               </button>
             )}
             {showAllReviews &&
@@ -622,10 +629,10 @@ const ChannelIdFinder = ({ meta, faqs }) => {
                     <div className="ml-4">
                       <div className="font-bold">{review?.userName}</div>
                       <div className="text-gray-500 text-sm">
-                        Verified Purchase
+                        {t("Verified Purchase")}
                       </div>
                       <p className="text-muted">
-                        Reviewed On {review?.createdAt}
+                        {t("Reviewed On")} {review?.createdAt}
                       </p>
                     </div>
                   </div>
@@ -650,7 +657,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="fixed inset-0 bg-black opacity-50"></div>
             <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
-              <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+              <h2 className="text-2xl font-semibold mb-4">{t("Leave a Review")}</h2>
               <div className="mb-4">
                 <StarRating
                   rating={newReview.rating}
@@ -661,7 +668,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
                 <input
                   type="text"
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder="Title"
+                  placeholder={t("Title")}
                   value={newReview.title}
                   onChange={(e) =>
                     setNewReview({ ...newReview, title: e.target.value })
@@ -671,7 +678,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
               <div className="mb-4">
                 <textarea
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder="Your Review"
+                  placeholder={t("Your Review")}
                   value={newReview.comment}
                   onChange={(e) =>
                     setNewReview({ ...newReview, comment: e.target.value })
@@ -682,55 +689,85 @@ const ChannelIdFinder = ({ meta, faqs }) => {
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
                 onClick={handleReviewSubmit}
               >
-                Submit Review
+                {t("Submit Review")}
               </button>
               <button
                 className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
                 onClick={closeReviewForm}
               >
-                Cancel
+                {t("Cancel")}
               </button>
             </div>
           </div>
         )}
+
+        {/* Related Tools Section */}
+        <div className="related-tools mt-10 shadow p-5">
+          <h2 className="text-2xl font-bold mb-5">{t("Related Tools")}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {relatedTools.map((tool, index) => (
+              <a
+                key={index}
+                href={tool.link}
+                className="flex items-center border  shadow rounded-md p-4 hover:bg-gray-100"
+              >
+                <div className="d-flex">
+                  <img
+                    src={tool?.Banner?.TagGenerator?.src}
+                    alt={`${tool.name} Banner`}
+                    className="ml-2 w-14 h-14"
+                  />
+                  <span className="ms-2">{tool.name}</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+        {/* End of Related Tools Section */}
       </div>
     </>
   );
 };
 
-export async function getServerSideProps(context) {
-  const { req } = context;
+export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}/api/content?category=channel-id-finder`;
-  console.log(apiUrl);
+  const apiUrl = `${protocol}://${host}/api/content?category=channel-id-finder&language=${locale}`;
+
   try {
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
+    const [contentResponse] = await Promise.all([
+      fetch(apiUrl),
+    ]);
+
+    if (!contentResponse.ok) {
       throw new Error("Failed to fetch content");
     }
 
-    const data = await response.json();
+    const [contentData] = await Promise.all([
+      contentResponse.json(),
+    ]);
 
     const meta = {
-      title: data[0]?.title || "",
-      description: data[0]?.description || "",
-      image: data[0]?.image || "",
+      title: contentData[0]?.title || "",
+      description: contentData[0]?.description || "",
+      image: contentData[0]?.image || "",
       url: `${protocol}://${host}/tools/channel-id-finder`,
     };
 
     return {
       props: {
         meta,
-        faqs: data[0]?.faqs || [],
+        faqs: contentData[0].faqs || [],
+        ...(await serverSideTranslations(locale, ['common','tagextractor','navbar','channelId',"footer"])),
       },
     };
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error fetching data:");
     return {
       props: {
         meta: {},
         faqs: [],
+        ...(await serverSideTranslations(locale, ['common', 'tagextractor','navbar','channelId',"footer"])),
       },
     };
   }

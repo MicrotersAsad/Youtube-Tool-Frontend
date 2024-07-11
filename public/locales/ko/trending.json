@@ -1,0 +1,40 @@
+{
+  "alert": {
+    "Congratulations! Now you can get unlimited Trending Video.": "축하합니다! 이제 무제한 트렌딩 비디오를 받을 수 있습니다.",
+    "You are not upgraded. You can get Trending Video {remaining Generations} more times": "업그레이드되지 않았습니다. 트렌딩 비디오를 {remaining Generations}번 더 받을 수 있습니다.",
+    "Upgrade": "업그레이드",
+    "Please log in to fetch channel data.": "채널 데이터를 가져오려면 로그인하세요."
+  },
+  "YouTube Trending Videos": "유튜브 트렌딩 비디오",
+  "dropdowns": {
+    "All": "모두",
+    "Get Your Trends": "트렌드 가져오기"
+  },
+  "Share": "공유:",
+  "Loading...": "로드 중...",
+  "Uploaded By:": "업로드한 사람:",
+  "on": "날짜:",
+  "Category": "카테고리:",
+  "reviews": {
+    "Customer reviews": "고객 리뷰",
+    "global ratings": "글로벌 평점",
+    "Review This Tool": "이 도구 리뷰",
+    "Share Your Thoughts With Other Customers": "다른 고객과 생각을 공유하세요",
+    "Write a customer review": "고객 리뷰 작성",
+    "Verified Purchase": "인증된 구매",
+    "Reviewed On": "리뷰 날짜",
+    "See More Reviews": "리뷰 더 보기",
+    "Leave a Review": "리뷰 남기기",
+    "Title": "제목",
+    "Your Review": "당신의 리뷰",
+    "Submit Review": "리뷰 제출",
+    "Cancel": "취소"
+  },
+  "faq": {
+    "Frequently Asked Questions": "자주 묻는 질문",
+    "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us": "모든 자주 묻는 질문에 답변했습니다. 여전히 혼란스럽다면 언제든지 문의하세요."
+  },
+  "relatedTools": {
+    "Related Tools": "관련 도구"
+  }
+}

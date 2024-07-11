@@ -1,8 +1,45 @@
-// next-i18next.config.js
 module.exports = {
-    i18n: {
-      defaultLocale: 'en',
-      locales: ['en', 'es', 'fr'],
-    },
-  };
-  
+  i18n: {
+    locales: [
+      "en",
+      "fr",
+      "zh-HANT",
+      "zh-HANS",
+      "nl",
+      "gu",
+      "hi",
+      "it",
+      "ja",
+      "ko",
+      "pl",
+      "pt",
+      "ru",
+      "es",
+      "de",
+    ],
+    defaultLocale: "en",
+    ns: [
+      "common",
+      "navbar",
+      "tagextractor",
+      "trending",
+      "videoDataViewer",
+      "banner",
+      "logo",
+      "search",
+      "embed",
+      "hashtag",
+      "calculator",
+      "thumbnail",
+      "tdextractor",
+      "channelId",
+      "monetization",
+      "summary",
+      "keyword",
+      "footer",
+      "pricing"
+
+    ],
+    defaultNS: "common",
+  },
+};

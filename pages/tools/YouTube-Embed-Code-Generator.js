@@ -13,9 +13,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
 import Head from "next/head";
 import { ToastContainer, toast } from "react-toastify";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import StarRating from "./StarRating"; // Assuming StarRating is a custom component
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
@@ -23,8 +20,12 @@ import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
+import { i18n } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 const YtEmbedCode = ({ meta, faqs }) => {
+  const { t } = useTranslation('embed');
   const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -35,14 +36,14 @@ const YtEmbedCode = ({ meta, faqs }) => {
   const [content, setContent] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
   const [reviews, setReviews] = useState([]);
-  const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
+  const [newReview, setNewReview] = useState({ rating: 0, embed: "" });
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
   const [modalVisable, setModalVisable] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
-
+  const [relatedTools, setRelatedTools] = useState([]);
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
@@ -51,16 +52,15 @@ const YtEmbedCode = ({ meta, faqs }) => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch(
-          `/api/content?category=YouTube-Embed-Code-Generator`
-        );
+        const language = i18n.language;
+        const response = await fetch(`/api/content?category=YouTube-Embed-Code-Generator&language=${language}`);
         if (!response.ok) {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
         setQuillContent(data[0]?.content || ""); // Ensure content is not undefined
         setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
-        setMeta(data[0]);
+        setRelatedTools(data[0]?.relatedTools || [])
       } catch (error) {
         console.error("Error fetching content");
       }
@@ -68,7 +68,7 @@ const YtEmbedCode = ({ meta, faqs }) => {
 
     fetchContent();
     fetchReviews();
-  }, []);
+  }, [i18n.language]);
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -92,8 +92,8 @@ const YtEmbedCode = ({ meta, faqs }) => {
 
   const fetchYouTubeData = async () => {
     if (!videoUrl) {
-      setError("Please enter a valid YouTube URL");
-      toast.error("Please enter a valid YouTube URL");
+      setError(t("Please enter a valid YouTube URL"));
+      toast.error(t("Please enter a valid YouTube URL"));
       return;
     }
 
@@ -104,14 +104,14 @@ const YtEmbedCode = ({ meta, faqs }) => {
       generateCount <= 0
     ) {
       toast.error(
-        "You have reached the limit of generating embed codes. Please upgrade your plan for unlimited use."
+        t("You have reached the limit of generating embed codes. Please upgrade your plan for unlimited use.")
       );
       return;
     }
 
     try {
       const tokensResponse = await fetch("/api/tokens");
-      if (!tokensResponse.ok) throw new Error("Failed to fetch API tokens");
+      if (!tokensResponse.ok) throw new Error(t("Failed to fetch API tokens"));
 
       const tokens = await tokensResponse.json();
       const videoId = extractVideoId(videoUrl);
@@ -139,10 +139,10 @@ const YtEmbedCode = ({ meta, faqs }) => {
       }
 
       if (!success) {
-        throw new Error("All API tokens exhausted or failed to fetch data.");
+        throw new Error(t("All API tokens exhausted or failed to fetch data."));
       }
     } catch (error) {
-      setError("Failed to fetch YouTube data. Please check the video URL.");
+      setError(t("Failed to fetch YouTube data. Please check the video URL."));
       setEmbedCode("");
     } finally {
       setLoading(false);
@@ -173,8 +173,8 @@ const YtEmbedCode = ({ meta, faqs }) => {
   };
 
   const handleReviewSubmit = async () => {
-    if (!newReview.rating || !newReview.comment) {
-      toast.error("All fields are required.");
+    if (!newReview.rating || !newReview.embed) {
+      toast.error(t("All fields are required."));
       return;
     }
 
@@ -192,13 +192,13 @@ const YtEmbedCode = ({ meta, faqs }) => {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to submit review");
+      if (!response.ok) throw new Error(t("Failed to submit review"));
 
-      toast.success("Review submitted successfully!");
+      toast.success(t("Review submitted successfully!"));
       setNewReview({
         name: "",
         rating: 0,
-        comment: "",
+        embed: "",
         userProfile: "",
         userName: "",
       });
@@ -206,7 +206,7 @@ const YtEmbedCode = ({ meta, faqs }) => {
       fetchReviews();
     } catch (error) {
       console.error("Failed to submit review:", error);
-      toast.error("Failed to submit review");
+      toast.error(t("Failed to submit review"));
     }
   };
 
@@ -240,9 +240,9 @@ const YtEmbedCode = ({ meta, faqs }) => {
   const copyToClipboard = async (text) => {
     try {
       await navigator.clipboard.writeText(text);
-      toast.success("Embed code copied to clipboard!");
+      toast.success(t("Embed code copied to clipboard!"));
     } catch (err) {
-      toast.error("Failed to copy embed code to clipboard.");
+      toast.error(t("Failed to copy embed code to clipboard."));
     }
   };
 
@@ -261,7 +261,7 @@ const YtEmbedCode = ({ meta, faqs }) => {
             <title>{meta?.title}</title>
             <meta
               name="description"
-              content={meta?.description || "AI Youtube Hashtag Generator"}
+              content={meta?.description || t("AI Youtube Hashtag Generator")}
             />
             <meta
               property="og:url"
@@ -269,13 +269,13 @@ const YtEmbedCode = ({ meta, faqs }) => {
             />
             <meta
               property="og:title"
-              content={meta?.title || "AI Youtube Tag Generator"}
+              content={meta?.title || t("AI Youtube Tag Generator")}
             />
             <meta
               property="og:description"
               content={
                 meta?.description ||
-                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
+                t("Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights")
               }
             />
             <meta property="og:image" content={meta?.image || ""} />
@@ -290,13 +290,13 @@ const YtEmbedCode = ({ meta, faqs }) => {
             />
             <meta
               name="twitter:title"
-              content={meta?.title || "AI Youtube Tag Generator"}
+              content={meta?.title || t("AI Youtube Tag Generator")}
             />
             <meta
               name="twitter:description"
               content={
                 meta?.description ||
-                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
+                t("Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights")
               }
             />
             <meta name="twitter:image" content={meta?.image || ""} />
@@ -342,7 +342,7 @@ const YtEmbedCode = ({ meta, faqs }) => {
                     name: review.userName,
                   },
                   datePublished: review.createdAt,
-                  reviewBody: review.comment,
+                  reviewBody: review.embed,
                   name: review.title,
                   reviewRating: {
                     "@type": "Rating",
@@ -368,7 +368,7 @@ const YtEmbedCode = ({ meta, faqs }) => {
             </script>
           </Head>
           <h2 className="text-3xl pt-5 text-white">
-            YouTube Embed Code Generator
+            {t("YouTube Embed Code Generator")}
           </h2>
           <ToastContainer />
           {modalVisable && (
@@ -382,22 +382,19 @@ const YtEmbedCode = ({ meta, faqs }) => {
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        Congratulations! Now you can generate unlimited Embed
-                        Code.
+                        {t("Congratulations! Now you can generate unlimited Embed Code.")}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can generate unlimited Embed
-                        Code {5 - generateCount} more times.{" "}
+                        {t("You are not upgraded. You can generate unlimited Embed Code")} {5 - generateCount} {t("more times.")}{" "}
                         <Link href="/pricing" className="btn btn-warning ms-3">
-                          Upgrade
+                          {t("Upgrade")}
                         </Link>
                       </p>
                     )
                   ) : (
                     <p className="text-center p-3 alert-warning">
-                      Please <Link href="/login">log</Link> in to unlimited
-                      Embed Code.
+                      {t("Please")} <Link href="/login">{t("log")}</Link> {t("in to unlimited Embed Code.")}
                     </p>
                   )}
                 </div>
@@ -416,8 +413,8 @@ const YtEmbedCode = ({ meta, faqs }) => {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="Enter YouTube Video URL..."
-                  aria-label="YouTube Video URL"
+                  placeholder={t("Enter YouTube Video URL...")}
+                  aria-label={t("YouTube Video URL")}
                   value={videoUrl}
                   onChange={handleUrlChange}
                 />
@@ -427,11 +424,11 @@ const YtEmbedCode = ({ meta, faqs }) => {
                   onClick={fetchYouTubeData}
                   disabled={loading}
                 >
-                  {loading ? "Loading..." : "Fetch Video"}
+                  {loading ? t("Loading...") : t("Fetch Video")}
                 </button>
               </div>
               <small className="text-white">
-                Example: https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s
+                {t("Example: https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s")}
               </small>
               <br />
               <div className="ms-5">
@@ -479,7 +476,7 @@ const YtEmbedCode = ({ meta, faqs }) => {
               className="embed-code-preview"
               onClick={() => copyToClipboard(embedCode)}
             ></div>
-            <h4 className="mt-4">Embed Code:</h4>
+            <h4 className="mt-4">{t("Embed Code:")}</h4>
             <textarea
               className="form-control"
               rows="3"
@@ -498,10 +495,9 @@ const YtEmbedCode = ({ meta, faqs }) => {
 
         <div className="p-5 shadow">
           <div className="accordion">
-            <h2 className="faq-title">Frequently Asked Questions</h2>
+            <h2 className="faq-title">{t("Frequently Asked Questions")}</h2>
             <p className="faq-subtitle">
-              Answered All Frequently Asked Questions, Still Confused? Feel Free
-              To Contact Us
+              {t("Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us")}
             </p>
             <div className="faq-grid">
               {faqs.map((faq, index) => (
@@ -538,7 +534,7 @@ const YtEmbedCode = ({ meta, faqs }) => {
         <hr className="mt-4 mb-2" />
         <div className="row pt-3">
           <div className="col-md-4">
-            <div className=" text-3xl font-bold mb-2">Customer reviews</div>
+            <div className=" text-3xl font-bold mb-2">{t("Customer reviews")}</div>
             <div className="flex items-center mb-2">
               <div className="text-3xl font-bold mr-2">{overallRating}</div>
               <div className="flex">
@@ -552,7 +548,7 @@ const YtEmbedCode = ({ meta, faqs }) => {
                 ))}
               </div>
               <div className="ml-2 text-sm text-gray-500">
-                {reviews.length} global ratings
+                {reviews.length} {t("global ratings")}
               </div>
             </div>
             <div>
@@ -573,13 +569,13 @@ const YtEmbedCode = ({ meta, faqs }) => {
             </div>
             <hr />
             <div className="pt-3">
-              <h4>Review This Tool</h4>
-              <p>Share Your Thoughts With Other Customers</p>
+              <h4>{t("Review This Tool")}</h4>
+              <p>{t("Share Your Thoughts With Other Customers")}</p>
               <button
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
                 onClick={openReviewForm}
               >
-                Write a customer review
+                {t("Write a customer review")}
               </button>
             </div>
           </div>
@@ -598,7 +594,7 @@ const YtEmbedCode = ({ meta, faqs }) => {
                   <div className="ml-4">
                     <div className="font-bold">{review?.userName}</div>
                     <div className="text-gray-500 text-sm">
-                      Verified Purchase
+                      {t("Verified Purchase")}
                     </div>
                   </div>
                 </div>
@@ -616,9 +612,9 @@ const YtEmbedCode = ({ meta, faqs }) => {
                 </div>
 
                 <div className="text-gray-500 text-sm mb-4">
-                  Reviewed On {review.createdAt}
+                  {t("Reviewed On")} {review.createdAt}
                 </div>
-                <div className="text-lg mb-4">{review.comment}</div>
+                <div className="text-lg mb-4">{review.embed}</div>
               </div>
             ))}
             {!showAllReviews && reviews.length > 5 && (
@@ -626,7 +622,7 @@ const YtEmbedCode = ({ meta, faqs }) => {
                 className="btn btn-primary mt-4 mb-5"
                 onClick={handleShowMoreReviews}
               >
-                See More Reviews
+                {t("See More Reviews")}
               </button>
             )}
             {showAllReviews &&
@@ -643,16 +639,16 @@ const YtEmbedCode = ({ meta, faqs }) => {
                     <div className="ml-4">
                       <div className="font-bold">{review?.userName}</div>
                       <div className="text-gray-500 text-sm">
-                        Verified Purchase
+                        {t("Verified Purchase")}
                       </div>
                       <p className="text-muted">
-                        Reviewed On {review?.createdAt}
+                        {t("Reviewed On")} {review?.createdAt}
                       </p>
                     </div>
                   </div>
                   <div className="text-lg font-semibold">{review.title}</div>
                   <div className="text-gray-500 mb-4">{review.date}</div>
-                  <div className="text-lg mb-4">{review.comment}</div>
+                  <div className="text-lg mb-4">{review.embed}</div>
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (
                       <FaStar
@@ -671,7 +667,7 @@ const YtEmbedCode = ({ meta, faqs }) => {
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="fixed inset-0 bg-black opacity-50"></div>
             <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
-              <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+              <h2 className="text-2xl font-semibold mb-4">{t("Leave a Review")}</h2>
               <div className="mb-4">
                 <StarRating
                   rating={newReview.rating}
@@ -682,7 +678,7 @@ const YtEmbedCode = ({ meta, faqs }) => {
                 <input
                   type="text"
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder="Title"
+                  placeholder={t("Title")}
                   value={newReview.title}
                   onChange={(e) =>
                     setNewReview({ ...newReview, title: e.target.value })
@@ -692,10 +688,10 @@ const YtEmbedCode = ({ meta, faqs }) => {
               <div className="mb-4">
                 <textarea
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder="Your Review"
-                  value={newReview.comment}
+                  placeholder={t("Your Review")}
+                  value={newReview.embed}
                   onChange={(e) =>
-                    setNewReview({ ...newReview, comment: e.target.value })
+                    setNewReview({ ...newReview, embed: e.target.value })
                   }
                 />
               </div>
@@ -703,58 +699,85 @@ const YtEmbedCode = ({ meta, faqs }) => {
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
                 onClick={handleReviewSubmit}
               >
-                Submit Review
+                {t("Submit Review")}
               </button>
               <button
                 className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
                 onClick={closeReviewForm}
               >
-                Cancel
+                {t("Cancel")}
               </button>
             </div>
           </div>
         )}
+         {/* Related Tools Section */}
+         <div className="related-tools mt-10 shadow p-5">
+          <h2 className="text-2xl font-bold mb-5">{t('Related Tools')}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {relatedTools.map((tool, index) => (
+              <a key={index} href={tool.link} className="flex items-center border  shadow rounded-md p-4 hover:bg-gray-100">
+               <div className="d-flex">
+               <img src={tool?.Banner?.TagGenerator?.src} alt={`${tool.name} Banner`} className="ml-2 w-14 h-14" />
+               <span className="ms-2">{tool.name}</span>
+               </div>
+              </a>
+            ))}
+          </div>
+        </div>
+        {/* End of Related Tools Section */}
       </div>
     </>
   );
 };
 
-export async function getServerSideProps(context) {
-  const { req } = context;
+export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}/api/content?category=YouTube-Embed-Code-Generator`;
-  console.log(apiUrl);
+  const apiUrl = `${protocol}://${host}/api/content?category=YouTube-Embed-Code-Generator&language=${locale}`;
+  const relatedToolsUrl = `${protocol}://${host}/api/content?category=relatedTools&language=${locale}`;
+
   try {
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
-      throw new Error("Failed to fetch content");
+    const [contentResponse] = await Promise.all([
+      fetch(apiUrl),
+      fetch(relatedToolsUrl)
+    ]);
+
+    if (!contentResponse.ok) {
+      throw new Error(t("Failed to fetch content"));
     }
 
-    const data = await response.json();
+    const [contentData] = await Promise.all([
+      contentResponse.json(),
+    ]);
 
     const meta = {
-      title: data[0]?.title || "",
-      description: data[0]?.description || "",
-      image: data[0]?.image || "",
+      title: contentData[0]?.title || "",
+      description: contentData[0]?.description || "",
+      image: contentData[0]?.image || "",
       url: `${protocol}://${host}/tools/YouTube-Embed-Code-Generator`,
     };
 
     return {
       props: {
         meta,
-        faqs: data[0]?.faqs || [],
+        faqs: contentData[0].faqs || [],
+        ...(await serverSideTranslations(locale, ['common','trending','footer','navbar','titlegenerator','videoDataViewer','banner','logo','search','embed'])),
       },
     };
+  
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error fetching data");
     return {
       props: {
         meta: {},
         faqs: [],
+        ...(await serverSideTranslations(locale, ['common', 'trending','footer','navbar','titlegenerator','videoDataViewer','banner','logo','search','embed'])),
       },
+      
     };
+    
   }
+  
 }
 
 export default YtEmbedCode;

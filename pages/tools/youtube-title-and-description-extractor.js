@@ -13,9 +13,6 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import StarRating from "./StarRating"; // Assuming StarRating is a custom component
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
@@ -24,10 +21,13 @@ import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 import Head from "next/head";
 import { format } from "date-fns";
+import { i18n, useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 const TitleDescriptionExtractor = ({ meta, faqs }) => {
   const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState("");
+  const [t] = useTranslation("tdextractor");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showShareIcons, setShowShareIcons] = useState(false);
@@ -47,6 +47,8 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
   const [modalVisible, setModalVisible] = useState(true);
   const [openIndex, setOpenIndex] = useState(null);
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [relatedTools, setRelatedTools] = useState([]);
+
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
@@ -65,20 +67,22 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
+        const language = i18n.language;
         const response = await fetch(
-          `/api/content?category=youtube-title-and-description-extractor`
+          `/api/content?category=youtube-title-and-description-extractor&language=${language}`
         );
-        if (!response.ok) throw new Error("Failed to fetch content");
+        if (!response.ok) throw new Error(t("Failed to fetch content"));
         const data = await response.json();
         setExistingContent(data[0]?.content || "");
+        setRelatedTools(data[0]?.relatedTools || [])
       } catch (error) {
-        toast.error("Error fetching content");
+        toast.error(t("Error fetching content"));
       }
     };
 
     fetchContent();
     fetchReviews();
-  }, []);
+  }, [i18n.language]);
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -104,13 +108,13 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
       }));
       setReviews(formattedData);
     } catch (error) {
-      console.error("Failed to fetch reviews:", error);
+      console.error(t("Failed to fetch reviews"), error);
     }
   };
 
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
-      toast.error("All fields are required.");
+      toast.error(t("All fields are required."));
       return;
     }
 
@@ -128,9 +132,9 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to submit review");
+      if (!response.ok) throw new Error(t("Failed to submit review"));
 
-      toast.success("Review submitted successfully!");
+      toast.success(t("Review submitted successfully!"));
       setNewReview({
         name: "",
         rating: 0,
@@ -141,8 +145,8 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
       setShowReviewForm(false);
       fetchReviews();
     } catch (error) {
-      console.error("Failed to submit review:", error);
-      toast.error("Failed to submit review");
+      console.error(t("Failed to submit review"), error);
+      toast.error(t("Failed to submit review"));
     }
   };
 
@@ -153,7 +157,9 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
   const fetchYouTubeData = async () => {
     if (generateCount <= 0) {
       toast.error(
-        "You have reached the limit of generating titles. Please upgrade your plan for unlimited use."
+        t(
+          "You have reached the limit of generating titles. Please upgrade your plan for unlimited use."
+        )
       );
       return;
     }
@@ -163,7 +169,7 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
 
     try {
       const tokensResponse = await fetch("/api/tokens");
-      if (!tokensResponse.ok) throw new Error("Failed to fetch API tokens");
+      if (!tokensResponse.ok) throw new Error(t("Failed to fetch API tokens"));
 
       const tokens = await tokensResponse.json();
       const videoId = extractVideoId(videoUrl);
@@ -186,22 +192,22 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
             }
             break;
           } else {
-            console.error("No video data found for the provided URL.");
+            console.error(t("No video data found for the provided URL."));
           }
         } catch (error) {
           console.error(
-            `Error fetching data with token ${token}:`,
+            t(`Error fetching data with token ${token}:`),
             error.response?.data || error.message
           );
         }
       }
 
       if (!dataFetched) {
-        throw new Error("All API tokens exhausted or failed to fetch data.");
+        throw new Error(t("All API tokens exhausted or failed to fetch data."));
       }
     } catch (error) {
-      setError("Failed to fetch YouTube data. Please check the video URL.");
-      console.error("Error:", error);
+      setError(t("Failed to fetch YouTube data. Please check the video URL."));
+      console.error(t("Error:"), error);
     } finally {
       setLoading(false);
     }
@@ -212,7 +218,7 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
       /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
     const match = url.match(regex);
     if (match && match[1]) return match[1];
-    throw new Error("Invalid YouTube video URL");
+    throw new Error(t("Invalid YouTube video URL"));
   };
 
   const handleShareClick = () => {
@@ -221,8 +227,8 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(
-      () => toast.success("Copied to clipboard!"),
-      (err) => toast.error("Failed to copy:", err)
+      () => toast.success(t("Copied to clipboard!")),
+      (err) => toast.error(t("Failed to copy:"), err)
     );
   };
 
@@ -348,7 +354,7 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
             </script>
           </Head>
           <h2 className="text-3xl text-white">
-            YouTube Title & Description Extractor
+            {t("YouTube Title & Description Extractor")}
           </h2>
           <ToastContainer />
           {modalVisible && (
@@ -362,20 +368,21 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        Congratulations! Now you can generate unlimited Titles.
+                        {t("You can extract unlimited titles and descriptions")}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can generate titles{" "}
-                        {5 - generateCount} more times.{" "}
+                        {t("You have not upgraded. You can generate")}{" "}
+                        {5 - generateCount}{" "}
+                        {t("more times.")}{" "}
                         <Link href="/pricing" className="btn btn-warning ms-3">
-                          Upgrade
+                          {t("Upgrade")}
                         </Link>
                       </p>
                     )
                   ) : (
                     <p className="text-center p-3 alert-warning">
-                      Please log in to fetch channel data.
+                      {t("Please log in to fetch channel data.")}
                     </p>
                   )}
                 </div>
@@ -395,7 +402,7 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="Enter YouTube Video URL..."
+                  placeholder={t("Enter YouTube Video URL...")}
                   aria-label="YouTube Video URL"
                   aria-describedby="button-addon2"
                   value={videoUrl}
@@ -408,11 +415,11 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
                   onClick={fetchYouTubeData}
                   disabled={loading}
                 >
-                  {loading ? "Loading..." : "Fetch YouTube Data"}
+                  {loading ? t("Generating...") : t("Fetch YouTube Data")}
                 </button>
               </div>
               <small className="text-white">
-                Example: https://www.youtube.com/watch?v=SMoeVy9g3a8
+                {t("Example: https://www.youtube.com/watch?v=SMoeVy9g3a8")}
               </small>
               <br />
               <div className="ms-5">
@@ -443,7 +450,7 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
       <div className="max-w-7xl mx-auto p-4">
         {title && (
           <div className="mt-3">
-            <h6 className="pt-3 fw-bold">Title Found:</h6>
+            <h6 className="pt-3 fw-bold">{t("Title Found:")}</h6>
             <h3 className="border p-3">{title}</h3>
             <div className="pt-3">
               <button
@@ -463,7 +470,7 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
         )}
         {description && (
           <div className="mt-3">
-            <h6 className="pt-3 fw-bold">Description Found:</h6>
+            <h6 className="pt-3 fw-bold">{t("Description Found:")}</h6>
             <p>{description}</p>
             <div className="pt-3">
               <button
@@ -490,10 +497,9 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
         </div>
         <div className="p-5 shadow">
           <div className="accordion">
-            <h2 className="faq-title">Frequently Asked Questions</h2>
+            <h2 className="faq-title">{t("Frequently Asked Questions")}</h2>
             <p className="faq-subtitle">
-              Answered All Frequently Asked Questions, Still Confused? Feel Free
-              To Contact Us
+              {t("Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us")}
             </p>
             <div className="faq-grid">
               {faqs.map((faq, index) => (
@@ -531,7 +537,9 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
         <div>
           <div className="row pt-3">
             <div className="col-md-4">
-              <div className=" text-3xl font-bold mb-2">Customer reviews</div>
+              <div className=" text-3xl font-bold mb-2">
+                {t("Customer Reviews")}
+              </div>
               <div className="flex items-center mb-2">
                 <div className="text-3xl font-bold mr-2">{overallRating}</div>
                 <div className="flex">
@@ -545,7 +553,7 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
                   ))}
                 </div>
                 <div className="ml-2 text-sm text-gray-500">
-                  {reviews.length} global ratings
+                  {reviews.length} {t("global ratings")}
                 </div>
               </div>
               <div>
@@ -568,13 +576,13 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
               </div>
               <hr />
               <div className="pt-3">
-                <h4>Review This Tool</h4>
-                <p>Share Your Thoughts With Other Customers</p>
+                <h4>{t("Review This Tool")}</h4>
+                <p>{t("Share Your Thoughts With Other Customers")}</p>
                 <button
                   className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
                   onClick={openReviewForm}
                 >
-                  Write a customer review
+                  {t("Write a customer review")}
                 </button>
               </div>
             </div>
@@ -593,7 +601,7 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
                     <div className="ml-4">
                       <div className="font-bold">{review?.userName}</div>
                       <div className="text-gray-500 text-sm">
-                        Verified Purchase
+                        {t("Verified Purchase")}
                       </div>
                     </div>
                   </div>
@@ -606,12 +614,14 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
                       />
                     ))}
                     <div>
-                      <span className="fw-bold mt-2 ms-2">{review?.title}</span>
+                      <span className="fw-bold mt-2 ms-2">
+                        {review?.title}
+                      </span>
                     </div>
                   </div>
 
                   <div className="text-gray-500 text-sm mb-4">
-                    Reviewed On {review.createdAt}
+                    {t("Reviewed on")} {review.createdAt}
                   </div>
                   <div className="text-lg mb-4">{review.comment}</div>
                 </div>
@@ -621,7 +631,7 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
                   className="btn btn-primary mt-4 mb-5"
                   onClick={handleShowMoreReviews}
                 >
-                  See More Reviews
+                  {t("See More Reviews")}
                 </button>
               )}
               {showAllReviews &&
@@ -638,10 +648,10 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
                       <div className="ml-4">
                         <div className="font-bold">{review?.userName}</div>
                         <div className="text-gray-500 text-sm">
-                          Verified Purchase
+                          {t("Verified Purchase")}
                         </div>
                         <p className="text-muted">
-                          Reviewed On {review?.createdAt}
+                          {t("Reviewed on")} {review?.createdAt}
                         </p>
                       </div>
                     </div>
@@ -666,7 +676,9 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
             <div className="fixed inset-0 flex items-center justify-center z-50">
               <div className="fixed inset-0 bg-black opacity-50"></div>
               <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
-                <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+                <h2 className="text-2xl font-semibold mb-4">
+                  {t("Leave a Review")}
+                </h2>
                 <div className="mb-4">
                   <StarRating
                     rating={newReview.rating}
@@ -679,7 +691,7 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
                   <input
                     type="text"
                     className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                    placeholder="Title"
+                    placeholder={t("Review Title")}
                     value={newReview.title}
                     onChange={(e) =>
                       setNewReview({ ...newReview, title: e.target.value })
@@ -689,7 +701,7 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
                 <div className="mb-4">
                   <textarea
                     className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                    placeholder="Your Review"
+                    placeholder={t("Your Review")}
                     value={newReview.comment}
                     onChange={(e) =>
                       setNewReview({ ...newReview, comment: e.target.value })
@@ -700,56 +712,113 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
                   className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
                   onClick={handleReviewSubmit}
                 >
-                  Submit Review
+                  {t("Submit Review")}
                 </button>
                 <button
                   className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
                   onClick={closeReview}
                 >
-                  Cancel
+                  {t("Cancel")}
                 </button>
               </div>
             </div>
           )}
+          {/* Related Tools Section */}
+          <div className="related-tools mt-10 shadow p-5">
+            <h2 className="text-2xl font-bold mb-5">{t("Related Tools")}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {relatedTools.map((tool, index) => (
+                <a
+                  key={index}
+                  href={tool.link}
+                  className="flex items-center border  shadow rounded-md p-4 hover:bg-gray-100"
+                >
+                  <div className="d-flex">
+                    <img
+                      src={tool?.Banner?.TagGenerator?.src}
+                      alt={`${tool.name} Banner`}
+                      className="ml-2 w-14 h-14"
+                    />
+                    <span className="ms-2">{tool.name}</span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+          {/* End of Related Tools Section */}
         </div>
       </div>
     </>
   );
 };
 
-export async function getServerSideProps(context) {
-  const { req } = context;
+export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}/api/content?category=youtube-title-and-description-extractor`;
+  const apiUrl = `${protocol}://${host}/api/content?category=youtube-title-and-description-extractor&language=${locale}`;
+  const relatedToolsUrl = `${protocol}://${host}/api/content?category=relatedTools&language=${locale}`;
 
   try {
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
+    const [contentResponse] = await Promise.all([
+      fetch(apiUrl),
+      fetch(relatedToolsUrl),
+    ]);
+
+    if (!contentResponse.ok) {
       throw new Error("Failed to fetch content");
     }
 
-    const data = await response.json();
+    const [contentData] = await Promise.all([contentResponse.json()]);
 
     const meta = {
-      title: data[0]?.title || "",
-      description: data[0]?.description || "",
-      image: data[0]?.image || "",
+      title: contentData[0]?.title || "",
+      description: contentData[0]?.description || "",
+      image: contentData[0]?.image || "",
       url: `${protocol}://${host}/tools/youtube-title-and-description-extractor`,
     };
 
     return {
       props: {
         meta,
-        faqs: data[0].faqs || [],
+        faqs: contentData[0].faqs || [],
+        ...(await serverSideTranslations(locale, [
+          "common",
+          "trending",
+          "footer",
+          "navbar",
+          "titlegenerator",
+          "videoDataViewer",
+          "banner",
+          "logo",
+          "search",
+          "embed",
+          "calculator",
+          "thumbnail",
+          "tdextractor"
+        ])),
       },
     };
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error fetching data");
     return {
       props: {
         meta: {},
         faqs: [],
+        ...(await serverSideTranslations(locale, [
+          "common",
+          "trending",
+          "footer",
+          "navbar",
+          "titlegenerator",
+          "videoDataViewer",
+          "banner",
+          "logo",
+          "search",
+          "embed",
+          "calculator",
+          "thumbnail",
+          "tdextractor"
+        ])),
       },
     };
   }

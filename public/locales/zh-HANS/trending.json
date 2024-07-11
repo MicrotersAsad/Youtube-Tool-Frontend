@@ -1,0 +1,40 @@
+{
+  "alert": {
+    "Congratulations! Now you can get unlimited Trending Video.": "恭喜！现在您可以获得无限的热门视频。",
+    "You are not upgraded. You can get Trending Video {remaining Generations} more times": "您尚未升级。您还可以获取 {remaining Generations} 次热门视频。",
+    "Upgrade": "升级",
+    "Please log in to fetch channel data.": "请登录以获取频道数据。"
+  },
+  "YouTube Trending Videos": "YouTube 热门视频",
+  "dropdowns": {
+    "All": "全部",
+    "Get Your Trends": "获取您的趋势"
+  },
+  "Share": "分享：",
+  "Loading...": "加载中...",
+  "Uploaded By:": "上传者：",
+  "on": "于",
+  "Category": "类别：",
+  "reviews": {
+    "Customer reviews": "客户评论",
+    "global ratings": "全球评分",
+    "Review This Tool": "评价此工具",
+    "Share Your Thoughts With Other Customers": "与其他客户分享您的想法",
+    "Write a customer review": "写客户评论",
+    "Verified Purchase": "已验证购买",
+    "Reviewed On": "评价于",
+    "See More Reviews": "查看更多评论",
+    "Leave a Review": "留下评论",
+    "Title": "标题",
+    "Your Review": "您的评论",
+    "Submit Review": "提交评论",
+    "Cancel": "取消"
+  },
+  "faq": {
+    "Frequently Asked Questions": "常见问题",
+    "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us": "回答了所有常见问题，仍然困惑？请随时联系我们"
+  },
+  "relatedTools": {
+    "Related Tools": "相关工具"
+  }
+}

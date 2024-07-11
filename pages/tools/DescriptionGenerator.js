@@ -13,11 +13,15 @@ import { useAuth } from "../../contexts/AuthContext";
 import Image from "next/image";
 import { format } from "date-fns";
 import { useRouter } from "next/router";
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { i18n, useTranslation } from "next-i18next";
 
-const YouTubeDescriptionGenerator = ({ meta }) => {
+const YouTubeDescriptionGenerator = ({ meta = [] }) => {
   const { user, updateUserProfile } = useAuth();
-  const router = useRouter();
+  const { t } = useTranslation('common');
   const [faqs, setFaqs] = useState([]);
+  const [relatedTools, setRelatedTools] = useState([]);
+  const router = useRouter();
   const [openIndex, setOpenIndex] = useState(null);
   const [videoInfo, setVideoInfo] = useState({
     aboutVideo: `Welcome to [Your Channel Name]!\n\nIn this video, we're diving deep into the world of Full Stack Development. Whether you're a beginner or an experienced developer, these tips and guidelines will help you enhance your skills and stay ahead in the tech industry.`,
@@ -67,15 +71,18 @@ const YouTubeDescriptionGenerator = ({ meta }) => {
     const fetchContent = async () => {
       try {
         const response = await fetch(
-          `/api/content?category=youtube-title-and-description-generator?tab=description`
+          `/api/content?category=youtube-title-and-description-generator?tab=description&language=${i18n?.language}`
         );
+        console.log(response);
         if (!response.ok) {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
+        console.log(data);
         setQuillContent(data[0]?.content || "");
         setExistingContent(data[0]?.content || "");
-        setFaqs(data[0].faqs || []);
+        setFaqs(data[0]?.faqs || []);
+        setRelatedTools(data[0]?.relatedTools || []);
       } catch (error) {
         toast.error("Error fetching content");
       }
@@ -83,7 +90,7 @@ const YouTubeDescriptionGenerator = ({ meta }) => {
 
     fetchContent();
     fetchReviews();
-  }, []);
+  }, [i18n?.language]);
 
   const fetchReviews = async () => {
     try {
@@ -308,7 +315,7 @@ ${keywords}
             "@context": "https://schema.org",
             "@type": "FAQPage",
             mainEntity: Array.isArray(faqs)
-              ? faqs.map((faq) => ({
+              ? faqs?.map((faq) => ({
                   "@type": "Question",
                   name: faq.question,
                   acceptedAnswer: {
@@ -401,7 +408,7 @@ ${keywords}
             To Contact Us
           </p>
           <div className="faq-grid">
-            {faqs.map((faq, index) => (
+            {faqs?.map((faq, index) => (
               <div key={index} className="faq-item">
                 <span id={`accordion-${index}`} className="target-fix"></span>
                 <a
@@ -609,11 +616,11 @@ ${keywords}
   );
 };
 
-export async function getServerSideProps(context) {
-  const { req } = context;
+
+export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}/api/content?category=youtube-title-and-description-generator?tab=description`;
+  const apiUrl = `${protocol}://${host}/api/content?category=youtube-title-and-description-generator?tab=description&lang=${locale}`;
 
   try {
     const response = await fetch(apiUrl);
@@ -633,6 +640,7 @@ export async function getServerSideProps(context) {
     return {
       props: {
         meta,
+        ...(await serverSideTranslations(locale, ['common','titlegenerator'])),
       },
     };
   } catch (error) {
@@ -640,9 +648,9 @@ export async function getServerSideProps(context) {
     return {
       props: {
         meta: {},
+        ...(await serverSideTranslations(locale, ['common','titlegenerator'])),
       },
     };
   }
 }
-
 export default YouTubeDescriptionGenerator;

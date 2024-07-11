@@ -16,8 +16,8 @@ function MyApp({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <title>Default Title</title>
-        <meta name="description" content="Default Description" />
+        <title>Youtube Tools</title>
+        <meta name="description" content="Youtube Tools" />
         <link rel="icon" href="/favicon.ico" />
         <link
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"

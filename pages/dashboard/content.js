@@ -3,7 +3,21 @@ import dynamic from 'next/dynamic';
 import Layout from './layout';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { data } from 'autoprefixer';
+import { useTranslation } from 'react-i18next';
+import TagGenerator from "../../public/tools/tagGenerator.png";
+import TagExtractor from "../../public/tools/youtube-tag-extractor.png";
+import TitleGenerator from "../../public/tools/Title-And-Description-Generator.png";
+import TitleDescriptionExtractor from "../../public/tools/title-and-description-extractor.png";
+import BannerDownloader from "../../public/tools/youtube-channel-banner-download.png";
+import LogoDownloader from "../../public/tools/Youtube-channel-logo-downloader.png";
+import ThumbnailDownloader from "../../public/tools/Youtube-thumbnail-downloader.png";
+import ChannelIDFinder from "../../public/tools/Channel-ID-Finder.png";
+import VideoDataViewer from "../../public/tools/Video-Data-Viewer.png";
+import MonetizationChecker from "../../public/tools/Monetization-Checker.png";
+import ChannelSearch from "../../public/tools/Youtube-channel-search.png";
+import SummaryGenerator from "../../public/tools/Youtube-Video-Summary-generator.png";
+import TrendingVideos from "../../public/tools/youtube-trending-videos.png";
+import MoneyCalculator from "../../public/tools/Youtube-Money-Calculator.png";
 
 // Dynamically import the QuillWrapper component with SSR disabled
 const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
@@ -13,34 +27,61 @@ function Content() {
   const [existingContent, setExistingContent] = useState('');
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('tagGenerator'); // Default category
+  const [selectedLanguage, setSelectedLanguage] = useState('en'); // Default language
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
   const [faqs, setFaqs] = useState([]);
+  const [relatedTools, setRelatedTools] = useState([]);
+  const { t } = useTranslation('navbar');
+
+  // Static list of all tools
+  const allTools = [
+    { name: t('YouTube Tag Generator'), link: 'https://tool1.com', logo: TagGenerator },
+    { name: 'Youtube Tag Extractor', link: 'https://tool2.com', logo: TagExtractor },
+    { name: 'Youtube Title Generator', link: 'https://tool3.com', logo: TitleGenerator },
+    { name: 'Youtube Description Generator', link: 'https://tool3.com', logo: TitleGenerator },
+    { name: 'Youtube Title&Description Extractor', link: 'https://tool3.com', logo: TitleDescriptionExtractor },
+    { name: 'YouTube Channel Banner Downloader', link: 'https://tool3.com', logo: BannerDownloader },
+    { name: 'YouTube Channel Logo Downloader', link: 'https://tool3.com', logo: LogoDownloader },
+    { name: 'YouTube Thumbnail  Downloader', link: 'https://tool3.com', logo: ThumbnailDownloader },
+    { name: 'YouTube Channel ID Finder', link: 'https://tool3.com', logo: ChannelIDFinder },
+    { name: 'YouTube Video Data Viewer', link: 'https://tool3.com', logo: VideoDataViewer },
+    { name: 'YouTube Monetization Checker', link: 'https://tool3.com', logo: MonetizationChecker },
+    { name: 'YouTube Channel Search', link: 'https://tool3.com', logo: ChannelSearch },
+    { name: 'YouTube Video Summary Generator', link: 'https://tool3.com', logo: SummaryGenerator },
+    { name: 'YouTube Trending Videos', link: 'https://tool3.com', logo: TrendingVideos },
+    { name: 'YouTube Money Calculator', link: 'https://tool3.com', logo: MoneyCalculator },
+    { name: 'Youtube Comment Picker', link: 'https://tool3.com', logo: null },
+    { name: 'YouTube Keyword Research', link: 'https://tool3.com', logo: null },
+    // Add more tools as needed
+  ];
 
   useEffect(() => {
     fetchContent();
-  }, [selectedCategory]); // Fetch content and FAQs when category changes
+  }, [selectedCategory, selectedLanguage]); // Fetch content and FAQs when category or language changes
 
   const fetchContent = async () => {
     try {
-      const response = await fetch(`/api/content?category=${selectedCategory}`);
+      const response = await fetch(`/api/content?category=${selectedCategory}&language=${selectedLanguage}`);
       if (!response.ok) {
         throw new Error('Failed to fetch content');
       }
       const data = await response.json();
 
-      const contentData = data[0].content || '';
-      const faqsData = data[0].faqs || [];
-      const metatitle = data[0].title || {};
-      const metaDescription = data[0].description || {};
+      const contentData = data[0]?.content || '';
+      const faqsData = data[0]?.faqs || [];
+      const relatedToolsData = data[0]?.relatedTools || [];
+      const metatitle = data[0]?.title || '';
+      const metaDescription = data[0]?.description || '';
 
       setQuillContent(contentData);
       setExistingContent(contentData);
-      setTitle(metatitle || '');
-      setDescription(metaDescription || '');
+      setTitle(metatitle);
+      setDescription(metaDescription);
       setFaqs(faqsData);
+      setRelatedTools(relatedToolsData);
       setIsEditing(!!contentData); // Set editing mode based on whether content exists
     } catch (error) {
       console.error('Error fetching content:', error.message);
@@ -57,12 +98,14 @@ function Content() {
       formData.append('content', quillContent);
       formData.append('title', title);
       formData.append('description', description);
+      formData.append('language', selectedLanguage); // Add language to form data
       if (image) {
         formData.append('image', image);
       }
       formData.append('faqs', JSON.stringify(faqs));
+      formData.append('relatedTools', JSON.stringify(relatedTools));
 
-      const response = await fetch(`/api/content?category=${selectedCategory}`, {
+      const response = await fetch(`/api/content?category=${selectedCategory}&language=${selectedLanguage}`, {
         method,
         body: formData,
       });
@@ -80,7 +123,7 @@ function Content() {
       console.error('Error posting content:', error.message);
       setError(error.message);
     }
-  }, [quillContent, selectedCategory, isEditing, title, description, image, faqs]);
+  }, [quillContent, selectedCategory, selectedLanguage, isEditing, title, description, image, faqs, relatedTools]);
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
@@ -88,6 +131,10 @@ function Content() {
 
   const handleCategoryChange = useCallback((e) => {
     setSelectedCategory(e.target.value);
+  }, []);
+
+  const handleLanguageChange = useCallback((e) => {
+    setSelectedLanguage(e.target.value);
   }, []);
 
   const handleImageChange = (e) => {
@@ -107,6 +154,33 @@ function Content() {
   const removeFaq = (index) => {
     const updatedFaqs = faqs.filter((_, i) => i !== index);
     setFaqs(updatedFaqs);
+  };
+
+  const handleRelatedToolChange = (index, key, value) => {
+    const updatedTools = [...relatedTools];
+    if (key === 'logo') {
+      updatedTools[index][key] = value.target.files[0];
+    } else {
+      updatedTools[index][key] = value;
+    }
+    setRelatedTools(updatedTools);
+  };
+
+  const addRelatedTool = () => {
+    setRelatedTools([...relatedTools, { name: '', link: '', logo: null }]);
+  };
+
+  const removeRelatedTool = (index) => {
+    const updatedTools = relatedTools.filter((_, i) => i !== index);
+    setRelatedTools(updatedTools);
+  };
+
+  const handleToolSelection = (tool) => {
+    if (relatedTools.some((relatedTool) => relatedTool.name === tool.name)) {
+      setRelatedTools(relatedTools.filter((relatedTool) => relatedTool.name !== tool.name));
+    } else {
+      setRelatedTools([...relatedTools, tool]);
+    }
   };
 
   const renderHeader = () => {
@@ -132,7 +206,7 @@ function Content() {
       case 'channel-id-finder':
         return 'YouTube Channel ID Finder';
       case 'Youtube-Thumbnails-Generator':
-        return 'Youtube Thumbnails Downlaod';
+        return 'Youtube Thumbnails Generator';
       case 'video-data-viewer':
         return 'YouTube Video Data Viewer';
       case 'monetization-checker':
@@ -188,7 +262,48 @@ function Content() {
               <option value="trendingVideos">YouTube Trending Videos</option>
               <option value="YouTube-Money-Calculator">YouTube Money Calculator</option>
               <option value="youtube-comment-picker">Youtube Comment Picker</option>
-              <option value="keyword-research">Keyword Research</option>
+              <option value="keyword-research">YouTube Keyword Research</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+              <svg
+                className="fill-current h-4 w-4"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M6.293 7.293a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L7 9.414V17a1 1 0 11-2 0V9.414l-1.293 1.293a1 1 0 01-1.414-1.414l3-3z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div className="mb-3 flex items-center">
+          <label htmlFor="language" className="mr-2 text-sm font-medium">Select Language:</label>
+          <div className="relative">
+            <select
+              id="language"
+              value={selectedLanguage}
+              onChange={handleLanguageChange}
+              className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-2 px-4 text-sm leading-tight focus:outline-none focus:border-blue-500"
+            >
+              <option value="en">English</option>
+              <option value="fr">French</option>
+              <option value="zh-HANT">中国传统的</option>
+              <option value="zh-HANS">简体中文</option>
+              <option value="nl">Nederlands</option>
+              <option value="gu">ગુજરાતી</option>
+              <option value="hi">हिंदी</option>
+              <option value="it">Italiano</option>
+              <option value="ja">日本語</option>
+              <option value="ko">한국어</option>
+              <option value="pl">Polski</option>
+              <option value="pt">Português</option>
+              <option value="ru">Русский</option>
+              <option value="es">Español</option>
+              <option value="de">Deutsch</option>
+              {/* Add more languages as needed */}
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
               <svg
@@ -264,6 +379,24 @@ function Content() {
             </div>
           ))}
           <button onClick={addFaq} className="btn btn-secondary p-2 mt-3">Add New FAQ</button>
+        </div>
+
+        <div className='related-tools-section mt-10'>
+          <h2>Manage Related Tools</h2>
+          <div className="grid grid-cols-3 gap-4">
+            {allTools.map((tool, index) => (
+              <div key={index} className="flex items-center mb-3">
+                <input
+                  type="checkbox"
+                  checked={relatedTools.some(relatedTool => relatedTool.name === tool.name)}
+                  onChange={() => handleToolSelection(tool)}
+                  className="mr-2"
+                />
+                <span>{tool.name}</span>
+                <img src={tool?.logo?.src} alt={`${tool.name} logo`} className="ml-2 w-12 h-12" />
+              </div>
+            ))}
+          </div>
         </div>
        
         <button className='btn btn-primary p-2 mt-3' onClick={handleSubmit}>Submit Content</button>

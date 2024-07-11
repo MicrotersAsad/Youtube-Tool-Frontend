@@ -22,14 +22,16 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
+import { i18n, useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
-const TitleGenerator = ({ meta }) => {
+const TitleGenerator = ({ meta, faqs, relatedTools }) => {
+  const { t } = useTranslation('titlegenerator');
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();
   const [tags, setTags] = useState([]);
   const [input, setInput] = useState("");
   const [generatedTitles, setGeneratedTitles] = useState([]);
-  const [faqs, setFaqs] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
@@ -59,24 +61,22 @@ const TitleGenerator = ({ meta }) => {
     const fetchContent = async () => {
       try {
         const response = await fetch(
-          `/api/content?category=youtube-title-and-description-generator?tab=title`
+          `/api/content?category=youtube-title-and-description-generator?tab=title&language=${i18n?.language}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
-        console.log(data);
         setQuillContent(data[0]?.content || "");
         setExistingContent(data[0]?.content || "");
-        setFaqs(data[0].faqs);
       } catch (error) {
-        toast.error("Error fetching content");
+        toast.error(t('failedToFetchContent'));
       }
     };
 
     fetchContent();
     fetchReviews();
-  }, []);
+  }, [i18n?.language, t]);
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -167,10 +167,10 @@ const TitleGenerator = ({ meta }) => {
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(
       () => {
-        toast.success(`Copied: "${text}"`);
+        toast.success(t('copied', { text }));
       },
       (err) => {
-        toast.error("Failed to copy text: ", err);
+        toast.error(t('failedToCopy'));
       }
     );
   };
@@ -199,7 +199,7 @@ const TitleGenerator = ({ meta }) => {
 
   const generateTitles = async () => {
     if (!user) {
-      toast.error("You need to be logged in to generate tags.");
+      toast.error(t('loginPrompt'));
       return;
     }
 
@@ -208,7 +208,7 @@ const TitleGenerator = ({ meta }) => {
       user.role !== "admin" &&
       generateCount <= 0
     ) {
-      toast.error("Upgrade your plan for unlimited use.");
+      toast.error(t('upgradePrompt'));
       return;
     }
 
@@ -252,8 +252,6 @@ const TitleGenerator = ({ meta }) => {
           );
 
           const data = await result.json();
-          console.log("API response:", data);
-
           if (data.choices) {
             titles = data.choices[0].message.content
               .trim()
@@ -276,7 +274,6 @@ const TitleGenerator = ({ meta }) => {
         localStorage.setItem("generateCount", newCount);
       }
     } catch (error) {
-      console.error("Error generating titles:", error);
       toast.error(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
@@ -304,7 +301,7 @@ const TitleGenerator = ({ meta }) => {
     }
 
     if (!newReview.rating || !newReview.comment) {
-      toast.error("All fields are required.");
+      toast.error(t('allFieldsRequired'));
       return;
     }
 
@@ -324,7 +321,7 @@ const TitleGenerator = ({ meta }) => {
 
       if (!response.ok) throw new Error("Failed to submit review");
 
-      toast.success("Review submitted successfully!");
+      toast.success(t('reviewSubmittedSuccessfully'));
       setNewReview({
         name: "",
         rating: 0,
@@ -335,8 +332,7 @@ const TitleGenerator = ({ meta }) => {
       setShowReviewForm(false);
       fetchReviews();
     } catch (error) {
-      console.error("Failed to submit review:", error);
-      toast.error("Failed to submit review");
+      toast.error(t('failedToSubmitReview'));
     }
   };
 
@@ -373,9 +369,9 @@ const TitleGenerator = ({ meta }) => {
       <div className="bg-box">
         <div>
           <Image className="shape1" src={announce} alt="announce" />
-          <Image className="shape2" src={cloud} alt="announce" />
-          <Image className="shape3" src={cloud2} alt="announce" />
-          <Image className="shape4" src={chart} alt="announce" />
+          <Image className="shape2" src={cloud} alt="cloud" />
+          <Image className="shape3" src={cloud2} alt="cloud" />
+          <Image className="shape4" src={chart} alt="chart" />
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
@@ -398,7 +394,7 @@ const TitleGenerator = ({ meta }) => {
                 "@context": "https://schema.org",
                 "@type": "WebPage",
                 name: meta?.title,
-                url: "http://localhost:3000/tools/youtube-title-and-description-generator?tab=title",
+                url: meta?.url,
                 description: meta?.description,
                 breadcrumb: {
                   "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
@@ -419,7 +415,7 @@ const TitleGenerator = ({ meta }) => {
                 "@context": "https://schema.org",
                 "@type": "SoftwareApplication",
                 name: meta?.title,
-                url: "http://localhost:3000/tools/youtube-title-and-description-generator?tab=title",
+                url: meta?.url,
                 applicationCategory: "Multimedia",
                 aggregateRating: {
                   "@type": "AggregateRating",
@@ -460,7 +456,7 @@ const TitleGenerator = ({ meta }) => {
             </script>
           </Head>
 
-          <h2 className="text-3xl text-white">YouTube Title Generator</h2>
+          <h2 className="text-3xl text-white">{t('YouTube Title Generator')}</h2>
 
           {modalVisible && (
             <div
@@ -473,20 +469,19 @@ const TitleGenerator = ({ meta }) => {
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        Congratulations! Now you can generate unlimited tags.
+                        {t('upgradePrompt')}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can generate titles{" "}
-                        {5 - generateCount} more times.{" "}
+                        {t('notUpgradedPrompt', { remaining: 5 - generateCount })}
                         <Link href="/pricing" className="btn btn-warning ms-3">
-                          Upgrade
+                          {t('Upgrade')}
                         </Link>
                       </p>
                     )
                   ) : (
                     <p className="text-center p-3 alert-warning">
-                      Please log in to fetch channel data.
+                      {t('loginPrompt')}
                     </p>
                   )}
                 </div>
@@ -516,7 +511,7 @@ const TitleGenerator = ({ meta }) => {
             </div>
             <input
               type="text"
-              placeholder="Add a keyword"
+              placeholder={t('addKeyword')}
               className="input-box"
               value={input}
               onChange={handleInputChange}
@@ -532,7 +527,7 @@ const TitleGenerator = ({ meta }) => {
                 disabled={isLoading || tags.length === 0}
                 style={{ minWidth: "50px" }}
               >
-                {isLoading ? "Generating..." : "Generate Titles"}
+                {isLoading ? t('generating') : t('Generate Titles')}
               </button>
               <button
                 className="btn btn-danger whitespace-nowrap"
@@ -573,7 +568,7 @@ const TitleGenerator = ({ meta }) => {
               checked={selectAll}
               onChange={handleSelectAll}
             />
-            <span>Select All</span>
+            <span>{t('selectAll')}</span>
           </div>
         )}
         {generatedTitles.map((title, index) => (
@@ -593,7 +588,7 @@ const TitleGenerator = ({ meta }) => {
         ))}
         {generatedTitles.some((title) => title.selected) && (
           <button className="btn btn-primary" onClick={copySelectedTitles}>
-            Copy <FaCopy />
+            {t('copyAllTags')} <FaCopy />
           </button>
         )}
         {generatedTitles.some((title) => title.selected) && (
@@ -601,7 +596,7 @@ const TitleGenerator = ({ meta }) => {
             className="btn btn-primary ms-2"
             onClick={downloadSelectedTitles}
           >
-            Download <FaDownload />
+            {t('downloadTags')} <FaDownload />
           </button>
         )}
       </div>
@@ -614,13 +609,12 @@ const TitleGenerator = ({ meta }) => {
 
       <div className="p-5 shadow">
         <div className="accordion">
-          <h2 className="faq-title">Frequently Asked Questions</h2>
+          <h2 className="faq-title">{t('frequentlyAskedQuestions')}</h2>
           <p className="faq-subtitle">
-            Answered All Frequently Asked Questions, Still Confused? Feel Free
-            To Contact Us
+            {t('answeredAllFAQs')}
           </p>
           <div className="faq-grid">
-            {faqs.map((faq, index) => (
+            {faqs?.map((faq, index) => (
               <div key={index} className="faq-item">
                 <span id={`accordion-${index}`} className="target-fix"></span>
                 <a
@@ -655,7 +649,7 @@ const TitleGenerator = ({ meta }) => {
      
       <div className="row pt-3">
         <div className="col-md-4">
-          <div className=" text-3xl font-bold mb-2">Customer reviews</div>
+          <div className=" text-3xl font-bold mb-2">{t('customerReviews')}</div>
           <div className="flex items-center mb-2">
             <div className="text-3xl font-bold mr-2">{overallRating}</div>
             <div className="flex">
@@ -667,7 +661,7 @@ const TitleGenerator = ({ meta }) => {
               ))}
             </div>
             <div className="ml-2 text-sm text-gray-500">
-              {reviews.length} global ratings
+              {reviews.length} {t('globalRatings')}
             </div>
           </div>
           <div>
@@ -688,13 +682,13 @@ const TitleGenerator = ({ meta }) => {
           </div>
           <hr />
           <div className="pt-3">
-            <h4>Review This Tool</h4>
-            <p>Share Your Thoughts With Other Customers</p>
+            <h4>{t('reviewThisTool')}</h4>
+            <p>{t('shareYourThoughts')}</p>
             <button
               className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 mb-4"
               onClick={openReviewForm}
             >
-              Write a customer review
+              {t('writeReview')}
             </button>
           </div>
         </div>
@@ -711,7 +705,7 @@ const TitleGenerator = ({ meta }) => {
                 />
                 <div className="ml-4">
                   <div className="font-bold">{review?.userName}</div>
-                  <div className="text-gray-500 text-sm">Verified Purchase</div>
+                  <div className="text-gray-500 text-sm">{t('verifiedPurchase')}</div>
                 </div>
               </div>
               <div className="flex items-center">
@@ -727,7 +721,7 @@ const TitleGenerator = ({ meta }) => {
                 </div>
               </div>
               <div className="text-gray-500 text-sm mb-4">
-                Reviewed On {review.createdAt}
+                {t('reviewedOn')} {review.createdAt}
               </div>
               <div className="text-lg mb-4">{review.comment}</div>
             </div>
@@ -737,7 +731,7 @@ const TitleGenerator = ({ meta }) => {
               className="btn btn-primary mt-4 mb-5"
               onClick={handleShowMoreReviews}
             >
-              See More Reviews
+              {t('seeMoreReviews')}
             </button>
           )}
           {showAllReviews &&
@@ -754,10 +748,10 @@ const TitleGenerator = ({ meta }) => {
                   <div className="ml-4">
                     <div className="font-bold">{review?.userName}</div>
                     <div className="text-gray-500 text-sm">
-                      Verified Purchase
+                      {t('verifiedPurchase')}
                     </div>
                     <p className="text-muted">
-                      Reviewed On {review?.createdAt}
+                      {t('reviewedOn')} {review?.createdAt}
                     </p>
                   </div>
                 </div>
@@ -782,7 +776,7 @@ const TitleGenerator = ({ meta }) => {
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="fixed inset-0 bg-black opacity-50"></div>
           <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
-            <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+            <h2 className="text-2xl font-semibold mb-4">{t('leaveReview')}</h2>
             <div className="mb-4">
               <StarRating
                 rating={newReview.rating}
@@ -793,7 +787,7 @@ const TitleGenerator = ({ meta }) => {
               <input
                 type="text"
                 className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                placeholder="Title"
+                placeholder={t('reviewTitle')}
                 value={newReview.title}
                 onChange={(e) =>
                   setNewReview({ ...newReview, title: e.target.value })
@@ -803,7 +797,7 @@ const TitleGenerator = ({ meta }) => {
             <div className="mb-4">
               <textarea
                 className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                placeholder="Your Review"
+                placeholder={t('yourReview')}
                 value={newReview.comment}
                 onChange={(e) =>
                   setNewReview({ ...newReview, comment: e.target.value })
@@ -814,18 +808,35 @@ const TitleGenerator = ({ meta }) => {
               className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
               onClick={handleReviewSubmit}
             >
-              Submit Review
+              {t('submitReview')}
             </button>
             <button
               className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
               onClick={closeModal}
             >
-              Cancel
+              {t('cancel')}
             </button>
           </div>
         </div>
       )}
-
+      {/* Related Tools Section */}
+      <div className="related-tools-section mt-10">
+        <h2 className="text-2xl font-semibold mb-4">{t('Related Tools')}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {relatedTools?.map((tool, index) => (
+            <Link key={index} href={tool.link}>
+              <div className="related-tool-item bg-white p-4 rounded shadow hover:shadow-md transition">
+                <div className="flex items-center mb-2">
+                  <tool.icon className="text-xl mr-2" />
+                  <h3 className="text-lg font-bold">{tool.name}</h3>
+                </div>
+                <p>{tool.description}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+      {/* End of Related Tools Section */}
       <style jsx>{`
         .keywords-input-container {
           border: 2px solid #ccc;
@@ -930,41 +941,45 @@ const TitleGenerator = ({ meta }) => {
         .btn-secondary {
           background-color: gray;
         }
-
-       
-
-      
-        }
       `}</style>
     </>
   );
 };
 
-export async function getServerSideProps(context) {
-  const { req } = context;
+export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}/api/content?category=youtube-title-and-description-generator?tab=title`;
-  console.log(apiUrl);
+  const apiUrl = `${protocol}://${host}/api/content?category=youtube-title-and-description-generator?tab=title&lang=${locale}`;
+  const relatedToolsUrl = `${protocol}://${host}/api/content?category=relatedTools&language=${locale}`;
 
   try {
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
+    const [contentResponse, relatedToolsResponse] = await Promise.all([
+      fetch(apiUrl),
+      fetch(relatedToolsUrl)
+    ]);
+
+    if (!contentResponse.ok || !relatedToolsResponse.ok) {
       throw new Error("Failed to fetch content");
     }
 
-    const data = await response.json();
-    console.log(data);
+    const [contentData, relatedToolsData] = await Promise.all([
+      contentResponse.json(),
+      relatedToolsResponse.json()
+    ]);
+
     const meta = {
-      title: data[0]?.title || "",
-      description: data[0]?.description || "",
-      image: data[0]?.image || "",
+      title: contentData[0]?.title || "",
+      description: contentData[0]?.description || "",
+      image: contentData[0]?.image || "",
       url: `${protocol}://${host}/tools/youtube-title-and-description-generator?tab=title`,
     };
 
     return {
       props: {
         meta,
+        faqs: contentData[0]?.faqs || [],
+        relatedTools: relatedToolsData || [],
+        ...(await serverSideTranslations(locale, ['common', 'titlegenerator', 'navbar'])),
       },
     };
   } catch (error) {
@@ -972,6 +987,9 @@ export async function getServerSideProps(context) {
     return {
       props: {
         meta: {},
+        faqs: [],
+        relatedTools: [],
+        ...(await serverSideTranslations(locale, ['common', 'titlegenerator', 'navbar'])),
       },
     };
   }

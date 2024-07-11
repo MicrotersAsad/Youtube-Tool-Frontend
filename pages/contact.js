@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { FaUser, FaEnvelope, FaRegFileAlt, FaPaperPlane } from 'react-icons/fa';
 import contact from "../public/login.svg";
 import Image from 'next/image';
+import Head from 'next/head';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -56,6 +57,26 @@ export default function Contact() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
+       <Head>
+            <title>Contact Us</title>
+            <meta
+              name="description"
+              content="Pricing Page"
+            />
+            <meta
+              property="og:url"
+              content="https://youtube-tool-frontend.vercel.app/contact"
+            />
+         
+            <meta
+              property="og:description"
+              content={
+                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
+              }
+            />
+          
+          
+            </Head>
       <div className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-lg flex">
         <div className="w-1/2 pr-6 hidden md:block">
           <Image src={contact} alt="Contact Us" className="w-full h-full object-cover rounded-lg" />

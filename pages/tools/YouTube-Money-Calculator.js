@@ -3,7 +3,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import Head from "next/head";
 import { ToastContainer, toast } from "react-toastify";
 import { FaStar } from "react-icons/fa";
-import Slider from "react-slick";
 import StarRating from "./StarRating";
 import Link from "next/link";
 import announce from "../../public/shape/announce.png";
@@ -12,14 +11,19 @@ import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
+import { i18n } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 const YouTubeMoneyCalculator = ({ meta, faqs }) => {
+  const { t } = useTranslation('calculator');
   const [dailyViews, setDailyViews] = useState(0);
   const { user, updateUserProfile, logout } = useAuth();
   const [generateCount, setGenerateCount] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
+  const [relatedTools,setRelatedTools]=useState([])
   const [reviews, setReviews] = useState([]);
   const [openIndex, setOpenIndex] = useState(null);
   const [newReview, setNewReview] = useState({
@@ -57,15 +61,15 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch(
-          `/api/content?category=YouTube-Money-Calculator`
-        );
+        const language = i18n.language;
+        const response = await fetch(`/api/content?category=YouTube-Hashtag-Generator&language=${language}`);
         if (!response.ok) {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
         setQuillContent(data[0]?.content || ""); // Ensure content is not undefined
         setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
+        setRelatedTools(data[0]?.relatedTools || [])
       } catch (error) {
         console.error("Error fetching content");
       }
@@ -73,7 +77,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
 
     fetchContent();
     fetchReviews();
-  }, []);
+  }, [i18n.language]);
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -200,7 +204,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
             <title>{meta?.title}</title>
             <meta
               name="description"
-              content={meta?.description || "AI Youtube Hashtag Generator"}
+              content={meta?.description}
             />
             <meta
               property="og:url"
@@ -208,7 +212,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
             />
             <meta
               property="og:title"
-              content={meta?.title || "AI Youtube Tag Generator"}
+              content={meta?.title}
             />
             <meta
               property="og:description"
@@ -229,7 +233,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
             />
             <meta
               name="twitter:title"
-              content={meta?.title || "AI Youtube Tag Generator"}
+              content={meta?.title}
             />
             <meta
               name="twitter:description"
@@ -310,16 +314,16 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
           <div className="container mx-auto p-4">
             <div className="bg-white shadow-md rounded-lg max-w-4xl mx-auto p-5">
               <h1 className="text-center text-3xl font-bold">
-                YouTube Money Calculator
+                {t("YouTube Money Calculator")}
               </h1>
               <p className="text-center text-lg">
-                Check How Much Money Do YouTubers Make?
+                {t('Check How Much Money Do YouTubers Make?')}
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 <div>
                   <div className="mb-4">
                     <label className="block text-gray-700 font-bold mb-2">
-                      Daily Views
+                     {t('Daily Views')}
                     </label>
                     <input
                       type="number"
@@ -330,15 +334,15 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
                   </div>
                   <div className="mb-4">
                     <label className="block text-gray-700 font-bold mb-2">
-                      Estimated CPM
+                      {t('Estimated CPM')}
                     </label>
                     <div>
                       <span className="whitespace-nowrap">
-                        ${minCPM.toFixed(2)} USD
+                        ${minCPM.toFixed(2)} {t('USD')}
                       </span>
                       _____{" "}
                       <span className="whitespace-nowrap">
-                        ${maxCPM.toFixed(2)} USD
+                        ${maxCPM.toFixed(2)}{t('USD')}
                       </span>
                       <div>
                         <input
@@ -364,31 +368,27 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
                       </div>
                     </div>
                     <p className="text-gray-500 text-sm mt-2">
-                      Note: The accepted formula that Social Blade LLC uses to
-                      calculate the CPM range is $0.15 USD - $4.80 USD.
+                     {t('Note: The accepted formula that Social Blade LLC uses to calculate the CPM range is $0.15 USD - $4.80 USD.')}
                     </p>
                     <p className="text-gray-500 text-sm">
-                      Note: The range fluctuates this much because many factors
-                      come into play when calculating a CPM. Quality of traffic,
-                      source country, niche type of video, price of specific
-                      ads, adblock, the actual click rate, etc.
+                    {t('Note: The range fluctuates this much because many factors come into play when calculating a CPM. Quality of traffic, source country, niche type of video, price of specific ads, adblock, the actual click rate, etc.')}
                     </p>
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold mb-4">Estimated Earnings</h3>
+                  <h3 className="text-xl font-bold mb-4">{t('Estimated Earnings')}</h3>
                   <div className="text-green-500">
                     <p>
-                      Estimated Daily Earnings: ${dailyEarnings.min.toFixed(2)}{" "}
+                      {t('Estimated Daily Earnings:')} ${dailyEarnings.min.toFixed(2)}{" "}
                       - ${dailyEarnings.max.toFixed(2)}
                     </p>
                     <p>
-                      Estimated Monthly Earnings: $
+                     {t('Estimated Monthly Earnings:')} $
                       {monthlyEarnings.min.toFixed(2)} - $
                       {monthlyEarnings.max.toFixed(2)}
                     </p>
                     <p>
-                      Estimated Yearly Projection: $
+                     {t('Estimated Yearly Projection:')} $
                       {yearlyEarnings.min.toFixed(2)} - $
                       {yearlyEarnings.max.toFixed(2)}
                     </p>
@@ -408,10 +408,9 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
         </div>
         <div className="p-5 shadow">
           <div className="accordion">
-            <h2 className="faq-title">Frequently Asked Questions</h2>
+            <h2 className="faq-title">{t('Frequently Asked Questions')}</h2>
             <p className="faq-subtitle">
-              Answered All Frequently Asked Questions, Still Confused? Feel Free
-              To Contact Us
+             {t('Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us')}
             </p>
             <div className="faq-grid">
               {faqs.map((faq, index) => (
@@ -448,7 +447,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
         <hr className="mt-4 mb-2" />
         <div className="row pt-3">
           <div className="col-md-4">
-            <div className=" text-3xl font-bold mb-2">Customer reviews</div>
+            <div className=" text-3xl font-bold mb-2">{t('Customer reviews')}</div>
             <div className="flex items-center mb-2">
               <div className="text-3xl font-bold mr-2">{overallRating}</div>
               <div className="flex">
@@ -462,7 +461,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
                 ))}
               </div>
               <div className="ml-2 text-sm text-gray-500">
-                {reviews.length} global ratings
+                {reviews.length} {t('global ratings')}
               </div>
             </div>
             <div>
@@ -483,13 +482,13 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
             </div>
             <hr />
             <div className="pt-3">
-              <h4>Review This Tool</h4>
-              <p>Share Your Thoughts With Other Customers</p>
+              <h4>{t('Review This Tool')}</h4>
+              <p>{t('Share Your Thoughts With Other Customers')}</p>
               <button
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 mb-4"
                 onClick={openReviewForm}
               >
-                Write a customer review
+                {t('Write a customer review')}
               </button>
             </div>
           </div>
@@ -508,7 +507,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
                   <div className="ml-4">
                     <div className="font-bold">{review?.userName}</div>
                     <div className="text-gray-500 text-sm">
-                      Verified Purchase
+                      {t('Verified Purchase')}
                     </div>
                   </div>
                 </div>
@@ -526,7 +525,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
                 </div>
 
                 <div className="text-gray-500 text-sm mb-4">
-                  Reviewed On {review.createdAt}
+                  {t('Reviewed On')} {review.createdAt}
                 </div>
                 <div className="text-lg mb-4">{review.comment}</div>
               </div>
@@ -536,7 +535,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
                 className="btn btn-primary mt-4 mb-5"
                 onClick={handleShowMoreReviews}
               >
-                See More Reviews
+                {t('See More Reviews')}
               </button>
             )}
             {showAllReviews &&
@@ -553,10 +552,10 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
                     <div className="ml-4">
                       <div className="font-bold">{review?.userName}</div>
                       <div className="text-gray-500 text-sm">
-                        Verified Purchase
+                       {t('Verified Purchase')}
                       </div>
                       <p className="text-muted">
-                        Reviewed On {review?.createdAt}
+                        {t('Reviewed On')} {review?.createdAt}
                       </p>
                     </div>
                   </div>
@@ -613,17 +612,32 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
                 onClick={handleReviewSubmit}
               >
-                Submit Review
+                {t('Submit Review')}
               </button>
               <button
                 className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
                 onClick={closeReviewModal}
               >
-                Cancel
+                {t('Cancel')}
               </button>
             </div>
           </div>
         )}
+         {/* Related Tools Section */}
+         <div className="related-tools mt-10 shadow p-5">
+          <h2 className="text-2xl font-bold mb-5">{t('Related Tools')}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {relatedTools.map((tool, index) => (
+              <a key={index} href={tool.link} className="flex items-center border  shadow rounded-md p-4 hover:bg-gray-100">
+               <div className="d-flex">
+               <img src={tool?.Banner?.TagGenerator?.src} alt={`${tool.name} Banner`} className="ml-2 w-14 h-14" />
+               <span className="ms-2">{tool.name}</span>
+               </div>
+              </a>
+            ))}
+          </div>
+        </div>
+        {/* End of Related Tools Section */}
         <style jsx>
           {`
             .keywords-input {
@@ -710,41 +724,52 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
   );
 };
 
-export async function getServerSideProps(context) {
-  const { req } = context;
+export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}/api/content?category=YouTube-Money-Calculator`;
-  console.log(apiUrl);
+  const apiUrl = `${protocol}://${host}/api/content?category=YouTube-Money-Calculator&language=${locale}`;
+  const relatedToolsUrl = `${protocol}://${host}/api/content?category=relatedTools&language=${locale}`;
+
   try {
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
-      throw new Error("Failed to fetch content");
+    const [contentResponse] = await Promise.all([
+      fetch(apiUrl),
+      fetch(relatedToolsUrl)
+    ]);
+
+    if (!contentResponse.ok) {
+      throw new Error(t("Failed to fetch content"));
     }
 
-    const data = await response.json();
+    const [contentData] = await Promise.all([
+      contentResponse.json(),
+    ]);
 
     const meta = {
-      title: data[0]?.title || "",
-      description: data[0]?.description || "",
-      image: data[0]?.image || "",
+      title: contentData[0]?.title || "",
+      description: contentData[0]?.description || "",
+      image: contentData[0]?.image || "",
       url: `${protocol}://${host}/tools/YouTube-Money-Calculator`,
     };
 
     return {
       props: {
         meta,
-        faqs: data[0]?.faqs || [],
+        faqs: contentData[0].faqs || [],
+        ...(await serverSideTranslations(locale, ['common','trending','footer','navbar','titlegenerator','videoDataViewer','banner','logo','search','embed','calculator'])),
       },
     };
+  
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error fetching data");
     return {
       props: {
         meta: {},
         faqs: [],
+        ...(await serverSideTranslations(locale, ['common', 'trending','footer','navbar','titlegenerator','videoDataViewer','banner','logo','search','embed','calculator'])),
       },
+      
     };
+    
   }
 }
 

@@ -15,16 +15,16 @@ import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
 import Head from "next/head";
 import StarRating from "./StarRating"; // Import StarRating component
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import { format } from "date-fns";
+import { i18n, useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 const YtChannelDw = ({ meta, faqs }) => {
+  const { t } = useTranslation('banner');
   const { user, updateUserProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -37,6 +37,7 @@ const YtChannelDw = ({ meta, faqs }) => {
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
+  const [relatedTools, setRelatedTools] = useState([]);
   const [newReview, setNewReview] = useState({
     name: "",
     rating: 0,
@@ -56,18 +57,18 @@ const YtChannelDw = ({ meta, faqs }) => {
     if (typeof window !== "undefined") {
       setGenerateCount(Number(localStorage.getItem("generateCount")) || 0);
     }
-
+    
     const fetchContent = async () => {
       try {
-        const response = await fetch(
-          `/api/content?category=YouTube-Channel-Banner-Downloader`
-        );
+        const language = i18n.language;
+        const response = await fetch(`/api/content?category=YouTube-Channel-Banner-Downloader&language=${language}`);
         if (!response.ok) {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
         setQuillContent(data[0]?.content || "");
         setExistingContent(data[0]?.content || "");
+        setRelatedTools(data[0]?.relatedTools || []);
       } catch (error) {
         console.error("Error fetching content");
       }
@@ -75,7 +76,7 @@ const YtChannelDw = ({ meta, faqs }) => {
 
     fetchContent();
     fetchReviews();
-  }, []);
+  }, [i18n.language]);
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -340,7 +341,7 @@ const YtChannelDw = ({ meta, faqs }) => {
             <title>{meta?.title}</title>
             <meta
               name="description"
-              content={meta?.description || "AI Youtube Hashtag Generator"}
+              content={meta?.description }
             />
             <meta
               property="og:url"
@@ -348,7 +349,7 @@ const YtChannelDw = ({ meta, faqs }) => {
             />
             <meta
               property="og:title"
-              content={meta?.title || "AI Youtube Tag Generator"}
+              content={meta?.title }
             />
             <meta
               property="og:description"
@@ -369,7 +370,7 @@ const YtChannelDw = ({ meta, faqs }) => {
             />
             <meta
               name="twitter:title"
-              content={meta?.title || "AI Youtube Tag Generator"}
+              content={meta?.title }
             />
             <meta
               name="twitter:description"
@@ -447,7 +448,7 @@ const YtChannelDw = ({ meta, faqs }) => {
             </script>
           </Head>
           <h2 className="text-3xl pt-5 text-white">
-            YouTube Channel Banner Download
+            {t('YouTube Channel Banner Download')}
           </h2>
           <ToastContainer />
           {modalVisible && (
@@ -461,20 +462,19 @@ const YtChannelDw = ({ meta, faqs }) => {
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        Congratulations! Now you can download unlimited Logo.
+                        {t('Congratulations! Now you can download unlimited Banner.')}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can generate Logo{" "}
-                        {5 - generateCount} more times.{" "}
+                        {t('You are not upgraded. You can generate banner {{remainingGenerations}} more times.', { remainingGenerations: 5 - generateCount })}
                         <Link href="/pricing" className="btn btn-warning ms-3">
-                          Upgrade
+                          {t('Upgrade')}
                         </Link>
                       </p>
                     )
                   ) : (
                     <p className="text-center p-3 alert-warning">
-                      Please log in to fetch channel data.
+                      {t('Please log in to fetch channel data.')}
                     </p>
                   )}
                 </div>
@@ -494,7 +494,7 @@ const YtChannelDw = ({ meta, faqs }) => {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="Enter YouTube Channel URL..."
+                  placeholder={t("Enter YouTube Channel URL...")}
                   aria-label="YouTube Channel URL"
                   value={channelUrl}
                   onChange={handleUrlChange}
@@ -505,7 +505,7 @@ const YtChannelDw = ({ meta, faqs }) => {
                   onClick={fetchYouTubeData}
                   disabled={loading}
                 >
-                  {loading ? "Loading..." : "Fetch Banner"}
+                  {loading ? "Loading..." : t("Fetch Banner")}
                 </button>
               </div>
               <small className="text-white">
@@ -527,7 +527,7 @@ const YtChannelDw = ({ meta, faqs }) => {
         <div className="text-center">
           <div className="flex gap-2">
             <FaShareAlt className="text-danger fs-3" />
-            <span> Share On Social Media</span>
+            <span>{t('Share On Social Media')}</span>
             <FaFacebook
               className="facebook-icon fs-3"
               onClick={() => shareOnSocialMedia("facebook")}
@@ -572,10 +572,9 @@ const YtChannelDw = ({ meta, faqs }) => {
 
         <div className="p-5 shadow">
           <div className="accordion">
-            <h2 className="faq-title">Frequently Asked Questions</h2>
+            <h2 className="faq-title">{t('Frequently Asked Questions')}</h2>
             <p className="faq-subtitle">
-              Answered All Frequently Asked Questions, Still Confused? Feel Free
-              To Contact Us
+              {t('Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us')}
             </p>
             <div className="faq-grid">
               {faqs.map((faq, index) => (
@@ -612,7 +611,7 @@ const YtChannelDw = ({ meta, faqs }) => {
         <hr className="mt-4 mb-2" />
         <div className="row pt-3">
           <div className="col-md-4">
-            <div className=" text-3xl font-bold mb-2">Customer reviews</div>
+            <div className=" text-3xl font-bold mb-2">{t('Customer reviews')}</div>
             <div className="flex items-center mb-2">
               <div className="text-3xl font-bold mr-2">{overallRating}</div>
               <div className="flex">
@@ -626,7 +625,7 @@ const YtChannelDw = ({ meta, faqs }) => {
                 ))}
               </div>
               <div className="ml-2 text-sm text-gray-500">
-                {reviews.length} global ratings
+                {reviews.length} {t('global ratings')}
               </div>
             </div>
             <div>
@@ -647,13 +646,13 @@ const YtChannelDw = ({ meta, faqs }) => {
             </div>
             <hr />
             <div className="pt-3">
-              <h4>Review This Tool</h4>
-              <p>Share Your Thoughts With Other Customers</p>
+              <h4>{t('Review This Tool')}</h4>
+              <p>{t('Share Your Thoughts With Other Customers')}</p>
               <button
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
                 onClick={openReviewForm}
               >
-                Write a customer review
+                {t('Write a customer review')}
               </button>
             </div>
           </div>
@@ -672,7 +671,7 @@ const YtChannelDw = ({ meta, faqs }) => {
                   <div className="ml-4">
                     <div className="font-bold">{review?.userName}</div>
                     <div className="text-gray-500 text-sm">
-                      Verified Purchase
+                      {t('Verified Purchase')}
                     </div>
                   </div>
                 </div>
@@ -690,7 +689,7 @@ const YtChannelDw = ({ meta, faqs }) => {
                 </div>
 
                 <div className="text-gray-500 text-sm mb-4">
-                  Reviewed On {review.createdAt}
+                  {t('Reviewed On')} {review.createdAt}
                 </div>
                 <div className="text-lg mb-4">{review.comment}</div>
               </div>
@@ -700,7 +699,7 @@ const YtChannelDw = ({ meta, faqs }) => {
                 className="btn btn-primary mt-4 mb-5"
                 onClick={handleShowMoreReviews}
               >
-                See More Reviews
+                {t('See More Reviews')}
               </button>
             )}
             {showAllReviews &&
@@ -717,10 +716,10 @@ const YtChannelDw = ({ meta, faqs }) => {
                     <div className="ml-4">
                       <div className="font-bold">{review?.userName}</div>
                       <div className="text-gray-500 text-sm">
-                        Verified Purchase
+                        {t('Verified Purchase')}
                       </div>
                       <p className="text-muted">
-                        Reviewed On {review?.createdAt}
+                        {t('Reviewed On')} {review?.createdAt}
                       </p>
                     </div>
                   </div>
@@ -745,7 +744,7 @@ const YtChannelDw = ({ meta, faqs }) => {
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="fixed inset-0 bg-black opacity-50"></div>
             <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
-              <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+              <h2 className="text-2xl font-semibold mb-4">{t('Leave a Review')}</h2>
               <div className="mb-4">
                 <StarRating
                   rating={newReview.rating}
@@ -756,7 +755,7 @@ const YtChannelDw = ({ meta, faqs }) => {
                 <input
                   type="text"
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder="Title"
+                  placeholder={t('Title')}
                   value={newReview.title}
                   onChange={(e) =>
                     setNewReview({ ...newReview, title: e.target.value })
@@ -766,7 +765,7 @@ const YtChannelDw = ({ meta, faqs }) => {
               <div className="mb-4">
                 <textarea
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder="Your Review"
+                  placeholder={t('Your Review')}
                   value={newReview.comment}
                   onChange={(e) =>
                     setNewReview({ ...newReview, comment: e.target.value })
@@ -777,17 +776,32 @@ const YtChannelDw = ({ meta, faqs }) => {
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
                 onClick={handleReviewSubmit}
               >
-                Submit Review
+                {t('Submit Review')}
               </button>
               <button
                 className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
                 onClick={closeReviewForm}
               >
-                Cancel
+                {t('Cancel')}
               </button>
             </div>
           </div>
         )}
+           {/* Related Tools Section */}
+           <div className="related-tools mt-10 shadow p-5">
+          <h2 className="text-2xl font-bold mb-5">{t('Related Tools')}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {relatedTools.map((tool, index) => (
+              <a key={index} href={tool.link} className="flex items-center border  shadow rounded-md p-4 hover:bg-gray-100">
+               <div className="d-flex">
+               <img src={tool?.Banner?.TagGenerator?.src} alt={`${tool.name} Banner`} className="ml-2 w-14 h-14" />
+               <span className="ms-2">{tool.name}</span>
+               </div>
+              </a>
+            ))}
+          </div>
+        </div>
+        {/* End of Related Tools Section */}
         <style jsx>{`
           .keywords-input-container {
             border: 2px solid #ccc;
@@ -870,42 +884,58 @@ const YtChannelDw = ({ meta, faqs }) => {
   );
 };
 
-export async function getServerSideProps(context) {
-  const { req } = context;
+export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}/api/content?category=YouTube-Channel-Banner-Downloader`;
-  console.log(apiUrl);
+  const apiUrl = `${protocol}://${host}/api/content?category=YouTube-Channel-Banner-Downloader&language=${locale}`;
+  const relatedToolsUrl = `${protocol}://${host}/api/content?category=relatedTools&language=${locale}`;
+
   try {
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
+    const [contentResponse] = await Promise.all([
+      fetch(apiUrl),
+      fetch(relatedToolsUrl)
+    ]);
+
+    if (!contentResponse.ok) {
       throw new Error("Failed to fetch content");
     }
 
-    const data = await response.json();
+    const [contentData] = await Promise.all([
+      contentResponse.json(),
+
+    ]);
 
     const meta = {
-      title: data[0]?.title || "",
-      description: data[0]?.description || "",
-      image: data[0]?.image || "",
+      title: contentData[0]?.title || "",
+      description: contentData[0]?.description || "",
+      image: contentData[0]?.image || "",
       url: `${protocol}://${host}/tools/YouTube-Channel-Banner-Downloader`,
     };
 
     return {
       props: {
         meta,
-        faqs: data[0]?.faqs || [],
+        faqs: contentData[0].faqs || [],
+       
+        ...(await serverSideTranslations(locale, ['common','trending','footer','navbar','titlegenerator','videoDataViewer','banner'])),
       },
     };
+  
   } catch (error) {
     console.error("Error fetching data:", error);
     return {
       props: {
         meta: {},
         faqs: [],
+        
+        ...(await serverSideTranslations(locale, ['common', 'trending','footer','navbar','titlegenerator','videoDataViewer','banner'])),
       },
+      
     };
+    
   }
+  
 }
+
 
 export default YtChannelDw;
