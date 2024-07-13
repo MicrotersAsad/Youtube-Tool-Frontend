@@ -55,18 +55,26 @@ export default async function handler(req, res) {
       try {
         await runMiddleware(req, res, upload.single('image'));
 
-        const { content, title, metaTitle, description, slug, metaDescription, categories, author, authorProfile } = req.body;
+        const formData = req.body;
+        const { content, title, metaTitle, description, slug, metaDescription, category, language, author, authorProfile } = formData;
         const image = req.file ? `/uploads/${req.file.filename}` : null;
 
-        if (!content || !title || !slug || !metaTitle || !description || !metaDescription || !categories || !author) {
-          return res.status(400).json({ message: 'Invalid request body' });
-        }
+        console.log('Received form data:', {
+          content,
+          title,
+          metaTitle,
+          description,
+          slug,
+          metaDescription,
+          category,
+          language,
+          author,
+          authorProfile,
+          image
+        });
 
-        let parsedCategories;
-        try {
-          parsedCategories = JSON.parse(categories);
-        } catch (error) {
-          parsedCategories = categories.split(',').map(cat => cat.trim());
+        if (!content || !title || !slug || !metaTitle || !description || !metaDescription || !category || !language || !author) {
+          return res.status(400).json({ message: 'Invalid request body' });
         }
 
         const doc = {
@@ -76,11 +84,12 @@ export default async function handler(req, res) {
           metaTitle,
           description,
           metaDescription,
-          categories: parsedCategories,
+          category,
+          language,
           image,
           author,
           authorProfile,
-          viewCount: 0, // Initialize view count to 0
+          viewCount: 0,
           createdAt: new Date(),
         };
 

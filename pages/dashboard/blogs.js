@@ -13,6 +13,7 @@ function Blogs() {
   const [existingContents, setExistingContents] = useState([]);
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [slug, setSlug] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState('');
@@ -24,19 +25,16 @@ function Blogs() {
   const [isDraft, setIsDraft] = useState(false);
   const [isSlugEditable, setIsSlugEditable] = useState(false);
 
-  // Fetch categories on component mount
   useEffect(() => {
     fetchCategories();
   }, []);
 
-  // Fetch content whenever a category is selected
   useEffect(() => {
-    if (selectedCategory) {
+    if (selectedCategory && selectedLanguage) {
       fetchContent();
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, selectedLanguage]);
 
-  // Fetch categories from API
   const fetchCategories = async () => {
     try {
       const response = await fetch('/api/categories');
@@ -50,10 +48,9 @@ function Blogs() {
     }
   };
 
-  // Fetch content based on selected category
   const fetchContent = async () => {
     try {
-      const response = await fetch(`/api/blogs?category=${selectedCategory}`);
+      const response = await fetch(`/api/blogs?category=${selectedCategory}&language=${selectedLanguage}`);
       if (!response.ok) {
         throw new Error('Failed to fetch content');
       }
@@ -66,15 +63,14 @@ function Blogs() {
     }
   };
 
-  // Handle form submission
   const handleSubmit = async () => {
-    if (!title || !quillContent || !metaDescription || !metaTitle || !description || !selectedCategory) {
+    if (!title || !quillContent || !metaDescription || !metaTitle || !description || !selectedCategory || !selectedLanguage) {
       setError('Please fill in all the fields.');
       return;
     }
 
     try {
-      const method = 'POST';
+      const method = isEditing ? 'PUT' : 'POST';
 
       const formData = new FormData();
       formData.append('content', quillContent);
@@ -82,15 +78,21 @@ function Blogs() {
       formData.append('metaTitle', metaTitle);
       formData.append('description', description);
       formData.append('metaDescription', metaDescription);
+      formData.append('language', selectedLanguage);
+      formData.append('category', selectedCategory);
       if (image) {
         formData.append('image', image);
       }
-      formData.append('categories', JSON.stringify([selectedCategory]));
       formData.append('author', user.username);
       formData.append('authorProfile', user.profileImage);
       formData.append('slug', slug);
       formData.append('createdAt', new Date().toISOString());
       formData.append('isDraft', JSON.stringify(false));
+
+      // Log form data
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+      }
 
       const response = await fetch('/api/blogs', {
         method,
@@ -103,7 +105,7 @@ function Blogs() {
       }
 
       setError(null);
-      fetchContent(); // Refresh the content list after posting
+      fetchContent();
       toast.success('Blog uploaded successfully!');
     } catch (error) {
       console.error('Error posting content:', error.message);
@@ -111,31 +113,25 @@ function Blogs() {
     }
   };
 
-  // Handle Quill editor content change
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
   }, []);
 
-  // Handle category change
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
   };
 
-  // Handle image change
+  const handleLanguageChange = (e) => {
+    setSelectedLanguage(e.target.value);
+  };
+
   const handleImageChange = (e) => {
     setImage(e.target.files[0]);
   };
 
-  // Handle draft status change
-  const handleDraftChange = (e) => {
-    setIsDraft(e.target.value === 'Draft');
-  };
-
-  // Generate slug from title without question marks or symbols
   useEffect(() => {
     if (!isSlugEditable) {
       const generateSlug = (str) => {
-        // Remove question marks and symbols
         const cleanedTitle = str.replace(/[^\w\s]/gi, '');
         return cleanedTitle.toLowerCase().split(' ').join('-');
       };
@@ -144,7 +140,6 @@ function Blogs() {
     }
   }, [title, isSlugEditable]);
 
-  // Handle slug change
   const handleSlugChange = (e) => {
     setSlug(e.target.value);
   };
@@ -238,15 +233,28 @@ function Blogs() {
               </select>
             </div>
             <div className="mb-6">
-              <label htmlFor="status" className="block mb-2 text-lg font-medium">Status*</label>
+              <label htmlFor="language" className="block mb-2 text-lg font-medium">Language*</label>
               <select
-                id="status"
-                value={isDraft ? 'Draft' : 'Publish'}
-                onChange={handleDraftChange}
+                id="language"
+                value={selectedLanguage}
+                onChange={handleLanguageChange}
                 className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
               >
-                <option value="Publish">Publish</option>
-                <option value="Draft">Draft</option>
+                <option value="en">English</option>
+                <option value="fr">French</option>
+                <option value="zh-HANT">中国传统的</option>
+                <option value="zh-HANS">简体中文</option>
+                <option value="nl">Nederlands</option>
+                <option value="gu">ગુજરાતી</option>
+                <option value="hi">हिंदी</option>
+                <option value="it">Italiano</option>
+                <option value="ja">日本語</option>
+                <option value="ko">한국어</option>
+                <option value="pl">Polski</option>
+                <option value="pt">Português</option>
+                <option value="ru">Русский</option>
+                <option value="es">Español</option>
+                <option value="de">Deutsch</option>
               </select>
             </div>
             <div className="mb-6">

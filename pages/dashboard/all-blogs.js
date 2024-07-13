@@ -8,7 +8,8 @@ import 'react-toastify/dist/ReactToastify.css';
 function AllBlogs() {
   const [blogs, setBlogs] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedLanguages, setSelectedLanguages] = useState([]);
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [blogsPerPage] = useState(10);
@@ -41,7 +42,7 @@ function AllBlogs() {
   const fetchBlogs = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/blogs`);
+      const response = await fetch('/api/blogs');
       if (!response.ok) {
         throw new Error('Failed to fetch blogs');
       }
@@ -58,7 +59,13 @@ function AllBlogs() {
   };
 
   const handleCategoryChange = (e) => {
-    setSelectedCategory(e.target.value);
+    const options = Array.from(e.target.selectedOptions, option => option.value);
+    setSelectedCategories(options);
+  };
+
+  const handleLanguageChange = (e) => {
+    const options = Array.from(e.target.selectedOptions, option => option.value);
+    setSelectedLanguages(options);
   };
 
   const handleDelete = async (id) => {
@@ -80,21 +87,23 @@ function AllBlogs() {
   };
 
   const getCategoriesArray = (categories) => {
+    if (!categories) return [];
     if (Array.isArray(categories)) {
       return categories;
     }
     try {
       return JSON.parse(categories);
     } catch (e) {
-      return categories.split(',');
+      return categories.split(',').map(cat => cat.trim());
     }
   };
 
   const filteredBlogs = blogs.filter((blog) => {
     const categoryArray = getCategoriesArray(blog.categories);
-    const categoryMatch = !selectedCategory || categoryArray.includes(selectedCategory);
+    const categoryMatch = selectedCategories.length === 0 || selectedCategories.some(category => categoryArray.includes(category));
+    const languageMatch = selectedLanguages.length === 0 || selectedLanguages.includes(blog.language);
     const searchMatch = !search || blog.title.toLowerCase().includes(search.toLowerCase());
-    return categoryMatch && searchMatch;
+    return categoryMatch && languageMatch && searchMatch;
   });
 
   const indexOfLastBlog = currentPage * blogsPerPage;
@@ -119,9 +128,10 @@ function AllBlogs() {
             onChange={handleSearchChange}
             className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-2 px-4 text-sm leading-tight focus:outline-none focus:border-blue-500 mb-3 md:mb-0"
           />
-          <div className="relative ml-0 md:ml-3 mb-3 md:mb-0">
+          {/* <div className="relative ml-0 md:ml-3 mb-3 md:mb-0">
             <select
-              value={selectedCategory}
+              multiple
+              value={selectedCategories}
               onChange={handleCategoryChange}
               className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-2 px-4 text-sm leading-tight focus:outline-none focus:border-blue-500"
             >
@@ -130,7 +140,32 @@ function AllBlogs() {
                 <option key={category._id} value={category.name}>{category.name}</option>
               ))}
             </select>
-          </div>
+          </div> */}
+          {/* <div className="relative ml-0 md:ml-3 mb-3 md:mb-0">
+            <select
+              multiple
+              value={selectedLanguages}
+              onChange={handleLanguageChange}
+              className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-2 px-4 text-sm leading-tight focus:outline-none focus:border-blue-500"
+            >
+              <option value="">All Languages</option>
+              <option value="en">English</option>
+              <option value="fr">French</option>
+              <option value="zh-HANT">中国传统的</option>
+              <option value="zh-HANS">简体中文</option>
+              <option value="nl">Nederlands</option>
+              <option value="gu">ગુજરાતી</option>
+              <option value="hi">हिंदी</option>
+              <option value="it">Italiano</option>
+              <option value="ja">日本語</option>
+              <option value="ko">한국어</option>
+              <option value="pl">Polski</option>
+              <option value="pt">Português</option>
+              <option value="ru">Русский</option>
+              <option value="es">Español</option>
+              <option value="de">Deutsch</option>
+            </select>
+          </div> */}
           <div className="relative ml-0 md:ml-3 mb-3 md:mb-0 flex items-center">
             <label className="mr-2">Show Drafts</label>
             <input
@@ -151,6 +186,7 @@ function AllBlogs() {
                 <tr>
                   <th className="py-2 px-4 border-b">Title</th>
                   <th className="py-2 px-4 border-b">Category</th>
+                  <th className="py-2 px-4 border-b">Language</th>
                   <th className="py-2 px-4 border-b">Views</th>
                   <th className="py-2 px-4 border-b">Actions</th>
                 </tr>
@@ -160,10 +196,9 @@ function AllBlogs() {
                   <tr key={blog._id}>
                     <td className="py-2 px-4 border-b">{blog.title}</td>
                     <td className="py-2 px-4 border-b">
-                      {getCategoriesArray(blog.categories).map((category, i) => (
-                        <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
-                      ))}
+                    {blog.category}
                     </td>
+                    <td className="py-2 px-4 border-b">{blog.language}</td>
                     <td className="py-2 px-4 border-b">
                       <span className="flex items-center">
                         <FaEye className="mr-1" /> {blog.viewCount}

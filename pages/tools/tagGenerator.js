@@ -10,7 +10,6 @@ import {
   FaStar,
 } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
-import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ToastContainer, toast } from "react-toastify";
@@ -26,7 +25,7 @@ import { useTranslation } from 'react-i18next';
 import { i18n } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-const TagGenerator = ({ meta = [] }) => {
+const TagGenerator = ({ meta }) => {
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();
   const { t } = useTranslation('common');
@@ -83,7 +82,7 @@ const TagGenerator = ({ meta = [] }) => {
     fetchContent();
     fetchReviews();
   }, [i18n.language]);
-console.log(relatedTools);
+
   useEffect(() => {
     if (user && !user.name) {
       updateUserProfile().then(() => setIsUpdated(true));
@@ -372,110 +371,6 @@ console.log(relatedTools);
 
   return (
     <>
-      <Head>
-        <title>{meta?.title || t('title')}</title>
-        <meta
-          name="description"
-          content={meta?.description || t('description')}
-        />
-        <meta
-          property="og:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta
-          property="og:title"
-          content={meta?.title || t('title')}
-        />
-        <meta
-          property="og:description"
-          content={meta?.description || t('description')}
-        />
-        <meta property="og:image" content={meta?.image || ""} />
-        <meta name="twitter:card" content={meta?.image || ""} />
-        <meta
-          property="twitter:domain"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta
-          property="twitter:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/tagGenerator"
-        />
-        <meta
-          name="twitter:title"
-          content={meta?.title || t('title')}
-        />
-        <meta
-          name="twitter:description"
-          content={meta?.description || t('description')}
-        />
-        <meta name="twitter:image" content={meta?.image || ""} />
-        {/* - Webpage Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebPage",
-            name: meta?.title || t('title'),
-            url: "https://youtube-tool-frontend.vercel.app/tools/tagGenerator",
-            description: meta?.description || t('description'),
-            breadcrumb: {
-              "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
-            },
-            about: {
-              "@type": "Thing",
-              name: meta?.title || t('title'),
-            },
-            isPartOf: {
-              "@type": "WebSite",
-              url: "https://youtube-tool-frontend.vercel.app",
-            },
-          })}
-        </script>
-        {/* - Review Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            name: meta?.title || t('title'),
-            url: "https://youtube-tool-frontend.vercel.app/tools/tagGenerator",
-            applicationCategory: "Multimedia",
-            aggregateRating: {
-              "@type": "AggregateRating",
-              ratingValue: overallRating,
-              ratingCount: reviews?.length,
-              reviewCount: reviews?.length,
-            },
-            review: reviews.map((review) => ({
-              "@type": "Review",
-              author: {
-                "@type": "Person",
-                name: review.userName,
-              },
-              datePublished: review.createdAt,
-              reviewBody: review.comment,
-              name: review.title,
-              reviewRating: {
-                "@type": "Rating",
-                ratingValue: review.rating,
-              },
-            })),
-          })}
-        </script>
-        {/* - FAQ Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faqs.map((faq) => ({
-              "@type": "Question",
-              name: faq.question,
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: faq.answer,
-              },
-            })),
-          })}
-        </script>
-      </Head>
       <div className="bg-box">
         <div>
           <Image className="shape1" src={announce} alt="announce" />
@@ -863,17 +758,30 @@ console.log(relatedTools);
           </div>
         )}
 
-        <div className="related-tools mt-10 shadow p-5">
-          <h2 className="text-2xl font-bold mb-5">{t('Related Tools')}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {relatedTools.map((tool, index) => (
-              <a key={index} href={tool.link} className="flex items-center border  shadow rounded-md p-4 hover:bg-gray-100">
-                  <img src={tool?.logo?.src} alt={`${tool.name} logo`} className="ml-2 w-12 h-12" />
-                <span>{tool.name}</span>
-              </a>
-            ))}
-          </div>
-        </div>
+       {/* Related Tools Section */}
+       <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
+      <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {relatedTools.map((tool, index) => (
+          <a
+            key={index}
+            href={tool.link}
+            className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
+          >
+            <Image
+              src={tool?.logo?.src}
+              alt={`${tool.name} Icon`}
+              width={64}
+              height={64}
+              className="mr-4"
+              
+            />
+            <span className="text-blue-600 font-medium">{tool.name}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+        {/* End of Related Tools Section */}
       </div>
     </>
   );
@@ -882,27 +790,32 @@ console.log(relatedTools);
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}/api/content?category=tagGenerator&lang=${locale}`;
-
+  const apiUrl = `${protocol}://${host}/api/content?category=tagGenerator&language=${locale}`;
+  
   try {
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
+    const [contentResponse] = await Promise.all([
+      fetch(apiUrl),
+    ]);
+
+    if (!contentResponse.ok) {
       throw new Error("Failed to fetch content");
     }
 
-    const data = await response.json();
+    const [contentData] = await Promise.all([
+      contentResponse.json(),
+    ]);
 
     const meta = {
-      title: data[0]?.title || "",
-      description: data[0]?.description || "",
-      image: data[0]?.image || "",
+      title: contentData[0]?.title || "",
+      description: contentData[0]?.description || "",
+      image: contentData[0]?.image || "",
       url: `${protocol}://${host}/tools/tagGenerator`,
     };
 
     return {
       props: {
         meta,
-        ...(await serverSideTranslations(locale, ['common','navbar','footer'])),
+        ...(await serverSideTranslations(locale, ['common','tagextractor','navbar','footer'])),
       },
     };
   } catch (error) {
@@ -910,7 +823,7 @@ export async function getServerSideProps({ req, locale }) {
     return {
       props: {
         meta: {},
-        ...(await serverSideTranslations(locale, ['common','navbar','footer'])),
+        ...(await serverSideTranslations(locale, ['common', 'tagextractor','navbar','footer'])),
       },
     };
   }

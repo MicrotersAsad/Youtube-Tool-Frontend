@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import Script from 'next/script';
 import Head from 'next/head';
 import '../styles/globals.css';
@@ -10,21 +9,111 @@ import Notice from './Notice';
 import { appWithTranslation } from 'next-i18next';
 
 
-
 function MyApp({ Component, pageProps }) {
   
+  const [showButton, setShowButton] = useState(false);
+  useEffect(() => {
+    const logVisit = async () => {
+      try {
+        await fetch('/api/log-visit', {
+          method: 'POST',
+        });
+      } catch (error) {
+        console.error('Error logging site visit:', error);
+      }
+    };
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowButton(true);
+      } else {
+        setShowButton(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    logVisit();
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <>
       <Head>
-        <title>Youtube Tools</title>
-        <meta name="description" content="Youtube Tools" />
+        <title>{pageProps.meta?.title || "Youtube Tools"}</title>
+        <meta
+          name="description"
+          content={pageProps.meta?.description || ""}
+        />
+        <meta
+          property="og:url"
+          content={pageProps.meta?.url || "https://youtube-tool-frontend.vercel.app/tools/tagGenerator"}
+        />
+        <meta
+          property="og:title"
+          content={pageProps.meta?.title || ""}
+        />
+        <meta
+          property="og:description"
+          content={pageProps.meta?.description || ""}
+        />
+        <meta
+          property="og:image"
+          content={pageProps.meta?.image || ""}
+        />
+        <meta
+          name="twitter:card"
+          content={pageProps.meta?.image || ""}
+        />
+        <meta
+          property="twitter:domain"
+          content="https://youtube-tool-frontend.vercel.app/"
+        />
+        <meta
+          property="twitter:url"
+          content={pageProps.meta?.url || "https://youtube-tool-frontend.vercel.app/tools/tagGenerator"}
+        />
+        <meta
+          name="twitter:title"
+          content={pageProps.meta?.title || ""}
+        />
+        <meta
+          name="twitter:description"
+          content={pageProps.meta?.description || ""}
+        />
+        <meta
+          name="twitter:image"
+          content={pageProps.meta?.image || ""}
+        />
         <link rel="icon" href="/favicon.ico" />
+        
         <link
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
           rel="stylesheet"
           integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
           crossOrigin="anonymous"
         />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "YouTube Tools",
+            "url": "https://yourwebsite.com",
+            "logo": "https://yourwebsite.com/logo.png",
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "telephone": "+880 162-519-2766",
+              "contactType": "Customer Service"
+            },
+            "sameAs": [
+              "https://www.facebook.com/yourprofile",
+              "https://www.twitter.com/yourprofile",
+              "https://www.linkedin.com/in/yourprofile"
+            ]
+          })}
+        </script>
       </Head>
       <Script
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
@@ -37,6 +126,31 @@ function MyApp({ Component, pageProps }) {
         <Component {...pageProps} />
         <Footer />
       </AuthProvider>
+ 
+      {showButton && (
+        <button
+          onClick={scrollToTop}
+          style={{
+            position: 'fixed',
+            bottom: '50px',
+            right: '50px',
+            width: '50px',
+            height: '50px',
+            backgroundColor: 'red',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '50%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            fontSize: '20px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+          }}
+        >
+          ↑
+        </button>
+      )}
     </>
   );
 }

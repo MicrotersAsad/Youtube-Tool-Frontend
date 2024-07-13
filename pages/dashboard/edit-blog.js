@@ -24,6 +24,7 @@ function EditBlog() {
   const [image, setImage] = useState(null);
   const [categories, setCategories] = useState([]);
   const [isDraft, setIsDraft] = useState(false);
+  const [language, setLanguage] = useState('en'); // Default language
 
   useEffect(() => {
     fetchCategories();
@@ -59,6 +60,7 @@ function EditBlog() {
       setMetaDescription(data.metaDescription);
       setDescription(data.description);
       setIsDraft(data.isDraft);
+      setLanguage(data.language); // Set language from fetched data
     } catch (error) {
       console.error('Error fetching blog data:', error.message);
       setError(error.message);
@@ -83,6 +85,7 @@ function EditBlog() {
       formData.append('authorProfile', user.profileImage);
       formData.append('createdAt', new Date().toISOString());
       formData.append('isDraft', JSON.stringify(isDraft));
+      formData.append('language', language); // Append language
 
       const response = await fetch(`/api/blogs?id=${id}`, {
         method,
@@ -101,7 +104,7 @@ function EditBlog() {
       console.error('Error updating content:', error.message);
       setError(error.message);
     }
-  }, [quillContent, selectedCategory, metaTitle, metaDescription, description, title, image, user, isDraft, id, router]);
+  }, [quillContent, selectedCategory, metaTitle, metaDescription, description, title, image, user, isDraft, id, router, language]);
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
@@ -116,7 +119,11 @@ function EditBlog() {
   };
 
   const handleDraftChange = (e) => {
-    setIsDraft(e.target.checked);
+    setIsDraft(e.target.value === 'Draft');
+  };
+
+  const handleLanguageChange = (e) => {
+    setLanguage(e.target.value);
   };
 
   return (
@@ -180,6 +187,32 @@ function EditBlog() {
             />
           </div>
           <div className="mb-3">
+            <label htmlFor="language" className="block mb-2 text-lg font-medium">Language*</label>
+            <select
+              id="language"
+              value={language}
+              onChange={handleLanguageChange}
+              className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
+            >
+                <option value="en">English</option>
+                <option value="fr">French</option>
+                <option value="zh-HANT">中国传统的</option>
+                <option value="zh-HANS">简体中文</option>
+                <option value="nl">Nederlands</option>
+                <option value="gu">ગુજરાતી</option>
+                <option value="hi">हिंदी</option>
+                <option value="it">Italiano</option>
+                <option value="ja">日本語</option>
+                <option value="ko">한국어</option>
+                <option value="pl">Polski</option>
+                <option value="pt">Português</option>
+                <option value="ru">Русский</option>
+                <option value="es">Español</option>
+                <option value="de">Deutsch</option>
+              {/* Add more languages as needed */}
+            </select>
+          </div>
+          <div className="mb-3">
             <label htmlFor="slug" className="block mb-2 text-lg font-medium">Slug</label>
             <input
               id="slug"
@@ -189,6 +222,7 @@ function EditBlog() {
               className="w-full border border-gray-300 rounded-lg p-3 bg-gray-100 shadow-sm"
             />
           </div>
+         
           <div className="mb-3">
             <label htmlFor="description" className="block mb-2 text-lg font-medium">Description*</label>
             <textarea
@@ -215,6 +249,7 @@ function EditBlog() {
               <QuillWrapper initialContent={quillContent} onChange={handleQuillChange} />
             </div>
           </div>
+        
           {error && <div className="text-red-500 mb-6 col-span-2">Error: {error}</div>}
           <div className="mb-3 col-span-2 flex space-x-4">
             <button className="bg-blue-500 text-white p-3 rounded-lg shadow-md flex-1" onClick={handleSave}>Save & Edit</button>

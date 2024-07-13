@@ -29,7 +29,7 @@ import { format } from "date-fns";
 import { i18n, useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
-const TagExtractor = ({ meta, faqs, relatedTools }) => {
+const TagExtractor = ({ meta, faqs }) => {
   const { t } = useTranslation('tagextractor');
   const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState("");
@@ -44,6 +44,7 @@ const TagExtractor = ({ meta, faqs, relatedTools }) => {
   const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
   const [openIndex, setOpenIndex] = useState(null);
+  const [relatedTools, setRelatedTools] = useState([]);
   const [newReview, setNewReview] = useState({
     name: "",
     rating: 0,
@@ -70,6 +71,7 @@ const TagExtractor = ({ meta, faqs, relatedTools }) => {
         const data = await response.json();
         setQuillContent(data[0]?.content || "");
         setExistingContent(data[0]?.content || "");
+        setRelatedTools(data[0]?.relatedTools || [])
       } catch (error) {
         toast.error("Error fetching content");
       }
@@ -769,23 +771,29 @@ const TagExtractor = ({ meta, faqs, relatedTools }) => {
           </div>
         )}
 
-        {/* Related Tools Section */}
-        <div className="related-tools-section mt-10">
-          <h2 className="text-2xl font-semibold mb-4">{t('Related Tools')}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {relatedTools.map((tool, index) => (
-              <Link key={index} href={tool.link}>
-                <div className="related-tool-item bg-white p-4 rounded shadow hover:shadow-md transition">
-                  <div className="flex items-center mb-2">
-                    <tool.icon className="text-xl mr-2" />
-                    <h3 className="text-lg font-bold">{tool.name}</h3>
-                  </div>
-                  <p>{tool.description}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
+          {/* Related Tools Section */}
+          <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
+      <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {relatedTools.map((tool, index) => (
+          <a
+            key={index}
+            href={tool.link}
+            className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
+          >
+             <Image
+              src={tool?.logo?.src}
+              alt={`${tool.name} Icon`}
+              width={64}
+              height={64}
+              className="mr-4"
+              
+            />
+            <span className="text-blue-600 font-medium">{tool.name}</span>
+          </a>
+        ))}
+      </div>
+    </div>
         {/* End of Related Tools Section */}
       </div>
     </>

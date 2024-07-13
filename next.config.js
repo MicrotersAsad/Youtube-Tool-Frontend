@@ -5,6 +5,7 @@ const { i18n } = require("./next-i18next.config");
 module.exports = {
   reactStrictMode: true,
   i18n,
+  
   async rewrites() {
     return [
       {
@@ -13,9 +14,11 @@ module.exports = {
       },
     ];
   },
+  
   images: {
     domains: ['yt3.ggpht.com','yt3.googleusercontent.com', 'i.ytimg.com'],
   },
+  
   async rewrites() {
     return [
       {
@@ -27,9 +30,9 @@ module.exports = {
 };
 
 
-// next.config.js
-// const { i18n } = require('./next-i18next.config');
+// // next.config.js
+// // const { i18n } = require('./next-i18next.config');
 
-// module.exports = {
-//   i18n,
-// };
+// // module.exports = {
+// //   i18n,
+// // };

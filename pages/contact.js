@@ -3,7 +3,7 @@ import { FaUser, FaEnvelope, FaRegFileAlt, FaPaperPlane } from 'react-icons/fa';
 import contact from "../public/login.svg";
 import Image from 'next/image';
 import Head from 'next/head';
-
+import { useAuth } from "../contexts/AuthContext";
 export default function Contact() {
   const [formData, setFormData] = useState({
     name: '',
@@ -14,7 +14,7 @@ export default function Contact() {
 
   const [responseMessage, setResponseMessage] = useState('');
   const [loading, setLoading] = useState(false);
-
+  const { user, updateUserProfile } = useAuth();
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({

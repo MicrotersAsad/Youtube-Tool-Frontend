@@ -3,7 +3,9 @@ import axios from 'axios';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ClipLoader } from 'react-spinners';
-import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { FaArrowRight } from 'react-icons/fa';
+import { i18n } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
 const BlogSection = () => {
   const [blogs, setBlogs] = useState([]);
@@ -13,8 +15,9 @@ const BlogSection = () => {
   const blogsPerPage = 9;
 
   const fetchBlogs = useCallback(async () => {
+    setLoading(true);
     try {
-      const response = await axios.get('/api/blogs');
+      const response = await axios.get(`/api/blogs`);
       setBlogs(response.data);
       setLoading(false);
     } catch (error) {
@@ -28,20 +31,16 @@ const BlogSection = () => {
     fetchBlogs();
   }, [fetchBlogs]);
 
-  const parseCategories = (categories) => {
-    if (Array.isArray(categories)) {
-      return categories;
-    }
-    try {
-      return JSON.parse(categories);
-    } catch (error) {
-      return categories ? categories.split(',') : [];
-    }
+  const parseCategories = (category) => {
+    return category ? category.split(',') : [];
   };
 
   const indexOfLastBlog = currentPage * blogsPerPage;
   const indexOfFirstBlog = indexOfLastBlog - blogsPerPage;
-  const currentBlogs = blogs.slice(indexOfFirstBlog, indexOfLastBlog);
+
+  const filteredBlogs = blogs.filter(blog => blog.language === i18n.language);
+  const currentBlogs = filteredBlogs.slice(indexOfFirstBlog, Math.min(indexOfLastBlog, filteredBlogs.length));
+  const totalPages = Math.ceil(filteredBlogs.length / blogsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -57,11 +56,9 @@ const BlogSection = () => {
     return <p className="text-red-500 text-center">{error}</p>;
   }
 
-  if (blogs.length === 0) {
-    return <p>No blogs available.</p>;
+  if (filteredBlogs.length === 0) {
+    return <p>No blogs available in this language.</p>;
   }
-
-  const totalPages = Math.ceil(blogs.length / blogsPerPage);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
@@ -77,7 +74,7 @@ const BlogSection = () => {
                   height={400}
                 />
                 <div className="p-6">
-                  <h3 className="text-3xl font-semibold mb-2">
+                  <h3 className="text-3xl font-semibold mb=2">
                     {blog.slug ? (
                       <Link href={`/blog/${blog.slug}`} passHref>
                         <span className="text-blue-500 hover:underline">{blog.title}</span>
@@ -89,11 +86,10 @@ const BlogSection = () => {
                   <p className="text-gray-600 mb-4">{blog.description}</p>
                   <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
                   <div className="mt-2">
-                    {parseCategories(blog.categories).map((category, i) => (
+                    {parseCategories(blog.category).map((category, i) => (
                       <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
                     ))}
                   </div>
-                 
                 </div>
               </div>
             ))}
@@ -120,23 +116,22 @@ const BlogSection = () => {
                   </h4>
                   <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
                   <div className="mt-2">
-                    {parseCategories(blog.categories).map((category, i) => (
+                    {parseCategories(blog.category).map((category, i) => (
                       <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
                     ))}
                   </div>
-                 
                 </div>
               </div>
             ))}
           </div>
         </div>
-       
+
         <div className="bg-red-500 text-white p-10 rounded-lg relative w-full text-center mt-5 mb-5">
           <div className="bg-red-500 absolute inset-x-0 -top-10 h-20 rounded-b-full"></div>
           <div className="mt-10">
             <h2 className="text-2xl text-white font-bold mb-2">SUBSCRIBE TO OUR NEWSLETTER</h2>
             <p className="mb-4">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Deleniti aliquid molestias voluptatem fugiat provident tenetur saepe hic consectet.</p>
-            <form className="flex justify-center">
+            <form className="flex justify-center" onSubmit={(e) => e.preventDefault()}>
               <input type="email" placeholder="Email Address" className="w-full max-w-xs p-3 rounded-l-md focus:outline-none" />
               <button type="submit" className="bg-red-600 p-3 rounded-r-md">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -146,7 +141,7 @@ const BlogSection = () => {
             </form>
           </div>
         </div>
-    
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
           {currentBlogs.slice(4).map((blog, index) => (
             <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
@@ -169,7 +164,7 @@ const BlogSection = () => {
                 </h4>
                 <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
                 <div className="mt-2">
-                  {parseCategories(blog.categories).map((category, i) => (
+                  {parseCategories(blog.category).map((category, i) => (
                     <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
                   ))}
                 </div>
@@ -182,7 +177,7 @@ const BlogSection = () => {
             </div>
           ))}
         </div>
-        
+
         <div className="flex justify-center mt-8">
           <nav className="block">
             <ul className="flex pl-0 rounded list-none flex-wrap">
@@ -203,5 +198,44 @@ const BlogSection = () => {
     </div>
   );
 };
+
+export async function getServerSideProps({ req, locale }) {
+  const host = req.headers.host;
+  const protocol = req.headers["x-forwarded-proto"] || "http";
+  const apiUrl = `${protocol}://${host}/api/blogs`;
+
+  try {
+    const contentResponse = await fetch(apiUrl);
+
+    if (!contentResponse.ok) {
+      throw new Error("Failed to fetch content");
+    }
+
+    const contentData = await contentResponse.json();
+
+    const meta = {
+      title: contentData[0]?.metaTitle || "",
+      description: contentData[0]?.metaDescription || "",
+      image: contentData[0]?.image || "",
+    };
+
+    return {
+      props: {
+        meta,
+        faqs: contentData[0]?.faqs || [],
+        ...(await serverSideTranslations(locale, ['footer', 'navbar'])),
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return {
+      props: {
+        meta: {},
+        faqs: [],
+        ...(await serverSideTranslations(locale, ['footer', 'navbar'])),
+      },
+    };
+  }
+}
 
 export default BlogSection;

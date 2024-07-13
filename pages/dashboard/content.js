@@ -4,20 +4,23 @@ import Layout from './layout';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useTranslation } from 'react-i18next';
-import TagGenerator from "../../public/tools/tagGenerator.png";
-import TagExtractor from "../../public/tools/youtube-tag-extractor.png";
-import TitleGenerator from "../../public/tools/Title-And-Description-Generator.png";
-import TitleDescriptionExtractor from "../../public/tools/title-and-description-extractor.png";
-import BannerDownloader from "../../public/tools/youtube-channel-banner-download.png";
-import LogoDownloader from "../../public/tools/Youtube-channel-logo-downloader.png";
-import ThumbnailDownloader from "../../public/tools/Youtube-thumbnail-downloader.png";
-import ChannelIDFinder from "../../public/tools/Channel-ID-Finder.png";
-import VideoDataViewer from "../../public/tools/Video-Data-Viewer.png";
-import MonetizationChecker from "../../public/tools/Monetization-Checker.png";
-import ChannelSearch from "../../public/tools/Youtube-channel-search.png";
-import SummaryGenerator from "../../public/tools/Youtube-Video-Summary-generator.png";
-import TrendingVideos from "../../public/tools/youtube-trending-videos.png";
-import MoneyCalculator from "../../public/tools/Youtube-Money-Calculator.png";
+import TagGenerator from "../../public/tagGenerator.png";
+import TagExtractor from "../../public/youtube-tag-extractor.png";
+import TitleGenerator from "../../public/Title-And-Description-Generator.png";
+import TitleDescriptionExtractor from "../../public/title-and-description-extractor.png";
+import BannerDownloader from "../../public/youtube-channel-banner-download.png";
+import LogoDownloader from "../../public/Youtube-channel-logo-downloader.png";
+import ThumbnailDownloader from "../../public/Youtube-thumbnail-downloader.png";
+import ChannelIDFinder from "../../public/Channel-ID-Finder.png";
+import VideoDataViewer from "../../public/Video-Data-Viewer.png";
+import MonetizationChecker from "../../public/Monetization-Checker.png";
+import ChannelSearch from "../../public/Youtube-channel-search.png";
+import SummaryGenerator from "../../public/Youtube-Video-Summary-generator.png";
+import TrendingVideos from "../../public/youtube-trending-videos.png";
+import MoneyCalculator from "../../public/Youtube-Money-Calculator.png";
+import research from "../../public/youtube-keyword-research.png";
+import Comment from "../../public/Comment-Picker-icon.png";
+
 
 // Dynamically import the QuillWrapper component with SSR disabled
 const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
@@ -53,8 +56,8 @@ function Content() {
     { name: 'YouTube Video Summary Generator', link: 'https://tool3.com', logo: SummaryGenerator },
     { name: 'YouTube Trending Videos', link: 'https://tool3.com', logo: TrendingVideos },
     { name: 'YouTube Money Calculator', link: 'https://tool3.com', logo: MoneyCalculator },
-    { name: 'Youtube Comment Picker', link: 'https://tool3.com', logo: null },
-    { name: 'YouTube Keyword Research', link: 'https://tool3.com', logo: null },
+    { name: 'Youtube Comment Picker', link: 'https://tool3.com', logo: Comment },
+    { name: 'YouTube Keyword Research', link: 'https://tool3.com', logo: research },
     // Add more tools as needed
   ];
 

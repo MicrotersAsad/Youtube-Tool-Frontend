@@ -264,7 +264,7 @@ const TrendingVideos = ({ meta, faqs }) => {
             <title>{meta?.title}</title>
             <meta
               name="description"
-              content={meta?.description || "AI Youtube Hashtag Generator"}
+              content={meta?.description}
             />
             <meta
               property="og:url"
@@ -272,7 +272,7 @@ const TrendingVideos = ({ meta, faqs }) => {
             />
             <meta
               property="og:title"
-              content={meta?.title || "AI Youtube Tag Generator"}
+              content={meta?.title}
             />
             <meta
               property="og:description"
@@ -293,14 +293,12 @@ const TrendingVideos = ({ meta, faqs }) => {
             />
             <meta
               name="twitter:title"
-              content={meta?.title || "AI Youtube Tag Generator"}
+              content={meta?.title}
             />
             <meta
               name="twitter:description"
               content={
-                meta?.description ||
-                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
-              }
+                meta?.description}
             />
             <meta name="twitter:image" content={meta?.image || ""} />
             {/* - Webpage Schema */}
@@ -735,20 +733,29 @@ const TrendingVideos = ({ meta, faqs }) => {
             </div>
           </div>
         )}
-         {/* Related Tools Section */}
-         <div className="related-tools mt-10 shadow p-5">
-          <h2 className="text-2xl font-bold mb-5">{t('relatedTools.Related Tools')}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {relatedTools.map((tool, index) => (
-              <a key={index} href={tool.link} className="flex items-center border  shadow rounded-md p-4 hover:bg-gray-100">
-               <div className="d-flex">
-               <img src={tool?.logo?.TagGenerator?.src} alt={`${tool.name} logo`} className="ml-2 w-14 h-14" />
-               <span className="ms-2">{tool.name}</span>
-               </div>
-              </a>
-            ))}
-          </div>
-        </div>
+ {/* Related Tools Section */}
+ <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
+      <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {relatedTools.map((tool, index) => (
+          <a
+            key={index}
+            href={tool.link}
+            className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
+          >
+             <Image
+              src={tool?.logo?.src}
+              alt={`${tool.name} Icon`}
+              width={64}
+              height={64}
+              className="mr-4"
+              
+            />
+            <span className="text-blue-600 font-medium">{tool.name}</span>
+          </a>
+        ))}
+      </div>
+    </div>
         {/* End of Related Tools Section */}
       </div>
     </>

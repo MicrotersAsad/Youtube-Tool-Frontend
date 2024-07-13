@@ -678,28 +678,26 @@ const KeywordSearch = ({ meta, faqs }) => {
           </div>
         )}
           {/* Related Tools Section */}
-          <div className="related-tools mt-10 shadow p-5">
-            <h2 className="text-2xl font-bold mb-5">{t("Related Tools")}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {relatedTools.map((tool, index) => (
-                <a
-                  key={index}
-                  href={tool.link}
-                  className="flex items-center border  shadow rounded-md p-4 hover:bg-gray-100"
-                >
-                  <div className="d-flex">
-                    <img
-                      src={tool?.Banner?.TagGenerator?.src}
-                      alt={`${tool.name} Banner`}
-                      className="ml-2 w-14 h-14"
-                    />
-                    <span className="ms-2">{tool.name}</span>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
-          {/* End of Related Tools Section */}
+        <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
+      <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {relatedTools.map((tool, index) => (
+          <a
+            key={index}
+            href={tool.link}
+            className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
+          >
+            <img
+              src={tool?.logo?.src}
+              alt={`${tool.name} Icon`}
+              className="w-14 h-14 mr-4"
+            />
+            <span className="text-blue-600 font-medium">{tool.name}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+        {/* End of Related Tools Section */}
       </div>
     </>
   );

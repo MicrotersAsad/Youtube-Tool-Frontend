@@ -13,8 +13,6 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 
-
-
 const availableLanguages = [
   { code: 'en', name: 'English', flag: 'us' },
   { code: 'fr', name: 'Français', flag: 'fr' },
@@ -46,8 +44,9 @@ function Navbar() {
       router.push(router.pathname, router.asPath, { locale: lang });
     }
   };
+
   const navigation = [
-    { key:"Home" , href: '/', dropdown: false },
+    { key: "Home", href: '/', dropdown: false },
     {
       key: 'YouTube Tools', href: '#', dropdown: true, children: [
         { key: 'YouTube Tag Generator', href: '/tools/tagGenerator', icon: '🔖' },
@@ -75,6 +74,7 @@ function Navbar() {
     { key: 'About Us', href: '/about', dropdown: false },
     { key: 'Contact Us', href: '/contact', dropdown: false },
   ];
+
   return (
     <>
       <Disclosure as="nav" className="bg-gray-800">
@@ -91,7 +91,7 @@ function Navbar() {
                 <div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
                   <div className="flex-shrink-0 flex items-center">
                     <Link href='/'>
-                      <Image 
+                      <Image
                         src={logo}
                         alt="YouTube Tools Logo"
                         height="70"
@@ -108,7 +108,7 @@ function Navbar() {
                               router.pathname.startsWith('/tools') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:text-red-500 hover:bg-gray-700',
                               'flex items-center px-3 py-2 rounded-md text-sm font-medium'
                             )}>
-                              {t(item.key)} <ChevronDownIcon className="ml-2 h-5 w-5" aria-hidden="true"/>
+                              {t(item.key)} <ChevronDownIcon className="ml-2 h-5 w-5" aria-hidden="true" />
                             </Menu.Button>
                             <Transition
                               as={Fragment}
@@ -142,7 +142,7 @@ function Navbar() {
                           </Link>
                         )
                       ))}
-                     
+
                     </div>
                   </div>
                 </div>
@@ -197,8 +197,8 @@ function Navbar() {
                               src={`data:image/jpeg;base64,${user.profileImage}`}
                               alt="User profile image"
                               className="w-8 h-8 rounded-full"
-                              width={50}
-                              height={50}
+                              width={32}
+                              height={32}
                             />
                           ) : (
                             <span className="text-gray-500">No Image</span>
@@ -255,7 +255,7 @@ function Navbar() {
                   item.dropdown ? (
                     <Menu as="div" key={item.key} className="px-2 py-3 space-y-1">
                       <Menu.Button className="w-full text-left flex items-center text-gray-300 hover:text-red-500 hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium">
-                        {t(item.key)} <ChevronDownIcon className="ml-auto h-5 w-5" aria-hidden="true"/>
+                        {t(item.key)} <ChevronDownIcon className="ml-auto h-5 w-5" aria-hidden="true" />
                       </Menu.Button>
                       <Transition
                         as={Fragment}
