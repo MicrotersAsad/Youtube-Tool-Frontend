@@ -52,7 +52,8 @@ const handler = async (req, res) => {
   try {
     const filePath = path.join(process.cwd(), 'public/uploads', req.file.filename);
     const host = req.headers['host'];
-    const baseUrl = `https://${host}`; // Force HTTPS
+    const protocol = req.headers['x-forwarded-proto'] || 'http';  // Use 'https' if available
+    const baseUrl = `${protocol}://${host}`;
     const fileUrl = `${baseUrl}/uploads/${req.file.filename}`;  // Construct the URL properly
 
     const newImage = {
