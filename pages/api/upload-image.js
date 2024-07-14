@@ -1,5 +1,3 @@
-// pages/api/upload-image.js
-
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
@@ -8,7 +6,7 @@ import { connectToDatabase } from '../../utils/mongodb';
 const upload = multer({
   storage: multer.diskStorage({
     destination: './public/uploads',
-    filename: (req, file, cb) => cb(null, `${Date.now()}_${file.originalname}`),
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname),
   }),
 });
 
@@ -25,7 +23,7 @@ const runMiddleware = (req, res, fn) => {
 
 export const config = {
   api: {
-    bodyParser: false, // Disallow body parsing, consume as stream
+    bodyParser: false,
   },
 };
 
@@ -34,36 +32,23 @@ const handler = async (req, res) => {
     return res.status(405).json({ message: 'Only POST requests allowed' });
   }
 
-  try {
-    await runMiddleware(req, res, upload.single('file'));
-  } catch (error) {
-    console.error('Error during file upload:', error);
-    return res.status(500).json({ message: 'Error during file upload', error: error.message });
-  }
-
-  const { title } = req.body;
-
-  if (!title) {
-    return res.status(400).json({ message: 'Title is required' });
-  }
+  await runMiddleware(req, res, upload.single('file'));
 
   const { db } = await connectToDatabase();
+  const { title } = req.body;
 
   try {
     const filePath = path.join(process.cwd(), 'public/uploads', req.file.filename);
-    const host = req.headers['host'];
-    const protocol = req.headers['x-forwarded-proto'] || 'https'; // Use 'https' if available
-    const baseUrl = `${protocol}://${host}`;
-    const fileUrl = `${baseUrl}/uploads/${req.file.filename}`;  // Construct the URL properly
+    const url = `/uploads/${req.file.filename}`;
 
-    const newImage = {
-      title,
-      url: fileUrl,
-      fileName: req.file.filename,
+    const imageMetadata = {
+      title: title || req.file.originalname,
+      url: url,
+      uploadDate: new Date(),
     };
 
-    const result = await db.collection('images').insertOne(newImage);
-    res.status(200).json({ message: 'Image uploaded successfully', data: newImage });
+    const result = await db.collection('images').insertOne(imageMetadata);
+    res.status(200).json({ message: 'Image uploaded successfully.', data: result.ops[0] });
   } catch (error) {
     console.error('Error inserting content:', error);
     res.status(500).json({ message: 'Error inserting content', error: error.message });
