@@ -16,6 +16,7 @@ export default function ImageGallery() {
     const fetchImages = async () => {
       const response = await fetch('/api/get-images');
       const data = await response.json();
+      console.log(data);
       setImages(data.images);
     };
 
