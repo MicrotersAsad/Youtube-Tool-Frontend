@@ -16,7 +16,7 @@ module.exports = {
   },
   
   images: {
-    domains: ['yt3.ggpht.com','yt3.googleusercontent.com', 'i.ytimg.com'],
+    domains: ['yt3.ggpht.com','yt3.googleusercontent.com', 'i.ytimg.com','https://lobster-app-2vkuu.ondigitalocean.app/'],
   },
   
   async rewrites() {

@@ -51,6 +51,7 @@ export default function ImageGallery() {
       });
 
       const data = await response.json();
+      console.log(data);
       if (response.ok) {
         setMessage(data.message);
         setImages([...images, data.data]);
@@ -70,6 +71,7 @@ export default function ImageGallery() {
       });
 
       const data = await response.json();
+      console.log(data);
       if (response.ok) {
         setImages(images.filter((image) => image._id !== imageId));
         setMessage(data.message);
