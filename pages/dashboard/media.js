@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import Modal from 'react-modal';
 import Layout from './layout';
-import { FaTrash } from 'react-icons/fa';
 
 Modal.setAppElement('#__next');
 
@@ -63,24 +62,6 @@ export default function ImageGallery() {
     }
   };
 
-  const handleDelete = async (imageId) => {
-    try {
-      const response = await fetch(`/api/delete-image?id=${imageId}`, {
-        method: 'DELETE',
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        setImages(images.filter((image) => image._id !== imageId));
-        setMessage(data.message);
-      } else {
-        setMessage(`Error: ${data.message}`);
-      }
-    } catch (error) {
-      setMessage(`Error: ${error.message}`);
-    }
-  };
-
   return (
     <Layout>
       <div className="container mx-auto px-4">
@@ -92,11 +73,11 @@ export default function ImageGallery() {
           <table className="min-w-full bg-white">
             <thead className="bg-gray-800 text-white">
               <tr>
-                <th className="w-1/12 py-2 px-4">SL</th>
-                <th className="w-2/12 py-2 px-4">File</th>
-                <th className="w-4/12 py-2 px-4">URL</th>
-                <th className="w-4/12 py-2 px-4">Title</th>
-                <th className="w-1/12 py-2 px-4">Action</th>
+                <th className="w-1/12 py-2">SL</th>
+                <th className="w-2/12 py-2">File</th>
+                <th className="w-4/12 py-2">URL</th>
+                <th className="w-4/12 py-2">Title</th>
+                <th className="w-1/12 py-2">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -113,12 +94,8 @@ export default function ImageGallery() {
                   </td>
                   <td className="border px-4 py-2">{image.title}</td>
                   <td className="border px-4 py-2">
-                    
-                    <button
-                      onClick={() => handleDelete(image._id)}
-                      className="bg-red-500 text-white px-2 py-1 rounded"
-                    >
-                      <FaTrash/>
+                    <button className="bg-red-500 text-white px-2 py-1 rounded">
+                      <i className="fas fa-trash"></i>
                     </button>
                   </td>
                 </tr>
@@ -130,10 +107,9 @@ export default function ImageGallery() {
           isOpen={modalIsOpen}
           onRequestClose={closeModal}
           contentLabel="Upload Image"
+          className="modal"
+          overlayClassName="modal-overlay"
           style={{
-            overlay: {
-              backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            },
             content: {
               top: '50%',
               left: '50%',
@@ -141,9 +117,11 @@ export default function ImageGallery() {
               bottom: 'auto',
               marginRight: '-50%',
               transform: 'translate(-50%, -50%)',
+              width: '500px',
               padding: '20px',
-              maxWidth: '500px',
-              width: '100%',
+            },
+            overlay: {
+              backgroundColor: 'rgba(0, 0, 0, 0.75)',
             },
           }}
         >
