@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useState, useEffect } from 'react';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
@@ -31,11 +31,16 @@ const availableLanguages = [
   { code: 'de', name: 'Deutsch', flag: 'de' },
 ];
 
-function Navbar() {
+function Navbar({ pageLanguages }) {
   const { user, logout } = useAuth();
   const router = useRouter();
-  const { t, i18n } = useTranslation('navbar');
+  const { t, i18n } = useTranslation('common');
   const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
+  const [filteredLanguages, setFilteredLanguages] = useState([]);
+
+  useEffect(() => {
+    setFilteredLanguages(availableLanguages.filter(lang => pageLanguages.includes(lang.code)));
+  }, [pageLanguages]);
 
   const changeLanguage = async (lang) => {
     if (availableLanguages.find(l => l.code === lang)) {
@@ -142,7 +147,6 @@ function Navbar() {
                           </Link>
                         )
                       ))}
-
                     </div>
                   </div>
                 </div>
@@ -151,8 +155,8 @@ function Navbar() {
                     <Menu as="div" className="relative">
                       <div>
                         <Menu.Button className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-gray-800 text-sm font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
-                          <span className={`fi fi-${availableLanguages.find(l => l.code === selectedLanguage)?.flag}`} />
-                          <span className="ml-2">{availableLanguages.find(l => l.code === selectedLanguage)?.name}</span>
+                          <span className={`fi fi-${filteredLanguages.find(l => l.code === selectedLanguage)?.flag}`} />
+                          <span className="ml-2">{filteredLanguages.find(l => l.code === selectedLanguage)?.name}</span>
                           <ChevronDownIcon className="ml-2 -mr-1 h-5 w-5" aria-hidden="true" />
                         </Menu.Button>
                       </div>
@@ -168,7 +172,7 @@ function Navbar() {
                       >
                         <Menu.Items className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
                           <div className="py-1">
-                            {availableLanguages.map(lang => (
+                            {filteredLanguages.map(lang => (
                               <Menu.Item key={lang.code}>
                                 {({ active }) => (
                                   <button

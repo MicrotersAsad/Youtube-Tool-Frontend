@@ -106,10 +106,20 @@ export default function Home() {
               >
                 <option value="">Select a language</option>
                 <option value="en">English</option>
-                <option value="fr">French</option>
-                <option value="es">Spanish</option>
-                <option value="de">German</option>
-                <option value="zh">Chinese</option>
+              <option value="fr">French</option>
+              <option value="zh-HANT">中国传统的</option>
+              <option value="zh-HANS">简体中文</option>
+              <option value="nl">Nederlands</option>
+              <option value="gu">ગુજરાતી</option>
+              <option value="hi">हिंदी</option>
+              <option value="it">Italiano</option>
+              <option value="ja">日本語</option>
+              <option value="ko">한국어</option>
+              <option value="pl">Polski</option>
+              <option value="pt">Português</option>
+              <option value="ru">Русский</option>
+              <option value="es">Español</option>
+              <option value="de">Deutsch</option>
                 {/* Add more languages as needed */}
               </select>
             </div>
