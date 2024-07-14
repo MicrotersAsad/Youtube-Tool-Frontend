@@ -325,33 +325,58 @@ const TagExtractor = ({ meta, faqs }) => {
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-          <Head>
-          <title>{meta?.title}</title>
-            <meta name="description" content={meta?.description} />
-            <meta property="og:url" content={meta?.url} />
-            <meta property="og:title" content={meta?.title} />
-            <meta property="og:description" content={meta?.description} />
-            <meta property="og:image" content={meta?.image} />
-            <meta name="twitter:card" content="summary_large_image" />
-            <meta property="twitter:domain" content={meta?.url} />
-            <meta property="twitter:url" content={meta?.url} />
-            <meta name="twitter:title" content={meta?.title} />
-            <meta name="twitter:description" content={meta?.description} />
-            <meta name="twitter:image" content={meta?.image} />
+        <Head>
+            <title>{meta?.title}</title>
+            <meta
+              name="description"
+              content={meta?.description}
+            />
+            <meta
+              property="og:url"
+              content={meta?.url}
+            />
+            <meta
+              property="og:title"
+              content={meta?.title}
+            />
+            <meta
+              property="og:description"
+              content={
+                meta?.description}
+            />
+            <meta property="og:image" content={meta?.image || ""} />
+            <meta name="twitter:card" content={meta?.image || ""} />
+            <meta
+              property="twitter:domain"
+              content="https://youtube-tool-frontend.vercel.app/"
+            />
+            <meta
+              property="twitter:url"
+              content={meta?.url}
+            />
+            <meta
+              name="twitter:title"
+              content={meta?.title}
+            />
+            <meta
+              name="twitter:description"
+              content={meta?.description}
+            />
+            <meta name="twitter:image" content={meta?.image || ""} />
             {/* - Webpage Schema */}
             <script type="application/ld+json">
               {JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "WebPage",
-                name: t('title'),
-                url: "https://youtube-tool-frontend.vercel.app/tools/tagExtractor",
-                description: t('description'),
+                name: meta?.title,
+                url: meta?.url,
+                description: meta?.description,
                 breadcrumb: {
                   "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
                 },
                 about: {
                   "@type": "Thing",
-                  name: t('title'),
+                  name: meta?.title,
                 },
                 isPartOf: {
                   "@type": "WebSite",
@@ -364,8 +389,8 @@ const TagExtractor = ({ meta, faqs }) => {
               {JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "SoftwareApplication",
-                name: "Youtube Tag Extractor",
-                url: "https://youtube-tool-frontend.vercel.app/tools/tagExtractor",
+                name: meta?.title,
+                url: meta?.url,
                 applicationCategory: "Multimedia",
                 aggregateRating: {
                   "@type": "AggregateRating",

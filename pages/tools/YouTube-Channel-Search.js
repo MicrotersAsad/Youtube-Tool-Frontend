@@ -289,26 +289,24 @@ const YouTubeChannelScraper = ({ meta, faqs }) => {
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-          <Head>
+        <Head>
             <title>{meta?.title}</title>
             <meta
               name="description"
-              content={meta?.description || t("AI Youtube Hashtag Generator")}
+              content={meta?.description}
             />
             <meta
               property="og:url"
-              content="https://youtube-tool-frontend.vercel.app/tools/YouTube-Channel-Search"
+              content={meta?.url}
             />
             <meta
               property="og:title"
-              content={meta?.title || t("AI Youtube Tag Generator")}
+              content={meta?.title}
             />
             <meta
               property="og:description"
               content={
-                meta?.description ||
-                t("Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights")
-              }
+                meta?.description}
             />
             <meta property="og:image" content={meta?.image || ""} />
             <meta name="twitter:card" content={meta?.image || ""} />
@@ -318,18 +316,15 @@ const YouTubeChannelScraper = ({ meta, faqs }) => {
             />
             <meta
               property="twitter:url"
-              content="https://youtube-tool-frontend.vercel.app/tools/YouTube-Channel-Search"
+              content={meta?.url}
             />
             <meta
               name="twitter:title"
-              content={meta?.title || t("AI Youtube Tag Generator")}
+              content={meta?.title}
             />
             <meta
               name="twitter:description"
-              content={
-                meta?.description ||
-                t("Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights")
-              }
+              content={meta?.description}
             />
             <meta name="twitter:image" content={meta?.image || ""} />
             {/* - Webpage Schema */}
@@ -338,7 +333,7 @@ const YouTubeChannelScraper = ({ meta, faqs }) => {
                 "@context": "https://schema.org",
                 "@type": "WebPage",
                 name: meta?.title,
-                url: "https://youtube-tool-frontend.vercel.app/tools/YouTube-Channel-Search",
+                url: meta?.url,
                 description: meta?.description,
                 breadcrumb: {
                   "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
@@ -359,7 +354,7 @@ const YouTubeChannelScraper = ({ meta, faqs }) => {
                 "@context": "https://schema.org",
                 "@type": "SoftwareApplication",
                 name: meta?.title,
-                url: "https://youtube-tool-frontend.vercel.app/tools/YouTube-Channel-Search",
+                url: meta?.url,
                 applicationCategory: "Multimedia",
                 aggregateRating: {
                   "@type": "AggregateRating",

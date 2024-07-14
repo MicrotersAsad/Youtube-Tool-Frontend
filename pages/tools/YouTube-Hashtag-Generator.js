@@ -360,95 +360,112 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
+        
         <Head>
-        <title>{meta?.title}</title>
-        <meta name="description" content={meta?.description || "AI Youtube Hashtag Generator"} />
-        <meta
-          property="og:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/YouTube-Hashtag-Generator"
-        />
-        <meta property="og:title" content={meta?.title || "AI Youtube Tag Generator"} />
-        <meta property="og:description" content={meta?.description ||"Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights" }/>
-        <meta property="og:image" content={meta?.image || ""} />
-        <meta name="twitter:card" content={meta?.image || ""} />
-        <meta
-          property="twitter:domain"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta
-          property="twitter:url"
-          content="https://youtube-tool-frontend.vercel.app/tools/YouTube-Hashtag-Generator"
-        />
-        <meta name="twitter:title" content={meta?.title || "AI Youtube Tag Generator"} />
-        <meta name="twitter:description" content={meta?.description ||"Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights" }/>
-        <meta name="twitter:image" content={meta?.image || ""} />
-        {/* - Webpage Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebPage",
-            name: meta?.title,
-            url: "https://youtube-tool-frontend.vercel.app/tools/YouTube-Hashtag-Generator",
-            description: meta?.description,
-            breadcrumb: {
-              "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
-            },
-            about: {
-              "@type": "Thing",
-              name: meta?.title,
-            },
-            isPartOf: {
-              "@type": "WebSite",
-              url: "https://youtube-tool-frontend.vercel.app",
-            },
-          })}
-        </script>
-        {/* - Review Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            name: meta?.title,
-            url: "https://youtube-tool-frontend.vercel.app/tools/YouTube-Hashtag-Generator",
-            applicationCategory: "Multimedia",
-            aggregateRating: {
-              "@type": "AggregateRating",
-              ratingValue: overallRating,
-              ratingCount: reviews?.length,
-              reviewCount: reviews?.length,
-            },
-            review: reviews.map((review) => ({
-              "@type": "Review",
-              author: {
-                "@type": "Person",
-                name: review.userName,
-              },
-              datePublished: review.createdAt,
-              reviewBody: review.comment,
-              name: review.title,
-              reviewRating: {
-                "@type": "Rating",
-                ratingValue: review.rating,
-              },
-            })),
-          })}
-        </script>
-        {/* - FAQ Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faqs.map((faq) => ({
-              "@type": "Question",
-              name: faq.question,
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: faq.answer,
-              },
-            })),
-          })}
-        </script>
-      </Head>
+            <title>{meta?.title}</title>
+            <meta
+              name="description"
+              content={meta?.description}
+            />
+            <meta
+              property="og:url"
+              content={meta?.url}
+            />
+            <meta
+              property="og:title"
+              content={meta?.title}
+            />
+            <meta
+              property="og:description"
+              content={
+                meta?.description}
+            />
+            <meta property="og:image" content={meta?.image || ""} />
+            <meta name="twitter:card" content={meta?.image || ""} />
+            <meta
+              property="twitter:domain"
+              content="https://youtube-tool-frontend.vercel.app/"
+            />
+            <meta
+              property="twitter:url"
+              content={meta?.url}
+            />
+            <meta
+              name="twitter:title"
+              content={meta?.title}
+            />
+            <meta
+              name="twitter:description"
+              content={meta?.description}
+            />
+            <meta name="twitter:image" content={meta?.image || ""} />
+            {/* - Webpage Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "WebPage",
+                name: meta?.title,
+                url: meta?.url,
+                description: meta?.description,
+                breadcrumb: {
+                  "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
+                },
+                about: {
+                  "@type": "Thing",
+                  name: meta?.title,
+                },
+                isPartOf: {
+                  "@type": "WebSite",
+                  url: "https://youtube-tool-frontend.vercel.app",
+                },
+              })}
+            </script>
+            {/* - Review Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                name: meta?.title,
+                url: meta?.url,
+                applicationCategory: "Multimedia",
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: overallRating,
+                  ratingCount: reviews?.length,
+                  reviewCount: reviews?.length,
+                },
+                review: reviews.map((review) => ({
+                  "@type": "Review",
+                  author: {
+                    "@type": "Person",
+                    name: review.userName,
+                  },
+                  datePublished: review.createdAt,
+                  reviewBody: review.comment,
+                  name: review.title,
+                  reviewRating: {
+                    "@type": "Rating",
+                    ratingValue: review.rating,
+                  },
+                })),
+              })}
+            </script>
+            {/* - FAQ Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: faqs.map((faq) => ({
+                  "@type": "Question",
+                  name: faq.question,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: faq.answer,
+                  },
+                })),
+              })}
+            </script>
+          </Head>
           <h2 className="text-3xl text-white">{t("YouTube Hashtag Generator")}</h2>
           <ToastContainer />
           {modalVisible && (

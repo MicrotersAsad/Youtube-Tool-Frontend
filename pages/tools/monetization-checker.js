@@ -220,26 +220,24 @@ const MonetizationChecker = ({ meta, faqs }) => {
           <Image className="shape4" src={chart} alt="chart" />
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
-          <Head>
+        <Head>
             <title>{meta?.title}</title>
             <meta
               name="description"
-              content={meta?.description || t("AI Youtube Hashtag Generator")}
+              content={meta?.description}
             />
             <meta
               property="og:url"
-              content="https://youtube-tool-frontend.vercel.app/tools/monetization-checker"
+              content={meta?.url}
             />
             <meta
               property="og:title"
-              content={meta?.title || t("AI Youtube Tag Generator")}
+              content={meta?.title}
             />
             <meta
               property="og:description"
               content={
-                meta?.description ||
-                t("Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights")
-              }
+                meta?.description}
             />
             <meta property="og:image" content={meta?.image || ""} />
             <meta name="twitter:card" content={meta?.image || ""} />
@@ -249,18 +247,15 @@ const MonetizationChecker = ({ meta, faqs }) => {
             />
             <meta
               property="twitter:url"
-              content="https://youtube-tool-frontend.vercel.app/tools/monetization-checker"
+              content={meta?.url}
             />
             <meta
               name="twitter:title"
-              content={meta?.title || t("AI Youtube Tag Generator")}
+              content={meta?.title}
             />
             <meta
               name="twitter:description"
-              content={
-                meta?.description ||
-                t("Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights")
-              }
+              content={meta?.description}
             />
             <meta name="twitter:image" content={meta?.image || ""} />
             {/* - Webpage Schema */}
@@ -269,7 +264,7 @@ const MonetizationChecker = ({ meta, faqs }) => {
                 "@context": "https://schema.org",
                 "@type": "WebPage",
                 name: meta?.title,
-                url: "https://youtube-tool-frontend.vercel.app/tools/monetization-checker",
+                url: meta?.url,
                 description: meta?.description,
                 breadcrumb: {
                   "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
@@ -290,7 +285,7 @@ const MonetizationChecker = ({ meta, faqs }) => {
                 "@context": "https://schema.org",
                 "@type": "SoftwareApplication",
                 name: meta?.title,
-                url: "https://youtube-tool-frontend.vercel.app/tools/monetization-checker",
+                url: meta?.url,
                 applicationCategory: "Multimedia",
                 aggregateRating: {
                   "@type": "AggregateRating",

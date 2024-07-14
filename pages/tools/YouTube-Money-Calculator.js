@@ -198,9 +198,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
           <Image className="shape3" src={cloud2} alt="cloud2" />
           <Image className="shape4" src={chart} alt="chart" />
         </div>
-
-        <div className="max-w-7xl mx-auto p-4">
-          <Head>
+        <Head>
             <title>{meta?.title}</title>
             <meta
               name="description"
@@ -208,7 +206,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
             />
             <meta
               property="og:url"
-              content="https://youtube-tool-frontend.vercel.app/tools/YouTube-Money-Calculator"
+              content={meta?.url}
             />
             <meta
               property="og:title"
@@ -217,9 +215,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
             <meta
               property="og:description"
               content={
-                meta?.description ||
-                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
-              }
+                meta?.description}
             />
             <meta property="og:image" content={meta?.image || ""} />
             <meta name="twitter:card" content={meta?.image || ""} />
@@ -229,7 +225,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
             />
             <meta
               property="twitter:url"
-              content="https://youtube-tool-frontend.vercel.app/tools/YouTube-Money-Calculator"
+              content={meta?.url}
             />
             <meta
               name="twitter:title"
@@ -237,10 +233,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
             />
             <meta
               name="twitter:description"
-              content={
-                meta?.description ||
-                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
-              }
+              content={meta?.description}
             />
             <meta name="twitter:image" content={meta?.image || ""} />
             {/* - Webpage Schema */}
@@ -249,7 +242,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
                 "@context": "https://schema.org",
                 "@type": "WebPage",
                 name: meta?.title,
-                url: "https://youtube-tool-frontend.vercel.app/tools/YouTube-Money-Calculator",
+                url: meta?.url,
                 description: meta?.description,
                 breadcrumb: {
                   "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
@@ -270,7 +263,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
                 "@context": "https://schema.org",
                 "@type": "SoftwareApplication",
                 name: meta?.title,
-                url: "https://youtube-tool-frontend.vercel.app/tools/YouTube-Money-Calculator",
+                url: meta?.url,
                 applicationCategory: "Multimedia",
                 aggregateRating: {
                   "@type": "AggregateRating",
@@ -310,6 +303,9 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
               })}
             </script>
           </Head>
+        <div className="max-w-7xl mx-auto p-4">
+       
+       
           <ToastContainer />
           <div className="container mx-auto p-4">
             <div className="bg-white shadow-md rounded-lg max-w-4xl mx-auto p-5">

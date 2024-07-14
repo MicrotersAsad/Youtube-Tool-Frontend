@@ -230,7 +230,7 @@ console.log(relatedTools);
   const closeReviewForm = () => {
     setShowReviewForm(false);
   };
-
+console.log(meta);
   return (
     <>
       <div className="bg-box">
@@ -246,22 +246,20 @@ console.log(relatedTools);
             <title>{meta?.title}</title>
             <meta
               name="description"
-              content={meta?.description || t("AI Youtube Hashtag Generator")}
+              content={meta?.description}
             />
             <meta
               property="og:url"
-              content="https://youtube-tool-frontend.vercel.app/tools/channel-id-finder"
+              content={meta?.url}
             />
             <meta
               property="og:title"
-              content={meta?.title || t("AI Youtube Tag Generator")}
+              content={meta?.title}
             />
             <meta
               property="og:description"
               content={
-                meta?.description ||
-                t("Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights")
-              }
+                meta?.description}
             />
             <meta property="og:image" content={meta?.image || ""} />
             <meta name="twitter:card" content={meta?.image || ""} />
@@ -271,18 +269,15 @@ console.log(relatedTools);
             />
             <meta
               property="twitter:url"
-              content="https://youtube-tool-frontend.vercel.app/tools/channel-id-finder"
+              content={meta?.url}
             />
             <meta
               name="twitter:title"
-              content={meta?.title || t("AI Youtube Tag Generator")}
+              content={meta?.title}
             />
             <meta
               name="twitter:description"
-              content={
-                meta?.description ||
-                t("Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights")
-              }
+              content={meta?.description}
             />
             <meta name="twitter:image" content={meta?.image || ""} />
             {/* - Webpage Schema */}
@@ -291,7 +286,7 @@ console.log(relatedTools);
                 "@context": "https://schema.org",
                 "@type": "WebPage",
                 name: meta?.title,
-                url: "https://youtube-tool-frontend.vercel.app/tools/channel-id-finder",
+                url: meta?.url,
                 description: meta?.description,
                 breadcrumb: {
                   "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
@@ -312,7 +307,7 @@ console.log(relatedTools);
                 "@context": "https://schema.org",
                 "@type": "SoftwareApplication",
                 name: meta?.title,
-                url: "https://youtube-tool-frontend.vercel.app/tools/channel-id-finder",
+                url: meta?.url,
                 applicationCategory: "Multimedia",
                 aggregateRating: {
                   "@type": "AggregateRating",
