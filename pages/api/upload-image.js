@@ -1,7 +1,4 @@
-// pages/api/upload-image.js
-
 import multer from 'multer';
-import fs from 'fs';
 import path from 'path';
 import { connectToDatabase } from '../../utils/mongodb';
 
@@ -9,7 +6,7 @@ import { connectToDatabase } from '../../utils/mongodb';
 const upload = multer({
   storage: multer.diskStorage({
     destination: './public/uploads',
-    filename: (req, file, cb) => cb(null, `${Date.now()}_${file.originalname}`),
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname),
   }),
 });
 
@@ -37,28 +34,21 @@ const handler = async (req, res) => {
 
   await runMiddleware(req, res, upload.single('file'));
 
-  const { title } = req.body;
-
-  if (!title) {
-    return res.status(400).json({ message: 'Title is required' });
-  }
-
   const { db } = await connectToDatabase();
+  const { collectionName = 'images' } = req.body;
 
   try {
     const filePath = path.join(process.cwd(), 'public/uploads', req.file.filename);
-    const protocol = req.headers['x-forwarded-proto'] || 'http';
-    const host = req.headers.host;
-    const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
+    const url = `/uploads/${req.file.filename}`;
 
-    const newImage = {
-      title,
-      url: fileUrl,
-      fileName: req.file.filename,
+    const imageMetadata = {
+      title: req.file.originalname,
+      url: url,
+      uploadDate: new Date(),
     };
 
-    const result = await db.collection('images').insertOne(newImage);
-    res.status(200).json({ message: 'Image uploaded successfully', data: newImage });
+    const result = await db.collection(collectionName).insertOne(imageMetadata);
+    res.status(200).json({ message: `${result.insertedCount} item inserted successfully.`, data: result.ops[0] });
   } catch (error) {
     console.error('Error inserting content:', error);
     res.status(500).json({ message: 'Error inserting content', error: error.message });
