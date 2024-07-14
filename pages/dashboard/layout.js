@@ -19,6 +19,7 @@ import {
   FaKey,
   FaAngleRight,
   FaInfo,
+  FaFile,
 } from 'react-icons/fa';
 import { FaDownLeftAndUpRightToCenter } from 'react-icons/fa6';
 
@@ -307,6 +308,19 @@ const Layout = ({ children }) => {
                 }`}
               >
                 <FaDownLeftAndUpRightToCenter className="mr-3 text-red-500" /> <span className="mx-3">Export & Import</span>
+              </p>
+            </Link>
+          )}
+          {user && (user.role === 'admin' || user.role === 'moderator') && (
+            <Link href="/dashboard/media" passHref>
+              <p
+                className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
+                  isActiveRoute('/dashboard/media')
+                    ? 'bg-gray-300 text-gray-700'
+                    : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
+                }`}
+              >
+                <FaFile className="mr-3 text-red-500" /> <span className="mx-3">Media</span>
               </p>
             </Link>
           )}

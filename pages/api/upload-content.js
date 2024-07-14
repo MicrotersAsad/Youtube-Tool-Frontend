@@ -1,5 +1,3 @@
-// pages/api/upload-content.js
-
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
@@ -36,7 +34,7 @@ const handler = async (req, res) => {
 
   await runMiddleware(req, res, upload.single('file'));
 
-  const { collectionName } = req.body;
+  const { collectionName, language } = req.body;
 
   if (!collectionName) {
     return res.status(400).json({ message: 'Collection name is required' });
@@ -53,11 +51,14 @@ const handler = async (req, res) => {
       throw new Error('Uploaded file must contain an array of content entries.');
     }
 
-    const result = await db.collection(collectionName).insertMany(content);
+    // Adding language to each content entry if language is provided
+    const contentWithLanguage = content.map(entry => (language ? { ...entry, language } : entry));
+
+    const result = await db.collection(collectionName).insertMany(contentWithLanguage);
     res.status(200).json({ message: `${result.insertedCount} items inserted successfully.` });
   } catch (error) {
     console.error('Error inserting content:', error);
-    res.status(500).json({ message: 'Error inserting content', error });
+    res.status(500).json({ message: 'Error inserting content', error: error.message });
   }
 };
 

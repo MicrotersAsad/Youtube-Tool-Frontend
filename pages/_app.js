@@ -42,47 +42,8 @@ function MyApp({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <title>{pageProps.meta?.title || "Youtube Tools"}</title>
-        <meta
-          name="description"
-          content={pageProps.meta?.description || ""}
-        />
-        <meta
-          property="og:url"
-          content={pageProps.meta?.url || "https://youtube-tool-frontend.vercel.app/tools/tagGenerator"}
-        />
-        <meta
-          property="og:title"
-          content={pageProps.meta?.title || ""}
-        />
-        <meta
-          property="og:description"
-          content={pageProps.meta?.description || ""}
-        />
-        <meta
-          property="og:image"
-          content={pageProps.meta?.image || ""}
-        />
-        <meta
-          name="twitter:card"
-          content={pageProps.meta?.image || ""}
-        />
-        <meta
-          property="twitter:domain"
-          content="https://youtube-tool-frontend.vercel.app/"
-        />
-        <meta
-          property="twitter:url"
-          content={pageProps.meta?.url || "https://youtube-tool-frontend.vercel.app/tools/tagGenerator"}
-        />
-        <meta
-          name="twitter:title"
-          content={pageProps.meta?.title || ""}
-        />
-        <meta
-          name="twitter:description"
-          content={pageProps.meta?.description || ""}
-        />
+        
+       
         <meta
           name="twitter:image"
           content={pageProps.meta?.image || ""}

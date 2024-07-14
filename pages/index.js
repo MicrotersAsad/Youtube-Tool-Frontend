@@ -8,11 +8,7 @@ import styles from "../styles/Home.module.css";
 export default function Home({ meta }) {
   return (
     <div className={styles.container}>
-      <Head>
-        <title>{meta?.title || "Youtube Tools"}</title>
-        <meta name="description" content={meta?.description || "Youtube Tools"} />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+   
       <main className={styles.main}>
         <TagGenerator meta={meta} />
       </main>
