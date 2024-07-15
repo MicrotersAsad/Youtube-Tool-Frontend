@@ -7,7 +7,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { i18n } from 'next-i18next';
 import { ClipLoader } from 'react-spinners';
 
-const BlogPost = ({ blog }) => {
+const BlogPost = ({ blog, host }) => {
   const router = useRouter();
   const { slug } = router.query;
   const [loading, setLoading] = useState(true);
@@ -28,7 +28,7 @@ const BlogPost = ({ blog }) => {
   }
 
   if (!content) {
-    return <p className="text-red-500">No content available for this slug.</p>;
+    return <p className="text-red-500">No content available for this language.</p>;
   }
 
   return (
@@ -38,7 +38,7 @@ const BlogPost = ({ blog }) => {
           <link
             key={lang}
             rel="alternate"
-            href={`https://example.com/blog/${blog.translations[lang].slug}`}
+            href={`https://${host}/blog/${blog.translations[lang].slug}`}
             hreflang={lang}
           />
         ))}
@@ -65,10 +65,13 @@ const BlogPost = ({ blog }) => {
   );
 };
 
-export async function getServerSideProps({ locale, params }) {
+export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
-    const { data } = await axios.get(`http://localhost:3000/api/blogs`); // সমস্ত ব্লগ পোস্টগুলি পান
+    const host = req.headers.host;
+    const protocol = req.headers["x-forwarded-proto"] || "http";
+    const apiUrl = `${protocol}://${host}/api/blogs`; // সঠিক ডোমেইন সহ URL তৈরি করুন
+    const { data } = await axios.get(apiUrl); // সমস্ত ব্লগ পোস্টগুলি পান
 
     // সঠিক ব্লগ পোস্ট খুঁজুন যেটির অনুবাদের মধ্যে slug মেলে
     const blog = data.find(blog =>
@@ -84,15 +87,17 @@ export async function getServerSideProps({ locale, params }) {
     return {
       props: {
         blog,
-        ...(await serverSideTranslations(locale, ['common'])),
+        host,
+        ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
       },
     };
   } catch (error) {
-    console.error('Error fetching blog post:', error.message); // Log the error message for debugging
+    console.error('Error fetching blog post:', error.message); // ত্রুটির বার্তাটি ডিবাগিংয়ের জন্য লগ করুন
     return {
       props: {
-        blog: {}, // Handle gracefully or return an empty object as needed
-        ...(await serverSideTranslations(locale, ['common'])),
+        blog: {}, // প্রয়োজন অনুযায়ী একটি খালি অবজেক্ট প্রদান করুন বা সুশীলভাবে হ্যান্ডেল করুন
+        host: req.headers.host,
+        ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
       },
     };
   }

@@ -198,15 +198,18 @@ const BlogSection = ({ blogs }) => {
   );
 };
 
-export async function getServerSideProps({ locale }) {
+export async function getServerSideProps({ locale, req }) {
   try {
-    const { data } = await axios.get(`http://localhost:3000/api/blogs`); // Replace with your actual API URL
+    const host = req.headers.host;
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const apiUrl = `${protocol}://${host}/api/blogs`; // Correctly construct the API URL with the domain
+    const { data } = await axios.get(apiUrl);
     const blogs = data;
 
     return {
       props: {
         blogs,
-        ...(await serverSideTranslations(locale, ['common'])),
+        ...(await serverSideTranslations(locale,  ['common','navbar','footer'])),
       },
     };
   } catch (error) {
@@ -214,7 +217,7 @@ export async function getServerSideProps({ locale }) {
     return {
       props: {
         blogs: [],
-        ...(await serverSideTranslations(locale, ['common'])),
+        ...(await serverSideTranslations(locale, ['common','navbar','footer'])),
       },
     };
   }
