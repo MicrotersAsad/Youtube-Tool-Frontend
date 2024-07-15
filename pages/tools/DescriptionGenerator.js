@@ -71,7 +71,7 @@ const YouTubeDescriptionGenerator = ({ meta = [] }) => {
     const fetchContent = async () => {
       try {
         const response = await fetch(
-          `/api/content?category=youtube-title-and-description-generator?tab=description&language=${i18n?.language}`
+          `/api/content?category=DescriptionGenerator&language=${i18n?.language}`
         );
         console.log(response);
         if (!response.ok) {
@@ -244,7 +244,7 @@ ${keywords}
   };
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-4">
      <Head>
             <title>{meta?.title}</title>
             <meta
@@ -643,7 +643,7 @@ ${keywords}
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}/api/content?category=youtube-title-and-description-generator?tab=description&lang=${locale}`;
+  const apiUrl = `${protocol}://${host}/api/content?category=DescriptionGenerator&lang=${locale}`;
 
   try {
     const response = await fetch(apiUrl);
@@ -657,7 +657,7 @@ export async function getServerSideProps({ req, locale }) {
       title: data[0]?.title || "",
       description: data[0]?.description || "",
       image: data[0]?.image || "",
-      url: `${protocol}://${host}/tools/youtube-title-and-description-generator?tab=description`,
+      url: `${protocol}://${host}/tools/DescriptionGenerator`,
     };
 
     return {

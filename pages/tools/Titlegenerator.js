@@ -43,7 +43,7 @@ const TitleGenerator = ({ meta, faqs, relatedTools }) => {
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({
     name: "",
-    title: "", // Add title field
+    title: "",
     rating: 0,
     comment: "",
     userProfile: "",
@@ -326,7 +326,7 @@ const TitleGenerator = ({ meta, faqs, relatedTools }) => {
         name: "",
         rating: 0,
         comment: "",
-        title: "", // Reset title field
+        title: "",
         userProfile: "",
       });
       setShowReviewForm(false);
@@ -375,43 +375,18 @@ const TitleGenerator = ({ meta, faqs, relatedTools }) => {
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-        <Head>
+          <Head>
             <title>{meta?.title}</title>
-            <meta
-              name="description"
-              content={meta?.description}
-            />
-            <meta
-              property="og:url"
-              content={meta?.url}
-            />
-            <meta
-              property="og:title"
-              content={meta?.title}
-            />
-            <meta
-              property="og:description"
-              content={
-                meta?.description}
-            />
+            <meta name="description" content={meta?.description} />
+            <meta property="og:url" content={meta?.url} />
+            <meta property="og:title" content={meta?.title} />
+            <meta property="og:description" content={meta?.description} />
             <meta property="og:image" content={meta?.image || ""} />
             <meta name="twitter:card" content={meta?.image || ""} />
-            <meta
-              property="twitter:domain"
-              content="https://youtube-tool-frontend.vercel.app/"
-            />
-            <meta
-              property="twitter:url"
-              content={meta?.url}
-            />
-            <meta
-              name="twitter:title"
-              content={meta?.title}
-            />
-            <meta
-              name="twitter:description"
-              content={meta?.description}
-            />
+            <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
+            <meta property="twitter:url" content={meta?.url} />
+            <meta name="twitter:title" content={meta?.title} />
+            <meta name="twitter:description" content={meta?.description} />
             <meta name="twitter:image" content={meta?.image || ""} />
             {/* - Webpage Schema */}
             <script type="application/ld+json">
@@ -526,7 +501,7 @@ const TitleGenerator = ({ meta, faqs, relatedTools }) => {
                 <span className="tag" key={index}>
                   {tag}
                   <span
-                    className="remove-btn"
+                    class="remove-btn"
                     onClick={() => setTags(tags.filter((_, i) => i !== index))}
                   >
                     ×
@@ -585,6 +560,7 @@ const TitleGenerator = ({ meta, faqs, relatedTools }) => {
           </div>
         </div>
       </div>
+      <div className="max-w-7xl mx-auto p-4">
       <div className="generated-titles-container">
         {generatedTitles.length > 0 && (
           <div className="select-all-checkbox">
@@ -625,6 +601,7 @@ const TitleGenerator = ({ meta, faqs, relatedTools }) => {
           </button>
         )}
       </div>
+      
       <div className="content pt-6 pb-5">
         <div
           dangerouslySetInnerHTML={{ __html: existingContent }}
@@ -967,6 +944,8 @@ const TitleGenerator = ({ meta, faqs, relatedTools }) => {
           background-color: gray;
         }
       `}</style>
+      
+      </div>
     </>
   );
 };
@@ -974,8 +953,8 @@ const TitleGenerator = ({ meta, faqs, relatedTools }) => {
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}/api/content?category=youtube-title-and-description-generator?tab=title&lang=${locale}`;
-  const relatedToolsUrl = `${protocol}://${host}/api/content?category=relatedTools&language=${locale}`;
+  const apiUrl = `${protocol}://${host}/api/content?category=youtube-title-and-description-generator&tab=title&lang=${locale}`;
+  const relatedToolsUrl = `${protocol}://${host}/api/content?category=relatedTools&lang=${locale}`;
 
   try {
     const [contentResponse, relatedToolsResponse] = await Promise.all([

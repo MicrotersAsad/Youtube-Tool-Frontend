@@ -51,7 +51,8 @@ function Navbar() {
       key: 'YouTube Tools', href: '#', dropdown: true, children: [
         { key: 'YouTube Tag Generator', href: '/tools/tagGenerator', icon: '🔖' },
         { key: 'YouTube Tag Extractor', href: '/tools/tagExtractor', icon: '🔍' },
-        { key: 'YouTube Title & Description Generator', href: '/tools/youtube-title-and-description-generator', icon: '📝' },
+        { key: 'DescriptionGenerator', href: '/tools/DescriptionGenerator', icon: '📝' },
+        { key: 'Titlegenerator', href: '/tools/Titlegenerator', icon: '📝' },
         { key: 'YouTube Title & Description Extractor', href: '/tools/youtube-title-and-description-extractor', icon: '📄' },
         { key: 'YouTube Thumbnails Download', href: '/tools/youtube-thumbnail', icon: '📥' },
         { key: 'YouTube Hashtag Generator', href: '/tools/YouTube-Hashtag-Generator', icon: '#️⃣' },
