@@ -7,14 +7,13 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { i18n } from 'next-i18next';
 import { ClipLoader } from 'react-spinners';
 
-const BlogPost = ({ blog, host }) => {
+const BlogPost = ({ blog, domain }) => {
   const router = useRouter();
   const { slug } = router.query;
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   const content = blog.translations && Object.values(blog.translations).find(translation => translation.slug === slug);
-
+console.log(content);
   useEffect(() => {
     setLoading(false);
   }, []);
@@ -38,7 +37,7 @@ const BlogPost = ({ blog, host }) => {
           <link
             key={lang}
             rel="alternate"
-            href={`https://${host}/blog/${blog.translations[lang].slug}`}
+            href={`https://${domain}/blog/${blog.translations[lang].slug}`}
             hreflang={lang}
           />
         ))}
@@ -70,10 +69,10 @@ export async function getServerSideProps({ locale, params, req }) {
     const { slug } = params;
     const host = req.headers.host;
     const protocol = req.headers["x-forwarded-proto"] || "http";
-    const apiUrl = `${protocol}://${host}/api/blogs`; // সঠিক ডোমেইন সহ URL তৈরি করুন
-    const { data } = await axios.get(apiUrl); // সমস্ত ব্লগ পোস্টগুলি পান
+    const apiUrl = `${protocol}://${host}/api/blogs`; // Use the correct domain URL
+    const { data } = await axios.get(apiUrl); // Fetch all blog posts
 
-    // সঠিক ব্লগ পোস্ট খুঁজুন যেটির অনুবাদের মধ্যে slug মেলে
+    // Find the correct blog post that matches the slug within translations
     const blog = data.find(blog =>
       Object.values(blog.translations).some(translation => translation.slug === slug)
     );
@@ -87,16 +86,16 @@ export async function getServerSideProps({ locale, params, req }) {
     return {
       props: {
         blog,
-        host,
+        domain: host,
         ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
       },
     };
   } catch (error) {
-    console.error('Error fetching blog post:', error.message); // ত্রুটির বার্তাটি ডিবাগিংয়ের জন্য লগ করুন
+    console.error('Error fetching blog post:', error.message); // Log the error message for debugging
     return {
       props: {
-        blog: {}, // প্রয়োজন অনুযায়ী একটি খালি অবজেক্ট প্রদান করুন বা সুশীলভাবে হ্যান্ডেল করুন
-        host: req.headers.host,
+        blog: {}, // Provide an empty object or handle gracefully as needed
+        domain: req.headers.host,
         ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
       },
     };
