@@ -953,7 +953,7 @@ const TitleGenerator = ({ meta, faqs, relatedTools }) => {
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}/api/content?category=youtube-title-and-description-generator&tab=title&lang=${locale}`;
+  const apiUrl = `${protocol}://${host}/api/content?category=Titlegenerator&lang=${locale}`;
   const relatedToolsUrl = `${protocol}://${host}/api/content?category=relatedTools&lang=${locale}`;
 
   try {
