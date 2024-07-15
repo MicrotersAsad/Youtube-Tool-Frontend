@@ -18,6 +18,6 @@ module.exports = {
   },
 
   images: {
-    domains: ['yt3.ggpht.com', 'yt3.googleusercontent.com', 'i.ytimg.com', 'lobster-app-2vkuu.ondigitalocean.app'],
+    domains: ['yt3.ggpht.com', 'yt3.googleusercontent.com', 'i.ytimg.com', 'lobster-app-2vkuu.ondigitalocean.app','learnmethods.com'],
   },
 };

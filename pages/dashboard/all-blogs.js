@@ -98,12 +98,16 @@ function AllBlogs() {
     }
   };
 
-  const filteredBlogs = blogs.filter((blog) => {
-    const categoryArray = getCategoriesArray(blog.categories);
-    const categoryMatch = selectedCategories.length === 0 || selectedCategories.some(category => categoryArray.includes(category));
-    const languageMatch = selectedLanguages.length === 0 || selectedLanguages.includes(blog.language);
-    const searchMatch = !search || blog.title.toLowerCase().includes(search.toLowerCase());
-    return categoryMatch && languageMatch && searchMatch;
+  const filteredBlogs = blogs.flatMap((blog) => {
+    const translations = blog.translations || {};
+    return Object.entries(translations).map(([language, translation]) => {
+      const categoryArray = getCategoriesArray(translation.category);
+      const categoryMatch = selectedCategories.length === 0 || selectedCategories.some(category => categoryArray.includes(category));
+      const languageMatch = selectedLanguages.length === 0 || selectedLanguages.includes(language);
+      const searchMatch = !search || translation.title.toLowerCase().includes(search.toLowerCase());
+      const draftMatch = showDrafts ? translation.isDraft : !translation.isDraft;
+      return categoryMatch && languageMatch && searchMatch && draftMatch ? { ...translation, _id: blog._id, language, languages: Object.keys(translations).join(', ') } : null;
+    }).filter(blog => blog !== null);
   });
 
   const indexOfLastBlog = currentPage * blogsPerPage;
@@ -128,7 +132,7 @@ function AllBlogs() {
             onChange={handleSearchChange}
             className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-2 px-4 text-sm leading-tight focus:outline-none focus:border-blue-500 mb-3 md:mb-0"
           />
-          {/* <div className="relative ml-0 md:ml-3 mb-3 md:mb-0">
+          <div className="relative ml-0 md:ml-3 mb-3 md:mb-0">
             <select
               multiple
               value={selectedCategories}
@@ -140,8 +144,8 @@ function AllBlogs() {
                 <option key={category._id} value={category.name}>{category.name}</option>
               ))}
             </select>
-          </div> */}
-          {/* <div className="relative ml-0 md:ml-3 mb-3 md:mb-0">
+          </div>
+          <div className="relative ml-0 md:ml-3 mb-3 md:mb-0">
             <select
               multiple
               value={selectedLanguages}
@@ -165,7 +169,7 @@ function AllBlogs() {
               <option value="es">Español</option>
               <option value="de">Deutsch</option>
             </select>
-          </div> */}
+          </div>
           <div className="relative ml-0 md:ml-3 mb-3 md:mb-0 flex items-center">
             <label className="mr-2">Show Drafts</label>
             <input
@@ -186,7 +190,7 @@ function AllBlogs() {
                 <tr>
                   <th className="py-2 px-4 border-b">Title</th>
                   <th className="py-2 px-4 border-b">Category</th>
-                  <th className="py-2 px-4 border-b">Language</th>
+                  <th className="py-2 px-4 border-b">Languages</th>
                   <th className="py-2 px-4 border-b">Views</th>
                   <th className="py-2 px-4 border-b">Actions</th>
                 </tr>
@@ -196,9 +200,11 @@ function AllBlogs() {
                   <tr key={blog._id}>
                     <td className="py-2 px-4 border-b">{blog.title}</td>
                     <td className="py-2 px-4 border-b">
-                    {blog.category}
+                      {Array.isArray(blog.category) ? blog.category.join(', ') : blog.category}
                     </td>
-                    <td className="py-2 px-4 border-b">{blog.language}</td>
+                    <td className="py-2 px-4 border-b">
+                      {blog.languages}
+                    </td>
                     <td className="py-2 px-4 border-b">
                       <span className="flex items-center">
                         <FaEye className="mr-1" /> {blog.viewCount}

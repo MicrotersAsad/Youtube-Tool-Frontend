@@ -7,18 +7,22 @@ import { FaArrowRight } from 'react-icons/fa';
 import { i18n } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
-const BlogSection = () => {
-  const [blogs, setBlogs] = useState([]);
+const BlogSection = ({ blogs }) => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState('');
+  const [blogsData, setBlogsData] = useState([]); // State to store fetched blogs
   const blogsPerPage = 9;
+
+  const filteredBlogs = blogsData.filter(blog => blog.translations[i18n.language]);
+  const currentBlogs = filteredBlogs.slice((currentPage - 1) * blogsPerPage, currentPage * blogsPerPage);
+  const totalPages = Math.ceil(filteredBlogs.length / blogsPerPage);
 
   const fetchBlogs = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(`/api/blogs`);
-      setBlogs(response.data);
+      setBlogsData(response.data); // Update blogsData state with fetched data
       setLoading(false);
     } catch (error) {
       console.error('Error fetching blogs:', error);
@@ -35,12 +39,10 @@ const BlogSection = () => {
     return category ? category.split(',') : [];
   };
 
-  const indexOfLastBlog = currentPage * blogsPerPage;
-  const indexOfFirstBlog = indexOfLastBlog - blogsPerPage;
-
-  const filteredBlogs = blogs.filter(blog => blog.language === i18n.language);
-  const currentBlogs = filteredBlogs.slice(indexOfFirstBlog, Math.min(indexOfLastBlog, filteredBlogs.length));
-  const totalPages = Math.ceil(filteredBlogs.length / blogsPerPage);
+  const getTranslatedContent = (blog) => {
+    const lang = i18n.language || blog.defaultLanguage;
+    return blog.translations[lang] || blog.translations[blog.defaultLanguage];
+  };
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -65,64 +67,62 @@ const BlogSection = () => {
       <div className="container mx-auto px-4 p-5">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mt-8">
           <div>
-            {currentBlogs.slice(0, 1).map((blog, index) => (
-              <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
-                <Image
-                  src={blog.image}
-                  alt={blog.title}
-                  width={600}
-                  height={400}
-                />
-                <div className="p-6">
-                  <h3 className="text-3xl font-semibold mb=2">
-                    {blog.slug ? (
-                      <Link href={`/blog/${blog.slug}`} passHref>
-                        <span className="text-blue-500 hover:underline">{blog.title}</span>
+            {currentBlogs.slice(0, 1).map((blog, index) => {
+              const content = getTranslatedContent(blog);
+              return (
+                <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
+                  <Image
+                    src={content.image}
+                    alt={content.title}
+                    width={600}
+                    height={400}
+                  />
+                  <div className="p-6">
+                    <h3 className="text-3xl font-semibold mb-2">
+                      <Link href={`/blog/${content.slug}`} passHref>
+                        <span className="text-blue-500 hover:underline">{content.title}</span>
                       </Link>
-                    ) : (
-                      <span className="text-blue-500">{blog.title}</span>
-                    )}
-                  </h3>
-                  <p className="text-gray-600 mb-4">{blog.description}</p>
-                  <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
-                  <div className="mt-2">
-                    {parseCategories(blog.category).map((category, i) => (
-                      <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
-                    ))}
+                    </h3>
+                    <p className="text-gray-600 mb-4">{content.description}</p>
+                    <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
+                    <div className="mt-2">
+                      {parseCategories(blog.category).map((category, i) => (
+                        <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div className="space-y-4">
-            {currentBlogs.slice(1, 4).map((blog, index) => (
-              <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden flex flex-col md:flex-row">
-                <Image
-                  src={blog.image}
-                  alt={blog.title}
-                  width={280}
-                  height={100}
-                  className="object-cover rounded-lg blog-img"
-                />
-                <div className="p-4">
-                  <h4 className="text-lg font-semibold">
-                    {blog.slug ? (
-                      <Link href={`/blog/${blog.slug}`} passHref>
-                        <span className="text-blue-500 hover:underline">{blog.title}</span>
+            {currentBlogs.slice(1, 4).map((blog, index) => {
+              const content = getTranslatedContent(blog);
+              return (
+                <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden flex flex-col md:flex-row">
+                  <Image
+                    src={content.image}
+                    alt={content.title}
+                    width={280}
+                    height={100}
+                    className="object-cover rounded-lg blog-img"
+                  />
+                  <div className="p-4">
+                    <h4 className="text-lg font-semibold">
+                      <Link href={`/blog/${content.slug}`} passHref>
+                        <span className="text-blue-500 hover:underline">{content.title}</span>
                       </Link>
-                    ) : (
-                      <span className="text-blue-500">{blog.title}</span>
-                    )}
-                  </h4>
-                  <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
-                  <div className="mt-2">
-                    {parseCategories(blog.category).map((category, i) => (
-                      <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
-                    ))}
+                    </h4>
+                    <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
+                    <div className="mt-2">
+                      {parseCategories(blog.category).map((category, i) => (
+                        <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -143,52 +143,51 @@ const BlogSection = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-          {currentBlogs.slice(4).map((blog, index) => (
-            <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
-              <Image
-                src={blog.image}
-                alt={blog.title}
-                width={600}
-                height={400}
-                className="object-cover rounded-lg"
-              />
-              <div className="p-4">
-                <h4 className="text-lg font-semibold">
-                  {blog.slug ? (
-                    <Link href={`/blog/${blog.slug}`} passHref>
-                      <span className="text-blue-500 hover:underline">{blog.title}</span>
+          {currentBlogs.slice(4).map((blog, index) => {
+            const content = getTranslatedContent(blog);
+            return (
+              <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
+                <Image
+                  src={content.image}
+                  alt={content.title}
+                  width={600}
+                  height={400}
+                  className="object-cover rounded-lg"
+                />
+                <div className="p-4">
+                  <h4 className="text-lg font-semibold">
+                    <Link href={`/blog/${content.slug}`} passHref>
+                      <span className="text-blue-500 hover:underline">{content.title}</span>
                     </Link>
-                  ) : (
-                    <span className="text-blue-500">{blog.title}</span>
-                  )}
-                </h4>
-                <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
-                <div className="mt-2">
-                  {parseCategories(blog.category).map((category, i) => (
-                    <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
-                  ))}
-                </div>
-                {blog.slug && (
-                  <Link href={`/blog/${blog.slug}`} passHref>
+                  </h4>
+                  <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
+                  <div className="mt-2">
+                    {parseCategories(blog.category).map((category, i) => (
+                      <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
+                    ))}
+                  </div>
+                  <Link href={`/blog/${content.slug}`} passHref>
                     <span className="text-red-500 hover:underline mt-3"><span>Read More <FaArrowRight/></span></span>
                   </Link>
-                )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="flex justify-center mt-8">
           <nav className="block">
             <ul className="flex pl-0 rounded list-none flex-wrap">
-              {[...Array(totalPages)].map((_, index) => (
-                <li key={index}>
-                  <a
-                    onClick={() => paginate(index + 1)}
-                    className={`cursor-pointer relative block py-2 px-3 leading-tight border border-gray-300 bg-navy ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'text-blue-500 hover:bg-gray-200'}`}
+              {Array.from({ length: totalPages }, (_, i) => (
+                <li key={i}>
+                  <button
+                    onClick={() => paginate(i + 1)}
+                    className={`relative block py-2 px-3 leading-tight bg-white border border-gray-300 text-blue-500 border-r-0 ml-0 rounded-l ${
+                      currentPage === i + 1 ? 'bg-gray-200' : ''
+                    }`}
                   >
-                    {index + 1}
-                  </a>
+                    {i + 1}
+                  </button>
                 </li>
               ))}
             </ul>
@@ -199,40 +198,23 @@ const BlogSection = () => {
   );
 };
 
-export async function getServerSideProps({ req, locale }) {
-  const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}/api/blogs`;
-
+export async function getServerSideProps({ locale }) {
   try {
-    const contentResponse = await fetch(apiUrl);
-
-    if (!contentResponse.ok) {
-      throw new Error("Failed to fetch content");
-    }
-
-    const contentData = await contentResponse.json();
-
-    const meta = {
-      title: contentData[0]?.metaTitle || "",
-      description: contentData[0]?.metaDescription || "",
-      image: contentData[0]?.image || "",
-    };
+    const { data } = await axios.get(`http://localhost:3000/api/blogs`); // Replace with your actual API URL
+    const blogs = data;
 
     return {
       props: {
-        meta,
-        faqs: contentData[0]?.faqs || [],
-        ...(await serverSideTranslations(locale, ['footer', 'navbar'])),
+        blogs,
+        ...(await serverSideTranslations(locale, ['common'])),
       },
     };
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error('Error fetching blogs:', error.message);
     return {
       props: {
-        meta: {},
-        faqs: [],
-        ...(await serverSideTranslations(locale, ['footer', 'navbar'])),
+        blogs: [],
+        ...(await serverSideTranslations(locale, ['common'])),
       },
     };
   }

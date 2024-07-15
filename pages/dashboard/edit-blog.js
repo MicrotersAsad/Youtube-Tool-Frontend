@@ -29,9 +29,9 @@ function EditBlog() {
   useEffect(() => {
     fetchCategories();
     if (id) {
-      fetchBlogData(id);
+      fetchBlogData(id, language);
     }
-  }, [id]);
+  }, [id, language]);
 
   const fetchCategories = async () => {
     try {
@@ -46,21 +46,31 @@ function EditBlog() {
     }
   };
 
-  const fetchBlogData = async (id) => {
+  const fetchBlogData = async (id, lang) => {
     try {
       const response = await fetch(`/api/blogs?id=${id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch blog data');
       }
       const data = await response.json();
-      setQuillContent(data.content);
-      setSelectedCategory(data.categories[0]);
-      setTitle(data.title);
-      setMetaTitle(data.metaTitle);
-      setMetaDescription(data.metaDescription);
-      setDescription(data.description);
+      if (data.translations && data.translations[lang]) {
+        const translation = data.translations[lang];
+        setQuillContent(translation.content);
+        setSelectedCategory(translation.category);
+        setTitle(translation.title);
+        setMetaTitle(translation.metaTitle);
+        setMetaDescription(translation.metaDescription);
+        setDescription(translation.description);
+      } else {
+        // Clear the form if the translation for the selected language does not exist
+        setQuillContent('');
+        setSelectedCategory('');
+        setTitle('');
+        setMetaTitle('');
+        setMetaDescription('');
+        setDescription('');
+      }
       setIsDraft(data.isDraft);
-      setLanguage(data.language); // Set language from fetched data
     } catch (error) {
       console.error('Error fetching blog data:', error.message);
       setError(error.message);
@@ -80,7 +90,7 @@ function EditBlog() {
       if (image) {
         formData.append('image', image);
       }
-      formData.append('categories', JSON.stringify([selectedCategory]));
+      formData.append('category', selectedCategory);
       formData.append('author', user.username);
       formData.append('authorProfile', user.profileImage);
       formData.append('createdAt', new Date().toISOString());
@@ -194,21 +204,21 @@ function EditBlog() {
               onChange={handleLanguageChange}
               className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
             >
-                <option value="en">English</option>
-                <option value="fr">French</option>
-                <option value="zh-HANT">中国传统的</option>
-                <option value="zh-HANS">简体中文</option>
-                <option value="nl">Nederlands</option>
-                <option value="gu">ગુજરાતી</option>
-                <option value="hi">हिंदी</option>
-                <option value="it">Italiano</option>
-                <option value="ja">日本語</option>
-                <option value="ko">한국어</option>
-                <option value="pl">Polski</option>
-                <option value="pt">Português</option>
-                <option value="ru">Русский</option>
-                <option value="es">Español</option>
-                <option value="de">Deutsch</option>
+              <option value="en">English</option>
+              <option value="fr">French</option>
+              <option value="zh-HANT">中国传统的</option>
+              <option value="zh-HANS">简体中文</option>
+              <option value="nl">Nederlands</option>
+              <option value="gu">ગુજરાતી</option>
+              <option value="hi">हिंदी</option>
+              <option value="it">Italiano</option>
+              <option value="ja">日本語</option>
+              <option value="ko">한국어</option>
+              <option value="pl">Polski</option>
+              <option value="pt">Português</option>
+              <option value="ru">Русский</option>
+              <option value="es">Español</option>
+              <option value="de">Deutsch</option>
               {/* Add more languages as needed */}
             </select>
           </div>

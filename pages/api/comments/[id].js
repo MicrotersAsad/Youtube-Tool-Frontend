@@ -1,105 +1,70 @@
+// pages/api/comments/[slug].js
 import { connectToDatabase } from '../../../utils/mongodb';
-import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
-  const { method } = req;
-  const blogSlug = req.query.id; // Using 'id' as the slug here
+  const { method, query } = req;
+  const { slug } = query;
 
-  console.log('API called with blogSlug:', blogSlug);
+  if (!slug) {
+    return res.status(400).json({ message: 'Slug is required' });
+  }
 
-  const { db } = await connectToDatabase();
-  const commentsCollection = db.collection('comments');
+  let db, client;
+
+  try {
+    ({ db, client } = await connectToDatabase());
+  } catch (error) {
+    console.error('Database connection error:', error);
+    return res.status(500).json({ message: 'Database connection error' });
+  }
+
+  const comments = db.collection('comments');
 
   switch (method) {
     case 'GET':
       try {
-        const comments = await commentsCollection
-          .find({ blogSlug: blogSlug, parentId: null })
-          .toArray();
-
-        for (let comment of comments) {
-          comment.replies = await commentsCollection
-            .find({ parentId: comment._id })
-            .toArray();
-        }
-
-        res.status(200).json(comments);
+        const result = await comments.find({ slug }).toArray();
+        res.status(200).json(result);
       } catch (error) {
-        console.error('Failed to fetch comments:', error);
-        res.status(500).json({ error: 'Failed to fetch comments' });
+        console.error('GET error:', error);
+        res.status(500).json({ message: 'Internal server error' });
       }
       break;
 
     case 'POST':
-      try {
-        const token = req.headers.authorization?.split(' ')[1];
-        console.log('Token received:', token);
+      const { content, parentId } = req.body;
+      const author = req.user?.username || 'Anonymous';
+      const authorProfile = req.user?.profileImage || null;
 
-        if (!token) {
-          res.status(401).json({ error: 'Not authenticated' });
-          return;
-        }
-
-        let decoded;
-        try {
-          decoded = jwt.verify(token, process.env.NEXT_PUBLIC_JWT_SECRET);
-          console.log('Decoded token:', decoded);
-        } catch (error) {
-          console.error('Token verification failed:', error);
-          res.status(401).json({ error: 'Invalid token' });
-          return;
-        }
-
-        const { content, parentId } = req.body;
-        console.log('Request body:', req.body);
-
-        if (!content) {
-          res.status(400).json({ error: 'Content is required' });
-          return;
-        }
-
-        const newComment = {
-          blogSlug: blogSlug, // Using slug here
-          content,
-          parentId: parentId ? parentId : null,
-          author: decoded.username,
-          authorProfile: decoded.profileImage,
-          createdAt: new Date(),
-        };
-
-        const result = await commentsCollection.insertOne(newComment);
-
-        res.status(201).json({ ...newComment, _id: result.insertedId });
-      } catch (error) {
-        console.error('Failed to add comment:', error);
-        res.status(500).json({ error: 'Failed to add comment' });
+      if (!content) {
+        return res.status(400).json({ message: 'Content is required' });
       }
-      break;
 
-    case 'DELETE':
+      const comment = {
+        slug,
+        content,
+        parentId: parentId ? new ObjectId(parentId) : null,
+        author,
+        authorProfile,
+        createdAt: new Date(),
+      };
+
       try {
-        const { commentId } = req.body;
+        const result = await comments.insertOne(comment);
 
-        if (!ObjectId.isValid(commentId)) {
-          res.status(400).json({ error: 'Invalid comment ID' });
-          return;
+        if (!result.insertedId) {
+          return res.status(500).json({ message: 'Failed to insert comment' });
         }
 
-        const result = await commentsCollection.deleteOne({ _id: new ObjectId(commentId) });
-
-        if (result.deletedCount === 1) {
-          res.status(200).json({ message: 'Comment deleted successfully' });
-        } else {
-          res.status(404).json({ error: 'Comment not found' });
-        }
+        res.status(201).json(comment);
       } catch (error) {
-        console.error('Failed to delete comment:', error);
-        res.status(500).json({ error: 'Failed to delete comment' });
+        console.error('POST error:', error);
+        res.status(500).json({ message: 'Internal server error' });
       }
       break;
 
     default:
-      res.setHeader('Allow', ['GET', 'POST', 'DELETE']);
+      res.setHeader('Allow', ['GET', 'POST']);
       res.status(405).end(`Method ${method} Not Allowed`);
       break;
   }

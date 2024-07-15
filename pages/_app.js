@@ -7,6 +7,8 @@ import Footer from './Footer';
 import Navbar from './Navbar';
 import Notice from './Notice';
 import { appWithTranslation } from 'next-i18next';
+import 'react-quill/dist/quill.snow.css';
+
 
 
 function MyApp({ Component, pageProps }) {
@@ -117,3 +119,6 @@ function MyApp({ Component, pageProps }) {
 }
 
 export default appWithTranslation(MyApp);
+
+
+

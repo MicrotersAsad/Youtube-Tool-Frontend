@@ -22,11 +22,22 @@ function Blogs() {
   const [metaDescription, setMetaDescription] = useState('');
   const [image, setImage] = useState(null);
   const [categories, setCategories] = useState([]);
-  const [isDraft, setIsDraft] = useState(false);
   const [isSlugEditable, setIsSlugEditable] = useState(false);
 
   useEffect(() => {
     fetchCategories();
+    const savedState = JSON.parse(localStorage.getItem('blogFormState'));
+    if (savedState) {
+      setQuillContent(savedState.quillContent || '');
+      setSelectedCategory(savedState.selectedCategory || '');
+      setSelectedLanguage(savedState.selectedLanguage || 'en');
+      setSlug(savedState.slug || '');
+      setTitle(savedState.title || '');
+      setMetaTitle(savedState.metaTitle || '');
+      setDescription(savedState.description || '');
+      setMetaDescription(savedState.metaDescription || '');
+      setImage(savedState.image || null);
+    }
   }, []);
 
   useEffect(() => {
@@ -34,6 +45,21 @@ function Blogs() {
       fetchContent();
     }
   }, [selectedCategory, selectedLanguage]);
+
+  useEffect(() => {
+    const formState = {
+      quillContent,
+      selectedCategory,
+      selectedLanguage,
+      slug,
+      title,
+      metaTitle,
+      description,
+      metaDescription,
+      image,
+    };
+    localStorage.setItem('blogFormState', JSON.stringify(formState));
+  }, [quillContent, selectedCategory, selectedLanguage, slug, title, metaTitle, description, metaDescription, image]);
 
   const fetchCategories = async () => {
     try {
@@ -89,11 +115,6 @@ function Blogs() {
       formData.append('createdAt', new Date().toISOString());
       formData.append('isDraft', JSON.stringify(false));
 
-      // Log form data
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${value}`);
-      }
-
       const response = await fetch('/api/blogs', {
         method,
         body: formData,
@@ -107,6 +128,7 @@ function Blogs() {
       setError(null);
       fetchContent();
       toast.success('Blog uploaded successfully!');
+      localStorage.removeItem('blogFormState');
     } catch (error) {
       console.error('Error posting content:', error.message);
       setError(error.message);
