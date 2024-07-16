@@ -1,3 +1,5 @@
+// eslint-disable-next-line react/prop-types
+// eslint-disable-next-line no-undef
 import nodemailer from 'nodemailer';
 
 export async function sendVerificationEmail(email, username, token) {
