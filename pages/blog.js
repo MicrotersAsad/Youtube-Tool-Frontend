@@ -73,11 +73,13 @@ const BlogSection = ({ initialBlogs }) => {
           <div>
             {currentBlogs.slice(0, 1).map((blog, index) => {
               const content = getTranslatedContent(blog);
+              const imageUrl = `http://161.35.10.124${content.image}`; // Ensure the path is correct
+              console.log(`Image URL: ${imageUrl}`); // ইমেজ URL চেক করুন
               return (
                 <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
                   {content.image && (
                     <Image
-                      src={content.image}
+                      src={imageUrl}
                       alt={content.title}
                       width={600}
                       height={400}
@@ -106,11 +108,12 @@ const BlogSection = ({ initialBlogs }) => {
           <div className="space-y-4">
             {currentBlogs.slice(1, 4).map((blog, index) => {
               const content = getTranslatedContent(blog);
+              const imageUrl = `http://161.35.10.124${content.image}`; // Ensure the path is correct
               return (
                 <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden flex flex-col md:flex-row">
                   {content.image && (
                     <Image
-                      src={content.image}
+                      src={imageUrl}
                       alt={content.title}
                       width={280}
                       height={100}
@@ -156,11 +159,12 @@ const BlogSection = ({ initialBlogs }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
           {currentBlogs.slice(4).map((blog, index) => {
             const content = getTranslatedContent(blog);
+            const imageUrl = `http://161.35.10.124${content.image}`; // Ensure the path is correct
             return (
               <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
                 {content.image && (
                   <Image
-                    src={content.image}
+                    src={imageUrl}
                     alt={content.title}
                     width={600}
                     height={400}
