@@ -975,7 +975,7 @@ export async function getServerSideProps({ req, locale }) {
       title: contentData[0]?.title || "",
       description: contentData[0]?.description || "",
       image: contentData[0]?.image || "",
-      url: `${protocol}://${host}/tools/youtube-title-and-description-generator?tab=title`,
+      url: `${protocol}://${host}/tools/Titlegenerator`,
     };
 
     return {
