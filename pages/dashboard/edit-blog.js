@@ -129,7 +129,10 @@ function EditBlog() {
   };
 
   const handleImageChange = (e) => {
-    setImage(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file) {
+      setImage(URL.createObjectURL(file));
+    }
   };
 
   const handleDraftChange = (e) => {
@@ -248,15 +251,20 @@ function EditBlog() {
             <p className="text-gray-600 text-sm mt-1">Description max 200 characters</p>
           </div>
           <div className="mb-3">
-            <label htmlFor="image" className="block mb-2 text-lg font-medium">Image</label>
-            <input
-              type="file"
-              id="image"
-              onChange={handleImageChange}
-              className="block w-full text-gray-700"
-            />
-            <p className="text-gray-600 text-sm mt-1">Valid image type: jpg/jpeg/png/svg</p>
-          </div>
+          <label htmlFor="image" className="block mb-2 text-lg font-medium">Image</label>
+          <input
+            type="file"
+            id="image"
+            onChange={handleImageChange}
+            className="block w-full text-gray-700"
+          />
+          {image && (
+            <div className="mt-4">
+              <Image src={image} alt="Preview" width={200} height={200} className="w-full h-auto rounded-lg shadow-md" />
+            </div>
+          )}
+          <p className="text-gray-600 text-sm mt-1">Valid image type: jpg/jpeg/png/svg</p>
+        </div>
           <div className="mb-3 col-span-2">
             <label htmlFor="content" className="block mb-2 text-lg font-medium">Content*</label>
             <div className="border border-gray-300 rounded-lg shadow-sm p-3">

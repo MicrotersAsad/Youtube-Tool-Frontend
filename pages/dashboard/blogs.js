@@ -4,6 +4,7 @@ import Layout from './layout';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../../contexts/AuthContext';
+import Image from 'next/image';
 
 const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
 
@@ -148,9 +149,11 @@ function Blogs() {
   };
 
   const handleImageChange = (e) => {
-    setImage(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file) {
+      setImage(URL.createObjectURL(file));
+    }
   };
-
   useEffect(() => {
     if (!isSlugEditable) {
       const generateSlug = (str) => {
@@ -279,16 +282,21 @@ function Blogs() {
                 <option value="de">Deutsch</option>
               </select>
             </div>
-            <div className="mb-6">
-              <label htmlFor="image" className="block mb-2 text-lg font-medium">Image</label>
-              <input
-                type="file"
-                id="image"
-                onChange={handleImageChange}
-                className="block w-full text-gray-700"
-              />
-              <p className="text-gray-600 text-sm mt-1">Valid image type: jpg/jpeg/png/svg</p>
+            <div className="mb-3">
+          <label htmlFor="image" className="block mb-2 text-lg font-medium">Image</label>
+          <input
+            type="file"
+            id="image"
+            onChange={handleImageChange}
+            className="block w-full text-gray-700"
+          />
+          {image && (
+            <div className="mt-4">
+              <Image src={image} alt="Preview" width={200} height={200} className="w-full h-auto rounded-lg shadow-md" />
             </div>
+          )}
+          <p className="text-gray-600 text-sm mt-1">Valid image type: jpg/jpeg/png/svg</p>
+        </div>
             <button
               className="bg-blue-500 text-white p-3 rounded-lg w-full mb-4 shadow-md"
               onClick={handleSubmit}
