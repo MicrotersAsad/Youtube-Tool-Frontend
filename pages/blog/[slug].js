@@ -3,19 +3,51 @@ import axios from 'axios';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { ClipLoader } from 'react-spinners';
 
-const BlogPost = ({ blog, domain }) => {
+const BlogPost = () => {
   const router = useRouter();
   const { slug } = router.query;
+  const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const content = blog.translations && Object.values(blog.translations).find(translation => translation.slug === slug);
-
   useEffect(() => {
-    setLoading(false);
-  }, []);
+    const fetchData = async () => {
+      try {
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        const apiUrl = `${protocol}//${host}/api/blogs`;
+
+        console.log(`Fetching data from: ${apiUrl}`); // Debugging log
+
+        const { data } = await axios.get(apiUrl);
+        const blogs = data;
+
+        // Debugging log
+        console.log(`Fetched data: ${JSON.stringify(blogs, null, 2)}`);
+
+        // Find the correct blog post that matches the slug within translations
+        const blog = blogs.find(blog =>
+          Object.values(blog.translations).some(translation => translation.slug === slug)
+        );
+
+        if (blog) {
+          setBlog(blog);
+        } else {
+          console.log(`No blog found for slug: ${slug}`); // Debugging log
+        }
+
+      } catch (error) {
+        console.error('Error fetching blogs:', error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (slug) {
+      fetchData();
+    }
+  }, [slug]);
 
   if (loading) {
     return (
@@ -25,18 +57,20 @@ const BlogPost = ({ blog, domain }) => {
     );
   }
 
-  if (!content) {
+  if (!blog) {
     return <p className="text-red-500">No content available for this language.</p>;
   }
+
+  const content = blog && blog.translations ? Object.values(blog.translations).find(translation => translation.slug === slug) : null;
 
   return (
     <div>
       <Head>
-        {Object.keys(blog.translations).map(lang => (
+        {blog && blog.translations && Object.keys(blog.translations).map(lang => (
           <link
             key={lang}
             rel="alternate"
-            href={`https://${domain}/blog/${blog.translations[lang].slug}`}
+            href={`${window.location.protocol}//${window.location.host}/blog/${blog.translations[lang].slug}`}
             hreflang={lang}
           />
         ))}
@@ -62,51 +96,5 @@ const BlogPost = ({ blog, domain }) => {
     </div>
   );
 };
-
-export async function getServerSideProps({ locale, params, req }) {
-  try {
-    const { slug } = params;
-    const protocol = req.headers['x-forwarded-proto'] || (req.headers.host.includes('localhost') ? 'http' : 'https');
-    const host = req.headers.host;
-    const apiUrl = `${protocol}://${host}/api/blogs`;
-
-    console.log(`Fetching data from: ${apiUrl}`); // Debugging log
-
-    const { data } = await axios.get(apiUrl);
-    const blogs = data;
-
-    // Debugging log
-    console.log(`Fetched data: ${JSON.stringify(blogs, null, 2)}`);
-
-    // Find the correct blog post that matches the slug within translations
-    const blog = blogs.find(blog =>
-      Object.values(blog.translations).some(translation => translation.slug === slug)
-    );
-
-    if (!blog) {
-      console.log(`No blog found for slug: ${slug}`); // Debugging log
-      return {
-        notFound: true,
-      };
-    }
-
-    return {
-      props: {
-        blog,
-        domain: host,
-        ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
-      },
-    };
-  } catch (error) {
-    console.error('Error fetching blogs:', error.message);
-    return {
-      props: {
-        blog: null,
-        domain: req.headers.host,
-        ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
-      },
-    };
-  }
-}
 
 export default BlogPost;
