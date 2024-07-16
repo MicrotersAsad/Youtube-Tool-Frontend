@@ -97,6 +97,10 @@ function EditBlog() {
       formData.append('isDraft', JSON.stringify(isDraft));
       formData.append('language', language); // Append language
 
+      // Generate slug from title
+      const slug = title.toLowerCase().split(' ').join('-');
+      formData.append('slug', slug); // Append slug
+
       const response = await fetch(`/api/blogs?id=${id}`, {
         method,
         body: formData,

@@ -7,11 +7,11 @@ import { FaArrowRight } from 'react-icons/fa';
 import { i18n } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
-const BlogSection = ({ blogs }) => {
+const BlogSection = ({ initialBlogs }) => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState('');
-  const [blogsData, setBlogsData] = useState([]); // State to store fetched blogs
+  const [blogsData, setBlogsData] = useState(initialBlogs); // Initialize with server-side data
   const blogsPerPage = 9;
 
   const filteredBlogs = blogsData.filter(blog => blog.translations[i18n.language]);
@@ -41,7 +41,9 @@ const BlogSection = ({ blogs }) => {
 
   const getTranslatedContent = (blog) => {
     const lang = i18n.language || blog.defaultLanguage;
-    return blog.translations[lang] || blog.translations[blog.defaultLanguage];
+    const content = blog.translations[lang] || blog.translations[blog.defaultLanguage];
+    console.log('Translated Content:', content); // Debugging log
+    return content;
   };
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
@@ -69,6 +71,7 @@ const BlogSection = ({ blogs }) => {
           <div>
             {currentBlogs.slice(0, 1).map((blog, index) => {
               const content = getTranslatedContent(blog);
+              console.log('Blog Slug:', content.slug); // Debugging log
               return (
                 <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
                   <Image
@@ -98,6 +101,7 @@ const BlogSection = ({ blogs }) => {
           <div className="space-y-4">
             {currentBlogs.slice(1, 4).map((blog, index) => {
               const content = getTranslatedContent(blog);
+              console.log('Blog Slug:', content.slug); // Debugging log
               return (
                 <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden flex flex-col md:flex-row">
                   <Image
@@ -145,6 +149,7 @@ const BlogSection = ({ blogs }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
           {currentBlogs.slice(4).map((blog, index) => {
             const content = getTranslatedContent(blog);
+            console.log('Blog Slug:', content.slug); // Debugging log
             return (
               <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
                 <Image
@@ -205,19 +210,19 @@ export async function getServerSideProps({ locale, req }) {
     const apiUrl = `${protocol}://${host}/api/blogs`; // Correctly construct the API URL with the domain
     const { data } = await axios.get(apiUrl);
     const blogs = data;
-console.log(blogs);
+    console.log('Fetched Blogs:', blogs); // Debugging log
     return {
       props: {
-        blogs,
-        ...(await serverSideTranslations(locale,  ['common','navbar','footer'])),
+        initialBlogs: blogs,
+        ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
       },
     };
   } catch (error) {
     console.error('Error fetching blogs:', error.message);
     return {
       props: {
-        blogs: [],
-        ...(await serverSideTranslations(locale, ['common','navbar','footer'])),
+        initialBlogs: [],
+        ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
       },
     };
   }

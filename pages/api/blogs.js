@@ -1,4 +1,3 @@
-// pages/api/blogs.js
 import { ObjectId } from 'mongodb';
 import { connectToDatabase } from '../../utils/mongodb';
 import multer from 'multer';
@@ -44,6 +43,7 @@ export default async function handler(req, res) {
 
   try {
     ({ db, client } = await connectToDatabase());
+    console.log('Database connected successfully'); // Debugging log
   } catch (error) {
     console.error('Database connection error:', error);
     return res.status(500).json({ message: 'Database connection error' });
@@ -88,20 +88,18 @@ const handlePostRequest = async (req, res, blogs) => {
     }
 
     const existingBlog = await blogs.findOne({ 'translations.slug': slug });
-    
+
     if (existingBlog) {
       const updateDoc = {
         $set: {
-          [`translations.${language}`]: {
-            title,
-            content,
-            metaTitle,
-            description,
-            metaDescription,
-            category,
-            image,
-            slug
-          },
+          [`translations.${language}.title`]: title,
+          [`translations.${language}.content`]: content,
+          [`translations.${language}.metaTitle`]: metaTitle,
+          [`translations.${language}.description`]: description,
+          [`translations.${language}.metaDescription`]: metaDescription,
+          [`translations.${language}.category`]: category,
+          [`translations.${language}.image`]: image,
+          [`translations.${language}.slug`]: slug,
         },
       };
 
@@ -199,9 +197,18 @@ const handlePutRequest = async (req, res, blogs, query) => {
 
     const updateDoc = {
       $set: {
-        [`translations.${language}`]: updatedData,
+        [`translations.${language}.title`]: updatedData.title,
+        [`translations.${language}.content`]: updatedData.content,
+        [`translations.${language}.metaTitle`]: updatedData.metaTitle,
+        [`translations.${language}.description`]: updatedData.description,
+        [`translations.${language}.metaDescription`]: updatedData.metaDescription,
+        [`translations.${language}.category`]: updatedData.category,
+        [`translations.${language}.image`]: updatedData.image,
+        [`translations.${language}.slug`]: updatedData.slug,
       },
     };
+
+    console.log('Update Document:', updateDoc); // Debugging log
 
     const result = await blogs.updateOne(
       { _id: new ObjectId(id) },
