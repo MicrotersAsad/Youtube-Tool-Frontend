@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
+import PropTypes from 'prop-types'; // Import prop-types
 
 const AuthContext = createContext();
 
@@ -68,6 +69,10 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
+};
+
+AuthProvider.propTypes = {
+  children: PropTypes.node.isRequired, // Add prop type validation for children
 };
 
 export const useAuth = () => useContext(AuthContext);

@@ -17,7 +17,7 @@ const NextI18NextInstance = new NextI18Next({
     "pt",
     "ru",
     "es",
-    "de",
+    "de"
   ],
   localePath: path.resolve("./public/locales"),
   ns: [
@@ -43,7 +43,7 @@ const NextI18NextInstance = new NextI18Next({
     "pricing"
   ], // Specify your namespaces here
   defaultNS: "common", // Set a default namespace
-  fallbackNS: "common",
+  fallbackNS: "common"
 });
 
 module.exports = NextI18NextInstance;

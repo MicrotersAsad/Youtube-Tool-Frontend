@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import dynamic from 'next/dynamic';
 import 'react-quill/dist/quill.snow.css';
 
@@ -19,14 +20,13 @@ const QuillWrapper = ({ initialContent, onChange }) => {
 
   const modules = {
     toolbar: [
-      [{ 'header': '1' }, { 'header': '2' },{ 'header': [3, 4, 5, 6] }, { 'font': [] }],
+      [{ 'header': '1' }, { 'header': '2' }, { 'header': [3, 4, 5, 6] }, { 'font': [] }],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       ['bold', 'italic', 'underline', 'strike', 'blockquote'],
       [{ 'code-block': 'code' }],
       ['link', 'image', 'video'],
       [{ 'align': [] }],
       ['clean']
-      ['table'] 
     ],
   };
 
@@ -47,6 +47,11 @@ const QuillWrapper = ({ initialContent, onChange }) => {
       theme="snow"
     />
   );
+};
+
+QuillWrapper.propTypes = {
+  initialContent: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
 };
 
 export default QuillWrapper;
