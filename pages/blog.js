@@ -8,10 +8,10 @@ import { i18n } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
 const BlogSection = ({ initialBlogs }) => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialBlogs.length);
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState('');
-  const [blogsData, setBlogsData] = useState(initialBlogs); // Initialize with server-side data
+  const [blogsData, setBlogsData] = useState(initialBlogs);
   const blogsPerPage = 9;
 
   const filteredBlogs = blogsData.filter(blog => blog.translations[i18n.language]);
@@ -22,7 +22,7 @@ const BlogSection = ({ initialBlogs }) => {
     setLoading(true);
     try {
       const response = await axios.get(`/api/blogs`);
-      setBlogsData(response.data); // Update blogsData state with fetched data
+      setBlogsData(response.data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching blogs:', error);
@@ -32,8 +32,12 @@ const BlogSection = ({ initialBlogs }) => {
   }, []);
 
   useEffect(() => {
-    fetchBlogs();
-  }, [fetchBlogs]);
+    if (!initialBlogs.length) {
+      fetchBlogs();
+    } else {
+      setLoading(false);
+    }
+  }, [fetchBlogs, initialBlogs]);
 
   const parseCategories = (category) => {
     return category ? category.split(',') : [];
@@ -41,9 +45,7 @@ const BlogSection = ({ initialBlogs }) => {
 
   const getTranslatedContent = (blog) => {
     const lang = i18n.language || blog.defaultLanguage;
-    const content = blog.translations[lang] || blog.translations[blog.defaultLanguage];
-    console.log('Translated Content:', content); // Debugging log
-    return content;
+    return blog.translations[lang] || blog.translations[blog.defaultLanguage];
   };
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
@@ -71,15 +73,18 @@ const BlogSection = ({ initialBlogs }) => {
           <div>
             {currentBlogs.slice(0, 1).map((blog, index) => {
               const content = getTranslatedContent(blog);
-              console.log('Blog Slug:', content.slug); // Debugging log
               return (
                 <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
-                  <Image
-                    src={content.image}
-                    alt={content.title}
-                    width={600}
-                    height={400}
-                  />
+                  {content.image && (
+                    <Image
+                      src={content.image}
+                      alt={content.title}
+                      width={600}
+                      height={400}
+                      layout="responsive"
+                      className="object-cover rounded-lg"
+                    />
+                  )}
                   <div className="p-6">
                     <h3 className="text-3xl font-semibold mb-2">
                       <Link href={`/blog/${content.slug}`} passHref>
@@ -101,16 +106,18 @@ const BlogSection = ({ initialBlogs }) => {
           <div className="space-y-4">
             {currentBlogs.slice(1, 4).map((blog, index) => {
               const content = getTranslatedContent(blog);
-              console.log('Blog Slug:', content.slug); // Debugging log
               return (
                 <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden flex flex-col md:flex-row">
-                  <Image
-                    src={content.image}
-                    alt={content.title}
-                    width={280}
-                    height={100}
-                    className="object-cover rounded-lg blog-img"
-                  />
+                  {content.image && (
+                    <Image
+                      src={content.image}
+                      alt={content.title}
+                      width={280}
+                      height={100}
+                      layout="responsive"
+                      className="object-cover rounded-lg blog-img"
+                    />
+                  )}
                   <div className="p-4">
                     <h4 className="text-lg font-semibold">
                       <Link href={`/blog/${content.slug}`} passHref>
@@ -149,16 +156,18 @@ const BlogSection = ({ initialBlogs }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
           {currentBlogs.slice(4).map((blog, index) => {
             const content = getTranslatedContent(blog);
-            console.log('Blog Slug:', content.slug); // Debugging log
             return (
               <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
-                <Image
-                  src={content.image}
-                  alt={content.title}
-                  width={600}
-                  height={400}
-                  className="object-cover rounded-lg"
-                />
+                {content.image && (
+                  <Image
+                    src={content.image}
+                    alt={content.title}
+                    width={600}
+                    height={400}
+                    layout="responsive"
+                    className="object-cover rounded-lg"
+                  />
+                )}
                 <div className="p-4">
                   <h4 className="text-lg font-semibold">
                     <Link href={`/blog/${content.slug}`} passHref>
@@ -207,7 +216,7 @@ export async function getServerSideProps({ locale, req }) {
   try {
     const host = req.headers.host;
     const protocol = req.headers['x-forwarded-proto'] || 'http';
-    const apiUrl = `${protocol}://${host}/api/blogs`; // Correctly construct the API URL with the domain
+    const apiUrl = `${protocol}://${host}/api/blogs`;
     const { data } = await axios.get(apiUrl);
     const blogs = data;
     console.log('Fetched Blogs:', blogs); // Debugging log
