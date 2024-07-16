@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { i18n } from 'next-i18next';
 import { ClipLoader } from 'react-spinners';
 
 const BlogPost = ({ blog, domain }) => {
@@ -13,7 +12,7 @@ const BlogPost = ({ blog, domain }) => {
   const [loading, setLoading] = useState(true);
 
   const content = blog.translations && Object.values(blog.translations).find(translation => translation.slug === slug);
-console.log(content);
+
   useEffect(() => {
     setLoading(false);
   }, []);
@@ -67,11 +66,11 @@ console.log(content);
 export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
-    const host = req.headers.host;
     const protocol = req.headers["x-forwarded-proto"] || "http";
-    const apiUrl = `${protocol}://${host}/api/blogs`; // Use the correct domain URL
-    console.log(apiUrl);
-    const { data } = await axios.get(apiUrl); // Fetch all blog posts
+    const host = req.headers.host;
+    const apiUrl = `${protocol}://${host}/api/blogs`;
+
+    const { data } = await axios.get(apiUrl);
 
     // Find the correct blog post that matches the slug within translations
     const blog = data.find(blog =>
@@ -92,13 +91,9 @@ export async function getServerSideProps({ locale, params, req }) {
       },
     };
   } catch (error) {
-    console.error('Error fetching blog post:', error.message); // Log the error message for debugging
+    console.error('Error fetching blog post:', error.message);
     return {
-      props: {
-        blog: {}, // Provide an empty object or handle gracefully as needed
-        domain: req.headers.host,
-        ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
-      },
+      notFound: true,
     };
   }
 }
