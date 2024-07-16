@@ -205,7 +205,7 @@ export async function getServerSideProps({ locale, req }) {
     const apiUrl = `${protocol}://${host}/api/blogs`; // Correctly construct the API URL with the domain
     const { data } = await axios.get(apiUrl);
     const blogs = data;
-
+console.log(blogs);
     return {
       props: {
         blogs,

@@ -66,18 +66,23 @@ const BlogPost = ({ blog, domain }) => {
 export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
-    const protocol = req.headers["x-forwarded-proto"] || "http";
     const host = req.headers.host;
+    const protocol = req.headers["x-forwarded-proto"] || "http";
     const apiUrl = `${protocol}://${host}/api/blogs`;
+
+    console.log(`Fetching data from: ${apiUrl}`); // Debugging log
 
     const { data } = await axios.get(apiUrl);
 
-    // Find the correct blog post that matches the slug within translations
+    // Debugging log
+    console.log(`Fetched data: ${JSON.stringify(data, null, 2)}`);
+
     const blog = data.find(blog =>
       Object.values(blog.translations).some(translation => translation.slug === slug)
     );
 
     if (!blog) {
+      console.log(`No blog found for slug: ${slug}`); // Debugging log
       return {
         notFound: true,
       };
