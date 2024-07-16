@@ -66,18 +66,20 @@ const BlogPost = ({ blog, domain }) => {
 export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
+    const protocol = req.headers['x-forwarded-proto'] || (req.headers.host.includes('localhost') ? 'http' : 'https');
     const host = req.headers.host;
-    const protocol = req.headers["x-forwarded-proto"] || "http";
     const apiUrl = `${protocol}://${host}/api/blogs`;
 
     console.log(`Fetching data from: ${apiUrl}`); // Debugging log
 
     const { data } = await axios.get(apiUrl);
+    const blogs = data;
 
     // Debugging log
-    console.log(`Fetched data: ${JSON.stringify(data, null, 2)}`);
+    console.log(`Fetched data: ${JSON.stringify(blogs, null, 2)}`);
 
-    const blog = data.find(blog =>
+    // Find the correct blog post that matches the slug within translations
+    const blog = blogs.find(blog =>
       Object.values(blog.translations).some(translation => translation.slug === slug)
     );
 
@@ -96,9 +98,13 @@ export async function getServerSideProps({ locale, params, req }) {
       },
     };
   } catch (error) {
-    console.error('Error fetching blog post:', error.message);
+    console.error('Error fetching blogs:', error.message);
     return {
-      notFound: true,
+      props: {
+        blog: null,
+        domain: req.headers.host,
+        ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
+      },
     };
   }
 }
