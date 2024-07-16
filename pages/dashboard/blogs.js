@@ -292,7 +292,7 @@ function Blogs() {
           />
           {image && (
             <div className="mt-4">
-              <Image src={image} alt="Preview" width={200} height={200} className="w-full h-auto rounded-lg shadow-md" />
+            <Image src={image} alt="Preview" width={100} height={100} className=" rounded-lg shadow-md" />
             </div>
           )}
           <p className="text-gray-600 text-sm mt-1">Valid image type: jpg/jpeg/png/svg</p>
