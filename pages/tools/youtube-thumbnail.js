@@ -346,14 +346,14 @@ const YtThumbnailDw = ({ meta, faqs }) => {
               })),
             })}
           </script>
-          {translations && Object.keys(translations).map(lang => (
-            <link
-              key={lang}
-              rel="alternate"
-              href={`${meta?.url}/?locale=${lang}`}
-              hreflang={lang}
-            />
-          ))}
+         {translations && Object.keys(translations).map(lang => (
+    <link
+      key={lang}
+      rel="alternate"
+      href={`${meta?.url}?locale=${lang}`}
+      hrefLang={lang} // Corrected property name
+    />
+  ))}
         </Head>
           <h2 className="text-3xl pt-5 text-white">
             {t('YouTube Thumbnails Downloader')}
@@ -739,27 +739,27 @@ const YtThumbnailDw = ({ meta, faqs }) => {
         ))}
       </div>
     </div>
-        {/* End of Related Tools Section */}
-        <style jsx>{`
-          .selected {
-            border: 3px solid blue;
-          }
-          .img-thumbnail {
-            cursor: pointer;
-          }
-          .review-card {
-            margin-top: 20px;
-            padding: 20px;
-            background-color: #f9f9f9;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-          }
-          .share-icons {
-            display: flex;
-            justify-content: space-between;
-            width: 150px;
-          }
-        `}</style>
+    <style>{`
+  .selected {
+    border: 3px solid blue;
+  }
+  .img-thumbnail {
+    cursor: pointer;
+  }
+  .review-card {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+  }
+  .share-icons {
+    display: flex;
+    justify-content: space-between;
+    width: 150px;
+  }
+`}</style>
+
       </div>
     </>
   );

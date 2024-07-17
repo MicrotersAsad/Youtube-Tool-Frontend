@@ -29,7 +29,7 @@ export default async (req, res) => {
 
     // Handle the event
     switch (event.type) {
-      case 'checkout.session.completed':
+      case 'checkout.session.completed': {
         const session = event.data.object;
         const customerId = session.customer;
         try {
@@ -39,8 +39,10 @@ export default async (req, res) => {
           console.error('Error updating user access:', err.message);
         }
         break;
+      }
+
       case 'customer.subscription.deleted':
-      case 'customer.subscription.updated':
+      case 'customer.subscription.updated': {
         const subscription = event.data.object;
         const isActive = subscription.status === 'active';
         try {
@@ -50,8 +52,11 @@ export default async (req, res) => {
           console.error('Error updating user subscription:', err.message);
         }
         break;
-      default:
+      }
+
+      default: {
         console.log(`Unhandled event type ${event.type}`);
+      }
     }
 
     res.status(200).json({ received: true });

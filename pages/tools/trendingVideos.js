@@ -344,13 +344,13 @@ const TrendingVideos = ({ meta, faqs }) => {
             })}
           </script>
           {translations && Object.keys(translations).map(lang => (
-            <link
-              key={lang}
-              rel="alternate"
-              href={`${meta?.url}?locale=${lang}`}
-              hreflang={lang}
-            />
-          ))}
+    <link
+      key={lang}
+      rel="alternate"
+      href={`${meta?.url}?locale=${lang}`}
+      hrefLang={lang} // Corrected property name
+    />
+  ))}
         </Head>
           {/* Toast container for notifications */}
           <ToastContainer />

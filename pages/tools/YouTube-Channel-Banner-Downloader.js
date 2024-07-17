@@ -419,13 +419,13 @@ const YtChannelDw = ({ meta, faqs }) => {
             })}
           </script>
           {translations && Object.keys(translations).map(lang => (
-            <link
-              key={lang}
-              rel="alternate"
-              href={`${meta?.url}?locale=${lang}`}
-              hreflang={lang}
-            />
-          ))}
+    <link
+      key={lang}
+      rel="alternate"
+      href={`${meta?.url}?locale=${lang}`}
+      hrefLang={lang} // Corrected property name
+    />
+  ))}
         </Head>
 
           <h2 className="text-3xl pt-5 text-white">
@@ -792,7 +792,7 @@ const YtChannelDw = ({ meta, faqs }) => {
       </div>
     </div>
         {/* End of Related Tools Section */}
-        <style jsx>{`
+        <style>{`
           .keywords-input-container {
             border: 2px solid #ccc;
             padding: 10px;

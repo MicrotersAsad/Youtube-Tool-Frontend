@@ -16,7 +16,7 @@ export default function Home({ meta }) {
         <meta property="og:description" content={meta.description} />
         <meta property="og:image" content={meta.image} />
         <meta property="og:url" content={meta.url} />
-        <meta name="twitter:card" ccontent={meta.image}/>
+        <meta name="twitter:card" content={meta.image}/>
         <meta name="twitter:title" content={meta.title} />
         <meta name="twitter:description" content={meta.description} />
         <meta name="twitter:image" content={meta.image} />

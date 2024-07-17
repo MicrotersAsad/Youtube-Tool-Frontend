@@ -406,13 +406,13 @@ const TagExtractor = ({ meta, faqs }) => {
             })}
           </script>
           {translations && Object.keys(translations).map(lang => (
-            <link
-              key={lang}
-              rel="alternate"
-              href={`${meta?.url}?locale=${lang}`}
-              hreflang={lang}
-            />
-          ))}
+    <link
+      key={lang}
+      rel="alternate"
+      href={`${meta?.url}?locale=${lang}`}
+      hrefLang={lang} // Corrected property name
+    />
+  ))}
         </Head>
           <h2 className="text-3xl text-white">{t('YouTube Tag Extractor')}</h2>
           <ToastContainer />

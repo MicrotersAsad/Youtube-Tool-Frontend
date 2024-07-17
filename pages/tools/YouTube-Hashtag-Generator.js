@@ -442,14 +442,14 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
               })),
             })}
           </script>
-          {translations && Object.keys(translations).map(lang => (
-            <link
-              key={lang}
-              rel="alternate"
-              href={`${meta?.url}/?locale=${lang}`}
-              hreflang={lang}
-            />
-          ))}
+         {translations && Object.keys(translations).map(lang => (
+    <link
+      key={lang}
+      rel="alternate"
+      href={`${meta?.url}?locale=${lang}`}
+      hrefLang={lang} // Corrected property name
+    />
+  ))}
         </Head>
           <h2 className="text-3xl text-white">{t("YouTube Hashtag Generator")}</h2>
           <ToastContainer />

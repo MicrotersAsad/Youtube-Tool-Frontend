@@ -44,15 +44,16 @@ export default async function handler(req, res) {
     }
 
     switch (method) {
-      case 'GET':
+      case 'GET': {
         const user = await users.findOne({ email: decodedUser.email });
         if (!user) {
           return res.status(404).json({ message: 'User not found' });
         }
         res.status(200).json(user);
         break;
+      }
 
-      case 'DELETE':
+      case 'DELETE': {
         const { id: deleteId } = req.query;
         if (!deleteId) {
           return res.status(400).json({ message: 'User ID is required' });
@@ -63,8 +64,9 @@ export default async function handler(req, res) {
         }
         res.status(200).json({ message: 'User deleted successfully' });
         break;
+      }
 
-      case 'PATCH':
+      case 'PATCH': {
         const { role } = req.body;
         if (!role) {
           return res.status(400).json({ message: 'Role is required' });
@@ -75,8 +77,9 @@ export default async function handler(req, res) {
         }
         res.status(200).json({ message: 'User role updated successfully' });
         break;
+      }
 
-      case 'PUT':
+      case 'PUT': {
         await runMiddleware(req, res, uploadMiddleware);
         const updatedData = req.body;
         if (req.file) {
@@ -90,11 +93,13 @@ export default async function handler(req, res) {
           res.status(404).json({ message: 'User not found' });
         }
         break;
+      }
 
-      default:
+      default: {
         res.setHeader('Allow', ['GET', 'DELETE', 'PATCH', 'PUT']);
         res.status(405).end(`Method ${method} Not Allowed`);
         break;
+      }
     }
   } catch (error) {
     console.error('API error:', error);

@@ -287,14 +287,14 @@ const VideoSummarizer = ({ meta, faqs }) => {
               })),
             })}
           </script>
-          {translations && Object.keys(translations).map(lang => (
-            <link
-              key={lang}
-              rel="alternate"
-              href={`${meta?.url}/?locale=${lang}`}
-              hreflang={lang}
-            />
-          ))}
+         {translations && Object.keys(translations).map(lang => (
+    <link
+      key={lang}
+      rel="alternate"
+      href={`${meta?.url}?locale=${lang}`}
+      hrefLang={lang} // Corrected property name
+    />
+  ))}
         </Head>
           <ToastContainer />
           <h1 className="text-3xl font-bold text-center mb-6 text-white">

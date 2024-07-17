@@ -369,14 +369,14 @@ const YouTubeChannelScraper = ({ meta, faqs }) => {
               })),
             })}
           </script>
-          {translations && Object.keys(translations).map(lang => (
-            <link
-              key={lang}
-              rel="alternate"
-              href={`${meta?.url}/?locale=${lang}`}
-              hreflang={lang}
-            />
-          ))}
+         {translations && Object.keys(translations).map(lang => (
+    <link
+      key={lang}
+      rel="alternate"
+      href={`${meta?.url}?locale=${lang}`}
+      hrefLang={lang} // Corrected property name
+    />
+  ))}
         </Head>
           <h1 className="text-center text-white text-2xl font-bold mb-4">
             {t("YouTube Channel Search")}

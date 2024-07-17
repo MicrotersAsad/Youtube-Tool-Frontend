@@ -461,13 +461,13 @@ const YTTitleGenerator = ({ meta, faqs }) => {
             })}
           </script>
           {translations && Object.keys(translations).map(lang => (
-            <link
-              key={lang}
-              rel="alternate"
-              href={`${meta?.url}?locale=${lang}`}
-              hreflang={lang}
-            />
-          ))}
+    <link
+      key={lang}
+      rel="alternate"
+      href={`${meta?.url}?locale=${lang}`}
+      hrefLang={lang} // Corrected property name
+    />
+  ))}
         </Head>
 
           <h2 className="text-3xl text-white">{t('YouTube Title Generator')}</h2>
@@ -515,7 +515,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
                 <span className="tag" key={index}>
                   {tag}
                   <span
-                    class="remove-btn"
+                    className="remove-btn"
                     onClick={() => setTags(tags.filter((_, i) => i !== index))}
                   >
                     ×
@@ -859,7 +859,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
       </div>
     </div>
       {/* End of Related Tools Section */}
-      <style jsx>{`
+      <style>{`
         .keywords-input-container {
           border: 2px solid #ccc;
           padding: 10px;

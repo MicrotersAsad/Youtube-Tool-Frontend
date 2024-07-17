@@ -73,14 +73,14 @@ const BlogPost = ({ initialBlog }) => {
   return (
     <div>
       <Head>
-        {blog.translations && Object.keys(blog.translations).map(lang => (
-          <link
-            key={lang}
-            rel="alternate"
-            href={`${window.location.protocol}//${window.location.host}/blog/${blog.translations[lang].slug}`}
-            hreflang={lang}
-          />
-        ))}
+      {blog.translations && Object.keys(blog.translations).map(lang => (
+    <link
+      key={lang}
+      rel="alternate"
+      href={`${window.location.protocol}//${window.location.host}/blog/${blog.translations[lang].slug}`}
+      hrefLang={lang} // Corrected property name
+    />
+  ))}
       </Head>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
         <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">

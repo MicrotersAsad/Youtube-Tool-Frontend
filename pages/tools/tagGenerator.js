@@ -467,13 +467,13 @@ const TagGenerator = ({ initialMeta }) => {
             })}
           </script>
           {translations && Object.keys(translations).map(lang => (
-            <link
-              key={lang}
-              rel="alternate"
-              href={`${meta?.url}?locale=${lang}`}
-              hreflang={lang}
-            />
-          ))}
+    <link
+      key={lang}
+      rel="alternate"
+      href={`${meta?.url}?locale=${lang}`}
+      hrefLang={lang} // Corrected property name
+    />
+  ))}
         </Head>
         <div className="max-w-7xl mx-auto p-4">
           <h2 className="text-3xl text-white">{t('YouTube Tag Generator')}</h2>

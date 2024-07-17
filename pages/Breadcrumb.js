@@ -20,7 +20,7 @@ const Breadcrumb = ({ blogTitle }) => {
           </li>
         )}
       </ol>
-      <style jsx>{`
+      <style>{`
         .breadcrumb {
           list-style: none;
           padding: 0;

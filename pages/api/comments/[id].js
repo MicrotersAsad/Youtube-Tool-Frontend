@@ -1,5 +1,6 @@
 // pages/api/comments/[slug].js
 import { connectToDatabase } from '../../../utils/mongodb';
+import { ObjectId } from 'mongodb';
 
 export default async function handler(req, res) {
   const { method, query } = req;
@@ -21,7 +22,7 @@ export default async function handler(req, res) {
   const comments = db.collection('comments');
 
   switch (method) {
-    case 'GET':
+    case 'GET': {
       try {
         const result = await comments.find({ slug }).toArray();
         res.status(200).json(result);
@@ -30,8 +31,9 @@ export default async function handler(req, res) {
         res.status(500).json({ message: 'Internal server error' });
       }
       break;
+    }
 
-    case 'POST':
+    case 'POST': {
       const { content, parentId } = req.body;
       const author = req.user?.username || 'Anonymous';
       const authorProfile = req.user?.profileImage || null;
@@ -62,10 +64,12 @@ export default async function handler(req, res) {
         res.status(500).json({ message: 'Internal server error' });
       }
       break;
+    }
 
-    default:
+    default: {
       res.setHeader('Allow', ['GET', 'POST']);
       res.status(405).end(`Method ${method} Not Allowed`);
       break;
+    }
   }
 }
