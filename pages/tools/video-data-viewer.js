@@ -47,6 +47,7 @@ const VideoDataViewer = ({ meta, faqs }) => {
   const [reviews, setReviews] = useState([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [relatedTools, setRelatedTools] = useState([]);
+  const [translations, setTranslations] = useState([]);
   const [newReview, setNewReview] = useState({
     name: "",
     rating: 0,
@@ -91,9 +92,10 @@ const VideoDataViewer = ({ meta, faqs }) => {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
-        setQuillContent(data[0]?.content || ""); // Ensure content is not undefined
-        setExistingContent(data[0]?.content || ""); // Ensure existing content is not undefined
-        setRelatedTools(data[0]?.relatedTools || []);
+        setQuillContent(data.translations[language]?.content || "");
+        setExistingContent(data.translations[language]?.content || "");  
+        setRelatedTools(data.translations[language]?.relatedTools || []);
+        setTranslations(data.translations);
       } catch (error) {
         console.error("Error fetching content");
       }
@@ -278,110 +280,93 @@ const VideoDataViewer = ({ meta, faqs }) => {
 
         <div className="max-w-7xl mx-auto p-4">
         <Head>
-            <title>{meta?.title}</title>
-            <meta
-              name="description"
-              content={meta?.description}
-            />
-            <meta
-              property="og:url"
-              content={meta?.url}
-            />
-            <meta
-              property="og:title"
-              content={meta?.title}
-            />
-            <meta
-              property="og:description"
-              content={
-                meta?.description}
-            />
-            <meta property="og:image" content={meta?.image || ""} />
-            <meta name="twitter:card" content={meta?.image || ""} />
-            <meta
-              property="twitter:domain"
-              content="https://youtube-tool-frontend.vercel.app/"
-            />
-            <meta
-              property="twitter:url"
-              content={meta?.url}
-            />
-            <meta
-              name="twitter:title"
-              content={meta?.title}
-            />
-            <meta
-              name="twitter:description"
-              content={meta?.description}
-            />
-            <meta name="twitter:image" content={meta?.image || ""} />
-            {/* - Webpage Schema */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "WebPage",
+          <title>{meta?.title}</title>
+          <meta name="description" content={meta?.description} />
+          <meta property="og:url" content={meta?.url} />
+          <meta property="og:title" content={meta?.title} />
+          <meta property="og:description" content={meta?.description} />
+          <meta property="og:image" content={meta?.image || ""} />
+          <meta name="twitter:card" content={meta?.image || ""} />
+          <meta property="twitter:domain" content={meta?.url} />
+          <meta property="twitter:url" content={meta?.url} />
+          <meta name="twitter:title" content={meta?.title} />
+          <meta name="twitter:description" content={meta?.description} />
+          <meta name="twitter:image" content={meta?.image || ""} />
+          {/* - Webpage Schema */}
+          <script type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebPage",
+              name: meta?.title,
+              url: meta?.url,
+              description: meta?.description,
+              breadcrumb: {
+                "@id": `${meta?.url}#breadcrumb`,
+              },
+              about: {
+                "@type": "Thing",
                 name: meta?.title,
+              },
+              isPartOf: {
+                "@type": "WebSite",
                 url: meta?.url,
-                description: meta?.description,
-                breadcrumb: {
-                  "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
+              },
+            })}
+          </script>
+          {/* - Review Schema */}
+          <script type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: meta?.title,
+              url: meta?.url,
+              applicationCategory: "Multimedia",
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: overallRating,
+                ratingCount: reviews?.length,
+                reviewCount: reviews?.length,
+              },
+              review: reviews.map((review) => ({
+                "@type": "Review",
+                author: {
+                  "@type": "Person",
+                  name: review.userName,
                 },
-                about: {
-                  "@type": "Thing",
-                  name: meta?.title,
+                datePublished: review.createdAt,
+                reviewBody: review.comment,
+                name: review.title,
+                reviewRating: {
+                  "@type": "Rating",
+                  ratingValue: review.rating,
                 },
-                isPartOf: {
-                  "@type": "WebSite",
-                  url: "https://youtube-tool-frontend.vercel.app",
+              })),
+            })}
+          </script>
+          {/* - FAQ Schema */}
+          <script type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: faqs.map((faq) => ({
+                "@type": "Question",
+                name: faq.question,
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: faq.answer,
                 },
-              })}
-            </script>
-            {/* - Review Schema */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "SoftwareApplication",
-                name: meta?.title,
-                url: meta?.url,
-                applicationCategory: "Multimedia",
-                aggregateRating: {
-                  "@type": "AggregateRating",
-                  ratingValue: overallRating,
-                  ratingCount: reviews?.length,
-                  reviewCount: reviews?.length,
-                },
-                review: reviews.map((review) => ({
-                  "@type": "Review",
-                  author: {
-                    "@type": "Person",
-                    name: review.userName,
-                  },
-                  datePublished: review.createdAt,
-                  reviewBody: review.comment,
-                  name: review.title,
-                  reviewRating: {
-                    "@type": "Rating",
-                    ratingValue: review.rating,
-                  },
-                })),
-              })}
-            </script>
-            {/* - FAQ Schema */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                mainEntity: faqs.map((faq) => ({
-                  "@type": "Question",
-                  name: faq.question,
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: faq.answer,
-                  },
-                })),
-              })}
-            </script>
-          </Head>
+              })),
+            })}
+          </script>
+          {translations && Object.keys(translations).map(lang => (
+            <link
+              key={lang}
+              rel="alternate"
+              href={`${meta?.url}?locale=${lang}`}
+              hreflang={lang}
+            />
+          ))}
+        </Head>
           <h2 className="text-3xl pt-5 text-white">{t("YouTube Video Data Viewer")}</h2>
           <ToastContainer />
           {modalVisible && (
@@ -747,12 +732,12 @@ export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
   const apiUrl = `${protocol}://${host}/api/content?category=video-data-viewer&language=${locale}`;
-  const relatedToolsUrl = `${protocol}://${host}/api/content?category=relatedTools&language=${locale}`;
+
 
   try {
     const [contentResponse] = await Promise.all([
       fetch(apiUrl),
-      fetch(relatedToolsUrl)
+ 
     ]);
 
     if (!contentResponse.ok) {
@@ -761,39 +746,35 @@ export async function getServerSideProps({ req, locale }) {
 
     const [contentData] = await Promise.all([
       contentResponse.json(),
-
+      
     ]);
 
     const meta = {
-      title: contentData[0]?.title || "",
-      description: contentData[0]?.description || "",
-      image: contentData[0]?.image || "",
+      title: contentData.translations[locale]?.title || "",
+      description: contentData.translations[locale]?.description || "",
+      image: contentData.translations[locale]?.image || "",
       url: `${protocol}://${host}/tools/video-data-viewer`,
     };
 
     return {
       props: {
         meta,
-        faqs: contentData[0].faqs || [],
+        faqs: contentData.translations[locale]?.faqs || [],
        
-        ...(await serverSideTranslations(locale, ['common','trending','tagextractor','navbar','footer','videoDataViewer',])),
+        ...(await serverSideTranslations(locale, ['common','videoDataViewer','navbar','footer'])),
       },
     };
-  
   } catch (error) {
     console.error("Error fetching data:", error);
     return {
       props: {
         meta: {},
         faqs: [],
-        
-        ...(await serverSideTranslations(locale, ['common', 'trending','tagextractor','navbar','footer','videoDataViewer'])),
+        relatedTools: [],
+        ...(await serverSideTranslations(locale, ['common', 'videoDataViewer','navbar','footer'])),
       },
-      
     };
-    
   }
-  
 }
 
 export default VideoDataViewer;

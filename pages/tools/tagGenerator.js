@@ -470,7 +470,7 @@ const TagGenerator = ({ initialMeta }) => {
             <link
               key={lang}
               rel="alternate"
-              href={`${meta?.url}/tools/tagGenerator?locale=${lang}`}
+              href={`${meta?.url}?locale=${lang}`}
               hreflang={lang}
             />
           ))}

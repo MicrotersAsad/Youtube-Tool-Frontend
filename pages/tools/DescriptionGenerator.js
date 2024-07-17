@@ -4,10 +4,7 @@ import React, { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { FaEye, FaEyeSlash, FaStar } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
-import Slider from "react-slick";
 import "react-toastify/dist/ReactToastify.css";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import StarRating from "./StarRating";
 import { useAuth } from "../../contexts/AuthContext";
 import Image from "next/image";
@@ -15,6 +12,7 @@ import { format } from "date-fns";
 import { useRouter } from "next/router";
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { i18n, useTranslation } from "next-i18next";
+import Link from "next/link";
 
 const YouTubeDescriptionGenerator = ({ meta = [] }) => {
   const { user, updateUserProfile } = useAuth();
@@ -59,6 +57,7 @@ const YouTubeDescriptionGenerator = ({ meta = [] }) => {
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
+  const [translations, setTranslations] = useState([]);
   const [newReview, setNewReview] = useState({
     rating: 0,
     comment: "",
@@ -70,8 +69,9 @@ const YouTubeDescriptionGenerator = ({ meta = [] }) => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
+        const language = i18n.language || "en";
         const response = await fetch(
-          `/api/content?category=DescriptionGenerator&language=${i18n?.language}`
+          `/api/content?category=DescriptionGenerator&language=${language}`
         );
         console.log(response);
         if (!response.ok) {
@@ -79,12 +79,15 @@ const YouTubeDescriptionGenerator = ({ meta = [] }) => {
         }
         const data = await response.json();
         console.log(data);
-        setQuillContent(data[0]?.content || "");
-        setExistingContent(data[0]?.content || "");
-        setFaqs(data[0]?.faqs || []);
-        setRelatedTools(data[0]?.relatedTools || []);
+        setQuillContent(data.translations[language]?.content || "");
+        console.log(quillContent);
+        setExistingContent(data.translations[language]?.content || "");
+        console.log(existingContent);
+        setRelatedTools(data.translations[language]?.relatedTools || []);
+        setFaqs(data.translations[language]?.faqs || []);
+        setTranslations(data.translations);
       } catch (error) {
-        toast.error("Error fetching content");
+        console.error("Error fetching content");
       }
     };
 
@@ -242,114 +245,103 @@ ${keywords}
   const handleShowMoreReviews = () => {
     setShowAllReviews(true);
   };
-
+  const handleCopy = () => {
+    navigator.clipboard.writeText(generateDescription()).then(() => {
+      toast.success("Copied to clipboard!");
+    }).catch(err => {
+      toast.error("Failed to copy text.");
+    });
+  };
   return (
     <div className="max-w-7xl mx-auto p-4">
-     <Head>
-            <title>{meta?.title}</title>
-            <meta
-              name="description"
-              content={meta?.description}
-            />
-            <meta
-              property="og:url"
-              content={meta?.url}
-            />
-            <meta
-              property="og:title"
-              content={meta?.title}
-            />
-            <meta
-              property="og:description"
-              content={
-                meta?.description}
-            />
-            <meta property="og:image" content={meta?.image || ""} />
-            <meta name="twitter:card" content={meta?.image || ""} />
-            <meta
-              property="twitter:domain"
-              content="https://youtube-tool-frontend.vercel.app/"
-            />
-            <meta
-              property="twitter:url"
-              content={meta?.url}
-            />
-            <meta
-              name="twitter:title"
-              content={meta?.title}
-            />
-            <meta
-              name="twitter:description"
-              content={meta?.description}
-            />
-            <meta name="twitter:image" content={meta?.image || ""} />
-            {/* - Webpage Schema */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "WebPage",
+       <Head>
+          <title>{meta?.title}</title>
+          <meta name="description" content={meta?.description} />
+          <meta property="og:url" content={meta?.url} />
+          <meta property="og:title" content={meta?.title} />
+          <meta property="og:description" content={meta?.description} />
+          <meta property="og:image" content={meta?.image || ""} />
+          <meta name="twitter:card" content={meta?.image || ""} />
+          <meta property="twitter:domain" content={meta?.url} />
+          <meta property="twitter:url" content={meta?.url} />
+          <meta name="twitter:title" content={meta?.title} />
+          <meta name="twitter:description" content={meta?.description} />
+          <meta name="twitter:image" content={meta?.image || ""} />
+          {/* - Webpage Schema */}
+          <script type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebPage",
+              name: meta?.title,
+              url: meta?.url,
+              description: meta?.description,
+              breadcrumb: {
+                "@id": `${meta?.url}#breadcrumb`,
+              },
+              about: {
+                "@type": "Thing",
                 name: meta?.title,
+              },
+              isPartOf: {
+                "@type": "WebSite",
                 url: meta?.url,
-                description: meta?.description,
-                breadcrumb: {
-                  "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
+              },
+            })}
+          </script>
+          {/* - Review Schema */}
+          <script type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: meta?.title,
+              url: meta?.url,
+              applicationCategory: "Multimedia",
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: overallRating,
+                ratingCount: reviews?.length,
+                reviewCount: reviews?.length,
+              },
+              review: reviews.map((review) => ({
+                "@type": "Review",
+                author: {
+                  "@type": "Person",
+                  name: review.userName,
                 },
-                about: {
-                  "@type": "Thing",
-                  name: meta?.title,
+                datePublished: review.createdAt,
+                reviewBody: review.comment,
+                name: review.title,
+                reviewRating: {
+                  "@type": "Rating",
+                  ratingValue: review.rating,
                 },
-                isPartOf: {
-                  "@type": "WebSite",
-                  url: "https://youtube-tool-frontend.vercel.app",
+              })),
+            })}
+          </script>
+          {/* - FAQ Schema */}
+          <script type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: faqs.map((faq) => ({
+                "@type": "Question",
+                name: faq.question,
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: faq.answer,
                 },
-              })}
-            </script>
-            {/* - Review Schema */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "SoftwareApplication",
-                name: meta?.title,
-                url: meta?.url,
-                applicationCategory: "Multimedia",
-                aggregateRating: {
-                  "@type": "AggregateRating",
-                  ratingValue: overallRating,
-                  ratingCount: reviews?.length,
-                  reviewCount: reviews?.length,
-                },
-                review: reviews.map((review) => ({
-                  "@type": "Review",
-                  author: {
-                    "@type": "Person",
-                    name: review.userName,
-                  },
-                  datePublished: review.createdAt,
-                  reviewBody: review.comment,
-                  name: review.title,
-                  reviewRating: {
-                    "@type": "Rating",
-                    ratingValue: review.rating,
-                  },
-                })),
-              })}
-            </script>
-            {/* - FAQ Schema */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                mainEntity: faqs.map((faq) => ({
-                  "@type": "Question",
-                  name: faq.question,
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: faq.answer,
-                  },
-                })),
-              })}
-            </script>
-          </Head>
+              })),
+            })}
+          </script>
+          {translations && Object.keys(translations).map(lang => (
+            <link
+              key={lang}
+              rel="alternate"
+              href={`${meta?.url}?locale=${lang}`}
+              hreflang={lang}
+            />
+          ))}
+        </Head>
       <ToastContainer />
       <h1 className="text-2xl font-bold mb-4 text-center">
         YouTube Description Generator
@@ -410,7 +402,7 @@ ${keywords}
             {generateDescription()}
           </div>
           <button
-            onClick={() => navigator.clipboard.writeText(generateDescription())}
+            onClick={handleCopy}
             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 w-full"
           >
             Copy to Clipboard
@@ -635,6 +627,30 @@ ${keywords}
           </div>
         </div>
       )}
+      {/* Related Tools Section */}
+      <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
+      <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {relatedTools.map((tool, index) => (
+          <Link
+            key={index}
+            href={tool.link}
+            className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
+          >
+             <Image
+              src={tool?.logo?.src}
+              alt={`${tool.name} Icon`}
+              width={64}
+              height={64}
+              className="mr-4"
+              
+            />
+            <span className="text-blue-600 font-medium">{tool.name}</span>
+            </Link>
+        ))}
+      </div>
+    </div>
+        {/* End of Related Tools Section */}
     </div>
   );
 };
@@ -643,27 +659,37 @@ ${keywords}
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}/api/content?category=DescriptionGenerator&lang=${locale}`;
+  const apiUrl = `${protocol}://${host}/api/content?category=DescriptionGenerator&language=${locale}`;
+
 
   try {
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
+    const [contentResponse] = await Promise.all([
+      fetch(apiUrl),
+ 
+    ]);
+
+    if (!contentResponse.ok) {
       throw new Error("Failed to fetch content");
     }
 
-    const data = await response.json();
+    const [contentData] = await Promise.all([
+      contentResponse.json(),
+      
+    ]);
 
     const meta = {
-      title: data[0]?.title || "",
-      description: data[0]?.description || "",
-      image: data[0]?.image || "",
+      title: contentData.translations[locale]?.title || "",
+      description: contentData.translations[locale]?.description || "",
+      image: contentData.translations[locale]?.image || "",
       url: `${protocol}://${host}/tools/DescriptionGenerator`,
     };
 
     return {
       props: {
         meta,
-        ...(await serverSideTranslations(locale, ['common','titlegenerator'])),
+        faqs: contentData.translations[locale]?.faqs || [],
+       
+        ...(await serverSideTranslations(locale, ['common','tagextractor','navbar','footer'])),
       },
     };
   } catch (error) {
@@ -671,7 +697,9 @@ export async function getServerSideProps({ req, locale }) {
     return {
       props: {
         meta: {},
-        ...(await serverSideTranslations(locale, ['common','titlegenerator'])),
+        faqs: [],
+        relatedTools: [],
+        ...(await serverSideTranslations(locale, ['common', 'tagextractor','navbar','footer'])),
       },
     };
   }

@@ -27,7 +27,7 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 const TitleDescriptionExtractor = ({ meta, faqs }) => {
   const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState("");
-  const [t] = useTranslation("tdextractor");
+  const { t } = useTranslation("tdextractor");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showShareIcons, setShowShareIcons] = useState(false);
@@ -37,6 +37,7 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
   const [isUpdated, setIsUpdated] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [translations, setTranslations] = useState([]);
   const [newReview, setNewReview] = useState({
     name: "",
     rating: 0,
@@ -68,15 +69,15 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
     const fetchContent = async () => {
       try {
         const language = i18n.language;
-        const response = await fetch(
-          `/api/content?category=youtube-title-and-description-extractor&language=${language}`
-        );
+        const response = await fetch(`/api/content?category=youtube-title-and-description-extractor&language=${language}`);
         if (!response.ok) throw new Error(t("Failed to fetch content"));
         const data = await response.json();
-        setExistingContent(data[0]?.content || "");
-        setRelatedTools(data[0]?.relatedTools || [])
+        console.log(data);
+        setExistingContent(data.translations[language]?.content || "");  
+        setRelatedTools(data.translations[language]?.relatedTools || []);
+        setTranslations(data.translations);
       } catch (error) {
-        toast.error(t("Error fetching content"));
+        console.error(t("Error fetching content"));
       }
     };
 
@@ -241,6 +242,7 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
     element.click();
     document.body.removeChild(element);
   };
+
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
     const ratingCount = reviews.filter(
@@ -258,50 +260,24 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
       <div className="bg-box">
         <div>
           <Image className="shape1" src={announce} alt="announce" />
-          <Image className="shape2" src={cloud} alt="announce" />
-          <Image className="shape3" src={cloud2} alt="announce" />
-          <Image className="shape4" src={chart} alt="announce" />
+          <Image className="shape2" src={cloud} alt="cloud" />
+          <Image className="shape3" src={cloud2} alt="cloud" />
+          <Image className="shape4" src={chart} alt="chart" />
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-          
           <Head>
             <title>{meta?.title}</title>
-            <meta
-              name="description"
-              content={meta?.description}
-            />
-            <meta
-              property="og:url"
-              content={meta?.url}
-            />
-            <meta
-              property="og:title"
-              content={meta?.title}
-            />
-            <meta
-              property="og:description"
-              content={
-                meta?.description}
-            />
+            <meta name="description" content={meta?.description} />
+            <meta property="og:url" content={meta?.url} />
+            <meta property="og:title" content={meta?.title} />
+            <meta property="og:description" content={meta?.description} />
             <meta property="og:image" content={meta?.image || ""} />
             <meta name="twitter:card" content={meta?.image || ""} />
-            <meta
-              property="twitter:domain"
-              content="https://youtube-tool-frontend.vercel.app/"
-            />
-            <meta
-              property="twitter:url"
-              content={meta?.url}
-            />
-            <meta
-              name="twitter:title"
-              content={meta?.title}
-            />
-            <meta
-              name="twitter:description"
-              content={meta?.description}
-            />
+            <meta property="twitter:domain" content={meta?.url} />
+            <meta property="twitter:url" content={meta?.url} />
+            <meta name="twitter:title" content={meta?.title} />
+            <meta name="twitter:description" content={meta?.description} />
             <meta name="twitter:image" content={meta?.image || ""} />
             {/* - Webpage Schema */}
             <script type="application/ld+json">
@@ -312,7 +288,7 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
                 url: meta?.url,
                 description: meta?.description,
                 breadcrumb: {
-                  "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
+                  "@id": `${meta?.url}#breadcrumb`,
                 },
                 about: {
                   "@type": "Thing",
@@ -320,7 +296,7 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
                 },
                 isPartOf: {
                   "@type": "WebSite",
-                  url: "https://youtube-tool-frontend.vercel.app",
+                  url: meta?.url,
                 },
               })}
             </script>
@@ -369,7 +345,17 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
                 })),
               })}
             </script>
+            {translations &&
+              Object.keys(translations).map((lang) => (
+                <link
+                  key={lang}
+                  rel="alternate"
+                  href={`${meta?.url}/?locale=${lang}`}
+                  hreflang={lang}
+                />
+              ))}
           </Head>
+
           <h2 className="text-3xl text-white">
             {t("YouTube Title & Description Extractor")}
           </h2>
@@ -774,69 +760,46 @@ export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
   const apiUrl = `${protocol}://${host}/api/content?category=youtube-title-and-description-extractor&language=${locale}`;
-  const relatedToolsUrl = `${protocol}://${host}/api/content?category=relatedTools&language=${locale}`;
+
 
   try {
     const [contentResponse] = await Promise.all([
       fetch(apiUrl),
-      fetch(relatedToolsUrl),
+ 
     ]);
 
     if (!contentResponse.ok) {
       throw new Error("Failed to fetch content");
     }
 
-    const [contentData] = await Promise.all([contentResponse.json()]);
-
+    const [contentData] = await Promise.all([
+      contentResponse.json(),
+      
+    ]);
+console.log(contentData);
     const meta = {
-      title: contentData[0]?.title || "",
-      description: contentData[0]?.description || "",
-      image: contentData[0]?.image || "",
+      title: contentData.translations[locale]?.title || "",
+      description: contentData.translations[locale]?.description || "",
+      image: contentData.translations[locale]?.image || "",
       url: `${protocol}://${host}/tools/youtube-title-and-description-extractor`,
     };
 
     return {
       props: {
         meta,
-        faqs: contentData[0].faqs || [],
-        ...(await serverSideTranslations(locale, [
-          "common",
-          "trending",
-          "footer",
-          "navbar",
-          "titlegenerator",
-          "videoDataViewer",
-          "banner",
-          "logo",
-          "search",
-          "embed",
-          "calculator",
-          "thumbnail",
-          "tdextractor"
-        ])),
+        faqs: contentData.translations[locale]?.faqs || [],
+       
+        ...(await serverSideTranslations(locale, ['common','tdextractor','navbar','footer'])),
       },
     };
   } catch (error) {
-    console.error("Error fetching data");
+    console.error("Error fetching data:", error);
     return {
       props: {
         meta: {},
         faqs: [],
-        ...(await serverSideTranslations(locale, [
-          "common",
-          "trending",
-          "footer",
-          "navbar",
-          "titlegenerator",
-          "videoDataViewer",
-          "banner",
-          "logo",
-          "search",
-          "embed",
-          "calculator",
-          "thumbnail",
-          "tdextractor"
-        ])),
+        relatedTools: [],
+        ...(await serverSideTranslations(locale, ['common', 'tdextractor','navbar','footer'])),
       },
     };
   }

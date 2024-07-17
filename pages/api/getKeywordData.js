@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 
 const API_KEY = process.env.NEXT_PUBLIC_KEYWORDS_EVERYWHERE_API_KEY;
 
+
 const log = (message) => {
     console.log(`${new Date().toISOString()} | ${message}`);
 };

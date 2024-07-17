@@ -42,6 +42,7 @@ const TagExtractor = ({ meta, faqs }) => {
   const [reviews, setReviews] = useState([]);
   const [openIndex, setOpenIndex] = useState(null);
   const [relatedTools, setRelatedTools] = useState([]);
+  const [translations, setTranslations] = useState([]);
   const [newReview, setNewReview] = useState({
     name: "",
     rating: 0,
@@ -51,7 +52,7 @@ const TagExtractor = ({ meta, faqs }) => {
   const [modalVisible, setModalVisible] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
-  const [translations, setTranslations] = useState([]);
+
   const closeModal = () => setModalVisible(false);
   const closeReview = () => setShowReviewForm(false);
   const toggleFAQ = (index) => {
@@ -408,7 +409,7 @@ const TagExtractor = ({ meta, faqs }) => {
             <link
               key={lang}
               rel="alternate"
-              href={`${meta?.url}/tools/tagGenerator?locale=${lang}`}
+              href={`${meta?.url}?locale=${lang}`}
               hreflang={lang}
             />
           ))}
@@ -839,7 +840,7 @@ export async function getServerSideProps({ req, locale }) {
     return {
       props: {
         meta,
-        faqs: contentData.translations[locale]?.faq || [],
+        faqs: contentData.translations[locale]?.faqs || [],
        
         ...(await serverSideTranslations(locale, ['common','tagextractor','navbar','footer'])),
       },

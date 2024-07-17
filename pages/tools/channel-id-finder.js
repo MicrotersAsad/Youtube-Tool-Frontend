@@ -15,14 +15,14 @@ import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 import Head from "next/head";
 import { format } from "date-fns";
-import { i18n, useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { i18n, useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 const ChannelIdFinder = ({ meta, faqs }) => {
   const { user, updateUserProfile } = useAuth();
   const [modalVisible, setModalVisible] = useState(true);
   const [videoUrl, setVideoUrl] = useState("");
-  const { t } = useTranslation('channelId');
+  const { t } = useTranslation("channelId");
   const [loading, setLoading] = useState(false);
   const [channelData, setChannelData] = useState(null);
   const [error, setError] = useState("");
@@ -31,6 +31,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
+  const [translations, setTranslations] = useState([]);
   const [newReview, setNewReview] = useState({
     name: "",
     rating: 0,
@@ -56,19 +57,20 @@ const ChannelIdFinder = ({ meta, faqs }) => {
         );
         if (!response.ok) throw new Error(t("Failed to fetch content"));
         const data = await response.json();
-        
-        setQuillContent(data[0]?.content || "");
-        setExistingContent(data[0]?.content || "");
-        setRelatedTools(data[0]?.relatedTools || []);
+       
+        setQuillContent(data.translations[language]?.content || "");
+        setExistingContent(data.translations[language]?.content || "");
+        setRelatedTools(data.translations[language]?.relatedTools || []);
+        setTranslations(data.translations);
       } catch (error) {
-        toast.error(t("Error fetching content"));
+        console.error(t("Error fetching content"));
       }
     };
 
     fetchContent();
     fetchReviews();
-  }, [i18n.language, t]);
-console.log(relatedTools);
+  }, [i18n.language]);
+
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
   }, []);
@@ -124,7 +126,9 @@ console.log(relatedTools);
       user.paymentStatus !== "success" &&
       user.role !== "admin"
     ) {
-      toast.error(t("Fetch limit exceeded. Please upgrade for unlimited access."));
+      toast.error(
+        t("Fetch limit exceeded. Please upgrade for unlimited access.")
+      );
       return;
     }
 
@@ -141,7 +145,7 @@ console.log(relatedTools);
       }
     } catch (err) {
       setError(err.message);
-      toast.error(err.message);
+      console.error(err.message);
     } finally {
       setLoading(false);
     }
@@ -230,7 +234,7 @@ console.log(relatedTools);
   const closeReviewForm = () => {
     setShowReviewForm(false);
   };
-console.log(meta);
+
   return (
     <>
       <div className="bg-box">
@@ -244,41 +248,16 @@ console.log(meta);
         <div className="max-w-7xl mx-auto p-4">
           <Head>
             <title>{meta?.title}</title>
-            <meta
-              name="description"
-              content={meta?.description}
-            />
-            <meta
-              property="og:url"
-              content={meta?.url}
-            />
-            <meta
-              property="og:title"
-              content={meta?.title}
-            />
-            <meta
-              property="og:description"
-              content={
-                meta?.description}
-            />
+            <meta name="description" content={meta?.description} />
+            <meta property="og:url" content={meta?.url} />
+            <meta property="og:title" content={meta?.title} />
+            <meta property="og:description" content={meta?.description} />
             <meta property="og:image" content={meta?.image || ""} />
             <meta name="twitter:card" content={meta?.image || ""} />
-            <meta
-              property="twitter:domain"
-              content="https://youtube-tool-frontend.vercel.app/"
-            />
-            <meta
-              property="twitter:url"
-              content={meta?.url}
-            />
-            <meta
-              name="twitter:title"
-              content={meta?.title}
-            />
-            <meta
-              name="twitter:description"
-              content={meta?.description}
-            />
+            <meta property="twitter:domain" content={meta?.url} />
+            <meta property="twitter:url" content={meta?.url} />
+            <meta name="twitter:title" content={meta?.title} />
+            <meta name="twitter:description" content={meta?.description} />
             <meta name="twitter:image" content={meta?.image || ""} />
             {/* - Webpage Schema */}
             <script type="application/ld+json">
@@ -289,7 +268,7 @@ console.log(meta);
                 url: meta?.url,
                 description: meta?.description,
                 breadcrumb: {
-                  "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
+                  "@id": `${meta?.url}#breadcrumb`,
                 },
                 about: {
                   "@type": "Thing",
@@ -297,7 +276,7 @@ console.log(meta);
                 },
                 isPartOf: {
                   "@type": "WebSite",
-                  url: "https://youtube-tool-frontend.vercel.app",
+                  url: meta?.url,
                 },
               })}
             </script>
@@ -346,6 +325,15 @@ console.log(meta);
                 })),
               })}
             </script>
+            {translations &&
+              Object.keys(translations).map((lang) => (
+                <link
+                  key={lang}
+                  rel="alternate"
+                  href={`${meta?.url}?locale=${lang}`}
+                  hreflang={lang}
+                />
+              ))}
           </Head>
           <ToastContainer />
           <h1 className="text-3xl font-bold text-center text-white mb-6">
@@ -362,11 +350,16 @@ console.log(meta);
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        {t("Congratulations! Now you can get unlimited Channel Data.")}
+                        {t(
+                          "Congratulations! Now you can get unlimited Channel Data."
+                        )}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        {t("You are not upgraded. You can get Channel Data {{remainingGenerations}} more times.", { remainingGenerations: 5 - generateCount })}{" "}
+                        {t(
+                          "You are not upgraded. You can get Channel Data {{remainingGenerations}} more times.",
+                          { remainingGenerations: 5 - generateCount }
+                        )}{" "}
                         <Link href="/pricing" className="btn btn-warning ms-3">
                           {t("Upgrade")}
                         </Link>
@@ -441,7 +434,8 @@ console.log(meta);
               </a>
             </p>
             <p>
-              <strong>{t("Description")}:</strong> {channelData.channelDescription}
+              <strong>{t("Description")}:</strong>{" "}
+              {channelData.channelDescription}
             </p>
             <p>
               <strong>{t("Subscribers")}:</strong> {channelData.subscribers}
@@ -484,7 +478,9 @@ console.log(meta);
           <div className="accordion">
             <h2 className="faq-title">{t("Frequently Asked Questions")}</h2>
             <p className="faq-subtitle">
-              {t("Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us")}
+              {t(
+                "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us"
+              )}
             </p>
             <div className="faq-grid">
               {faqs.map((faq, index) => (
@@ -654,11 +650,15 @@ console.log(meta);
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="fixed inset-0 bg-black opacity-50"></div>
             <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
-              <h2 className="text-2xl font-semibold mb-4">{t("Leave a Review")}</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                {t("Leave a Review")}
+              </h2>
               <div className="mb-4">
                 <StarRating
                   rating={newReview.rating}
-                  setRating={(rating) => setNewReview({ ...newReview, rating })}
+                  setRating={(rating) =>
+                    setNewReview({ ...newReview, rating })
+                  }
                 />
               </div>
               <div className="mb-4">
@@ -700,27 +700,28 @@ console.log(meta);
 
         {/* Related Tools Section */}
         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
-      <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {relatedTools.map((tool, index) => (
-          <a
-            key={index}
-            href={tool.link}
-            className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
-          >
-            <Image
-              src={tool?.logo?.src}
-              alt={`${tool.name} Icon`}
-              width={64}
-              height={64}
-              className="mr-4"
-              
-            />
-            <span className="text-blue-600 font-medium">{tool.name}</span>
-          </a>
-        ))}
-      </div>
-    </div>
+          <h2 className="text-2xl font-bold mb-5 text-center">
+            Related Tools
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {relatedTools.map((tool, index) => (
+              <a
+                key={index}
+                href={tool.link}
+                className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
+              >
+                <Image
+                  src={tool?.logo?.src}
+                  alt={`${tool.name} Icon`}
+                  width={64}
+                  height={64}
+                  className="mr-4"
+                />
+                <span className="text-blue-600 font-medium">{tool.name}</span>
+              </a>
+            ))}
+          </div>
+        </div>
         {/* End of Related Tools Section */}
       </div>
     </>
@@ -733,30 +734,31 @@ export async function getServerSideProps({ req, locale }) {
   const apiUrl = `${protocol}://${host}/api/content?category=channel-id-finder&language=${locale}`;
 
   try {
-    const [contentResponse] = await Promise.all([
-      fetch(apiUrl),
-    ]);
+    const [contentResponse] = await Promise.all([fetch(apiUrl)]);
 
     if (!contentResponse.ok) {
       throw new Error("Failed to fetch content");
     }
 
-    const [contentData] = await Promise.all([
-      contentResponse.json(),
-    ]);
-
+    const [contentData] = await Promise.all([contentResponse.json()]);
     const meta = {
-      title: contentData[0]?.title || "",
-      description: contentData[0]?.description || "",
-      image: contentData[0]?.image || "",
+      title: contentData.translations[locale]?.title || "",
+      description: contentData.translations[locale]?.description || "",
+      image: contentData.translations[locale]?.image || "",
       url: `${protocol}://${host}/tools/channel-id-finder`,
     };
 
     return {
       props: {
         meta,
-        faqs: contentData[0].faqs || [],
-        ...(await serverSideTranslations(locale, ['common','tagextractor','navbar','channelId',"footer"])),
+        faqs: contentData.translations[locale]?.faqs || [],
+        ...(await serverSideTranslations(locale, [
+          "common",
+          "tagextractor",
+          "navbar",
+          "channelId",
+          "footer",
+        ])),
       },
     };
   } catch (error) {
@@ -765,7 +767,13 @@ export async function getServerSideProps({ req, locale }) {
       props: {
         meta: {},
         faqs: [],
-        ...(await serverSideTranslations(locale, ['common', 'tagextractor','navbar','channelId',"footer"])),
+        ...(await serverSideTranslations(locale, [
+          "common",
+          "tagextractor",
+          "navbar",
+          "channelId",
+          "footer",
+        ])),
       },
     };
   }

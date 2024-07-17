@@ -39,7 +39,7 @@ const MonetizationChecker = ({ meta, faqs }) => {
   const [generateCount, setGenerateCount] = useState(0);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
-
+  const [translations, setTranslations] = useState([]);
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
@@ -51,13 +51,14 @@ const MonetizationChecker = ({ meta, faqs }) => {
       try {
         const language = i18n.language;
         const response = await fetch(
-          `/api/content?category=channel-id-finder&language=${language}`
+          `/api/content?category=monetization-checker&language=${language}`
         );
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
-        setQuillContent(data[0]?.content || "");
-        setExistingContent(data[0]?.content || "");
-        setRelatedTools(data[0]?.relatedTools || [])
+        setQuillContent(data.translations[language]?.content || "");
+        setExistingContent(data.translations[language]?.content || "");
+        setRelatedTools(data.translations[language]?.relatedTools || []);
+        setTranslations(data.translations);
       } catch (error) {
         toast.error("Error fetching content");
       }
@@ -222,41 +223,16 @@ const MonetizationChecker = ({ meta, faqs }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
         <Head>
             <title>{meta?.title}</title>
-            <meta
-              name="description"
-              content={meta?.description}
-            />
-            <meta
-              property="og:url"
-              content={meta?.url}
-            />
-            <meta
-              property="og:title"
-              content={meta?.title}
-            />
-            <meta
-              property="og:description"
-              content={
-                meta?.description}
-            />
+            <meta name="description" content={meta?.description} />
+            <meta property="og:url" content={meta?.url} />
+            <meta property="og:title" content={meta?.title} />
+            <meta property="og:description" content={meta?.description} />
             <meta property="og:image" content={meta?.image || ""} />
             <meta name="twitter:card" content={meta?.image || ""} />
-            <meta
-              property="twitter:domain"
-              content="https://youtube-tool-frontend.vercel.app/"
-            />
-            <meta
-              property="twitter:url"
-              content={meta?.url}
-            />
-            <meta
-              name="twitter:title"
-              content={meta?.title}
-            />
-            <meta
-              name="twitter:description"
-              content={meta?.description}
-            />
+            <meta property="twitter:domain" content={meta?.url} />
+            <meta property="twitter:url" content={meta?.url} />
+            <meta name="twitter:title" content={meta?.title} />
+            <meta name="twitter:description" content={meta?.description} />
             <meta name="twitter:image" content={meta?.image || ""} />
             {/* - Webpage Schema */}
             <script type="application/ld+json">
@@ -267,7 +243,7 @@ const MonetizationChecker = ({ meta, faqs }) => {
                 url: meta?.url,
                 description: meta?.description,
                 breadcrumb: {
-                  "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
+                  "@id": `${meta?.url}#breadcrumb`,
                 },
                 about: {
                   "@type": "Thing",
@@ -275,7 +251,7 @@ const MonetizationChecker = ({ meta, faqs }) => {
                 },
                 isPartOf: {
                   "@type": "WebSite",
-                  url: "https://youtube-tool-frontend.vercel.app",
+                  url: meta?.url,
                 },
               })}
             </script>
@@ -324,6 +300,15 @@ const MonetizationChecker = ({ meta, faqs }) => {
                 })),
               })}
             </script>
+            {translations &&
+              Object.keys(translations).map((lang) => (
+                <link
+                  key={lang}
+                  rel="alternate"
+                  href={`${meta?.url}?locale=${lang}`}
+                  hreflang={lang}
+                />
+              ))}
           </Head>
           <ToastContainer />
           <h1 className="text-3xl font-bold text-center mb-6 text-white">
@@ -828,16 +813,16 @@ export async function getServerSideProps({ req, locale }) {
     ]);
 
     const meta = {
-      title: contentData[0]?.title || "",
-      description: contentData[0]?.description || "",
-      image: contentData[0]?.image || "",
+      title: contentData.translations[locale]?.title || "",
+      description: contentData.translations[locale]?.description || "",
+      image: contentData.translations[locale]?.image || "",
       url: `${protocol}://${host}/tools/monetization-checker`,
     };
 
     return {
       props: {
         meta,
-        faqs: contentData[0].faqs || [],
+        faqs: contentData.translations[locale]?.faqs || [],
         ...(await serverSideTranslations(locale, ['common','tagextractor','navbar','footer','monetization'])),
       },
     };

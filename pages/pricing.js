@@ -218,7 +218,7 @@ const Pricing = () => {
           <div className="text-center">
             <h2 className="text-2xl font-semibold mb-4">{t('Still Have Questions?')}</h2>
             <p className="text-gray-600 mb-4">{t('Reach out to us at contact@ytubetool.com or scan the QR code below.')}</p>
-            <Image src="https://via.placeholder.com/150" alt="QR Code" width={100} height={100} className="mx-auto" />
+            {/* <Image src="https://via.placeholder.com/150" alt="QR Code" width={100} height={100} className="mx-auto" /> */}
           </div>
         </div>
         {/* Payment Method Modal */}

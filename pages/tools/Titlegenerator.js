@@ -14,7 +14,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import StarRating from "./StarRating";
+
 import { format } from "date-fns";
 import { useRouter } from "next/router";
 import announce from "../../public/shape/announce.png";
@@ -24,8 +24,9 @@ import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 import { i18n, useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import StarRating from "./StarRating";
 
-const TitleGenerator = ({ meta, faqs, relatedTools }) => {
+const YTTitleGenerator = ({ meta, faqs }) => {
   const { t } = useTranslation('titlegenerator');
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();
@@ -41,6 +42,8 @@ const TitleGenerator = ({ meta, faqs, relatedTools }) => {
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
+  const [relatedTools, setRelatedTools] = useState([]);
+  const [translations, setTranslations] = useState([]);
   const [newReview, setNewReview] = useState({
     name: "",
     title: "",
@@ -60,23 +63,26 @@ const TitleGenerator = ({ meta, faqs, relatedTools }) => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch(
-          `/api/content?category=youtube-title-and-description-generator?tab=title&language=${i18n?.language}`
+        const language = i18n.language || "en";
+        const response = await fetch(`/api/content?category=Titlegenerator&language=${language}`
         );
+        console.log(response);
         if (!response.ok) {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
-        setQuillContent(data[0]?.content || "");
-        setExistingContent(data[0]?.content || "");
+        setQuillContent(data.translations[language]?.content || "");
+        setExistingContent(data.translations[language]?.content || "");  
+        setRelatedTools(data.translations[language]?.relatedTools || []);
+        setTranslations(data.translations);
       } catch (error) {
-        toast.error(t('failedToFetchContent'));
+        console.error("Error fetching content");
       }
     };
 
     fetchContent();
     fetchReviews();
-  }, [i18n?.language, t]);
+  }, [i18n?.language]);
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -375,86 +381,94 @@ const TitleGenerator = ({ meta, faqs, relatedTools }) => {
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-          <Head>
-            <title>{meta?.title}</title>
-            <meta name="description" content={meta?.description} />
-            <meta property="og:url" content={meta?.url} />
-            <meta property="og:title" content={meta?.title} />
-            <meta property="og:description" content={meta?.description} />
-            <meta property="og:image" content={meta?.image || ""} />
-            <meta name="twitter:card" content={meta?.image || ""} />
-            <meta property="twitter:domain" content="https://youtube-tool-frontend.vercel.app/" />
-            <meta property="twitter:url" content={meta?.url} />
-            <meta name="twitter:title" content={meta?.title} />
-            <meta name="twitter:description" content={meta?.description} />
-            <meta name="twitter:image" content={meta?.image || ""} />
-            {/* - Webpage Schema */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "WebPage",
+        <Head>
+          <title>{meta?.title}</title>
+          <meta name="description" content={meta?.description} />
+          <meta property="og:url" content={meta?.url} />
+          <meta property="og:title" content={meta?.title} />
+          <meta property="og:description" content={meta?.description} />
+          <meta property="og:image" content={meta?.image || ""} />
+          <meta name="twitter:card" content={meta?.image || ""} />
+          <meta property="twitter:domain" content={meta?.url} />
+          <meta property="twitter:url" content={meta?.url} />
+          <meta name="twitter:title" content={meta?.title} />
+          <meta name="twitter:description" content={meta?.description} />
+          <meta name="twitter:image" content={meta?.image || ""} />
+          {/* - Webpage Schema */}
+          <script type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebPage",
+              name: meta?.title,
+              url: meta?.url,
+              description: meta?.description,
+              breadcrumb: {
+                "@id": `${meta?.url}#breadcrumb`,
+              },
+              about: {
+                "@type": "Thing",
                 name: meta?.title,
+              },
+              isPartOf: {
+                "@type": "WebSite",
                 url: meta?.url,
-                description: meta?.description,
-                breadcrumb: {
-                  "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
+              },
+            })}
+          </script>
+          {/* - Review Schema */}
+          <script type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: meta?.title,
+              url: meta?.url,
+              applicationCategory: "Multimedia",
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: overallRating,
+                ratingCount: reviews?.length,
+                reviewCount: reviews?.length,
+              },
+              review: reviews.map((review) => ({
+                "@type": "Review",
+                author: {
+                  "@type": "Person",
+                  name: review.userName,
                 },
-                about: {
-                  "@type": "Thing",
-                  name: meta?.title,
+                datePublished: review.createdAt,
+                reviewBody: review.comment,
+                name: review.title,
+                reviewRating: {
+                  "@type": "Rating",
+                  ratingValue: review.rating,
                 },
-                isPartOf: {
-                  "@type": "WebSite",
-                  url: "https://youtube-tool-frontend.vercel.app",
+              })),
+            })}
+          </script>
+          {/* - FAQ Schema */}
+          <script type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: faqs.map((faq) => ({
+                "@type": "Question",
+                name: faq.question,
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: faq.answer,
                 },
-              })}
-            </script>
-            {/* - Review Schema */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "SoftwareApplication",
-                name: meta?.title,
-                url: meta?.url,
-                applicationCategory: "Multimedia",
-                aggregateRating: {
-                  "@type": "AggregateRating",
-                  ratingValue: overallRating,
-                  ratingCount: reviews?.length,
-                  reviewCount: reviews?.length,
-                },
-                review: reviews.map((review) => ({
-                  "@type": "Review",
-                  author: {
-                    "@type": "Person",
-                    name: review.userName,
-                  },
-                  datePublished: review.createdAt,
-                  reviewBody: review.comment,
-                  name: review.title,
-                  reviewRating: {
-                    "@type": "Rating",
-                    ratingValue: review.rating,
-                  },
-                })),
-              })}
-            </script>
-            {/* - FAQ Schema */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                mainEntity: faqs.map((faq) => ({
-                  "@type": "Question",
-                  name: faq.question,
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: faq.answer,
-                  },
-                })),
-              })}
-            </script>
-          </Head>
+              })),
+            })}
+          </script>
+          {translations && Object.keys(translations).map(lang => (
+            <link
+              key={lang}
+              rel="alternate"
+              href={`${meta?.url}?locale=${lang}`}
+              hreflang={lang}
+            />
+          ))}
+        </Head>
 
           <h2 className="text-3xl text-white">{t('YouTube Title Generator')}</h2>
 
@@ -822,22 +836,28 @@ const TitleGenerator = ({ meta, faqs, relatedTools }) => {
         </div>
       )}
       {/* Related Tools Section */}
-      <div className="related-tools-section mt-10">
-        <h2 className="text-2xl font-semibold mb-4">{t('Related Tools')}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {relatedTools?.map((tool, index) => (
-            <Link key={index} href={tool.link}>
-              <div className="related-tool-item bg-white p-4 rounded shadow hover:shadow-md transition">
-                <div className="flex items-center mb-2">
-                  <tool.icon className="text-xl mr-2" />
-                  <h3 className="text-lg font-bold">{tool.name}</h3>
-                </div>
-                <p>{tool.description}</p>
-              </div>
+      <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
+      <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {relatedTools.map((tool, index) => (
+          <Link
+            key={index}
+            href={tool.link}
+            className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
+          >
+             <Image
+              src={tool?.logo?.src}
+              alt={`${tool.name} Icon`}
+              width={64}
+              height={64}
+              className="mr-4"
+              
+            />
+            <span className="text-blue-600 font-medium">{tool.name}</span>
             </Link>
-          ))}
-        </div>
+        ))}
       </div>
+    </div>
       {/* End of Related Tools Section */}
       <style jsx>{`
         .keywords-input-container {
@@ -953,37 +973,37 @@ const TitleGenerator = ({ meta, faqs, relatedTools }) => {
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
-  const apiUrl = `${protocol}://${host}/api/content?category=Titlegenerator&lang=${locale}`;
-  const relatedToolsUrl = `${protocol}://${host}/api/content?category=relatedTools&lang=${locale}`;
+  const apiUrl = `${protocol}://${host}/api/content?category=Titlegenerator&language=${locale}`;
+
 
   try {
-    const [contentResponse, relatedToolsResponse] = await Promise.all([
+    const [contentResponse] = await Promise.all([
       fetch(apiUrl),
-      fetch(relatedToolsUrl)
+ 
     ]);
 
-    if (!contentResponse.ok || !relatedToolsResponse.ok) {
+    if (!contentResponse.ok) {
       throw new Error("Failed to fetch content");
     }
 
-    const [contentData, relatedToolsData] = await Promise.all([
+    const [contentData] = await Promise.all([
       contentResponse.json(),
-      relatedToolsResponse.json()
+      
     ]);
 
     const meta = {
-      title: contentData[0]?.title || "",
-      description: contentData[0]?.description || "",
-      image: contentData[0]?.image || "",
+      title: contentData.translations[locale]?.title || "",
+      description: contentData.translations[locale]?.description || "",
+      image: contentData.translations[locale]?.image || "",
       url: `${protocol}://${host}/tools/Titlegenerator`,
     };
 
     return {
       props: {
         meta,
-        faqs: contentData[0]?.faqs || [],
-        relatedTools: relatedToolsData || [],
-        ...(await serverSideTranslations(locale, ['common', 'titlegenerator', 'navbar'])),
+        faqs: contentData.translations[locale]?.faqs || [],
+       
+        ...(await serverSideTranslations(locale, ['common','titlegenerator','navbar','footer'])),
       },
     };
   } catch (error) {
@@ -993,10 +1013,9 @@ export async function getServerSideProps({ req, locale }) {
         meta: {},
         faqs: [],
         relatedTools: [],
-        ...(await serverSideTranslations(locale, ['common', 'titlegenerator', 'navbar'])),
+        ...(await serverSideTranslations(locale, ['common', 'titlegenerator','navbar','footer'])),
       },
     };
   }
 }
-
-export default TitleGenerator;
+export default YTTitleGenerator;
