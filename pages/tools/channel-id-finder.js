@@ -456,8 +456,10 @@ console.log(meta);
               <strong>{t("Tags")}:</strong> {channelData.channelTags}
             </p>
             <div className="flex flex-wrap justify-center mt-4">
-              <img
+              <Image
                 src={channelData.channelProfileImage}
+                width={50}
+                height={50}
                 alt="Channel Profile"
                 className="w-24 h-24 rounded-full mx-2"
               />

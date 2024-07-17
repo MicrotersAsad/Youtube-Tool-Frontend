@@ -682,9 +682,11 @@ const KeywordSearch = ({ meta, faqs }) => {
             href={tool.link}
             className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
           >
-            <img
+            <Image
               src={tool?.logo?.src}
               alt={`${tool.name} Icon`}
+              width={64}
+              height={64}
               className="w-14 h-14 mr-4"
             />
             <span className="text-blue-600 font-medium">{tool.name}</span>

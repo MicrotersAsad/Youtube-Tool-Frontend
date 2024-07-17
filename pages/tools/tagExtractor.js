@@ -17,9 +17,6 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Head from "next/head";
 import StarRating from "./StarRating";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
@@ -54,7 +51,7 @@ const TagExtractor = ({ meta, faqs }) => {
   const [modalVisible, setModalVisible] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
-
+  const [translations, setTranslations] = useState([]);
   const closeModal = () => setModalVisible(false);
   const closeReview = () => setShowReviewForm(false);
   const toggleFAQ = (index) => {
@@ -64,14 +61,17 @@ const TagExtractor = ({ meta, faqs }) => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch(`/api/content?category=tagExtractor&language=${i18n.language}`);
+        const language = i18n.language || "en";
+        const response = await fetch(`/api/content?category=tagExtractor&language=${language}`);
         if (!response.ok) {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
-        setQuillContent(data[0]?.content || "");
-        setExistingContent(data[0]?.content || "");
-        setRelatedTools(data[0]?.relatedTools || [])
+        setQuillContent(data.translations[language]?.content || "");
+        setExistingContent(data.translations[language]?.content || "");
+        setRelatedTools(data.translations[language]?.relatedTools || []);
+        setTranslations(data.translations);
+        
       } catch (error) {
         toast.error("Error fetching content");
       }
@@ -326,110 +326,93 @@ const TagExtractor = ({ meta, faqs }) => {
 
         <div className="max-w-7xl mx-auto p-4">
         <Head>
-            <title>{meta?.title}</title>
-            <meta
-              name="description"
-              content={meta?.description}
-            />
-            <meta
-              property="og:url"
-              content={meta?.url}
-            />
-            <meta
-              property="og:title"
-              content={meta?.title}
-            />
-            <meta
-              property="og:description"
-              content={
-                meta?.description}
-            />
-            <meta property="og:image" content={meta?.image || ""} />
-            <meta name="twitter:card" content={meta?.image || ""} />
-            <meta
-              property="twitter:domain"
-              content="https://youtube-tool-frontend.vercel.app/"
-            />
-            <meta
-              property="twitter:url"
-              content={meta?.url}
-            />
-            <meta
-              name="twitter:title"
-              content={meta?.title}
-            />
-            <meta
-              name="twitter:description"
-              content={meta?.description}
-            />
-            <meta name="twitter:image" content={meta?.image || ""} />
-            {/* - Webpage Schema */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "WebPage",
+          <title>{meta?.title}</title>
+          <meta name="description" content={meta?.description} />
+          <meta property="og:url" content={meta?.url} />
+          <meta property="og:title" content={meta?.title} />
+          <meta property="og:description" content={meta?.description} />
+          <meta property="og:image" content={meta?.image || ""} />
+          <meta name="twitter:card" content={meta?.image || ""} />
+          <meta property="twitter:domain" content={meta?.url} />
+          <meta property="twitter:url" content={meta?.url} />
+          <meta name="twitter:title" content={meta?.title} />
+          <meta name="twitter:description" content={meta?.description} />
+          <meta name="twitter:image" content={meta?.image || ""} />
+          {/* - Webpage Schema */}
+          <script type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebPage",
+              name: meta?.title,
+              url: meta?.url,
+              description: meta?.description,
+              breadcrumb: {
+                "@id": `${meta?.url}#breadcrumb`,
+              },
+              about: {
+                "@type": "Thing",
                 name: meta?.title,
+              },
+              isPartOf: {
+                "@type": "WebSite",
                 url: meta?.url,
-                description: meta?.description,
-                breadcrumb: {
-                  "@id": "https://youtube-tool-frontend.vercel.app/#breadcrumb",
+              },
+            })}
+          </script>
+          {/* - Review Schema */}
+          <script type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: meta?.title,
+              url: meta?.url,
+              applicationCategory: "Multimedia",
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: overallRating,
+                ratingCount: reviews?.length,
+                reviewCount: reviews?.length,
+              },
+              review: reviews.map((review) => ({
+                "@type": "Review",
+                author: {
+                  "@type": "Person",
+                  name: review.userName,
                 },
-                about: {
-                  "@type": "Thing",
-                  name: meta?.title,
+                datePublished: review.createdAt,
+                reviewBody: review.comment,
+                name: review.title,
+                reviewRating: {
+                  "@type": "Rating",
+                  ratingValue: review.rating,
                 },
-                isPartOf: {
-                  "@type": "WebSite",
-                  url: "https://youtube-tool-frontend.vercel.app",
+              })),
+            })}
+          </script>
+          {/* - FAQ Schema */}
+          <script type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: faqs.map((faq) => ({
+                "@type": "Question",
+                name: faq.question,
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: faq.answer,
                 },
-              })}
-            </script>
-            {/* - Review Schema */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "SoftwareApplication",
-                name: meta?.title,
-                url: meta?.url,
-                applicationCategory: "Multimedia",
-                aggregateRating: {
-                  "@type": "AggregateRating",
-                  ratingValue: overallRating,
-                  ratingCount: reviews?.length,
-                  reviewCount: reviews?.length,
-                },
-                review: reviews.map((review) => ({
-                  "@type": "Review",
-                  author: {
-                    "@type": "Person",
-                    name: review.userName,
-                  },
-                  datePublished: review.createdAt,
-                  reviewBody: review.comment,
-                  name: review.title,
-                  reviewRating: {
-                    "@type": "Rating",
-                    ratingValue: review.rating,
-                  },
-                })),
-              })}
-            </script>
-            {/* - FAQ Schema */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                mainEntity: faqs.map((faq) => ({
-                  "@type": "Question",
-                  name: faq.question,
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: faq.answer,
-                  },
-                })),
-              })}
-            </script>
-          </Head>
+              })),
+            })}
+          </script>
+          {translations && Object.keys(translations).map(lang => (
+            <link
+              key={lang}
+              rel="alternate"
+              href={`${meta?.url}/tools/tagGenerator?locale=${lang}`}
+              hreflang={lang}
+            />
+          ))}
+        </Head>
           <h2 className="text-3xl text-white">{t('YouTube Tag Extractor')}</h2>
           <ToastContainer />
           {modalVisible && (
@@ -829,35 +812,35 @@ export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] || "http";
   const apiUrl = `${protocol}://${host}/api/content?category=tagExtractor&language=${locale}`;
-  const relatedToolsUrl = `${protocol}://${host}/api/content?category=relatedTools&language=${locale}`;
+
 
   try {
-    const [contentResponse, relatedToolsResponse] = await Promise.all([
+    const [contentResponse] = await Promise.all([
       fetch(apiUrl),
-      fetch(relatedToolsUrl)
+ 
     ]);
 
-    if (!contentResponse.ok || !relatedToolsResponse.ok) {
+    if (!contentResponse.ok) {
       throw new Error("Failed to fetch content");
     }
 
-    const [contentData, relatedToolsData] = await Promise.all([
+    const [contentData] = await Promise.all([
       contentResponse.json(),
-      relatedToolsResponse.json()
+      
     ]);
 
     const meta = {
-      title: contentData[0]?.title || "",
-      description: contentData[0]?.description || "",
-      image: contentData[0]?.image || "",
+      title: contentData.translations[locale]?.title || "",
+      description: contentData.translations[locale]?.description || "",
+      image: contentData.translations[locale]?.image || "",
       url: `${protocol}://${host}/tools/tagExtractor`,
     };
 
     return {
       props: {
         meta,
-        faqs: contentData[0].faqs || [],
-        relatedTools: relatedToolsData || [],
+        faqs: contentData.translations[locale]?.faq || [],
+       
         ...(await serverSideTranslations(locale, ['common','tagextractor','navbar','footer'])),
       },
     };

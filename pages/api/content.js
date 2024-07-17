@@ -34,7 +34,11 @@ const handleGet = async (req, res) => {
   }
 
   const { db } = await connectToDatabase();
-  const result = await db.collection('content').find({ category, language }).toArray();
+  const result = await db.collection('content').findOne({ category, [`translations.${language}`]: { $exists: true } });
+
+  if (!result) {
+    return res.status(404).json({ message: 'Content not found' });
+  }
 
   res.status(200).json(result);
 };
@@ -46,8 +50,10 @@ const handlePost = async (req, res) => {
     }
 
     const { category, language } = req.query;
-    const { content, title, description, faqs, relatedTools } = req.body;
+    const { content, title, description } = req.body;
     const image = req.file;
+    const faqs = req.body.faqs ? JSON.parse(req.body.faqs) : [];
+    const relatedTools = req.body.relatedTools ? JSON.parse(req.body.relatedTools) : [];
 
     if (!category || !content || !title || !description || !language) {
       return res.status(400).json({ message: 'Missing required fields' });
@@ -55,34 +61,30 @@ const handlePost = async (req, res) => {
 
     const imageUrl = image ? `/uploads/${image.filename}` : null;
 
-    // Process related tools to add the correct image URLs
-    const parsedRelatedTools = relatedTools ? JSON.parse(relatedTools) : [];
-    const processedRelatedTools = parsedRelatedTools.map((tool) => {
-      if (tool.logo && typeof tool.logo === 'object' && tool.logo.path) {
-        return { ...tool, logo: `/uploads/${tool.logo.path}` };
-      }
-      return tool;
-    });
-
-    const doc = {
+    const translation = {
       content,
       title,
       description,
       image: imageUrl,
-      category,
-      language,
-      faqs: faqs ? JSON.parse(faqs) : [],
-      relatedTools: processedRelatedTools,
+      faqs,
+      relatedTools,
     };
 
     const { db } = await connectToDatabase();
-    const result = await db.collection('content').insertOne(doc);
+    const filter = { category };
+    const updateDoc = {
+      $set: {
+        [`translations.${language}`]: translation,
+      },
+    };
+    const options = { upsert: true };
+    const result = await db.collection('content').updateOne(filter, updateDoc, options);
 
-    if (!result.insertedId) {
-      return res.status(500).json({ message: 'Failed to insert document' });
+    if (!result.matchedCount && !result.upsertedCount) {
+      return res.status(500).json({ message: 'Failed to insert or update document' });
     }
 
-    res.status(201).json({ _id: result.insertedId, ...doc });
+    res.status(201).json({ message: 'Document inserted/updated successfully' });
   });
 };
 
@@ -93,8 +95,10 @@ const handlePut = async (req, res) => {
     }
 
     const { category, language } = req.query;
-    const { content, title, description, faqs, relatedTools } = req.body;
+    const { content, title, description } = req.body;
     const image = req.file;
+    const faqs = req.body.faqs ? JSON.parse(req.body.faqs) : [];
+    const relatedTools = req.body.relatedTools ? JSON.parse(req.body.relatedTools) : [];
 
     if (!category || !content || !title || !description || !language) {
       return res.status(400).json({ message: 'Missing required fields' });
@@ -102,19 +106,24 @@ const handlePut = async (req, res) => {
 
     const imageUrl = image ? `/uploads/${image.filename}` : undefined;
 
-    const doc = {
+    const translation = {
       content,
       title,
       description,
       ...(imageUrl && { image: imageUrl }),
-      faqs: faqs ? JSON.parse(faqs) : [],
-      relatedTools: relatedTools ? JSON.parse(relatedTools) : [],
+      faqs,
+      relatedTools,
     };
 
     const { db } = await connectToDatabase();
-    const filter = { category, language };
-    const updateDoc = { $set: doc };
-    const result = await db.collection('content').updateOne(filter, updateDoc, { upsert: true });
+    const filter = { category };
+    const updateDoc = {
+      $set: {
+        [`translations.${language}`]: translation,
+      },
+    };
+    const options = { upsert: true };
+    const result = await db.collection('content').updateOne(filter, updateDoc, options);
 
     if (!result.matchedCount && !result.upsertedCount) {
       return res.status(500).json({ message: 'Failed to update document' });

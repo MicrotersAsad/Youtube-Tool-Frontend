@@ -483,9 +483,11 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
                       className="flex flex-col items-center mb-4"
                     >
                       <div className="w-24 h-24 mb-4">
-                        <img
+                        <Image
                           src={winner.avatar}
                           alt={winner.user}
+                          width={64}
+                          height={64}
                           className="w-full h-full rounded-full object-cover"
                         />
                       </div>
@@ -520,11 +522,13 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
                       >
                         <div className="flex flex-col items-center mb-4">
                           <div className="w-24 h-24 mb-4">
-                            <img
-                              src={winner.avatar}
-                              alt={winner.user}
-                              className="w-full h-full rounded-full object-cover"
-                            />
+                          <Image
+                          src={winner.avatar}
+                          alt={winner.user}
+                          width={64}
+                          height={64}
+                          className="w-full h-full rounded-full object-cover"
+                        />
                           </div>
                           <p className="text-lg font-bold">
                             <Link target="_blank" href={winner.channelUrl}>

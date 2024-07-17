@@ -21,7 +21,6 @@ import MoneyCalculator from "../../public/Youtube-Money-Calculator.png";
 import research from "../../public/youtube-keyword-research.png";
 import Comment from "../../public/Comment-Picker-icon.png";
 
-
 // Dynamically import the QuillWrapper component with SSR disabled
 const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
 
@@ -37,6 +36,7 @@ function Content() {
   const [image, setImage] = useState(null);
   const [faqs, setFaqs] = useState([]);
   const [relatedTools, setRelatedTools] = useState([]);
+  const [availableLanguages, setAvailableLanguages] = useState([]);
   const { t } = useTranslation('navbar');
 
   // Static list of all tools
@@ -73,23 +73,42 @@ function Content() {
       }
       const data = await response.json();
 
-      const contentData = data[0]?.content || '';
-      const faqsData = data[0]?.faqs || [];
-      const relatedToolsData = data[0]?.relatedTools || [];
-      const metatitle = data[0]?.title || '';
-      const metaDescription = data[0]?.description || '';
+      if (data?.translations?.[selectedLanguage]) {
+        const contentData = data.translations[selectedLanguage].content || '';
+        const faqsData = data.translations[selectedLanguage].faqs || [];
+        const relatedToolsData = data.translations[selectedLanguage].relatedTools || [];
+        const metatitle = data.translations[selectedLanguage].title || '';
+        const metaDescription = data.translations[selectedLanguage].description || '';
 
-      setQuillContent(contentData);
-      setExistingContent(contentData);
-      setTitle(metatitle);
-      setDescription(metaDescription);
-      setFaqs(faqsData);
-      setRelatedTools(relatedToolsData);
-      setIsEditing(!!contentData); // Set editing mode based on whether content exists
+        setQuillContent(contentData);
+        setExistingContent(contentData);
+        setTitle(metatitle);
+        setDescription(metaDescription);
+        setFaqs(faqsData);
+        setRelatedTools(relatedToolsData);
+        setIsEditing(!!contentData); // Set editing mode based on whether content exists
+        setAvailableLanguages(Object.keys(data.translations));
+      } else {
+        // Clear the input fields if no content is available for the selected language
+        clearFields();
+        setAvailableLanguages(Object.keys(data.translations || {}));
+      }
     } catch (error) {
       console.error('Error fetching content:', error.message);
       setError(error.message);
+      clearFields(); // Clear fields if there's an error
+      setAvailableLanguages([]);
     }
+  };
+
+  const clearFields = () => {
+    setQuillContent('');
+    setExistingContent('');
+    setTitle('');
+    setDescription('');
+    setFaqs([]);
+    setRelatedTools([]);
+    setIsEditing(false);
   };
 
   const handleSubmit = useCallback(async () => {
@@ -407,6 +426,8 @@ function Content() {
           <h2>{renderHeader()} Content</h2>
           <div dangerouslySetInnerHTML={{ __html: existingContent }}></div>
         </div>
+
+      
       </div>
       <ToastContainer />
     </Layout>

@@ -49,7 +49,6 @@ function Navbar() {
     { key: "Home", href: '/', dropdown: false },
     {
       key: 'YouTube Tools', href: '#', dropdown: true, children: [
-        { key: 'YouTube Tag Generator', href: '/tools/tagGenerator', icon: '🔖' },
         { key: 'YouTube Tag Extractor', href: '/tools/tagExtractor', icon: '🔍' },
         { key: 'DescriptionGenerator', href: '/tools/DescriptionGenerator', icon: '📝' },
         { key: 'Titlegenerator', href: '/tools/Titlegenerator', icon: '📝' },

@@ -387,10 +387,12 @@ const VideoSummarizer = ({ meta, faqs }) => {
           <div className="flex flex-col lg:flex-row">
             <div className="w-full lg:w-1/3 mb-4 lg:mb-0">
               <div className="border rounded pt-6 pb-14 pe-4 ps-4 ">
-                <img
+                <Image
                   src={videoInfo.thumbnail}
                   alt="Video Thumbnail"
                   className="mb-4"
+                  width={200}
+                  height={200}
                 />
                 <h2 className="text-xl font-bold mb-2">{videoInfo.title}</h2>
                 <p className="mb-1">{t("Author")}: {videoInfo.author}</p>

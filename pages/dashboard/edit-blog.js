@@ -6,6 +6,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
+import Image from 'next/image';
 
 const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
 

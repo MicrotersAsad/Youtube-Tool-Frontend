@@ -510,7 +510,7 @@ const YouTubeChannelScraper = ({ meta, faqs }) => {
               key={index}
               className="bg-white shadow-md rounded-lg p-4 channel-card"
             >
-              <img
+              <Image
                 src={channel.snippet.thumbnails.high.url}
                 alt={channel.snippet.title}
                 className="w-full h-auto rounded-md mb-4"

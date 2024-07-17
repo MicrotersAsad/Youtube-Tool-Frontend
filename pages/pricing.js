@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Head from 'next/head';
+import Image from 'next/image';
 
 Modal.setAppElement('#__next'); // Set the app element for accessibility purposes
 
@@ -217,7 +218,7 @@ const Pricing = () => {
           <div className="text-center">
             <h2 className="text-2xl font-semibold mb-4">{t('Still Have Questions?')}</h2>
             <p className="text-gray-600 mb-4">{t('Reach out to us at contact@ytubetool.com or scan the QR code below.')}</p>
-            <img src="https://via.placeholder.com/150" alt="QR Code" className="mx-auto" />
+            <Image src="https://via.placeholder.com/150" alt="QR Code" width={100} height={100} className="mx-auto" />
           </div>
         </div>
         {/* Payment Method Modal */}

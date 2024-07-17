@@ -14,7 +14,7 @@ export default function ImageGallery() {
 
   useEffect(() => {
     const fetchImages = async () => {
-      const response = await fetch('/api/get-images');
+      const response = await fetch('/api/media');
       const data = await response.json();
       console.log(data);
       setImages(data.images);
@@ -46,7 +46,7 @@ export default function ImageGallery() {
     formData.append('title', title);
 
     try {
-      const response = await fetch('/api/upload-image', {
+      const response = await fetch('/api/media', {
         method: 'POST',
         body: formData,
       });
@@ -67,7 +67,7 @@ export default function ImageGallery() {
 
   const handleDelete = async (imageId) => {
     try {
-      const response = await fetch(`/api/delete-image?id=${imageId}`, {
+      const response = await fetch(`/api/media?id=${imageId}`, {
         method: 'DELETE',
       });
 
@@ -116,12 +116,11 @@ export default function ImageGallery() {
                   </td>
                   <td className="border px-4 py-2">{image.title}</td>
                   <td className="border px-4 py-2">
-                    
                     <button
                       onClick={() => handleDelete(image._id)}
                       className="bg-red-500 text-white px-2 py-1 rounded"
                     >
-                      <FaTrash/>
+                      <FaTrash />
                     </button>
                   </td>
                 </tr>
