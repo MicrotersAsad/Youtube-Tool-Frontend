@@ -205,7 +205,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
 
   const generateTitles = async () => {
     if (!user) {
-      toast.error(t('loginPrompt'));
+      toast.error(t('Please sign in to use this tool.'));
       return;
     }
 
@@ -214,7 +214,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
       user.role !== "admin" &&
       generateCount <= 0
     ) {
-      toast.error(t('upgradePrompt'));
+      toast.error(t('You are not upgraded. You can generate titles {{remaining}} more times. Upgrade', { remaining: generateCount }));
       return;
     }
 
@@ -307,7 +307,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
     }
 
     if (!newReview.rating || !newReview.comment) {
-      toast.error(t('allFieldsRequired'));
+      toast.error(t('All fields are required.'));
       return;
     }
 
@@ -327,7 +327,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
 
       if (!response.ok) throw new Error("Failed to submit review");
 
-      toast.success(t('reviewSubmittedSuccessfully'));
+      toast.success(t('Review submitted successfully.'));
       setNewReview({
         name: "",
         rating: 0,
@@ -338,7 +338,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
       setShowReviewForm(false);
       fetchReviews();
     } catch (error) {
-      toast.error(t('failedToSubmitReview'));
+      toast.error(t('Failed to submit review.'));
     }
   };
 
@@ -483,11 +483,11 @@ const YTTitleGenerator = ({ meta, faqs }) => {
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        {t('upgradePrompt')}
+                        {t('Congratulations! Now you can generate unlimited titles.')}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        {t('notUpgradedPrompt', { remaining: 5 - generateCount })}
+                        {t('You are not upgraded. You can generate titles {{remaining}} more times. Upgrade', { remaining: 5 - generateCount })}
                         <Link href="/pricing" className="btn btn-warning ms-3">
                           {t('Upgrade')}
                         </Link>
@@ -495,7 +495,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
                     )
                   ) : (
                     <p className="text-center p-3 alert-warning">
-                      {t('loginPrompt')}
+                      {t('Please sign in to use this tool.')}
                     </p>
                   )}
                 </div>
@@ -525,7 +525,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
             </div>
             <input
               type="text"
-              placeholder={t('addKeyword')}
+              placeholder={t('Add a keyword')}
               className="input-box"
               value={input}
               onChange={handleInputChange}
@@ -541,7 +541,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
                 disabled={isLoading || tags.length === 0}
                 style={{ minWidth: "50px" }}
               >
-                {isLoading ? t('generating') : t('Generate Titles')}
+                {isLoading ? t('Generating...') : t('Generate Titles')}
               </button>
               <button
                 className="btn btn-danger whitespace-nowrap"
@@ -583,7 +583,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
               checked={selectAll}
               onChange={handleSelectAll}
             />
-            <span>{t('selectAll')}</span>
+            <span>{t('Select All')}</span>
           </div>
         )}
         {generatedTitles.map((title, index) => (
@@ -603,7 +603,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
         ))}
         {generatedTitles.some((title) => title.selected) && (
           <button className="btn btn-primary" onClick={copySelectedTitles}>
-            {t('copyAllTags')} <FaCopy />
+            {t('Copy All Titles')} <FaCopy />
           </button>
         )}
         {generatedTitles.some((title) => title.selected) && (
@@ -611,7 +611,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
             className="btn btn-primary ms-2"
             onClick={downloadSelectedTitles}
           >
-            {t('downloadTags')} <FaDownload />
+            {t('Download Titles')} <FaDownload />
           </button>
         )}
       </div>
@@ -625,9 +625,9 @@ const YTTitleGenerator = ({ meta, faqs }) => {
 
       <div className="p-5 shadow">
         <div className="accordion">
-          <h2 className="faq-title">{t('frequentlyAskedQuestions')}</h2>
+          <h2 className="faq-title">{t('Frequently Asked Questions')}</h2>
           <p className="faq-subtitle">
-            {t('answeredAllFAQs')}
+            {t('Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us')}
           </p>
           <div className="faq-grid">
             {faqs?.map((faq, index) => (
@@ -639,7 +639,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
                   className="accordion-header"
                   onClick={() => toggleFAQ(index)}
                 >
-                  {faq.question}
+                  {t(faq.question)}
                 </a>
                 <a
                   href={`#accordion-${index}`}
@@ -647,14 +647,14 @@ const YTTitleGenerator = ({ meta, faqs }) => {
                   className="accordion-header"
                   onClick={() => toggleFAQ(index)}
                 >
-                  {faq.question}
+                  {t(faq.question)}
                 </a>
                 <div
                   className={`accordion-content ${
                     openIndex === index ? "open" : ""
                   }`}
                 >
-                  <p>{faq.answer}</p>
+                  <p>{t(faq.answer)}</p>
                 </div>
               </div>
             ))}
@@ -665,7 +665,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
      
       <div className="row pt-3">
         <div className="col-md-4">
-          <div className=" text-3xl font-bold mb-2">{t('customerReviews')}</div>
+          <div className=" text-3xl font-bold mb-2">{t('Customer Reviews')}</div>
           <div className="flex items-center mb-2">
             <div className="text-3xl font-bold mr-2">{overallRating}</div>
             <div className="flex">
@@ -677,7 +677,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
               ))}
             </div>
             <div className="ml-2 text-sm text-gray-500">
-              {reviews.length} {t('globalRatings')}
+              {reviews.length} {t('global ratings')}
             </div>
           </div>
           <div>
@@ -698,13 +698,13 @@ const YTTitleGenerator = ({ meta, faqs }) => {
           </div>
           <hr />
           <div className="pt-3">
-            <h4>{t('reviewThisTool')}</h4>
-            <p>{t('shareYourThoughts')}</p>
+            <h4>{t('Review This Tool')}</h4>
+            <p>{t('Share Your Thoughts With Other Customers')}</p>
             <button
               className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 mb-4"
               onClick={openReviewForm}
             >
-              {t('writeReview')}
+              {t('Write a customer review')}
             </button>
           </div>
         </div>
@@ -721,7 +721,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
                 />
                 <div className="ml-4">
                   <div className="font-bold">{review?.userName}</div>
-                  <div className="text-gray-500 text-sm">{t('verifiedPurchase')}</div>
+                  <div className="text-gray-500 text-sm">{t('Verified Purchase')}</div>
                 </div>
               </div>
               <div className="flex items-center">
@@ -737,7 +737,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
                 </div>
               </div>
               <div className="text-gray-500 text-sm mb-4">
-                {t('reviewedOn')} {review.createdAt}
+                {t('Reviewed On')} {review.createdAt}
               </div>
               <div className="text-lg mb-4">{review.comment}</div>
             </div>
@@ -747,7 +747,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
               className="btn btn-primary mt-4 mb-5"
               onClick={handleShowMoreReviews}
             >
-              {t('seeMoreReviews')}
+              {t('See More Reviews')}
             </button>
           )}
           {showAllReviews &&
@@ -764,10 +764,10 @@ const YTTitleGenerator = ({ meta, faqs }) => {
                   <div className="ml-4">
                     <div className="font-bold">{review?.userName}</div>
                     <div className="text-gray-500 text-sm">
-                      {t('verifiedPurchase')}
+                      {t('Verified Purchase')}
                     </div>
                     <p className="text-muted">
-                      {t('reviewedOn')} {review?.createdAt}
+                      {t('Reviewed On')} {review?.createdAt}
                     </p>
                   </div>
                 </div>
@@ -792,7 +792,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="fixed inset-0 bg-black opacity-50"></div>
           <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
-            <h2 className="text-2xl font-semibold mb-4">{t('leaveReview')}</h2>
+            <h2 className="text-2xl font-semibold mb-4">{t('Leave a Review')}</h2>
             <div className="mb-4">
               <StarRating
                 rating={newReview.rating}
@@ -803,7 +803,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
               <input
                 type="text"
                 className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                placeholder={t('reviewTitle')}
+                placeholder={t('Title')}
                 value={newReview.title}
                 onChange={(e) =>
                   setNewReview({ ...newReview, title: e.target.value })
@@ -813,7 +813,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
             <div className="mb-4">
               <textarea
                 className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                placeholder={t('yourReview')}
+                placeholder={t('Your Review')}
                 value={newReview.comment}
                 onChange={(e) =>
                   setNewReview({ ...newReview, comment: e.target.value })
@@ -824,20 +824,20 @@ const YTTitleGenerator = ({ meta, faqs }) => {
               className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
               onClick={handleReviewSubmit}
             >
-              {t('submitReview')}
+              {t('Submit Review')}
             </button>
             <button
               className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
               onClick={closeModal}
             >
-              {t('cancel')}
+              {t('Cancel')}
             </button>
           </div>
         </div>
       )}
       {/* Related Tools Section */}
       <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
-      <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
+      <h2 className="text-2xl font-bold mb-5 text-center">{t('Related Tools')}</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {relatedTools.map((tool, index) => (
           <Link

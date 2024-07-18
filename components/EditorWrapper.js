@@ -19,32 +19,17 @@ const QuillWrapper = ({ initialContent, onChange }) => {
     onChange(value);
   };
 
-  const imageHandler = () => {
-    const url = prompt('Enter the image URL');
-    if (url) {
-      const quill = quillRef.current.getEditor();
-      const range = quill.getSelection();
-      quill.insertEmbed(range.index, 'image', url);
-    }
-  };
 
   const modules = {
     toolbar: {
       container: [
-        ['bold', 'italic', 'underline', 'strike'],
-        ['blockquote', 'code-block'],
-        [{ 'header': 1 }, { 'header': 2 }],
+        [{ 'header': '1' }, { 'header': '2' }, { 'header': [3, 4, 5, 6] }, { 'font': [] }],
         [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-        [{ 'script': 'sub' }, { 'script': 'super' }],
-        [{ 'indent': '-1' }, { 'indent': '+1' }],
-        [{ 'direction': 'rtl' }],
-        [{ 'size': ['small', false, 'large', 'huge'] }],
-        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-        [{ 'color': [] }, { 'background': [] }],
-        [{ 'font': [] }],
+        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+        [{ 'code-block': 'code' }],
+        ['link', 'image', 'video'],
         [{ 'align': [] }],
-        ['clean'],
-        ['image']
+        ['clean']
       ],
      
     },
@@ -53,8 +38,9 @@ const QuillWrapper = ({ initialContent, onChange }) => {
   const formats = [
     'header', 'font',
     'bold', 'italic', 'underline', 'strike', 'blockquote',
-    'list', 'bullet', 'script', 'indent', 'direction', 'size', 'color', 'background',
-    'link', 'image', 'video', 'align', 'code-block', 'clean'
+    'list', 'bullet',
+    'code-block',
+    'link', 'image', 'video', 'align'
   ];
 
   return (
