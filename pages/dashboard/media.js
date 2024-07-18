@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Modal from 'react-modal';
 import Layout from './layout';
 import { FaTrash } from 'react-icons/fa';
+import Image from 'next/image';
 
 Modal.setAppElement('#__next');
 
@@ -107,7 +108,7 @@ export default function ImageGallery() {
                 <tr key={image._id} className="text-gray-700">
                   <td className="border px-4 py-2">{index + 1}</td>
                   <td className="border px-4 py-2">
-                    <img src={image.url} alt={image.title} className="w-16 h-16 object-cover" />
+                    <Image src={image.url} alt={image.title} width={64} height={64} />
                   </td>
                   <td className="border px-4 py-2">
                     <a href={image.url} target="_blank" rel="noopener noreferrer" className="text-blue-500">
