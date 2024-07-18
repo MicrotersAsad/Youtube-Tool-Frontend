@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { ClipLoader } from 'react-spinners';
@@ -73,28 +72,29 @@ const BlogPost = ({ initialBlog }) => {
   return (
     <div>
       <Head>
-      {blog.translations && Object.keys(blog.translations).map(lang => (
-    <link
-      key={lang}
-      rel="alternate"
-      href={`${window.location.protocol}//${window.location.host}/blog/${blog.translations[lang].slug}`}
-      hrefLang={lang} // Corrected property name
-    />
-  ))}
+        {typeof window !== 'undefined' && blog.translations && Object.keys(blog.translations).map(lang => (
+          <link
+            key={lang}
+            rel="alternate"
+            href={`${window.location.protocol}//${window.location.host}/blog/${blog.translations[lang].slug}`}
+            hrefLang={lang} // Corrected property name
+          />
+        ))}
       </Head>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
         <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
           <div className="p-6 bg-white border-b border-gray-200">
             <h1 className="text-3xl font-bold mb-4">{content.title}</h1>
             <div className="text-gray-600 mb-4">{content.description}</div>
-            <Image
-              src={content.image}
-              alt={content.title}
-              width={1200}
-              height={630}
-              layout="responsive"
-              className="rounded-lg"
-            />
+            {content.image && (
+              <img
+                src={content.image}
+                alt={content.title}
+                width={1200}
+                height={630}
+                style={{ borderRadius: '0.5rem', maxWidth: '100%' }}
+              />
+            )}
             <div className="my-4" dangerouslySetInnerHTML={{ __html: content.content }} />
             <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
           </div>

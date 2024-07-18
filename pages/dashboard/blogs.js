@@ -22,6 +22,7 @@ function Blogs() {
   const [description, setDescription] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [image, setImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null); // New state for the image file
   const [categories, setCategories] = useState([]);
   const [isSlugEditable, setIsSlugEditable] = useState(false);
 
@@ -107,8 +108,8 @@ function Blogs() {
       formData.append('metaDescription', metaDescription);
       formData.append('language', selectedLanguage);
       formData.append('category', selectedCategory);
-      if (image) {
-        formData.append('image', image);
+      if (imageFile) {
+        formData.append('image', imageFile); // Use the image file
       }
       formData.append('author', user.username);
       formData.append('authorProfile', user.profileImage);
@@ -152,8 +153,10 @@ function Blogs() {
     const file = e.target.files[0];
     if (file) {
       setImage(URL.createObjectURL(file));
+      setImageFile(file); // Save the file for form submission
     }
   };
+
   useEffect(() => {
     if (!isSlugEditable) {
       const generateSlug = (str) => {
@@ -283,20 +286,20 @@ function Blogs() {
               </select>
             </div>
             <div className="mb-3">
-          <label htmlFor="image" className="block mb-2 text-lg font-medium">Image</label>
-          <input
-            type="file"
-            id="image"
-            onChange={handleImageChange}
-            className="block w-full text-gray-700"
-          />
-          {image && (
-            <div className="mt-4">
-            <Image src={image} alt="Preview" width={100} height={100} className=" rounded-lg shadow-md" />
+              <label htmlFor="image" className="block mb-2 text-lg font-medium">Image</label>
+              <input
+                type="file"
+                id="image"
+                onChange={handleImageChange}
+                className="block w-full text-gray-700"
+              />
+              {image && (
+                <div className="mt-4">
+                  <Image src={image} alt="Preview" width={100} height={100} className="rounded-lg shadow-md" />
+                </div>
+              )}
+              <p className="text-gray-600 text-sm mt-1">Valid image type: jpg/jpeg/png/svg</p>
             </div>
-          )}
-          <p className="text-gray-600 text-sm mt-1">Valid image type: jpg/jpeg/png/svg</p>
-        </div>
             <button
               className="bg-blue-500 text-white p-3 rounded-lg w-full mb-4 shadow-md"
               onClick={handleSubmit}
