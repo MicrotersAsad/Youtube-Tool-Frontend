@@ -28,9 +28,9 @@ export default function Home({ meta }) {
   );
 }
 
-export async function getStaticProps({ locale }) {
-  const host = process.env.HOST || "localhost:3000";
-  const protocol = process.env.PROTOCOL || "http";
+export async function getServerSideProps({ locale, req }) {
+  const host = req.headers.host;
+  const protocol = req.headers["x-forwarded-proto"] || "http";
   const apiUrl = `${protocol}://${host}/api/content?category=tagGenerator&language=${locale}`;
 
   try {
