@@ -21,7 +21,7 @@ import TrendingVideos from "../../public/youtube-trending-videos.png";
 import MoneyCalculator from "../../public/Youtube-Money-Calculator.png";
 import research from "../../public/youtube-keyword-research.png";
 import Comment from "../../public/Comment-Picker-icon.png";
-import Hashtag from "../../public/tools/youtube-hastag-generator.png";
+import Hashtag from "../../public/youtube-hastag-generator.png";
 
 // Dynamically import the QuillWrapper component with SSR disabled
 const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
