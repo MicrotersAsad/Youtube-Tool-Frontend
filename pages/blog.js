@@ -73,7 +73,6 @@ const BlogSection = ({ initialBlogs }) => {
           <div>
             {currentBlogs.slice(0, 1).map((blog, index) => {
               const content = getTranslatedContent(blog);
-             console.log(content?.image);
               return (
                 <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
                   {content.image && (
@@ -107,7 +106,6 @@ const BlogSection = ({ initialBlogs }) => {
           <div className="space-y-4">
             {currentBlogs.slice(1, 4).map((blog, index) => {
               const content = getTranslatedContent(blog);
-           
               return (
                 <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden flex flex-col md:flex-row">
                   {content.image && (
@@ -140,7 +138,6 @@ const BlogSection = ({ initialBlogs }) => {
         </div>
 
         <div className="bg-red-500 text-white p-10 rounded-lg relative w-full text-center mt-5 mb-5">
-          <div className="bg-red-500 absolute inset-x-0 -top-10 h-20 rounded-b-full"></div>
           <div className="mt-10">
             <h2 className="text-2xl text-white font-bold mb-2">SUBSCRIBE TO OUR NEWSLETTER</h2>
             <p className="mb-4">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Deleniti aliquid molestias voluptatem fugiat provident tenetur saepe hic consectet.</p>
@@ -158,7 +155,6 @@ const BlogSection = ({ initialBlogs }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
           {currentBlogs.slice(4).map((blog, index) => {
             const content = getTranslatedContent(blog);
-           
             return (
               <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
                 {content.image && (
@@ -221,11 +217,9 @@ export async function getServerSideProps({ locale, req }) {
     const protocol = req.headers['x-forwarded-proto'] || 'http';
     const apiUrl = `${protocol}://${host}/api/blogs`;
     const { data } = await axios.get(apiUrl);
-    const blogs = data;
-    console.log('Fetched Blogs:', blogs); // Debugging log
     return {
       props: {
-        initialBlogs: blogs,
+        initialBlogs: data,
         ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
       },
     };
