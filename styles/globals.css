@@ -927,3 +927,33 @@ svg{
 .lan{
   z-index: 100;
 }
+/* PayPal Colors */
+.paypal-blue {
+  color: #003087;
+}
+
+.paypal-light-blue {
+  color: #009cde;
+}
+
+.paypal-dark-blue {
+  color: #001c48;
+}
+
+/* MasterCard Colors */
+.mastercard-orange {
+  color: #ff5f00;
+}
+
+.mastercard-red {
+  color: #eb001b;
+}
+
+/* Stripe Colors */
+.stripe-blue {
+  color: #6772e5;
+}
+
+.stripe-dark-blue {
+  color: #32325d;
+}

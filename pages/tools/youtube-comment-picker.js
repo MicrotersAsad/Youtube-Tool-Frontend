@@ -58,7 +58,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
         setRelatedTools(data.translations[language]?.relatedTools || []);
         setTranslations(data.translations);
       } catch (error) {
-        toast.error(t("Error fetching content"));
+        console.error(t("Error fetching content"));
       }
     };
 

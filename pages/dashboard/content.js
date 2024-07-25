@@ -6,7 +6,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useTranslation } from 'react-i18next';
 import TagGenerator from "../../public/tagGenerator.png";
 import TagExtractor from "../../public/youtube-tag-extractor.png";
-import TitleGenerator from "../../public/Title-And-Description-Generator.png";
+import TitleGenerator from "../../public/title-bar.png";
+import DescriptionGenerator from "../../public/description.png";
 import TitleDescriptionExtractor from "../../public/title-and-description-extractor.png";
 import BannerDownloader from "../../public/youtube-channel-banner-download.png";
 import LogoDownloader from "../../public/Youtube-channel-logo-downloader.png";
@@ -44,7 +45,7 @@ function Content() {
     { name: t('YouTube Tag Generator'), link: 'https://tool1.com', logo: TagGenerator },
     { name: 'Youtube Tag Extractor', link: 'https://tool2.com', logo: TagExtractor },
     { name: 'Youtube Title Generator', link: 'https://tool3.com', logo: TitleGenerator },
-    { name: 'Youtube Description Generator', link: 'https://tool3.com', logo: TitleGenerator },
+    { name: 'Youtube Description Generator', link: 'https://tool3.com', logo: DescriptionGenerator },
     { name: 'Youtube Title&Description Extractor', link: 'https://tool3.com', logo: TitleDescriptionExtractor },
     { name: 'YouTube Channel Banner Downloader', link: 'https://tool3.com', logo: BannerDownloader },
     { name: 'YouTube Channel Logo Downloader', link: 'https://tool3.com', logo: LogoDownloader },
