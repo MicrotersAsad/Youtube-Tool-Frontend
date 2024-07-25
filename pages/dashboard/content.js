@@ -21,6 +21,7 @@ import TrendingVideos from "../../public/youtube-trending-videos.png";
 import MoneyCalculator from "../../public/Youtube-Money-Calculator.png";
 import research from "../../public/youtube-keyword-research.png";
 import Comment from "../../public/Comment-Picker-icon.png";
+import Hashtag from "../../public/tools/youtube-hastag-generator.png";
 
 // Dynamically import the QuillWrapper component with SSR disabled
 const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
@@ -42,23 +43,25 @@ function Content() {
 
   // Static list of all tools
   const allTools = [
-    { name: t('YouTube Tag Generator'), link: 'https://tool1.com', logo: TagGenerator },
-    { name: 'Youtube Tag Extractor', link: 'https://tool2.com', logo: TagExtractor },
-    { name: 'Youtube Title Generator', link: 'https://tool3.com', logo: TitleGenerator },
-    { name: 'Youtube Description Generator', link: 'https://tool3.com', logo: DescriptionGenerator },
-    { name: 'Youtube Title&Description Extractor', link: 'https://tool3.com', logo: TitleDescriptionExtractor },
-    { name: 'YouTube Channel Banner Downloader', link: 'https://tool3.com', logo: BannerDownloader },
-    { name: 'YouTube Channel Logo Downloader', link: 'https://tool3.com', logo: LogoDownloader },
-    { name: 'YouTube Thumbnail  Downloader', link: 'https://tool3.com', logo: ThumbnailDownloader },
-    { name: 'YouTube Channel ID Finder', link: 'https://tool3.com', logo: ChannelIDFinder },
-    { name: 'YouTube Video Data Viewer', link: 'https://tool3.com', logo: VideoDataViewer },
-    { name: 'YouTube Monetization Checker', link: 'https://tool3.com', logo: MonetizationChecker },
-    { name: 'YouTube Channel Search', link: 'https://tool3.com', logo: ChannelSearch },
-    { name: 'YouTube Video Summary Generator', link: 'https://tool3.com', logo: SummaryGenerator },
-    { name: 'YouTube Trending Videos', link: 'https://tool3.com', logo: TrendingVideos },
-    { name: 'YouTube Money Calculator', link: 'https://tool3.com', logo: MoneyCalculator },
-    { name: 'Youtube Comment Picker', link: 'https://tool3.com', logo: Comment },
-    { name: 'YouTube Keyword Research', link: 'https://tool3.com', logo: research },
+    { name: t('YouTube Tag Generator'), link: 'http://www.ytubetools.com/', logo: TagGenerator },
+    { name: 'Youtube Tag Extractor', link: 'http://www.ytubetools.com/tools/tagExtractor', logo: TagExtractor },
+    { name: 'Youtube Title Generator', link: 'http://www.ytubetools.com/tools/Titlegenerator', logo: TitleGenerator },
+    { name: 'Youtube Description Generator', link: 'http://www.ytubetools.com/tools/DescriptionGenerator', logo: DescriptionGenerator },
+    { name: 'Youtube Title&Description Extractor', link: 'http://www.ytubetools.com/tools/youtube-title-and-description-extractor', logo: TitleDescriptionExtractor },
+    { name: 'YouTube Channel Banner Downloader', link: 'http://www.ytubetools.com/tools/YouTube-Channel-Banner-Downloader', logo: BannerDownloader },
+    { name: 'YouTube Hashtag Geneartor', link: 'http://www.ytubetools.com/tools/YouTube-Hashtag-Generator', logo: Hashtag },
+    { name: 'YouTube Channel Logo Downloader', link: 'http://www.ytubetools.com/tools/YouTube-Channel-Logo-Downloader', logo: LogoDownloader },
+    { name: 'YouTube Thumbnail  Downloader', link: 'http://www.ytubetools.com/tools/youtube-thumbnail', logo: ThumbnailDownloader },
+    { name: 'YouTube Channel ID Finder', link: 'http://www.ytubetools.com/tools/channel-id-finder', logo: ChannelIDFinder },
+    { name: 'YouTube Video Data Viewer', link: 'http://www.ytubetools.com/tools/video-data-viewer', logo: VideoDataViewer },
+    { name: 'YouTube Monetization Checker', link: 'http://www.ytubetools.com/tools/monetization-checker', logo: MonetizationChecker },
+    { name: 'YouTube Channel Search', link: 'http://www.ytubetools.com/tools/YouTube-Channel-Search', logo: ChannelSearch },
+    { name: 'YouTube Video Summary Generator', link: 'http://www.ytubetools.com/tools/YouTube-Video-Summary-Generator', logo: SummaryGenerator },
+    { name: 'YouTube Trending Videos', link: 'http://www.ytubetools.com/tools/trendingVideos', logo: TrendingVideos },
+    { name: 'YouTube Money Calculator', link: 'http://www.ytubetools.com/tools/YouTube-Money-Calculator', logo: MoneyCalculator },
+    { name: 'Youtube Comment Picker', link: 'http://www.ytubetools.com/tools/youtube-comment-picker', logo: Comment },
+    { name: 'YouTube Keyword Research', link: 'http://www.ytubetools.com/tools/keyword-research', logo: research },
+
     // Add more tools as needed
   ];
 

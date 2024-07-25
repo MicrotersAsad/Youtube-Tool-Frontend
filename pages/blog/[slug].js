@@ -73,7 +73,7 @@ const BlogPost = ({ initialBlog }) => {
           },
           "publisher": {
             "@type": "Organization",
-            "name": "Publisher Name", // Replace with your organization name
+            "name": "ytubetools", // Replace with your organization name
             "logo": {
               "@type": "ImageObject",
               "url": "https://example.com/logo.jpg" // Replace with your logo URL
@@ -94,13 +94,13 @@ const BlogPost = ({ initialBlog }) => {
               "@type": "ListItem",
               "position": 1,
               "name": "Home",
-              "item": "https://yourwebsite.com"
+              "item": "http://www.ytubetools.com/"
             },
             {
               "@type": "ListItem",
               "position": 2,
               "name": "Blog",
-              "item": "https://yourwebsite.com/blog"
+              "item":  `${window.location.protocol}//${window.location.host}/blog`
             },
             {
               "@type": "ListItem",
