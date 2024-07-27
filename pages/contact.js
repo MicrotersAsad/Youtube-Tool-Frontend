@@ -65,7 +65,7 @@ export default function Contact() {
             />
             <meta
               property="og:url"
-              content="https://youtube-tool-frontend.vercel.app/contact"
+              content="https://ytubetools.com/contact"
             />
          
             <meta
