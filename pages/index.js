@@ -30,7 +30,7 @@ export default function Home({ meta }) {
 
 export async function getServerSideProps({ locale, req }) {
   const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] || "http";
+  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : "http";
   const apiUrl = `${protocol}://${host}/api/content?category=tagGenerator&language=${locale}`;
 
   try {

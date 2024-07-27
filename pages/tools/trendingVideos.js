@@ -748,7 +748,7 @@ const TrendingVideos = ({ meta, faqs }) => {
 
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] || "http";
+  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : "http";
   const apiUrl = `${protocol}://${host}/api/content?category=trendingVideos&language=${locale}`;
 
 
