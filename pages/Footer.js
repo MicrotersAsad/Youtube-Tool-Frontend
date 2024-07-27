@@ -77,18 +77,18 @@ const Footer = () => {
               <h5 className="text-sm font-semibold uppercase text-white">Our Tools</h5>
               <ul className="mt-4 space-y-2">
                 <li>
-                  <Link href="/tools/tagGenerator" className="text-gray-300 hover:text-white">
-                    {t('YouTube Tag Generator')}
+                  <Link href="/tools/title-generator" className="text-gray-300 hover:text-white">
+                    {t('YouTube Title Generator')}
                   </Link>
                 </li>
                 <li>
-                  <Link href="/tools/tagExtractor" className="text-gray-300 hover:text-white">
+                  <Link href="/tools/tag-extractor" className="text-gray-300 hover:text-white">
                     {t('YouTube Tag Extractor')}
                   </Link>
                 </li>
                 <li>
-                  <Link href="/tools/youtube-title-and-description-generator" className="text-gray-300 hover:text-white">
-                    {t('YouTube Title and Description Generator')}
+                  <Link href="/tools/description-generator" className="text-gray-300 hover:text-white">
+                    {t('YouTube Description Generator')}
                   </Link>
                 </li>
                 <li>
