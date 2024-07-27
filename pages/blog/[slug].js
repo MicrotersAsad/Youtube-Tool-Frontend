@@ -137,6 +137,21 @@ const BlogPost = ({ initialBlog }) => {
   return (
     <div>
       <Head>
+        <title>{content.title} | ytubetools</title>
+        <meta name="description" content={content.description} />
+        <meta name="keywords" content="SEO, Blog, ytubetools, {content.title}" />
+        <meta name="author" content={blog.author} />
+        <meta property="og:title" content={content.title} />
+        <meta property="og:description" content={content.description} />
+        <meta property="og:image" content={content.image || "https://example.com/photos/1x1/photo.jpg"} />
+        <meta property="og:url" content={`https://${window.location.host}/blog/${slug}`} />
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={content.title} />
+        <meta name="twitter:description" content={content.description} />
+        <meta name="twitter:image" content={content.image || "https://example.com/photos/1x1/photo.jpg"} />
+        <meta name="twitter:site" content="@ytubetools" />
+
         {schemaData && (
           <script type="application/ld+json">
             {JSON.stringify(schemaData)}

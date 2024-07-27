@@ -63,7 +63,7 @@ function MyApp({ Component, pageProps }) {
             "@context": "https://schema.org",
             "@type": "Organization",
             "name": "YouTube Tools",
-            "url": "https://www.ytubetools.com/",
+            "url": "http://www.ytubetools.com/",
             "logo": "https://yourwebsite.com/logo.png",
             "contactPoint": {
               "@type": "ContactPoint",
@@ -84,7 +84,7 @@ function MyApp({ Component, pageProps }) {
         crossOrigin="anonymous"
       />
       <AuthProvider>
-        <Notice />
+        {/* <Notice /> */}
         <Navbar />
         <Component {...pageProps} />
         <Footer />
