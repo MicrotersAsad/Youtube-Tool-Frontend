@@ -739,7 +739,7 @@ export async function getServerSideProps({ req, locale }) {
       title: contentData.translations[locale]?.title || "",
       description: contentData.translations[locale]?.description || "",
       image: contentData.translations[locale]?.image || "",
-      url: `${protocol}://${host}/tools/YouTube-Money-Calculator`,
+      url: `${protocol}://${host}/tools/youtube-money-calculator`,
     };
 
     return {

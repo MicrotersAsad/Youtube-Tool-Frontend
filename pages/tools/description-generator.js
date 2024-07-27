@@ -681,7 +681,7 @@ export async function getServerSideProps({ req, locale }) {
       title: contentData.translations[locale]?.title || "",
       description: contentData.translations[locale]?.description || "",
       image: contentData.translations[locale]?.image || "",
-      url: `${protocol}://${host}/tools/DescriptionGenerator`,
+      url: `${protocol}://${host}/tools/description-generator`,
     };
 
     return {

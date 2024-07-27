@@ -899,7 +899,7 @@ export async function getServerSideProps({ req, locale }) {
       title: contentData.translations[locale]?.title || "",
       description: contentData.translations[locale]?.description || "",
       image: contentData.translations[locale]?.image || "",
-      url: `${protocol}://${host}/tools/YouTube-Channel-Banner-Downloader`,
+      url: `${protocol}://${host}/tools/youtube-channel-banner-downloader`,
     };
 
     return {

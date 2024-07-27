@@ -38,7 +38,7 @@ const YouTubeChannelLogoDownloader = ({ meta, faqs }) => {
       ? Number(localStorage.getItem("generateCount")) || 0
       : 0
   );
-  const [content, setContent] = useState(""); // Content state for fetched HTML content
+
   const [reviews, setReviews] = useState([]);
   const [quillContent, setQuillContent] = useState("");
   const [existingContent, setExistingContent] = useState("");
@@ -70,6 +70,7 @@ const YouTubeChannelLogoDownloader = ({ meta, faqs }) => {
         const data = await response.json();
         setQuillContent(data.translations[language]?.content || "");
         setExistingContent(data.translations[language]?.content || "");  
+        console.log(existingContent);
         setRelatedTools(data.translations[language]?.relatedTools || []);
         setTranslations(data.translations);
       } catch (error) {
@@ -791,7 +792,7 @@ export async function getServerSideProps({ req, locale }) {
       title: contentData.translations[locale]?.title || "",
       description: contentData.translations[locale]?.description || "",
       image: contentData.translations[locale]?.image || "",
-      url: `${protocol}://${host}/tools/YouTube-Channel-Logo-Downloader`,
+      url: `${protocol}://${host}/tools/youtube-channel-logo-downloader`,
     };
 
     return {

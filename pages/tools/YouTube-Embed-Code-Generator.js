@@ -744,7 +744,7 @@ export async function getServerSideProps({ req, locale }) {
       title: contentData.translations[locale]?.title || "",
       description: contentData.translations[locale]?.description || "",
       image: contentData.translations[locale]?.image || "",
-      url: `${protocol}://${host}/tools/YouTube-Embed-Code-Generator`,
+      url: `${protocol}://${host}/tools/youtube-embed-code-generator`,
     };
 
     return {
