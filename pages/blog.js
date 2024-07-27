@@ -221,10 +221,9 @@ const BlogSection = ({ initialBlogs }) => {
 
 export async function getServerSideProps({ locale, req }) {
   try {
+    const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
     const host = req.headers.host;
-    const protocol = req.headers['x-forwarded-proto'] || 'http';
-    // Force HTTPS if the protocol is HTTP
-    const apiUrl = `${protocol === 'https' ? 'https' : 'http'}://${host}/api/blogs`;
+    const apiUrl = `${protocol}://${host}/api/blogs`;
     const { data } = await axios.get(apiUrl);
     return {
       props: {
