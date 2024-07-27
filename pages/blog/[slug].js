@@ -197,12 +197,13 @@ const BlogPost = ({ initialBlog }) => {
     </div>
   );
 };
-
 export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
-    const protocol = req.headers['x-forwarded-proto'] || 'http';
-    const host = req.headers.host || 'ytubetools.com'; // Default to localhost if not provided
+    const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+    console.log(protocol);
+    const host = req.headers.host || 'localhost:3000'; // Default to localhost if not provided
+    console.log(host);
     const apiUrl = `${protocol}://${host}/api/blogs`;
 
     console.log(`Fetching from: ${apiUrl}`); // Log the API URL
@@ -235,5 +236,6 @@ export async function getServerSideProps({ locale, params, req }) {
     };
   }
 }
+
 
 export default BlogPost;
