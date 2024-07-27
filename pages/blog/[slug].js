@@ -20,7 +20,7 @@ const BlogPost = ({ initialBlog }) => {
     if (!initialBlog && slug) {
       const fetchData = async () => {
         try {
-          const apiUrl = `https://${window.location.host}/api/blogs`;
+          const apiUrl = `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/api/blogs`;
 
           console.log(`Fetching data from: ${apiUrl}`); // Debugging log
 
@@ -80,7 +80,7 @@ const BlogPost = ({ initialBlog }) => {
           "description": content.description,
           "mainEntityOfPage": {
             "@type": "WebPage",
-            "@id": `https://${window.location.host}/blog/${slug}`
+            "@id": `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog/${slug}`
           }
         };
 
@@ -98,13 +98,13 @@ const BlogPost = ({ initialBlog }) => {
               "@type": "ListItem",
               "position": 2,
               "name": "Blog",
-              "item": `https://${window.location.host}/blog`
+              "item": `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog`
             },
             {
               "@type": "ListItem",
               "position": 3,
               "name": content.title,
-              "item": `https://${window.location.host}/blog/${slug}`
+              "item": `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog/${slug}`
             }
           ]
         };
@@ -139,12 +139,12 @@ const BlogPost = ({ initialBlog }) => {
       <Head>
         <title>{content.title} | ytubetools</title>
         <meta name="description" content={content.description} />
-        <meta name="keywords" content="SEO, Blog, ytubetools, {content.title}" />
+        <meta name="keywords" content={`SEO, Blog, ytubetools, ${content.title}`} />
         <meta name="author" content={blog.author} />
         <meta property="og:title" content={content.title} />
         <meta property="og:description" content={content.description} />
         <meta property="og:image" content={content.image || "https://example.com/photos/1x1/photo.jpg"} />
-        <meta property="og:url" content={`https://${window.location.host}/blog/${slug}`} />
+        <meta property="og:url" content={`https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog/${slug}`} />
         <meta property="og:type" content="article" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={content.title} />
@@ -200,14 +200,17 @@ const BlogPost = ({ initialBlog }) => {
 export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
-    const protocol = req.headers['x-forwarded-proto'] || 'https'; // Use HTTPS by default
-    const host = req.headers.host;
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const host = req.headers.host || 'localhost:3000'; // Default to localhost if not provided
     const apiUrl = `${protocol}://${host}/api/blogs`;
 
+    console.log(`Fetching from: ${apiUrl}`); // Log the API URL
+
     const { data } = await axios.get(apiUrl);
+    console.log(`Received data: ${JSON.stringify(data)}`); // Log the received data
+
     const blogs = data;
 
-    // Find the correct blog post that matches the slug within translations
     const blog = blogs.find(blog =>
       Object.values(blog.translations).some(translation => translation.slug === slug)
     );
