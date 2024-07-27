@@ -20,7 +20,7 @@ const BlogPost = ({ initialBlog }) => {
     if (!initialBlog && slug) {
       const fetchData = async () => {
         try {
-          const apiUrl = `https://${window.location.host}/api/blogs`;
+          const apiUrl = `${window.location.origin}/api/blogs`;
 
           const { data } = await axios.get(apiUrl);
           const blogs = data;
@@ -74,7 +74,7 @@ const BlogPost = ({ initialBlog }) => {
           "description": content.description,
           "mainEntityOfPage": {
             "@type": "WebPage",
-            "@id": `https://${window.location.host}/blog/${slug}`
+            "@id": `${window.location.origin}/blog/${slug}`
           }
         };
 
@@ -92,13 +92,13 @@ const BlogPost = ({ initialBlog }) => {
               "@type": "ListItem",
               "position": 2,
               "name": "Blog",
-              "item": `https://${window.location.host}/blog`
+              "item": `${window.location.origin}/blog`
             },
             {
               "@type": "ListItem",
               "position": 3,
               "name": content.title,
-              "item": `https://${window.location.host}/blog/${slug}`
+              "item": `${window.location.origin}/blog/${slug}`
             }
           ]
         };
@@ -137,7 +137,7 @@ const BlogPost = ({ initialBlog }) => {
         <meta property="og:title" content={content.title} />
         <meta property="og:description" content={content.description} />
         <meta property="og:image" content={content.image || "https://example.com/photos/1x1/photo.jpg"} />
-        <meta property="og:url" content={`https://${window.location.host}/blog/${slug}`} />
+        <meta property="og:url" content={`${window.location.origin}/blog/${slug}`} />
         <meta property="og:type" content="article" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={content.title} />
@@ -159,7 +159,7 @@ const BlogPost = ({ initialBlog }) => {
           <link
             key={lang}
             rel="alternate"
-            href={`https://${window.location.host}/blog/${blog.translations[lang].slug}`}
+            href={`${window.location.origin}/blog/${blog.translations[lang].slug}`}
             hrefLang={lang}
           />
         ))}
@@ -190,10 +190,34 @@ const BlogPost = ({ initialBlog }) => {
   );
 };
 
-export async function getServerSideProps({ locale, params }) {
+export async function getStaticPaths() {
+  try {
+    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+    const host = process.env.NODE_ENV === 'development' ? 'localhost:3000' : 'ytubetools.com';
+    const apiUrl = `${protocol}://${host}/api/blogs`;
+    const { data } = await axios.get(apiUrl);
+
+    const paths = data.map(blog => {
+      const translations = Object.values(blog.translations);
+      return translations.map(translation => ({
+        params: { slug: translation.slug },
+        locale: translation.locale
+      }));
+    }).flat();
+
+    return { paths, fallback: true };
+  } catch (error) {
+    console.error('Error fetching blogs:', error.message);
+    return { paths: [], fallback: true };
+  }
+}
+
+export async function getStaticProps({ params, locale }) {
   try {
     const { slug } = params;
-    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'https://ytubetools.com'}/api/blogs/${slug}`;
+    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+    const host = process.env.NODE_ENV === 'development' ? 'localhost:3000' : 'ytubetools.com';
+    const apiUrl = `${protocol}://${host}/api/blogs/${slug}`;
 
     console.log(`Fetching from: ${apiUrl}`); // Log the API URL for debugging
 
@@ -204,6 +228,7 @@ export async function getServerSideProps({ locale, params }) {
         initialBlog: data,
         ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
       },
+      revalidate: 60, // Revalidate the page every 60 seconds
     };
   } catch (error) {
     console.error('Error fetching blog:', error.message);
