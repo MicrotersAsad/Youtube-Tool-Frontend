@@ -20,17 +20,11 @@ const BlogPost = ({ initialBlog }) => {
     if (!initialBlog && slug) {
       const fetchData = async () => {
         try {
-          const apiUrl = `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/api/blogs`;
-
-          console.log(`Fetching data from: ${apiUrl}`); // Debugging log
+          const apiUrl = `https://${window.location.host}/api/blogs`;
 
           const { data } = await axios.get(apiUrl);
           const blogs = data;
 
-          // Debugging log
-          console.log(`Fetched data: ${JSON.stringify(blogs, null, 2)}`);
-
-          // Find the correct blog post that matches the slug within translations
           const blog = blogs.find(blog =>
             Object.values(blog.translations).some(translation => translation.slug === slug)
           );
@@ -38,7 +32,7 @@ const BlogPost = ({ initialBlog }) => {
           if (blog) {
             setBlog(blog);
           } else {
-            console.log(`No blog found for slug: ${slug}`); // Debugging log
+            console.log(`No blog found for slug: ${slug}`); // Log if no blog is found
           }
 
         } catch (error) {
@@ -80,7 +74,7 @@ const BlogPost = ({ initialBlog }) => {
           "description": content.description,
           "mainEntityOfPage": {
             "@type": "WebPage",
-            "@id": `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog/${slug}`
+            "@id": `https://${window.location.host}/blog/${slug}`
           }
         };
 
@@ -98,13 +92,13 @@ const BlogPost = ({ initialBlog }) => {
               "@type": "ListItem",
               "position": 2,
               "name": "Blog",
-              "item": `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog`
+              "item": `https://${window.location.host}/blog`
             },
             {
               "@type": "ListItem",
               "position": 3,
               "name": content.title,
-              "item": `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog/${slug}`
+              "item": `https://${window.location.host}/blog/${slug}`
             }
           ]
         };
@@ -128,7 +122,6 @@ const BlogPost = ({ initialBlog }) => {
   }
 
   const content = blog.translations ? blog.translations[locale] : null;
-  console.log(content);
 
   if (!content) {
     return <p className="text-red-500">No content available for this language.</p>;
@@ -144,7 +137,7 @@ const BlogPost = ({ initialBlog }) => {
         <meta property="og:title" content={content.title} />
         <meta property="og:description" content={content.description} />
         <meta property="og:image" content={content.image || "https://example.com/photos/1x1/photo.jpg"} />
-        <meta property="og:url" content={`https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog/${slug}`} />
+        <meta property="og:url" content={`https://${window.location.host}/blog/${slug}`} />
         <meta property="og:type" content="article" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={content.title} />
@@ -201,21 +194,20 @@ export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
     const protocol = req.headers['x-forwarded-proto'] || 'http';
-    const host = req.headers.host || 'localhost:3000'; // Default to localhost if not provided
+    const host = req.headers.host;
     const apiUrl = `${protocol}://${host}/api/blogs`;
 
-    console.log(`Fetching from: ${apiUrl}`); // Log the API URL
+    console.log(`Fetching from: ${apiUrl}`); // Log the API URL for debugging
 
     const { data } = await axios.get(apiUrl);
-    console.log(`Received data: ${JSON.stringify(data)}`); // Log the received data
+    console.log(`Received data: ${JSON.stringify(data, null, 2)}`); // Log the received data
 
-    const blogs = data;
-
-    const blog = blogs.find(blog =>
+    const blog = data.find(blog =>
       Object.values(blog.translations).some(translation => translation.slug === slug)
     );
 
     if (!blog) {
+      console.log(`No blog found for slug: ${slug}`); // Log the slug if no blog is found
       return {
         notFound: true,
       };
