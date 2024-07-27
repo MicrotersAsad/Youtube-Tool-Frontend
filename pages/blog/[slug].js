@@ -190,37 +190,23 @@ const BlogPost = ({ initialBlog }) => {
   );
 };
 
-export async function getServerSideProps({ locale, params, req }) {
+export async function getServerSideProps({ locale, params }) {
   try {
     const { slug } = params;
-    const protocol = req.headers['x-forwarded-proto'] || 'http';
-    const host = req.headers.host;
-    const apiUrl = `${protocol}://${host}/api/blogs`;
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'https://ytubetools.com'}/api/blogs/${slug}`;
 
     console.log(`Fetching from: ${apiUrl}`); // Log the API URL for debugging
 
     const { data } = await axios.get(apiUrl);
-    console.log(`Received data: ${JSON.stringify(data, null, 2)}`); // Log the received data
-
-    const blog = data.find(blog =>
-      Object.values(blog.translations).some(translation => translation.slug === slug)
-    );
-
-    if (!blog) {
-      console.log(`No blog found for slug: ${slug}`); // Log the slug if no blog is found
-      return {
-        notFound: true,
-      };
-    }
 
     return {
       props: {
-        initialBlog: blog,
+        initialBlog: data,
         ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
       },
     };
   } catch (error) {
-    console.error('Error fetching blogs:', error.message);
+    console.error('Error fetching blog:', error.message);
     return {
       notFound: true,
     };
