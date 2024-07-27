@@ -20,11 +20,18 @@ const BlogPost = ({ initialBlog }) => {
     if (!initialBlog && slug) {
       const fetchData = async () => {
         try {
-          const apiUrl = `${window.location.origin}/api/blogs`;
+          const apiUrl = `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/api/blogs`;
+         
+
+          console.log(`Fetching data from: ${apiUrl}`); // Debugging log
 
           const { data } = await axios.get(apiUrl);
           const blogs = data;
 
+          // Debugging log
+          console.log(`Fetched data: ${JSON.stringify(blogs, null, 2)}`);
+
+          // Find the correct blog post that matches the slug within translations
           const blog = blogs.find(blog =>
             Object.values(blog.translations).some(translation => translation.slug === slug)
           );
@@ -32,7 +39,7 @@ const BlogPost = ({ initialBlog }) => {
           if (blog) {
             setBlog(blog);
           } else {
-            console.log(`No blog found for slug: ${slug}`); // Log if no blog is found
+            console.log(`No blog found for slug: ${slug}`); // Debugging log
           }
 
         } catch (error) {
@@ -74,7 +81,7 @@ const BlogPost = ({ initialBlog }) => {
           "description": content.description,
           "mainEntityOfPage": {
             "@type": "WebPage",
-            "@id": `${window.location.origin}/blog/${slug}`
+            "@id": `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog/${slug}`
           }
         };
 
@@ -92,13 +99,13 @@ const BlogPost = ({ initialBlog }) => {
               "@type": "ListItem",
               "position": 2,
               "name": "Blog",
-              "item": `${window.location.origin}/blog`
+              "item": `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog`
             },
             {
               "@type": "ListItem",
               "position": 3,
               "name": content.title,
-              "item": `${window.location.origin}/blog/${slug}`
+              "item": `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog/${slug}`
             }
           ]
         };
@@ -122,6 +129,7 @@ const BlogPost = ({ initialBlog }) => {
   }
 
   const content = blog.translations ? blog.translations[locale] : null;
+  console.log(content);
 
   if (!content) {
     return <p className="text-red-500">No content available for this language.</p>;
@@ -137,7 +145,7 @@ const BlogPost = ({ initialBlog }) => {
         <meta property="og:title" content={content.title} />
         <meta property="og:description" content={content.description} />
         <meta property="og:image" content={content.image || "https://example.com/photos/1x1/photo.jpg"} />
-        <meta property="og:url" content={`${window.location.origin}/blog/${slug}`} />
+        <meta property="og:url" content={`https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog/${slug}`} />
         <meta property="og:type" content="article" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={content.title} />
@@ -159,7 +167,7 @@ const BlogPost = ({ initialBlog }) => {
           <link
             key={lang}
             rel="alternate"
-            href={`${window.location.origin}/blog/${blog.translations[lang].slug}`}
+            href={`https://${window.location.host}/blog/${blog.translations[lang].slug}`}
             hrefLang={lang}
           />
         ))}
@@ -190,48 +198,38 @@ const BlogPost = ({ initialBlog }) => {
   );
 };
 
-export async function getStaticPaths() {
-  try {
-    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-    const host = process.env.NODE_ENV === 'development' ? 'localhost:3000' : 'ytubetools.com';
-    const apiUrl = `${protocol}://${host}/api/blogs`;
-    const { data } = await axios.get(apiUrl);
-
-    const paths = data.map(blog => {
-      const translations = Object.values(blog.translations);
-      return translations.map(translation => ({
-        params: { slug: translation.slug },
-        locale: translation.locale
-      }));
-    }).flat();
-
-    return { paths, fallback: true };
-  } catch (error) {
-    console.error('Error fetching blogs:', error.message);
-    return { paths: [], fallback: true };
-  }
-}
-
-export async function getStaticProps({ params, locale }) {
+export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
-    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-    const host = process.env.NODE_ENV === 'development' ? 'localhost:3000' : 'ytubetools.com';
-    const apiUrl = `${protocol}://${host}/api/blogs/${slug}`;
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const host = req.headers.host || 'ytubetools.com'; // Default to localhost if not provided
+    const apiUrl = `${protocol}://${host}/api/blogs`;
 
-    console.log(`Fetching from: ${apiUrl}`); // Log the API URL for debugging
+    console.log(`Fetching from: ${apiUrl}`); // Log the API URL
 
     const { data } = await axios.get(apiUrl);
+    console.log(`Received data: ${JSON.stringify(data)}`); // Log the received data
+
+    const blogs = data;
+
+    const blog = blogs.find(blog =>
+      Object.values(blog.translations).some(translation => translation.slug === slug)
+    );
+
+    if (!blog) {
+      return {
+        notFound: true,
+      };
+    }
 
     return {
       props: {
-        initialBlog: data,
+        initialBlog: blog,
         ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
       },
-      revalidate: 60, // Revalidate the page every 60 seconds
     };
   } catch (error) {
-    console.error('Error fetching blog:', error.message);
+    console.error('Error fetching blogs:', error.message);
     return {
       notFound: true,
     };
