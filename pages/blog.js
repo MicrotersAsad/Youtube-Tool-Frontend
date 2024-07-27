@@ -70,23 +70,14 @@ const BlogSection = ({ initialBlogs }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
-       <title>Ytubetools || Blog</title>
-            <meta
-              name="description"
-              content="Blog Page"
-            />
-            <meta
-              property="og:url"
-              content="https://ytubetools.com/blog"
-            />
-         
-            <meta
-              property="og:description"
-              content={
-                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
-              }
-            />
-          
+      <title>Ytubetools || Blog</title>
+      <meta name="description" content="Blog Page" />
+      <meta property="og:url" content="https://ytubetools.com/blog" />
+      <meta
+        property="og:description"
+        content="Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
+      />
+
       <div className="container mx-auto px-4 p-5">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mt-8">
           <div>
@@ -210,15 +201,13 @@ const BlogSection = ({ initialBlogs }) => {
         <div className="flex justify-center mt-8">
           <nav className="block">
             <ul className="flex pl-0 rounded list-none flex-wrap">
-              {Array.from({ length: totalPages }, (_, i) => (
-                <li key={i}>
+              {Array.from({ length: totalPages }, (_, index) => (
+                <li key={index} className="page-item">
                   <button
-                    onClick={() => paginate(i + 1)}
-                    className={`relative block py-2 px-3 leading-tight bg-white border border-gray-300 text-blue-500 border-r-0 ml-0 rounded-l ${
-                      currentPage === i + 1 ? 'bg-gray-200' : ''
-                    }`}
+                    onClick={() => paginate(index + 1)}
+                    className={`page-link ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white text-blue-500'}`}
                   >
-                    {i + 1}
+                    {index + 1}
                   </button>
                 </li>
               ))}
@@ -233,8 +222,9 @@ const BlogSection = ({ initialBlogs }) => {
 export async function getServerSideProps({ locale, req }) {
   try {
     const host = req.headers.host;
-    const protocol = req.headers['x-forwarded-proto'] || 'https';
-    const apiUrl = `${protocol}://${host}/api/blogs`;
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    // Force HTTPS if the protocol is HTTP
+    const apiUrl = `${protocol === 'https' ? 'https' : 'http'}://${host}/api/blogs`;
     const { data } = await axios.get(apiUrl);
     return {
       props: {

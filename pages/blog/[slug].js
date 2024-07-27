@@ -20,9 +20,7 @@ const BlogPost = ({ initialBlog }) => {
     if (!initialBlog && slug) {
       const fetchData = async () => {
         try {
-          const protocol = window.location.protocol;
-          const host = window.location.host;
-          const apiUrl = `${protocol}//${host}/api/blogs`;
+          const apiUrl = `https://${window.location.host}/api/blogs`;
 
           console.log(`Fetching data from: ${apiUrl}`); // Debugging log
 
@@ -82,7 +80,7 @@ const BlogPost = ({ initialBlog }) => {
           "description": content.description,
           "mainEntityOfPage": {
             "@type": "WebPage",
-            "@id": `${window.location.protocol}//${window.location.host}/blog/${slug}`
+            "@id": `https://${window.location.host}/blog/${slug}`
           }
         };
 
@@ -94,19 +92,19 @@ const BlogPost = ({ initialBlog }) => {
               "@type": "ListItem",
               "position": 1,
               "name": "Home",
-              "item": "http://www.ytubetools.com/"
+              "item": "https://www.ytubetools.com/"
             },
             {
               "@type": "ListItem",
               "position": 2,
               "name": "Blog",
-              "item":  `${window.location.protocol}//${window.location.host}/blog`
+              "item": `https://${window.location.host}/blog`
             },
             {
               "@type": "ListItem",
               "position": 3,
               "name": content.title,
-              "item": `${window.location.protocol}//${window.location.host}/blog/${slug}`
+              "item": `https://${window.location.host}/blog/${slug}`
             }
           ]
         };
@@ -153,7 +151,7 @@ const BlogPost = ({ initialBlog }) => {
           <link
             key={lang}
             rel="alternate"
-            href={`${window.location.protocol}//${window.location.host}/blog/${blog.translations[lang].slug}`}
+            href={`https://${window.location.host}/blog/${blog.translations[lang].slug}`}
             hrefLang={lang}
           />
         ))}
@@ -187,7 +185,7 @@ const BlogPost = ({ initialBlog }) => {
 export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
-    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    const protocol = req.headers['x-forwarded-proto'] || 'https'; // Use HTTPS by default
     const host = req.headers.host;
     const apiUrl = `${protocol}://${host}/api/blogs`;
 
