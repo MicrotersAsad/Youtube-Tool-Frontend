@@ -187,17 +187,12 @@ const BlogPost = ({ initialBlog }) => {
 export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
-    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
     const host = req.headers.host;
     const apiUrl = `${protocol}://${host}/api/blogs`;
 
-
-
     const { data } = await axios.get(apiUrl);
     const blogs = data;
-
-    // Debugging log
-
 
     // Find the correct blog post that matches the slug within translations
     const blog = blogs.find(blog =>

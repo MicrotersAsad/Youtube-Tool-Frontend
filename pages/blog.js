@@ -15,6 +15,7 @@ const BlogSection = ({ initialBlogs }) => {
   const blogsPerPage = 9;
 
   const filteredBlogs = blogsData.filter(blog => blog.translations[i18n.language]);
+  console.log(filteredBlogs);
   const currentBlogs = filteredBlogs.slice((currentPage - 1) * blogsPerPage, currentPage * blogsPerPage);
   const totalPages = Math.ceil(filteredBlogs.length / blogsPerPage);
 
@@ -23,6 +24,7 @@ const BlogSection = ({ initialBlogs }) => {
     try {
       const response = await axios.get(`/api/blogs`);
       setBlogsData(response.data);
+      console.log(blogsData);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching blogs:', error);
@@ -231,7 +233,7 @@ const BlogSection = ({ initialBlogs }) => {
 export async function getServerSideProps({ locale, req }) {
   try {
     const host = req.headers.host;
-    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
     const apiUrl = `${protocol}://${host}/api/blogs`;
     const { data } = await axios.get(apiUrl);
     return {

@@ -63,7 +63,7 @@ function MyApp({ Component, pageProps }) {
             "@context": "https://schema.org",
             "@type": "Organization",
             "name": "YouTube Tools",
-            "url": "http://www.ytubetools.com/",
+            "url": "https://www.ytubetools.com/",
             "logo": "https://yourwebsite.com/logo.png",
             "contactPoint": {
               "@type": "ContactPoint",
