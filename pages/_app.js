@@ -9,11 +9,9 @@ import Notice from './Notice';
 import { appWithTranslation } from 'next-i18next';
 import 'react-quill/dist/quill.snow.css';
 
-
-
 function MyApp({ Component, pageProps }) {
-  
   const [showButton, setShowButton] = useState(false);
+
   useEffect(() => {
     const logVisit = async () => {
       try {
@@ -24,6 +22,7 @@ function MyApp({ Component, pageProps }) {
         console.error('Error logging site visit:', error);
       }
     };
+
     const handleScroll = () => {
       if (window.scrollY > 300) {
         setShowButton(true);
@@ -31,12 +30,26 @@ function MyApp({ Component, pageProps }) {
         setShowButton(false);
       }
     };
-    window.addEventListener('scroll', handleScroll);
+
+    const throttleScroll = () => {
+      let timeout;
+      return () => {
+        if (!timeout) {
+          timeout = setTimeout(() => {
+            timeout = null;
+            handleScroll();
+          }, 200);
+        }
+      };
+    };
+
+    window.addEventListener('scroll', throttleScroll());
     logVisit();
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', throttleScroll());
     };
   }, []);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -44,14 +57,8 @@ function MyApp({ Component, pageProps }) {
   return (
     <>
       <Head>
-        
-       
-        <meta
-          name="twitter:image"
-          content={pageProps.meta?.image || ""}
-        />
+        <meta name="twitter:image" content={pageProps.meta?.image || ""} />
         <link rel="icon" href="/favicon.ico" />
-        
         <link
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
           rel="stylesheet"
@@ -82,14 +89,14 @@ function MyApp({ Component, pageProps }) {
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
         crossOrigin="anonymous"
+        strategy="lazyOnload"
       />
       <AuthProvider>
-        {/* <Notice /> */}
         <Navbar />
         <Component {...pageProps} />
         <Footer />
       </AuthProvider>
- 
+
       {showButton && (
         <button
           onClick={scrollToTop}
@@ -119,6 +126,3 @@ function MyApp({ Component, pageProps }) {
 }
 
 export default appWithTranslation(MyApp);
-
-
-

@@ -14,6 +14,7 @@ import { i18n, useTranslation } from "next-i18next";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
+
 const YouTubeDescriptionGenerator = ({ meta = [], faqs = [], relatedTools = [], existingContent = "" }) => {
   const { user, updateUserProfile } = useAuth();
   const { t } = useTranslation('description');
@@ -66,7 +67,7 @@ const YouTubeDescriptionGenerator = ({ meta = [], faqs = [], relatedTools = [], 
 
   const fetchReviews = async () => {
     try {
-      const response = await fetch("/api/reviews?tool=descriptionGenerator");
+      const response = await fetch("/api/reviews?tool=descriptionGenerator&limit=5"); // Limit initial reviews
       const data = await response.json();
       const formattedData = data.map((review) => ({
         ...review,
@@ -211,8 +212,19 @@ ${keywords}
     setModalVisible(true);
   };
 
-  const handleShowMoreReviews = () => {
-    setShowAllReviews(true);
+  const handleShowMoreReviews = async () => {
+    try {
+      const response = await fetch("/api/reviews?tool=descriptionGenerator");
+      const data = await response.json();
+      const formattedData = data.map((review) => ({
+        ...review,
+        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"),
+      }));
+      setReviews(formattedData);
+      setShowAllReviews(true);
+    } catch (error) {
+      console.error("Failed to fetch more reviews:", error);
+    }
   };
 
   const handleCopy = () => {

@@ -14,7 +14,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
 import Head from "next/head";
-import StarRating from "./StarRating"; // Assuming StarRating is a custom component
+import dynamic from "next/dynamic";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
@@ -23,9 +23,11 @@ import { format } from "date-fns";
 import { i18n, useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-const YouTubeChannelLogoDownloader = ({ meta, faqs }) => {
+const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
+
+const YouTubeChannelLogoDownloader = ({ meta, faqs, existingContent }) => {
   const { t } = useTranslation(['logo']);
-  const { isLoggedIn, user, updateUserProfile, logout } = useAuth(); // Destructure authentication state from context
+  const { isLoggedIn, user, updateUserProfile } = useAuth(); // Destructure authentication state from context
   const [isUpdated, setIsUpdated] = useState(false);
   const [loading, setLoading] = useState(false); // Loading state for API requests
   const [error, setError] = useState(""); // Error state
@@ -40,8 +42,6 @@ const YouTubeChannelLogoDownloader = ({ meta, faqs }) => {
   );
 
   const [reviews, setReviews] = useState([]);
-  const [quillContent, setQuillContent] = useState("");
-  const [existingContent, setExistingContent] = useState("");
   const [newReview, setNewReview] = useState({
     name: "",
     rating: 0,
@@ -68,11 +68,8 @@ const YouTubeChannelLogoDownloader = ({ meta, faqs }) => {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
-        setQuillContent(data.translations[language]?.content || "");
-        setExistingContent(data.translations[language]?.content || "");  
-        console.log(existingContent);
-        setRelatedTools(data.translations[language]?.relatedTools || []);
         setTranslations(data.translations);
+        setRelatedTools(data.translations[language]?.relatedTools || []);
       } catch (error) {
         toast.error("Error fetching content");
       }
@@ -296,6 +293,7 @@ const YouTubeChannelLogoDownloader = ({ meta, faqs }) => {
   const closeReviewForm = () => {
     setShowReviewForm(false);
   };
+
   return (
     <>
       <div className="bg-box">
@@ -307,96 +305,96 @@ const YouTubeChannelLogoDownloader = ({ meta, faqs }) => {
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-        <Head>
-          <title>{meta?.title}</title>
-          <meta name="description" content={meta?.description} />
-          <meta property="og:url" content={meta?.url} />
-          <meta property="og:title" content={meta?.title} />
-          <meta property="og:description" content={meta?.description} />
-          <meta property="og:image" content={meta?.image || ""} />
-          <meta name="twitter:card" content={meta?.image || ""} />
-          <meta property="twitter:domain" content={meta?.url} />
-          <meta property="twitter:url" content={meta?.url} />
-          <meta name="twitter:title" content={meta?.title} />
-          <meta name="twitter:description" content={meta?.description} />
-          <meta name="twitter:image" content={meta?.image || ""} />
-          {/* - Webpage Schema */}
-          <script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebPage",
-              name: meta?.title,
-              url: meta?.url,
-              description: meta?.description,
-              breadcrumb: {
-                "@id": `${meta?.url}#breadcrumb`,
-              },
-              about: {
-                "@type": "Thing",
+          <Head>
+            <title>{meta?.title}</title>
+            <meta name="description" content={meta?.description} />
+            <meta property="og:url" content={meta?.url} />
+            <meta property="og:title" content={meta?.title} />
+            <meta property="og:description" content={meta?.description} />
+            <meta property="og:image" content={meta?.image || ""} />
+            <meta name="twitter:card" content={meta?.image || ""} />
+            <meta property="twitter:domain" content={meta?.url} />
+            <meta property="twitter:url" content={meta?.url} />
+            <meta name="twitter:title" content={meta?.title} />
+            <meta name="twitter:description" content={meta?.description} />
+            <meta name="twitter:image" content={meta?.image || ""} />
+            {/* - Webpage Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "WebPage",
                 name: meta?.title,
-              },
-              isPartOf: {
-                "@type": "WebSite",
                 url: meta?.url,
-              },
-            })}
-          </script>
-          {/* - Review Schema */}
-          <script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "SoftwareApplication",
-              name: meta?.title,
-              url: meta?.url,
-              applicationCategory: "Multimedia",
-              aggregateRating: {
-                "@type": "AggregateRating",
-                ratingValue: overallRating,
-                ratingCount: reviews?.length,
-                reviewCount: reviews?.length,
-              },
-              review: reviews.map((review) => ({
-                "@type": "Review",
-                author: {
-                  "@type": "Person",
-                  name: review.userName,
+                description: meta?.description,
+                breadcrumb: {
+                  "@id": `${meta?.url}#breadcrumb`,
                 },
-                datePublished: review.createdAt,
-                reviewBody: review.comment,
-                name: review.title,
-                reviewRating: {
-                  "@type": "Rating",
-                  ratingValue: review.rating,
+                about: {
+                  "@type": "Thing",
+                  name: meta?.title,
                 },
-              })),
-            })}
-          </script>
-          {/* - FAQ Schema */}
-          <script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              mainEntity: faqs.map((faq) => ({
-                "@type": "Question",
-                name: faq.question,
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: faq.answer,
+                isPartOf: {
+                  "@type": "WebSite",
+                  url: meta?.url,
                 },
-              })),
-            })}
-          </script>
-         {translations && Object.keys(translations).map(lang => (
-    <link
-      key={lang}
-      rel="alternate"
-      href={`${meta?.url}?locale=${lang}`}
-      hrefLang={lang} // Corrected property name
-    />
-  ))}
-        </Head>
+              })}
+            </script>
+            {/* - Review Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                name: meta?.title,
+                url: meta?.url,
+                applicationCategory: "Multimedia",
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: overallRating,
+                  ratingCount: reviews?.length,
+                  reviewCount: reviews?.length,
+                },
+                review: reviews.map((review) => ({
+                  "@type": "Review",
+                  author: {
+                    "@type": "Person",
+                    name: review.userName,
+                  },
+                  datePublished: review.createdAt,
+                  reviewBody: review.comment,
+                  name: review.title,
+                  reviewRating: {
+                    "@type": "Rating",
+                    ratingValue: review.rating,
+                  },
+                })),
+              })}
+            </script>
+            {/* - FAQ Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: faqs.map((faq) => ({
+                  "@type": "Question",
+                  name: faq.question,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: faq.answer,
+                  },
+                })),
+              })}
+            </script>
+            {translations && Object.keys(translations).map(lang => (
+              <link
+                key={lang}
+                rel="alternate"
+                href={`${meta?.url}?locale=${lang}`}
+                hrefLang={lang} // Corrected property name
+              />
+            ))}
+          </Head>
           <h2 className="text-3xl pt-5 text-white">
-           {t('YouTube Channel Logo Download')}
+            {t('YouTube Channel Logo Download')}
           </h2>
           <ToastContainer />
           {modalVisible && (
@@ -410,13 +408,13 @@ const YouTubeChannelLogoDownloader = ({ meta, faqs }) => {
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        {t('Congratulations! Now you can downlaod unlimited Logo.')}
+                        {t('Congratulations! Now you can download unlimited Logo.')}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
                         {t('You are not upgraded. You can generate Logo {{remainingGenerations}} more times.', { remainingGenerations: 5 - generateCount })}
                         <Link href="/pricing" className="btn btn-warning ms-3">
-                          Upgrade
+                          {t('Upgrade')}
                         </Link>
                       </p>
                     )
@@ -706,7 +704,7 @@ const YouTubeChannelLogoDownloader = ({ meta, faqs }) => {
                 <input
                   type="text"
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder="Title"
+                  placeholder={t('Title')}
                   value={newReview.title}
                   onChange={(e) =>
                     setNewReview({ ...newReview, title: e.target.value })
@@ -716,7 +714,7 @@ const YouTubeChannelLogoDownloader = ({ meta, faqs }) => {
               <div className="mb-4">
                 <textarea
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder="Your Review"
+                  placeholder={t('Your Review')}
                   value={newReview.comment}
                   onChange={(e) =>
                     setNewReview({ ...newReview, comment: e.target.value })
@@ -799,7 +797,7 @@ export async function getServerSideProps({ req, locale }) {
       props: {
         meta,
         faqs: contentData.translations[locale]?.faqs || [],
-       
+        existingContent: contentData.translations[locale]?.content || "",
         ...(await serverSideTranslations(locale, ['common','logo','navbar','footer'])),
       },
     };
@@ -810,6 +808,7 @@ export async function getServerSideProps({ req, locale }) {
         meta: {},
         faqs: [],
         relatedTools: [],
+        existingContent: "",
         ...(await serverSideTranslations(locale, ['common', 'logo','navbar','footer'])),
       },
     };

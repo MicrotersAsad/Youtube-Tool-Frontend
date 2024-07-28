@@ -1,6 +1,9 @@
 const { i18n } = require("./next-i18next.config");
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
 
-module.exports = {
+module.exports = withBundleAnalyzer({
   reactStrictMode: true,
   i18n,
 
@@ -17,7 +20,27 @@ module.exports = {
     ];
   },
 
-  images: {
-    domains: ['yt3.ggpht.com', 'yt3.googleusercontent.com', 'i.ytimg.com', 'https://lobster-app-2vkuu.ondigitalocean.app/','learnmethods.com','161.35.10.124'],
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: `
+              default-src 'self';
+              script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com;
+              img-src 'self' data:;
+              style-src 'self' 'unsafe-inline';
+              font-src 'self' data:;
+            `.replace(/\s{2,}/g, ' ').trim(),
+          },
+        ],
+      },
+    ];
   },
-};
+
+  images: {
+    domains: ['yt3.ggpht.com', 'yt3.googleusercontent.com', 'i.ytimg.com', 'lobster-app-2vkuu.ondigitalocean.app', 'learnmethods.com', '161.35.10.124'],
+  },
+});
