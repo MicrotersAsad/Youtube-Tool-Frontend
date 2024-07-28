@@ -1,21 +1,20 @@
 {
-  "alert": {
     "Congratulations! Now you can get unlimited Trending Video.": "おめでとうございます！無制限のトレンド動画を入手できます。",
     "You are not upgraded. You can get Trending Video {remaining Generations} more times": "アップグレードされていません。あと {remaining Generations} 回トレンド動画を入手できます。",
     "Upgrade": "アップグレード",
     "Please log in to fetch channel data.": "チャンネルデータを取得するにはログインしてください。"
-  },
+  ,
   "YouTube Trending Videos": "YouTube トレンド動画",
-  "dropdowns": {
+ 
     "All": "すべて",
     "Get Your Trends": "あなたのトレンドを取得"
-  },
+  ,
   "Share": "共有：",
   "Loading...": "読み込み中...",
   "Uploaded By:": "アップロード者：",
   "on": "に",
   "Category": "カテゴリー：",
-  "reviews": {
+  
     "Customer reviews": "カスタマーレビュー",
     "global ratings": "グローバル評価",
     "Review This Tool": "このツールをレビューする",
@@ -29,12 +28,12 @@
     "Your Review": "あなたのレビュー",
     "Submit Review": "レビューを送信",
     "Cancel": "キャンセル"
-  },
-  "faq": {
+  ,
+
     "Frequently Asked Questions": "よくある質問",
     "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us": "すべてのよくある質問に答えましたが、まだ混乱していますか？お気軽にお問い合わせください"
-  },
-  "relatedTools": {
+  ,
+  
     "Related Tools": "関連ツール"
-  }
+  
 }

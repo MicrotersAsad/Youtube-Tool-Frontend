@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  FaCopy,
-  FaDownload,
-  FaFacebook,
-  FaInstagram,
-  FaLinkedin,
-  FaShareAlt,
-  FaStar,
-  FaTimes,
-  FaTwitter,
+  FaCopy, FaDownload, FaFacebook, FaInstagram, FaLinkedin, FaShareAlt, FaStar, FaTimes, FaTwitter
 } from "react-icons/fa";
 import { FaGrip } from "react-icons/fa6";
 import { useAuth } from "../../contexts/AuthContext";
@@ -26,7 +18,7 @@ import { format } from "date-fns";
 import { i18n, useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
-const TagExtractor = ({ meta, faqs }) => {
+const TagExtractor = ({ meta, faqs, relatedTools, existingContent }) => {
   const { t } = useTranslation('tagextractor');
   const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState("");
@@ -37,11 +29,8 @@ const TagExtractor = ({ meta, faqs }) => {
   const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);
-  const [quillContent, setQuillContent] = useState("");
-  const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
   const [openIndex, setOpenIndex] = useState(null);
-  const [relatedTools, setRelatedTools] = useState([]);
   const [translations, setTranslations] = useState([]);
   const [newReview, setNewReview] = useState({
     name: "",
@@ -58,21 +47,16 @@ const TagExtractor = ({ meta, faqs }) => {
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
-
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const language = i18n.language || "en";
-        const response = await fetch(`/api/content?category=tagExtractor&language=${language}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch content");
-        }
+        const language = i18n.language;
+        const response = await fetch(
+          `/api/content?category=tagExtractor&language=${language}`
+        );
+        if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
-        setQuillContent(data.translations[language]?.content || "");
-        setExistingContent(data.translations[language]?.content || "");
-        setRelatedTools(data.translations[language]?.relatedTools || []);
         setTranslations(data.translations);
-        
       } catch (error) {
         toast.error("Error fetching content");
       }
@@ -80,8 +64,8 @@ const TagExtractor = ({ meta, faqs }) => {
 
     fetchContent();
     fetchReviews();
-  }, [i18n.language]);
-  
+  }, [i18n.language, t]);
+
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
       updateUserProfile().then(() => setIsUpdated(true));
@@ -405,14 +389,14 @@ const TagExtractor = ({ meta, faqs }) => {
               })),
             })}
           </script>
-          {translations && Object.keys(translations).map(lang => (
-    <link
-      key={lang}
-      rel="alternate"
-      href={`${meta?.url}?locale=${lang}`}
-      hrefLang={lang} // Corrected property name
-    />
-  ))}
+          {Object.keys(translations).map(lang => (
+            <link
+              key={lang}
+              rel="alternate"
+              href={`${meta?.url}?locale=${lang}`}
+              hrefLang={lang}
+            />
+          ))}
         </Head>
           <h2 className="text-3xl text-white">{t('YouTube Tag Extractor')}</h2>
           <ToastContainer />
@@ -841,7 +825,8 @@ export async function getServerSideProps({ req, locale }) {
       props: {
         meta,
         faqs: contentData.translations[locale]?.faqs || [],
-       
+        relatedTools: contentData.translations[locale]?.relatedTools || [],
+        existingContent: contentData.translations[locale]?.content || "",
         ...(await serverSideTranslations(locale, ['common','tagextractor','navbar','footer'])),
       },
     };
@@ -852,6 +837,7 @@ export async function getServerSideProps({ req, locale }) {
         meta: {},
         faqs: [],
         relatedTools: [],
+        existingContent: "",
         ...(await serverSideTranslations(locale, ['common', 'tagextractor','navbar','footer'])),
       },
     };

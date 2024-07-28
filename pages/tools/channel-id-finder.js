@@ -5,9 +5,8 @@ import Link from "next/link";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { useAuth } from "../../contexts/AuthContext";
-import Slider from "react-slick";
 import { FaStar } from "react-icons/fa";
-import StarRating from "./StarRating";
+import dynamic from "next/dynamic";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
@@ -18,8 +17,11 @@ import { format } from "date-fns";
 import { i18n, useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-const ChannelIdFinder = ({ meta, faqs }) => {
+const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
+
+const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent }) => {
   const { user, updateUserProfile } = useAuth();
+  const [translations, setTranslations] = useState([]);
   const [modalVisible, setModalVisible] = useState(true);
   const [videoUrl, setVideoUrl] = useState("");
   const { t } = useTranslation("channelId");
@@ -28,17 +30,13 @@ const ChannelIdFinder = ({ meta, faqs }) => {
   const [error, setError] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
-  const [quillContent, setQuillContent] = useState("");
-  const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
-  const [translations, setTranslations] = useState([]);
   const [newReview, setNewReview] = useState({
     name: "",
     rating: 0,
     comment: "",
     userProfile: "",
   });
-  const [relatedTools, setRelatedTools] = useState([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
@@ -55,25 +53,17 @@ const ChannelIdFinder = ({ meta, faqs }) => {
         const response = await fetch(
           `/api/content?category=channel-id-finder&language=${language}`
         );
-        if (!response.ok) throw new Error(t("Failed to fetch content"));
+        if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
-       
-        setQuillContent(data.translations[language]?.content || "");
-        setExistingContent(data.translations[language]?.content || "");
-        setRelatedTools(data.translations[language]?.relatedTools || []);
         setTranslations(data.translations);
       } catch (error) {
-        console.error(t("Error fetching content"));
+        toast.error("Error fetching content");
       }
     };
 
     fetchContent();
     fetchReviews();
-  }, [i18n.language]);
-
-  const handleQuillChange = useCallback((newContent) => {
-    setQuillContent(newContent);
-  }, []);
+  }, [i18n.language, t]);
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -325,14 +315,15 @@ const ChannelIdFinder = ({ meta, faqs }) => {
                 })),
               })}
             </script>
-            {translations && Object.keys(translations).map(lang => (
-    <link
-      key={lang}
-      rel="alternate"
-      href={`${meta?.url}?locale=${lang}`}
-      hrefLang={lang} // Corrected property name
-    />
-  ))}
+            {translations &&
+              Object.keys(translations).map((lang) => (
+                <link
+                  key={lang}
+                  rel="alternate"
+                  href={`${meta?.url}?locale=${lang}`}
+                  hrefLang={lang} // Corrected property name
+                />
+              ))}
           </Head>
           <ToastContainer />
           <h1 className="text-3xl font-bold text-center text-white mb-6">
@@ -350,7 +341,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
                     user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
                         {t(
-                          "Congratulations! Now you can get unlimited Channel Data."
+                          "Congratulations!! Now you can get unlimited Channel Data."
                         )}
                       </p>
                     ) : (
@@ -700,7 +691,7 @@ const ChannelIdFinder = ({ meta, faqs }) => {
         {/* Related Tools Section */}
         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
           <h2 className="text-2xl font-bold mb-5 text-center">
-            Related Tools
+            {t("Related Tools")}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {relatedTools.map((tool, index) => (
@@ -733,13 +724,13 @@ export async function getServerSideProps({ req, locale }) {
   const apiUrl = `${protocol}://${host}/api/content?category=channel-id-finder&language=${locale}`;
 
   try {
-    const [contentResponse] = await Promise.all([fetch(apiUrl)]);
+    const contentResponse = await fetch(apiUrl);
 
     if (!contentResponse.ok) {
       throw new Error("Failed to fetch content");
     }
 
-    const [contentData] = await Promise.all([contentResponse.json()]);
+    const contentData = await contentResponse.json();
     const meta = {
       title: contentData.translations[locale]?.title || "",
       description: contentData.translations[locale]?.description || "",
@@ -751,6 +742,8 @@ export async function getServerSideProps({ req, locale }) {
       props: {
         meta,
         faqs: contentData.translations[locale]?.faqs || [],
+        relatedTools: contentData.translations[locale]?.relatedTools || [],
+        existingContent: contentData.translations[locale]?.content || "",
         ...(await serverSideTranslations(locale, [
           "common",
           "tagextractor",
@@ -761,11 +754,13 @@ export async function getServerSideProps({ req, locale }) {
       },
     };
   } catch (error) {
-    console.error("Error fetching data:");
+    console.error("Error fetching data:", error);
     return {
       props: {
         meta: {},
         faqs: [],
+        relatedTools: [],
+        existingContent: "",
         ...(await serverSideTranslations(locale, [
           "common",
           "tagextractor",

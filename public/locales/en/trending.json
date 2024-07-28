@@ -1,42 +1,37 @@
 {
-    "alert": {
-      "Congratulations! Now you can get unlimited Trending Video.": "Congratulations! Now you can get unlimited Trending Video.",
-      "You are not upgraded. You can get Trending Video {remaining Generations} more times": "You are not upgraded. You can get Trending Video {remaining Generations} more times.",
-      "Upgrade": "Upgrade",
-      "Please log in to fetch channel data.": "Please log in to fetch channel data."
-    },
-    "YouTube Trending Videos": "YouTube Trending Videos",
-    "dropdowns": {
-      "All": "All",
-     
-      "Get Your Trends": "Get Your Trends"
-    },
-    "Share": "Share:",
-    "Loading...": "Loading...",
-    "Uploaded By:": "Uploaded By:",
-    "on": "on",
-    "Category": "Category:",
-    "reviews": {
-      "Customer reviews": "Customer reviews",
-      "global ratings": "global ratings",
-      "Review This Tool": "Review This Tool",
-      "Share Your Thoughts With Other Customers": "Share Your Thoughts With Other Customers",
-      "Write a customer review": "Write a customer review",
-      "Verified Purchase": "Verified Purchase",
-      "Reviewed On": "Reviewed On",
-      "See More Reviews": "See More Reviews",
-      "Leave a Review": "Leave a Review",
-      "Title": "Title",
-      "Your Review": "Your Review",
-      "Submit Review": "Submit Review",
-      "Cancel": "Cancel"
-    },
-    "faq": {
-      "Frequently Asked Questions": "Frequently Asked Questions",
-      "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us": "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us"
-    },
-    "relatedTools": {
-      "Related Tools": "Related Tools"
-    }
-  }
-  
+  "Congratulations! Now you can get unlimited Trending Video.": "Congratulations! Now you can get unlimited Trending Video.",
+  "You are not upgraded. You can get Trending Video {remaining Generations} more times": "You are not upgraded. You can get Trending Video {remaining Generations} more times.",
+  "Upgrade": "Upgrade",
+  "Please log in to fetch channel data.": "Please log in to fetch channel data.",
+
+  "YouTube Trending Videos": "YouTube Trending Videos",
+
+  "All": "All",
+
+  "Get Your Trends": "Get Your Trends",
+
+  "Share": "Share:",
+  "Loading...": "Loading...",
+  "Uploaded By:": "Uploaded By:",
+  "on": "on",
+  "Category": "Category:",
+
+  "Customer reviews": "Customer reviews",
+  "global ratings": "global ratings",
+  "Review This Tool": "Review This Tool",
+  "Share Your Thoughts With Other Customers": "Share Your Thoughts With Other Customers",
+  "Write a customer review": "Write a customer review",
+  "Verified Purchase": "Verified Purchase",
+  "Reviewed On": "Reviewed On",
+  "See More Reviews": "See More Reviews",
+  "Leave a Review": "Leave a Review",
+  "Title": "Title",
+  "Your Review": "Your Review",
+  "Submit Review": "Submit Review",
+  "Cancel": "Cancel",
+
+  "Frequently Asked Questions": "Frequently Asked Questions",
+  "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us": "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us",
+
+  "Related Tools": "Related Tools"
+}

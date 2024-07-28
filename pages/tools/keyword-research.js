@@ -16,18 +16,14 @@ import { useTranslation } from "react-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { i18n } from "next-i18next";
 
-const KeywordSearch = ({ meta, faqs }) => {
+const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
   const [keyword, setKeyword] = useState("");
   const [country, setCountry] = useState("");
-  const [relatedTools, setRelatedTools] = useState([]);
   const [data, setData] = useState(null);
-  const [t]=useTranslation('keyword')
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { user, updateUserProfile, logout } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   const [generateCount, setGenerateCount] = useState(0);
-  const [quillContent, setQuillContent] = useState("");
-  const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
   const [isUpdated, setIsUpdated] = useState(false);
   const [newReview, setNewReview] = useState({
@@ -41,6 +37,8 @@ const KeywordSearch = ({ meta, faqs }) => {
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
   const [translations, setTranslations] = useState([]);
+  const { t } = useTranslation('keyword');
+
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
@@ -56,9 +54,6 @@ const KeywordSearch = ({ meta, faqs }) => {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
-        setQuillContent(data.translations[language]?.content || "");
-        setExistingContent(data.translations[language]?.content || "");  
-        setRelatedTools(data.translations[language]?.relatedTools || []);
         setTranslations(data.translations);
       } catch (error) {
         console.error("Error fetching content");
@@ -94,7 +89,7 @@ const KeywordSearch = ({ meta, faqs }) => {
       const data = await response.json();
       const formattedData = data.map((review) => ({
         ...review,
-        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"), // Format the date here
+        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"),
       }));
       setReviews(formattedData);
     } catch (error) {
@@ -187,20 +182,17 @@ const KeywordSearch = ({ meta, faqs }) => {
         throw new Error(`Error: ${res.status} ${errorText}`);
       }
       const result = await res.json();
-      console.log(result);
-      // Ensure the result is an array and slice it
       if (Array.isArray(result.data)) {
         setData(result.data.slice(0, 15)); // Limit to top 15 results
       } else {
         setError("Unexpected data format received from API");
         setData(null);
       }
-      console.log(data);
       setError(null);
     } catch (err) {
       setError(err.message);
       setData(null);
-      console.error(err); // Log the error to the console
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -208,7 +200,9 @@ const KeywordSearch = ({ meta, faqs }) => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {
-      alert("Keyword copied to clipboard!");
+      toast.success("Keyword copied to clipboard!");
+    }).catch(() => {
+      toast.error("Failed to copy keyword.");
     });
   };
 
@@ -223,94 +217,94 @@ const KeywordSearch = ({ meta, faqs }) => {
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-        <Head>
-          <title>{meta?.title}</title>
-          <meta name="description" content={meta?.description} />
-          <meta property="og:url" content={meta?.url} />
-          <meta property="og:title" content={meta?.title} />
-          <meta property="og:description" content={meta?.description} />
-          <meta property="og:image" content={meta?.image || ""} />
-          <meta name="twitter:card" content={meta?.image || ""} />
-          <meta property="twitter:domain" content={meta?.url} />
-          <meta property="twitter:url" content={meta?.url} />
-          <meta name="twitter:title" content={meta?.title} />
-          <meta name="twitter:description" content={meta?.description} />
-          <meta name="twitter:image" content={meta?.image || ""} />
-          {/* - Webpage Schema */}
-          <script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebPage",
-              name: meta?.title,
-              url: meta?.url,
-              description: meta?.description,
-              breadcrumb: {
-                "@id": `${meta?.url}#breadcrumb`,
-              },
-              about: {
-                "@type": "Thing",
+          <Head>
+            <title>{meta?.title}</title>
+            <meta name="description" content={meta?.description} />
+            <meta property="og:url" content={meta?.url} />
+            <meta property="og:title" content={meta?.title} />
+            <meta property="og:description" content={meta?.description} />
+            <meta property="og:image" content={meta?.image || ""} />
+            <meta name="twitter:card" content={meta?.image || ""} />
+            <meta property="twitter:domain" content={meta?.url} />
+            <meta property="twitter:url" content={meta?.url} />
+            <meta name="twitter:title" content={meta?.title} />
+            <meta name="twitter:description" content={meta?.description} />
+            <meta name="twitter:image" content={meta?.image || ""} />
+            {/* - Webpage Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "WebPage",
                 name: meta?.title,
-              },
-              isPartOf: {
-                "@type": "WebSite",
                 url: meta?.url,
-              },
-            })}
-          </script>
-          {/* - Review Schema */}
-          <script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "SoftwareApplication",
-              name: meta?.title,
-              url: meta?.url,
-              applicationCategory: "Multimedia",
-              aggregateRating: {
-                "@type": "AggregateRating",
-                ratingValue: overallRating,
-                ratingCount: reviews?.length,
-                reviewCount: reviews?.length,
-              },
-              review: reviews.map((review) => ({
-                "@type": "Review",
-                author: {
-                  "@type": "Person",
-                  name: review.userName,
+                description: meta?.description,
+                breadcrumb: {
+                  "@id": `${meta?.url}#breadcrumb`,
                 },
-                datePublished: review.createdAt,
-                reviewBody: review.comment,
-                name: review.title,
-                reviewRating: {
-                  "@type": "Rating",
-                  ratingValue: review.rating,
+                about: {
+                  "@type": "Thing",
+                  name: meta?.title,
                 },
-              })),
-            })}
-          </script>
-          {/* - FAQ Schema */}
-          <script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              mainEntity: faqs.map((faq) => ({
-                "@type": "Question",
-                name: faq.question,
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: faq.answer,
+                isPartOf: {
+                  "@type": "WebSite",
+                  url: meta?.url,
                 },
-              })),
-            })}
-          </script>
-          {translations && Object.keys(translations).map(lang => (
-    <link
-      key={lang}
-      rel="alternate"
-      href={`${meta?.url}?locale=${lang}`}
-      hrefLang={lang} // Corrected property name
-    />
-  ))}
-        </Head>
+              })}
+            </script>
+            {/* - Review Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                name: meta?.title,
+                url: meta?.url,
+                applicationCategory: "Multimedia",
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: overallRating,
+                  ratingCount: reviews?.length,
+                  reviewCount: reviews?.length,
+                },
+                review: reviews.map((review) => ({
+                  "@type": "Review",
+                  author: {
+                    "@type": "Person",
+                    name: review.userName,
+                  },
+                  datePublished: review.createdAt,
+                  reviewBody: review.comment,
+                  name: review.title,
+                  reviewRating: {
+                    "@type": "Rating",
+                    ratingValue: review.rating,
+                  },
+                })),
+              })}
+            </script>
+            {/* - FAQ Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: faqs.map((faq) => ({
+                  "@type": "Question",
+                  name: faq.question,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: faq.answer,
+                  },
+                })),
+              })}
+            </script>
+            {translations && Object.keys(translations).map(lang => (
+              <link
+                key={lang}
+                rel="alternate"
+                href={`${meta?.url}?locale=${lang}`}
+                hrefLang={lang}
+              />
+            ))}
+          </Head>
 
           <h2 className="text-3xl pt-5 text-white">{t('YouTube Keyword Research')}</h2>
           <ToastContainer />
@@ -329,10 +323,9 @@ const KeywordSearch = ({ meta, faqs }) => {
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        You are not upgraded. You can Keyword Research{" "}
-                        {5 - generateCount} more times.{" "}
+                        {t("You are not upgraded. You can Keyword Research {{remainingGenerations}} more times.", { remainingGenerations: 5 - generateCount })}{" "}
                         <Link href="/pricing" className="btn btn-warning ms-3">
-                          Upgrade
+                          {t("Upgrade")}
                         </Link>
                       </p>
                     )
@@ -370,7 +363,7 @@ const KeywordSearch = ({ meta, faqs }) => {
               onClick={fetchKeywordData}
               className="p-2 sm:mt-3 bg-red-500 text-white rounded"
             >
-             {t('Search')}
+              {t('Search')}
             </button>
           </div>
 
@@ -656,55 +649,49 @@ const KeywordSearch = ({ meta, faqs }) => {
             </div>
           </div>
         )}
-          {/* Related Tools Section */}
+        {/* Related Tools Section */}
         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
-      <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {relatedTools.map((tool, index) => (
-          <a
-            key={index}
-            href={tool.link}
-            className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
-          >
-            <Image
-              src={tool?.logo?.src}
-              alt={`${tool.name} Icon`}
-              width={64}
-              height={64}
-              className="w-14 h-14 mr-4"
-            />
-            <span className="text-blue-600 font-medium">{tool.name}</span>
-          </a>
-        ))}
-      </div>
-    </div>
+          <h2 className="text-2xl font-bold mb-5 text-center">{t("Related Tools")}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {relatedTools.map((tool, index) => (
+              <a
+                key={index}
+                href={tool.link}
+                className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
+              >
+                <Image
+                  src={tool?.logo?.src}
+                  alt={`${tool.name} Icon`}
+                  width={64}
+                  height={64}
+                  className="w-14 h-14 mr-4"
+                />
+                <span className="text-blue-600 font-medium">{tool.name}</span>
+              </a>
+            ))}
+          </div>
+        </div>
         {/* End of Related Tools Section */}
       </div>
     </>
   );
 };
 
-
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : "http";
   const apiUrl = `${protocol}://${host}/api/content?category=keyword-research&language=${locale}`;
 
-
   try {
     const [contentResponse] = await Promise.all([
       fetch(apiUrl),
- 
     ]);
 
     if (!contentResponse.ok) {
       throw new Error("Failed to fetch content");
     }
 
-    const [contentData] = await Promise.all([
-      contentResponse.json(),
-      
-    ]);
+    const contentData = await contentResponse.json();
 
     const meta = {
       title: contentData.translations[locale]?.title || "",
@@ -717,8 +704,9 @@ export async function getServerSideProps({ req, locale }) {
       props: {
         meta,
         faqs: contentData.translations[locale]?.faqs || [],
-       
-        ...(await serverSideTranslations(locale, ['common','keyword','navbar','footer'])),
+        relatedTools: contentData.translations[locale]?.relatedTools || [],
+        existingContent: contentData.translations[locale]?.content || "",
+        ...(await serverSideTranslations(locale, [ 'keyword', 'navbar', 'footer'])),
       },
     };
   } catch (error) {
@@ -728,9 +716,11 @@ export async function getServerSideProps({ req, locale }) {
         meta: {},
         faqs: [],
         relatedTools: [],
-        ...(await serverSideTranslations(locale, ['common', 'keyword','navbar','footer'])),
+        existingContent: "",
+        ...(await serverSideTranslations(locale, [ 'keyword', 'navbar', 'footer'])),
       },
     };
   }
 }
+
 export default KeywordSearch;

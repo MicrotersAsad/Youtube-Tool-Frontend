@@ -1,21 +1,21 @@
 {
-  "alert": {
+ 
     "Congratulations! Now you can get unlimited Trending Video.": "Congratulazioni! Ora puoi ottenere video di tendenza illimitati.",
     "You are not upgraded. You can get Trending Video {remaining Generations} more times": "Non sei aggiornato. Puoi ottenere video di tendenza {remaining Generations} volte in più.",
     "Upgrade": "Aggiorna",
     "Please log in to fetch channel data.": "Effettua il login per recuperare i dati del canale."
-  },
+  ,
   "YouTube Trending Videos": "Video di Tendenza su YouTube",
-  "dropdowns": {
+ 
     "All": "Tutti",
     "Get Your Trends": "Ottieni le tue tendenze"
-  },
+  ,
   "Share": "Condividi:",
   "Loading...": "Caricamento...",
   "Uploaded By:": "Caricato da:",
   "on": "su",
   "Category": "Categoria:",
-  "reviews": {
+  
     "Customer reviews": "Recensioni dei clienti",
     "global ratings": "valutazioni globali",
     "Review This Tool": "Recensisci questo strumento",
@@ -29,12 +29,12 @@
     "Your Review": "La tua recensione",
     "Submit Review": "Invia recensione",
     "Cancel": "Annulla"
-  },
-  "faq": {
+  ,
+ 
     "Frequently Asked Questions": "Domande Frequenti",
     "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us": "Risposto a tutte le domande frequenti, ancora confuso? Non esitare a contattarci"
-  },
-  "relatedTools": {
+  ,
+
     "Related Tools": "Strumenti Correlati"
-  }
+  
 }

@@ -1,21 +1,21 @@
 {
-  "alert": {
+ 
     "Congratulations! Now you can get unlimited Trending Video.": "અભિનંદન! હવે તમે અમર્યાદિત ટ્રેન્ડિંગ વિડિઓ મેળવી શકો છો.",
     "You are not upgraded. You can get Trending Video {remaining Generations} more times": "તમે અપગ્રેડ થયા નથી. તમે વધુ {remaining Generations} વખત ટ્રેન્ડિંગ વિડિઓ મેળવી શકો છો.",
     "Upgrade": "અપગ્રેડ કરો",
-    "Please log in to fetch channel data.": "ચેનલ ડેટા મેળવવા માટે કૃપા કરીને લોગિન કરો."
-  },
+    "Please log in to fetch channel data.": "ચેનલ ડેટા મેળવવા માટે કૃપા કરીને લોગિન કરો.",
+
   "YouTube Trending Videos": "યુટ્યુબ ટ્રેન્ડિંગ વિડિઓઝ",
-  "dropdowns": {
+
     "All": "બધું",
-    "Get Your Trends": "તમારા ટ્રેન્ડ્સ મેળવો"
-  },
+    "Get Your Trends": "તમારા ટ્રેન્ડ્સ મેળવો",
+ 
   "Share": "શેર કરો:",
   "Loading...": "લોડ કરી રહ્યું છે...",
   "Uploaded By:": "દ્વારા અપલોડ કર્યું:",
   "on": "પર",
   "Category": "શ્રેણી:",
-  "reviews": {
+
     "Customer reviews": "ગ્રાહક સમીક્ષાઓ",
     "global ratings": "વૈશ્વિક રેટિંગ્સ",
     "Review This Tool": "આ ટૂલની સમીક્ષા કરો",
@@ -28,13 +28,11 @@
     "Title": "શીર્ષક",
     "Your Review": "તમારી સમીક્ષા",
     "Submit Review": "સમીક્ષા સબમિટ કરો",
-    "Cancel": "રદ કરો"
-  },
-  "faq": {
+    "Cancel": "રદ કરો",
+  
     "Frequently Asked Questions": "વારંવાર પૂછાતા પ્રશ્નો",
-    "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us": "બધા વારંવાર પૂછાતા પ્રશ્નોના જવાબ આપ્યા, હજી પણ ગૂંચવાયેલા છો? અમારો સંપર્ક કરવામાં મફત અનુભવો"
-  },
-  "relatedTools": {
+    "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us": "બધા વારંવાર પૂછાતા પ્રશ્નોના જવાબ આપ્યા, હજી પણ ગૂંચવાયેલા છો? અમારો સંપર્ક કરવામાં મફત અનુભવો",
+
     "Related Tools": "સંબંધિત સાધનો"
-  }
+
 }

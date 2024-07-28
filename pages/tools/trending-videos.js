@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import axios from "axios";
 import {
   FaFacebook,
@@ -15,8 +15,6 @@ import Link from "next/link";
 import { useAuth } from "../../contexts/AuthContext";
 import Head from "next/head";
 import { ToastContainer, toast } from "react-toastify";
-import StarRating from "./StarRating";
-import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Image from "next/image";
@@ -29,12 +27,14 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { i18n, useTranslation } from "next-i18next";
 import { languages } from "prismjs";
 
-const TrendingVideos = ({ meta, faqs }) => {
+const StarRating = lazy(() => import('./StarRating'));
+const Slider = lazy(() => import('react-slick'));
+
+const TrendingVideos = ({ meta, faqs, relatedTools, existingContent }) => {
   const { t } = useTranslation(['trending']);
   const [country, setCountry] = useState("All");
   const [categories, setCategories] = useState([]);
   const [category, setCategory] = useState("All");
-  const [relatedTools, setRelatedTools] = useState([]);
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [countries, setCountries] = useState([]);
@@ -42,7 +42,6 @@ const TrendingVideos = ({ meta, faqs }) => {
   const { user, updateUserProfile } = useAuth();
   const [generateCount, setGenerateCount] = useState(0);
   const [quillContent, setQuillContent] = useState("");
-  const [existingContent, setExistingContent] = useState("");
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [modalVisible, setModalVisible] = useState(true);
@@ -64,25 +63,21 @@ const TrendingVideos = ({ meta, faqs }) => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const language = i18n.language || "en";
-        const response = await fetch(`/api/content?category=trendingVideos&language=${language}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch content");
-        }
+        const language = i18n.language;
+        const response = await fetch(
+          `/api/content?category=trendingVideos&language=${language}`
+        );
+        if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
-        setQuillContent(data.translations[language]?.content || "");
-        setExistingContent(data.translations[language]?.content || "");  
-        setRelatedTools(data.translations[language]?.relatedTools || []);
         setTranslations(data.translations);
       } catch (error) {
-        console.error("Error fetching content");
+        toast.error("Error fetching content");
       }
     };
 
-    fetchContent(languages);
+    fetchContent();
     fetchReviews();
-  }, [i18n.language]);
-  
+  }, [i18n.language, t]);
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -112,7 +107,7 @@ const TrendingVideos = ({ meta, faqs }) => {
 
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
-      toast.error("All fields are required.");
+      toast.error(t('All fields are required.'));
       return;
     }
 
@@ -132,7 +127,7 @@ const TrendingVideos = ({ meta, faqs }) => {
 
       if (!response.ok) throw new Error("Failed to submit review");
 
-      toast.success("Review submitted successfully!");
+      toast.success(t('Review submitted successfully!'));
       setNewReview({
         name: "",
         rating: 0,
@@ -144,7 +139,7 @@ const TrendingVideos = ({ meta, faqs }) => {
       fetchReviews();
     } catch (error) {
       console.error("Failed to submit review:", error);
-      toast.error("Failed to submit review");
+      toast.error(t('Failed to submit review'));
     }
   };
 
@@ -156,14 +151,14 @@ const TrendingVideos = ({ meta, faqs }) => {
           code: country.cca2,
           name: country.name.common,
         }));
-        setCountries([{ code: "All", name: "All" }, ...countryData]);
+        setCountries([{ code: "All", name: t('All') }, ...countryData]);
       } catch (error) {
         console.error("Error fetching countries:", error.message);
       }
     };
 
     fetchCountries();
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -178,7 +173,7 @@ const TrendingVideos = ({ meta, faqs }) => {
             title,
           })
         );
-        setCategories([{ id: "All", title: "All" }, ...categoryOptions]);
+        setCategories([{ id: "All", title: t('All') }, ...categoryOptions]);
       } catch (error) {
         console.error("Error fetching video categories:", error.message);
       }
@@ -187,13 +182,13 @@ const TrendingVideos = ({ meta, faqs }) => {
     if (country !== "All") {
       fetchCategories();
     } else {
-      setCategories([{ id: "All", title: "All" }]);
+      setCategories([{ id: "All", title: t('All') }]);
     }
-  }, [country]);
+  }, [country, t]);
 
   const fetchTrendingVideos = async () => {
     if (!user) {
-      toast.error(t('alert.Please log in to fetch channel data.'));
+      toast.error(t('Please log in to fetch channel data.'));
       return;
     }
 
@@ -204,7 +199,7 @@ const TrendingVideos = ({ meta, faqs }) => {
       generateCount <= 0
     ) {
       toast.error(
-        t('alert.You have reached the limit of generating tags. Please upgrade your plan for unlimited use.')
+        t('You have reached the limit of generating tags. Please upgrade your plan for unlimited use.')
       );
       return;
     }
@@ -344,13 +339,13 @@ const TrendingVideos = ({ meta, faqs }) => {
             })}
           </script>
           {translations && Object.keys(translations).map(lang => (
-    <link
-      key={lang}
-      rel="alternate"
-      href={`${meta?.url}?locale=${lang}`}
-      hrefLang={lang} // Corrected property name
-    />
-  ))}
+            <link
+              key={lang}
+              rel="alternate"
+              href={`${meta?.url}?locale=${lang}`}
+              hrefLang={lang} // Corrected property name
+            />
+          ))}
         </Head>
           {/* Toast container for notifications */}
           <ToastContainer />
@@ -368,19 +363,19 @@ const TrendingVideos = ({ meta, faqs }) => {
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        {t('alert.Congratulations! Now you can get unlimited Trending Video.')}
+                        {t('Congratulations! Now you can get unlimited Trending Video.')}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        {t('alert.You are not upgraded. You can get Trending Video {remaining Generations} more times', { remainingGenerations: 5 - generateCount })}{" "}
+                        {t('You are not upgraded. You can get Trending Video {remaining Generations} more times', { remainingGenerations: 5 - generateCount })}{" "}
                         <Link href="/pricing" className="btn btn-warning ms-3">
-                          {t('alert.Upgrade')}
+                          {t('Upgrade')}
                         </Link>
                       </p>
                     )
                   ) : (
                     <p className="text-center p-3 alert-warning">
-                      {t('alert.Please log in to fetch channel data.')} <Link href="/login">{t('alert.loginPrompt')}</Link>
+                      {t('Please log in to fetch channel data.')} <Link href="/login">{t('loginPrompt')}</Link>
                     </p>
                   )}
                 </div>
@@ -423,7 +418,7 @@ const TrendingVideos = ({ meta, faqs }) => {
                 onClick={fetchTrendingVideos}
                 className="bg-red-500 text-white p-2 rounded w-1/3"
               >
-                {t('dropdowns.Get Your Trends')}
+                {t('Get Your Trends')}
               </button>
             </div>
 
@@ -502,9 +497,9 @@ const TrendingVideos = ({ meta, faqs }) => {
         {/* Reviews Section */}
         <div className="p-5 shadow">
           <div className="accordion">
-            <h2 className="faq-title">{t('faq.Frequently Asked Questions')}</h2>
+            <h2 className="faq-title">{t('Frequently Asked Questions')}</h2>
             <p className="faq-subtitle">
-              {t('faq.Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us')}
+              {t('Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us')}
             </p>
             <div className="faq-grid">
               {faqs?.map((faq, index) => (
@@ -541,7 +536,7 @@ const TrendingVideos = ({ meta, faqs }) => {
         <hr className="mt-4 mb-2" />
         <div className="row pt-3">
           <div className="col-md-4">
-            <div className=" text-3xl font-bold mb-2">{t('reviews.Customer reviews')}</div>
+            <div className=" text-3xl font-bold mb-2">{t('Customer reviews')}</div>
             <div className="flex items-center mb-2">
               <div className="text-3xl font-bold mr-2">{overallRating}</div>
               <div className="flex">
@@ -555,7 +550,7 @@ const TrendingVideos = ({ meta, faqs }) => {
                 ))}
               </div>
               <div className="ml-2 text-sm text-gray-500">
-                {reviews.length} {t('reviews.global ratings')}
+                {reviews.length} {t('global ratings')}
               </div>
             </div>
             <div>
@@ -576,13 +571,13 @@ const TrendingVideos = ({ meta, faqs }) => {
             </div>
             <hr />
             <div className="pt-3">
-              <h4>{t('reviews.Review This Tool')}</h4>
-              <p>{t('reviews.Share Your Thoughts With Other Customers')}</p>
+              <h4>{t('Review This Tool')}</h4>
+              <p>{t('Share Your Thoughts With Other Customers')}</p>
               <button
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
                 onClick={openReviewForm}
               >
-                {t('reviews.Write a customer review')}
+                {t('Write a customer review')}
               </button>
             </div>
           </div>
@@ -601,7 +596,7 @@ const TrendingVideos = ({ meta, faqs }) => {
                   <div className="ml-4">
                     <div className="font-bold">{review?.userName}</div>
                     <div className="text-gray-500 text-sm">
-                      {t('reviews.Verified Purchase')}
+                      {t('Verified Purchase')}
                     </div>
                   </div>
                 </div>
@@ -619,7 +614,7 @@ const TrendingVideos = ({ meta, faqs }) => {
                 </div>
 
                 <div className="text-gray-500 text-sm mb-4">
-                  {t('reviews.Reviewed On')} {review.createdAt}
+                  {t('Reviewed On')} {review.createdAt}
                 </div>
                 <div className="text-lg mb-4">{review.comment}</div>
               </div>
@@ -629,7 +624,7 @@ const TrendingVideos = ({ meta, faqs }) => {
                 className="btn btn-primary mt-4 mb-5"
                 onClick={handleShowMoreReviews}
               >
-                {t('reviews.See More Reviews')}
+                {t('See More Reviews')}
               </button>
             )}
             {showAllReviews &&
@@ -646,10 +641,10 @@ const TrendingVideos = ({ meta, faqs }) => {
                     <div className="ml-4">
                       <div className="font-bold">{review?.userName}</div>
                       <div className="text-gray-500 text-sm">
-                        {t('reviews.Verified Purchase')}
+                        {t('Verified Purchase')}
                       </div>
                       <p className="text-muted">
-                        {t('reviews.Reviewed On')} {review?.createdAt}
+                        {t('Reviewed On')} {review?.createdAt}
                       </p>
                     </div>
                   </div>
@@ -674,18 +669,20 @@ const TrendingVideos = ({ meta, faqs }) => {
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="fixed inset-0 bg-black opacity-50"></div>
             <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
-              <h2 className="text-2xl font-semibold mb-4">{t('reviews.Leave a Review')}</h2>
+              <h2 className="text-2xl font-semibold mb-4">{t('Leave a Review')}</h2>
               <div className="mb-4">
-                <StarRating
-                  rating={newReview.rating}
-                  setRating={(rating) => setNewReview({ ...newReview, rating })}
-                />
+                <Suspense fallback={<div>Loading...</div>}>
+                  <StarRating
+                    rating={newReview.rating}
+                    setRating={(rating) => setNewReview({ ...newReview, rating })}
+                  />
+                </Suspense>
               </div>
               <div className="mb-4">
                 <input
                   type="text"
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder={t('reviews.Title')}
+                  placeholder={t('Title')}
                   value={newReview.title}
                   onChange={(e) =>
                     setNewReview({ ...newReview, title: e.target.value })
@@ -695,7 +692,7 @@ const TrendingVideos = ({ meta, faqs }) => {
               <div className="mb-4">
                 <textarea
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder={t('reviews.Your Review')}
+                  placeholder={t('Your Review')}
                   value={newReview.comment}
                   onChange={(e) =>
                     setNewReview({ ...newReview, comment: e.target.value })
@@ -706,20 +703,20 @@ const TrendingVideos = ({ meta, faqs }) => {
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
                 onClick={handleReviewSubmit}
               >
-                {t('reviews.Submit Review')}
+                {t('Submit Review')}
               </button>
               <button
                 className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
                 onClick={closeReviewForm}
               >
-                {t('reviews.Cancel')}
+                {t('Cancel')}
               </button>
             </div>
           </div>
         )}
  {/* Related Tools Section */}
  <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
-      <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
+      <h2 className="text-2xl font-bold mb-5 text-center">{t('Related Tools')}</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {relatedTools.map((tool, index) => (
           <Link
@@ -771,15 +768,16 @@ export async function getServerSideProps({ req, locale }) {
       title: contentData.translations[locale]?.title || "",
       description: contentData.translations[locale]?.description || "",
       image: contentData.translations[locale]?.image || "",
-      url: `${protocol}://${host}/tools/trending-videos`,
+      url: `${protocol}://${host}/tools/title-generator`,
     };
 
     return {
       props: {
         meta,
         faqs: contentData.translations[locale]?.faqs || [],
-       
-        ...(await serverSideTranslations(locale, ['common','trending','navbar','footer'])),
+        relatedTools: contentData.translations[locale]?.relatedTools || [],
+        existingContent: contentData.translations[locale]?.content || "",
+        ...(await serverSideTranslations(locale, ['navbar','footer', 'trending'])),
       },
     };
   } catch (error) {
@@ -789,10 +787,10 @@ export async function getServerSideProps({ req, locale }) {
         meta: {},
         faqs: [],
         relatedTools: [],
-        ...(await serverSideTranslations(locale, ['common', 'trending','navbar','footer'])),
+        existingContent: "",
+        ...(await serverSideTranslations(locale, ['navbar','footer', 'trending'])),
       },
     };
   }
 }
-
 export default TrendingVideos;

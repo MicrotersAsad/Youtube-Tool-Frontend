@@ -26,7 +26,7 @@ import { i18n, useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import StarRating from "./StarRating";
 
-const YTTitleGenerator = ({ meta, faqs }) => {
+const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
   const { t } = useTranslation('titlegenerator');
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();
@@ -40,9 +40,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
   const [content, setContent] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
   const [quillContent, setQuillContent] = useState("");
-  const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
-  const [relatedTools, setRelatedTools] = useState([]);
   const [translations, setTranslations] = useState([]);
   const [newReview, setNewReview] = useState({
     name: "",
@@ -59,30 +57,25 @@ const YTTitleGenerator = ({ meta, faqs }) => {
   const closeModal = () => {
     setModalVisible(false);
   };
-
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const language = i18n.language || "en";
-        const response = await fetch(`/api/content?category=Titlegenerator&language=${language}`
+        const language = i18n.language;
+        const response = await fetch(
+          `/api/content?category=Titlegenerator&language=${language}`
         );
-        console.log(response);
-        if (!response.ok) {
-          throw new Error("Failed to fetch content");
-        }
+        if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
-        setQuillContent(data.translations[language]?.content || "");
-        setExistingContent(data.translations[language]?.content || "");  
-        setRelatedTools(data.translations[language]?.relatedTools || []);
         setTranslations(data.translations);
       } catch (error) {
-        console.error("Error fetching content");
+        toast.error("Error fetching content");
       }
     };
 
     fetchContent();
     fetchReviews();
-  }, [i18n?.language]);
+  }, [i18n.language, t]);
+ 
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -970,6 +963,7 @@ const YTTitleGenerator = ({ meta, faqs }) => {
   );
 };
 
+
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : "http";
@@ -1002,8 +996,9 @@ export async function getServerSideProps({ req, locale }) {
       props: {
         meta,
         faqs: contentData.translations[locale]?.faqs || [],
-       
-        ...(await serverSideTranslations(locale, ['common','titlegenerator','navbar','footer'])),
+        relatedTools: contentData.translations[locale]?.relatedTools || [],
+        existingContent: contentData.translations[locale]?.content || "",
+        ...(await serverSideTranslations(locale, ['titlegenerator','navbar','footer'])),
       },
     };
   } catch (error) {
@@ -1013,9 +1008,11 @@ export async function getServerSideProps({ req, locale }) {
         meta: {},
         faqs: [],
         relatedTools: [],
-        ...(await serverSideTranslations(locale, ['common', 'titlegenerator','navbar','footer'])),
+        existingContent: "",
+        ...(await serverSideTranslations(locale, [ 'titlegenerator','navbar','footer'])),
       },
     };
   }
 }
+
 export default YTTitleGenerator;

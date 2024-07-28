@@ -1,21 +1,21 @@
 {
-  "alert": {
+  
     "Congratulations! Now you can get unlimited Trending Video.": "Поздравляем! Теперь вы можете получать неограниченное количество популярных видео.",
     "You are not upgraded. You can get Trending Video {remaining Generations} more times": "Вы не обновлены. Вы можете получить популярное видео еще {remaining Generations} раз.",
     "Upgrade": "Обновить",
     "Please log in to fetch channel data.": "Пожалуйста, войдите, чтобы получить данные канала."
-  },
+  ,
   "YouTube Trending Videos": "Популярные видео на YouTube",
-  "dropdowns": {
+  
     "All": "Все",
     "Get Your Trends": "Получить ваши тренды"
-  },
+  ,
   "Share": "Поделиться:",
   "Loading...": "Загрузка...",
   "Uploaded By:": "Загружено пользователем:",
   "on": "на",
   "Category": "Категория:",
-  "reviews": {
+  
     "Customer reviews": "Отзывы клиентов",
     "global ratings": "глобальные рейтинги",
     "Review This Tool": "Оставить отзыв об этом инструменте",
@@ -29,12 +29,12 @@
     "Your Review": "Ваш отзыв",
     "Submit Review": "Отправить отзыв",
     "Cancel": "Отмена"
-  },
-  "faq": {
+  ,
+ 
     "Frequently Asked Questions": "Часто задаваемые вопросы",
     "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us": "Ответили на все часто задаваемые вопросы, все еще есть вопросы? Не стесняйтесь связаться с нами"
-  },
-  "relatedTools": {
+  ,
+  
     "Related Tools": "Связанные инструменты"
-  }
+  
 }

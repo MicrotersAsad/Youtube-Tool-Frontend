@@ -5,7 +5,7 @@ import Image from "next/image";
 import Head from "next/head";
 import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
-import { useRouter } from "next/router"; // Ensure you import useRouter to handle navigation
+import { useRouter } from "next/router";
 import { FaStar } from "react-icons/fa";
 import StarRating from "./StarRating";
 import announce from "../../public/shape/announce.png";
@@ -13,14 +13,14 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import { format } from "date-fns";
-import { i18n, useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { i18n, useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-const MonetizationChecker = ({ meta, faqs }) => {
+const MonetizationChecker = ({ meta, faqs, relatedTools, existingContent }) => {
   const { user, updateUserProfile } = useAuth();
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
   const [url, setUrl] = useState("");
-  const { t } = useTranslation('monetization');
+  const { t } = useTranslation("monetization");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
@@ -31,10 +31,7 @@ const MonetizationChecker = ({ meta, faqs }) => {
     comment: "",
     userProfile: "",
   });
-  const [relatedTools, setRelatedTools] = useState([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [quillContent, setQuillContent] = useState("");
-  const [existingContent, setExistingContent] = useState("");
   const [modalVisible, setModalVisible] = useState(true);
   const [generateCount, setGenerateCount] = useState(0);
   const [showAllReviews, setShowAllReviews] = useState(false);
@@ -55,9 +52,6 @@ const MonetizationChecker = ({ meta, faqs }) => {
         );
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
-        setQuillContent(data.translations[language]?.content || "");
-        setExistingContent(data.translations[language]?.content || "");
-        setRelatedTools(data.translations[language]?.relatedTools || []);
         setTranslations(data.translations);
       } catch (error) {
         toast.error("Error fetching content");
@@ -75,7 +69,7 @@ const MonetizationChecker = ({ meta, faqs }) => {
       const data = await response.json();
       const formattedData = data.map((review) => ({
         ...review,
-        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"), // Format the date here
+        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"),
       }));
       setReviews(formattedData);
     } catch (error) {
@@ -167,7 +161,7 @@ const MonetizationChecker = ({ meta, faqs }) => {
           tool: "monetization-checker",
           ...newReview,
           userProfile: user?.profileImage || "",
-          userName: user?.username, // Ensure userName is included
+          userName: user?.username,
         }),
       });
 
@@ -221,7 +215,7 @@ const MonetizationChecker = ({ meta, faqs }) => {
           <Image className="shape4" src={chart} alt="chart" />
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
-        <Head>
+          <Head>
             <title>{meta?.title}</title>
             <meta name="description" content={meta?.description} />
             <meta property="og:url" content={meta?.url} />
@@ -300,14 +294,15 @@ const MonetizationChecker = ({ meta, faqs }) => {
                 })),
               })}
             </script>
-            {translations && Object.keys(translations).map(lang => (
-    <link
-      key={lang}
-      rel="alternate"
-      href={`${meta?.url}?locale=${lang}`}
-      hrefLang={lang} // Corrected property name
-    />
-  ))}
+            {translations &&
+              Object.keys(translations).map((lang) => (
+                <link
+                  key={lang}
+                  rel="alternate"
+                  href={`${meta?.url}?locale=${lang}`}
+                  hrefLang={lang}
+                />
+              ))}
           </Head>
           <ToastContainer />
           <h1 className="text-3xl font-bold text-center mb-6 text-white">
@@ -331,11 +326,14 @@ const MonetizationChecker = ({ meta, faqs }) => {
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        {t("Congratulations! You can now check monetization unlimited times.")}
+                        {t(
+                          "Congratulations! You can now check monetization unlimited times."
+                        )}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        {t("You are not upgraded. You can check monetization")} {5 - generateCount} {t("more times.")}{" "}
+                        {t("You are not upgraded. You can check monetization")}{" "}
+                        {5 - generateCount} {t("more times.")}{" "}
                         <Link href="/pricing" className="btn btn-warning ms-3">
                           {t("Upgrade")}
                         </Link>
@@ -552,7 +550,9 @@ const MonetizationChecker = ({ meta, faqs }) => {
           <div className="accordion">
             <h2 className="faq-title">{t("Frequently Asked Questions")}</h2>
             <p className="faq-subtitle">
-              {t("Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us")}
+              {t(
+                "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us"
+              )}
             </p>
             <div className="faq-grid">
               {faqs.map((faq, index) => (
@@ -765,28 +765,28 @@ const MonetizationChecker = ({ meta, faqs }) => {
             </div>
           </div>
         )}
-         {/* Related Tools Section */}
-         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
-      <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {relatedTools.map((tool, index) => (
-          <a
-            key={index}
-            href={tool.link}
-            className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
-          >
-            <Image
-              src={tool?.logo?.src}
-              alt={`${tool.name} Icon`}
-              width={64}
-              height={64}
-              className="w-14 h-14 mr-4"
-            />
-            <span className="text-blue-600 font-medium">{tool.name}</span>
-          </a>
-        ))}
-      </div>
-    </div>
+        {/* Related Tools Section */}
+        <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
+          <h2 className="text-2xl font-bold mb-5 text-center">{t("Related Tools")}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {relatedTools.map((tool, index) => (
+              <a
+                key={index}
+                href={tool.link}
+                className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
+              >
+                <Image
+                  src={tool?.logo?.src}
+                  alt={`${tool.name} Icon`}
+                  width={64}
+                  height={64}
+                  className="w-14 h-14 mr-4"
+                />
+                <span className="text-blue-600 font-medium">{tool.name}</span>
+              </a>
+            ))}
+          </div>
+        </div>
         {/* End of Related Tools Section */}
       </div>
     </>
@@ -795,21 +795,17 @@ const MonetizationChecker = ({ meta, faqs }) => {
 
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : "http";
+  const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
   const apiUrl = `${protocol}://${host}/api/content?category=monetization-checker&language=${locale}`;
 
   try {
-    const [contentResponse] = await Promise.all([
-      fetch(apiUrl),
-    ]);
+    const contentResponse = await fetch(apiUrl);
 
     if (!contentResponse.ok) {
       throw new Error("Failed to fetch content");
     }
 
-    const [contentData] = await Promise.all([
-      contentResponse.json(),
-    ]);
+    const contentData = await contentResponse.json();
 
     const meta = {
       title: contentData.translations[locale]?.title || "",
@@ -822,16 +818,32 @@ export async function getServerSideProps({ req, locale }) {
       props: {
         meta,
         faqs: contentData.translations[locale]?.faqs || [],
-        ...(await serverSideTranslations(locale, ['common','tagextractor','navbar','footer','monetization'])),
+        relatedTools: contentData.translations[locale]?.relatedTools || [],
+        existingContent: contentData.translations[locale]?.content || "",
+        ...(await serverSideTranslations(locale, [
+          "common",
+          "tagextractor",
+          "navbar",
+          "footer",
+          "monetization",
+        ])),
       },
     };
   } catch (error) {
-    console.error("Error fetching data:");
+    console.error("Error fetching data:", error);
     return {
       props: {
         meta: {},
         faqs: [],
-        ...(await serverSideTranslations(locale, ['common', 'tagextractor','navbar','footer','monetization'])),
+        relatedTools: [],
+        existingContent: "",
+        ...(await serverSideTranslations(locale, [
+          "common",
+          "tagextractor",
+          "navbar",
+          "footer",
+          "monetization",
+        ])),
       },
     };
   }

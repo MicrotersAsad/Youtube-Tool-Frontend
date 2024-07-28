@@ -1,21 +1,21 @@
 {
-  "alert": {
+ 
     "Congratulations! Now you can get unlimited Trending Video.": "बधाई हो! अब आप अनलिमिटेड ट्रेंडिंग वीडियो प्राप्त कर सकते हैं।",
     "You are not upgraded. You can get Trending Video {remaining Generations} more times": "आप अपग्रेड नहीं हैं। आप {remaining Generations} बार और ट्रेंडिंग वीडियो प्राप्त कर सकते हैं।",
     "Upgrade": "अपग्रेड करें",
     "Please log in to fetch channel data.": "कृपया चैनल डेटा प्राप्त करने के लिए लॉग इन करें।"
-  },
+,
   "YouTube Trending Videos": "यूट्यूब ट्रेंडिंग वीडियो",
-  "dropdowns": {
+
     "All": "सभी",
     "Get Your Trends": "अपने ट्रेंड्स प्राप्त करें"
-  },
+  ,
   "Share": "साझा करें:",
   "Loading...": "लोड हो रहा है...",
   "Uploaded By:": "द्वारा अपलोड किया गया:",
   "on": "पर",
   "Category": "श्रेणी:",
-  "reviews": {
+
     "Customer reviews": "ग्राहक समीक्षाएं",
     "global ratings": "वैश्विक रेटिंग्स",
     "Review This Tool": "इस उपकरण की समीक्षा करें",
@@ -29,12 +29,12 @@
     "Your Review": "आपकी समीक्षा",
     "Submit Review": "समीक्षा सबमिट करें",
     "Cancel": "रद्द करें"
-  },
-  "faq": {
+  ,
+
     "Frequently Asked Questions": "अक्सर पूछे जाने वाले प्रश्न",
     "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us": "सभी अक्सर पूछे जाने वाले प्रश्नों का उत्तर दिया गया है, फिर भी उलझन में हैं? निःसंकोच हमसे संपर्क करें"
-  },
-  "relatedTools": {
+  ,
+
     "Related Tools": "संबंधित उपकरण"
-  }
+  
 }
