@@ -637,7 +637,8 @@ const TagGenerator = ({ initialMeta }) => {
           ></div>
         </div>
 
-          <div className="accordion shadow p-5 rounded">
+    
+          <div className="accordion p-5 shadow">
             <h2 className="faq-title">{t('frequentlyAskedQuestions')}</h2>
             <p className="faq-subtitle">
               {t('answeredAllFAQs')}
@@ -673,7 +674,7 @@ const TagGenerator = ({ initialMeta }) => {
               ))}
             </div>
           </div>
-      
+        
         <hr className="mt-4 mb-2" />
         <div className="row pt-3">
           <div className="col-md-4">
@@ -872,7 +873,6 @@ const TagGenerator = ({ initialMeta }) => {
                   width={64}
                   height={64}
                   className="mr-4"
-                  priority 
                 />
                 <span className="text-blue-600 font-medium">{tool.name}</span>
               </a>

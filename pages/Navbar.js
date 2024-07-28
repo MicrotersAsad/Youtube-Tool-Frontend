@@ -142,12 +142,11 @@ function Navbar() {
                           </Link>
                         )
                       ))}
-
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center lan inset-y-0 right-0 pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-                  <div className="relative inline-block text-left mr-4">
+                  <div className="hidden relative inline-block text-left mr-4 sm:block">
                     <Menu as="div" className="relative">
                       <div>
                         <Menu.Button className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-gray-800 text-sm font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
@@ -291,6 +290,18 @@ function Navbar() {
                     </Link>
                   )
                 ))}
+                <div className="py-1">
+                  {availableLanguages.map(lang => (
+                    <button
+                      key={lang.code}
+                      onClick={() => changeLanguage(lang.code)}
+                      className={classNames('block w-full text-left px-4 py-2 text-sm', selectedLanguage === lang.code ? 'bg-gray-100' : '')}
+                    >
+                      <span className={`fi fi-${lang.flag} mr-2`}></span>
+                      {lang.name}
+                    </button>
+                  ))}
+                </div>
                 {user && (
                   <Link href="/dashboard/dashboard" className={classNames(
                     router.pathname === '/dashboard/dashboard' ? 'bg-gray-700 text-white' : 'text-gray-300 hover:text-red-500 hover:bg-gray-700',
