@@ -26,6 +26,7 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
+
 const TagGenerator = ({ initialMeta }) => {
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();
@@ -56,13 +57,13 @@ const TagGenerator = ({ initialMeta }) => {
     userProfile: "",
   });
   const [modalVisible, setModalVisible] = useState(false);
-
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
 
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+
   const closeModal = () => setModalVisible(false);
 
   useEffect(() => {
@@ -382,10 +383,10 @@ const TagGenerator = ({ initialMeta }) => {
     <>
       <div className="bg-box">
         <div>
-          <Image className="shape1" src={announce} alt="announce" />
-          <Image className="shape2" src={cloud} alt="announce" />
-          <Image className="shape3" src={cloud2} alt="announce" />
-          <Image className="shape4" src={chart} alt="announce" />
+          <Image className="shape1" src={announce} alt="announce" priority />
+          <Image className="shape2" src={cloud} alt="cloud" priority />
+          <Image className="shape3" src={cloud2} alt="cloud2" priority />
+          <Image className="shape4" src={chart} alt="chart" priority />
         </div>
         <Head>
           <title>{meta?.title}</title>
@@ -467,13 +468,13 @@ const TagGenerator = ({ initialMeta }) => {
             })}
           </script>
           {translations && Object.keys(translations).map(lang => (
-    <link
-      key={lang}
-      rel="alternate"
-      href={`${meta?.url}?locale=${lang}`}
-      hrefLang={lang} // Corrected property name
-    />
-  ))}
+            <link
+              key={lang}
+              rel="alternate"
+              href={`${meta?.url}?locale=${lang}`}
+              hrefLang={lang} // Corrected property name
+            />
+          ))}
         </Head>
         <div className="max-w-7xl mx-auto p-4">
           <h2 className="text-3xl text-white">{t('YouTube Tag Generator')}</h2>
@@ -733,6 +734,7 @@ const TagGenerator = ({ initialMeta }) => {
                     className="w-12 h-12 rounded-full"
                     width={48}
                     height={48}
+                    priority 
                   />
                   <div className="ml-4">
                     <div className="font-bold">{review?.userName}</div>
@@ -778,6 +780,7 @@ const TagGenerator = ({ initialMeta }) => {
                       className="w-12 h-12 rounded-full"
                       width={48}
                       height={48}
+                      priority 
                     />
                     <div className="ml-4">
                       <div className="font-bold">{review?.userName}</div>
@@ -870,6 +873,7 @@ const TagGenerator = ({ initialMeta }) => {
                   width={64}
                   height={64}
                   className="mr-4"
+                  priority 
                 />
                 <span className="text-blue-600 font-medium">{tool.name}</span>
               </a>
