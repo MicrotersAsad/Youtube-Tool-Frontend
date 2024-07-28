@@ -10,11 +10,13 @@ import { useAuth } from "../../contexts/AuthContext";
 import Head from "next/head";
 import { ToastContainer, toast } from "react-toastify";
 import Link from "next/link";
-import StarRating from "./StarRating";
+import dynamic from 'next/dynamic';
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { i18n } from "next-i18next";
+
+const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
 const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
   const [keyword, setKeyword] = useState("");

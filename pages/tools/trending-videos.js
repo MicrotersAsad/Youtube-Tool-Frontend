@@ -28,7 +28,7 @@ import { i18n, useTranslation } from "next-i18next";
 import { languages } from "prismjs";
 
 const StarRating = lazy(() => import('./StarRating'));
-const Slider = lazy(() => import('react-slick'));
+
 
 const TrendingVideos = ({ meta, faqs, relatedTools, existingContent }) => {
   const { t } = useTranslation(['trending']);

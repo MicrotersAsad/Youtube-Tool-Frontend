@@ -7,7 +7,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { FaStar } from "react-icons/fa";
-import StarRating from "./StarRating";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
@@ -15,12 +14,14 @@ import cloud2 from "../../public/shape/cloud2.png";
 import { format } from "date-fns";
 import { i18n, useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import dynamic from "next/dynamic";
+const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
 const MonetizationChecker = ({ meta, faqs, relatedTools, existingContent }) => {
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();
-  const [url, setUrl] = useState("");
   const { t } = useTranslation("monetization");
+  const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
@@ -37,6 +38,7 @@ const MonetizationChecker = ({ meta, faqs, relatedTools, existingContent }) => {
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
   const [translations, setTranslations] = useState([]);
+
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
@@ -746,8 +748,7 @@ const MonetizationChecker = ({ meta, faqs, relatedTools, existingContent }) => {
                   placeholder={t("Your Review")}
                   value={newReview.comment}
                   onChange={(e) =>
-                    setNewReview({ ...newReview, comment: e.target.value })
-                  }
+                    setNewReview({ ...newReview, comment: e.target.value })}
                 />
               </div>
               <button

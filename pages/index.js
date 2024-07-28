@@ -71,6 +71,7 @@ export async function getServerSideProps({ locale, req }) {
           "keyword",
           "footer",
           "pricing",
+          "description"
         ])),
       },
     };
@@ -99,6 +100,7 @@ export async function getServerSideProps({ locale, req }) {
           "keyword",
           "footer",
           "pricing",
+          "description"
         ])),
       },
     };

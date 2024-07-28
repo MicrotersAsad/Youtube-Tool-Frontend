@@ -5,7 +5,6 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { FaEye, FaEyeSlash, FaStar } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import StarRating from "./StarRating";
 import { useAuth } from "../../contexts/AuthContext";
 import Image from "next/image";
 import { format } from "date-fns";
@@ -13,39 +12,40 @@ import { useRouter } from "next/router";
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { i18n, useTranslation } from "next-i18next";
 import Link from "next/link";
-
+import dynamic from "next/dynamic";
+const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const YouTubeDescriptionGenerator = ({ meta = [], faqs = [], relatedTools = [], existingContent = "" }) => {
   const { user, updateUserProfile } = useAuth();
-  const { t } = useTranslation('common');
+  const { t } = useTranslation('description');
   const [openIndex, setOpenIndex] = useState(null);
   const [videoInfo, setVideoInfo] = useState({
-    aboutVideo: `Welcome to [Your Channel Name]!\n\nIn this video, we're diving deep into the world of Full Stack Development. Whether you're a beginner or an experienced developer, these tips and guidelines will help you enhance your skills and stay ahead in the tech industry.`,
-    timestamps: `00:00 - Introduction\n01:00 - First Topic\n02:00 - Second Topic\n03:00 - Third Topic`,
-    aboutChannel: `Our channel is all about [Channel's Niche]. We cover a lot of cool stuff like [Topics Covered]. Make sure to subscribe for more awesome content!`,
-    recommendedVideos: `Check Out Our Other Videos:\n- [Video 1 Title](#)\n- [Video 2 Title](#)\n- [Video 3 Title](#)`,
-    aboutCompany: `Check out our company and our products at [Company Website]. We offer [Products/Services Offered].`,
-    website: `Find us at:\n[Website URL]`,
-    contactSocial: `Get in Touch with Us:\nEmail: [Your Email]\nFollow us on Social Media:\nTwitter: [Your Twitter Handle]\nLinkedIn: [Your LinkedIn Profile]\nGitHub: [Your GitHub Repository]`,
+    aboutVideo: t("Welcome to [Your Channel Name]!\n\nIn this video, we're diving deep into the world of Full Stack Development. Whether you're a beginner or an experienced developer, these tips and guidelines will help you enhance your skills and stay ahead in the tech industry."),
+    timestamps: t("00:00 - Introduction\n01:00 - First Topic\n02:00 - Second Topic\n03:00 - Third Topic"),
+    aboutChannel: t("Our channel is all about [Channel's Niche]. We cover a lot of cool stuff like [Topics Covered]. Make sure to subscribe for more awesome content!"),
+    recommendedVideos: t("Check Out Our Other Videos:\n- [Video 1 Title](#)\n- [Video 2 Title](#)\n- [Video 3 Title](#)"),
+    aboutCompany: t("Check out our company and our products at [Company Website]. We offer [Products/Services Offered]."),
+    website: t("Find us at:\n[Website URL]"),
+    contactSocial: t("Get in Touch with Us:\nEmail: [Your Email]\nFollow us on Social Media:\nTwitter: [Your Twitter Handle]\nLinkedIn: [Your LinkedIn Profile]\nGitHub: [Your GitHub Repository]"),
     keywords: "full stack development, coding, programming, web development",
   });
 
   const [sections, setSections] = useState([
-    { id: "aboutVideo", title: "About the Video", visible: true },
-    { id: "timestamps", title: "Timestamps", visible: true },
-    { id: "aboutChannel", title: "About the Channel", visible: true },
+    { id: "aboutVideo", title: t("About the Video"), visible: true },
+    { id: "timestamps", title: t("Timestamps"), visible: true },
+    { id: "aboutChannel", title: t("About the Channel"), visible: true },
     {
       id: "recommendedVideos",
-      title: "Recommended Videos/Playlists",
+      title: t("Recommended Videos/Playlists"),
       visible: true,
     },
     {
       id: "aboutCompany",
-      title: "About Our Company & Products",
+      title: t("About Our Company & Products"),
       visible: true,
     },
-    { id: "website", title: "Our Website", visible: true },
-    { id: "contactSocial", title: "Contact & Social", visible: true },
-    { id: "keywords", title: "Keywords to Target (Optional)", visible: true },
+    { id: "website", title: t("Our Website"), visible: true },
+    { id: "contactSocial", title: t("Contact & Social"), visible: true },
+    { id: "keywords", title: t("Keywords to Target (Optional)"), visible: true },
   ]);
   const [translations, setTranslations] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -85,7 +85,7 @@ const YouTubeDescriptionGenerator = ({ meta = [], faqs = [], relatedTools = [], 
     }
 
     if (!newReview.rating || !newReview.comment) {
-      toast.error("All fields are required.");
+      toast.error(t("All fields are required."));
       return;
     }
 
@@ -105,7 +105,7 @@ const YouTubeDescriptionGenerator = ({ meta = [], faqs = [], relatedTools = [], 
 
       if (!response.ok) throw new Error("Failed to submit review");
 
-      toast.success("Review submitted successfully!");
+      toast.success(t("Review submitted successfully!"));
       setNewReview({
         rating: 0,
         comment: "",
@@ -116,7 +116,7 @@ const YouTubeDescriptionGenerator = ({ meta = [], faqs = [], relatedTools = [], 
       fetchReviews();
     } catch (error) {
       console.error("Failed to submit review:", error);
-      toast.error("Failed to submit review");
+      toast.error(t("Failed to submit review"));
     }
   };
 
@@ -154,25 +154,25 @@ const YouTubeDescriptionGenerator = ({ meta = [], faqs = [], relatedTools = [], 
     return `
 ${aboutVideo}
 
-📌 **Timestamps:**
+📌 **${t("Timestamps")}:**
 ${timestamps}
 
-📌 **About the Channel:**
+📌 **${t("About the Channel")}:**
 ${aboutChannel}
 
-📌 **Recommended Videos/Playlists:**
+📌 **${t("Recommended Videos/Playlists")}:**
 ${recommendedVideos}
 
-📌 **About Our Company & Products:**
+📌 **${t("About Our Company & Products")}:**
 ${aboutCompany}
 
-📌 **Our Website:**
+📌 **${t("Our Website")}:**
 ${website}
 
-📌 **Contact & Social:**
+📌 **${t("Contact & Social")}:**
 ${contactSocial}
 
-🔍 **Keywords to Target:**
+🔍 **${t("Keywords to Target")}:**
 ${keywords}
     `;
   };
@@ -217,9 +217,9 @@ ${keywords}
 
   const handleCopy = () => {
     navigator.clipboard.writeText(generateDescription()).then(() => {
-      toast.success("Copied to clipboard!");
+      toast.success(t("Copied to clipboard!"));
     }).catch(err => {
-      toast.error("Failed to copy text.");
+      toast.error(t("Failed to copy text."));
     });
   };
 
@@ -315,7 +315,7 @@ ${keywords}
       </Head>
       <ToastContainer />
       <h1 className="text-2xl font-bold mb-4 text-center">
-        YouTube Description Generator
+        {t("YouTube Description Generator")}
       </h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -367,7 +367,7 @@ ${keywords}
         </div>
         <div>
           <h2 className="text-xl font-semibold mb-4 text-center">
-            Generated Video Description
+            {t("Generated Video Description")}
           </h2>
           <div className="p-4 border border-gray-300 rounded bg-gray-100 whitespace-pre-wrap">
             {generateDescription()}
@@ -376,7 +376,7 @@ ${keywords}
             onClick={handleCopy}
             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 w-full"
           >
-            Copy to Clipboard
+            {t("Copy to Clipboard")}
           </button>
         </div>
       </div>
@@ -388,10 +388,9 @@ ${keywords}
       </div>
       <div className="p-5 shadow">
         <div className="accordion">
-          <h2 className="faq-title">Frequently Asked Questions</h2>
+          <h2 className="faq-title">{t("Frequently Asked Questions")}</h2>
           <p className="faq-subtitle">
-            Answered All Frequently Asked Questions, Still Confused? Feel Free
-            To Contact Us
+            {t("Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us")}
           </p>
           <div className="faq-grid">
             {faqs?.map((faq, index) => (
@@ -428,7 +427,7 @@ ${keywords}
       <hr className="mt-4 mb-2" />
       <div className="row pt-3">
         <div className="col-md-4">
-          <div className=" text-3xl font-bold mb-2">Customer reviews</div>
+          <div className=" text-3xl font-bold mb-2">{t("Customer reviews")}</div>
           <div className="flex items-center mb-2">
             <div className="text-3xl font-bold mr-2">{overallRating}</div>
             <div className="flex">
@@ -440,7 +439,7 @@ ${keywords}
               ))}
             </div>
             <div className="ml-2 text-sm text-gray-500">
-              {reviews.length} global ratings
+              {reviews.length} {t("global ratings")}
             </div>
           </div>
           <div>
@@ -461,13 +460,13 @@ ${keywords}
           </div>
           <hr />
           <div className="pt-3">
-            <h4>Review This Tool</h4>
-            <p>Share Your Thoughts With Other Customers</p>
+            <h4>{t("Review This Tool")}</h4>
+            <p>{t("Share Your Thoughts With Other Customers")}</p>
             <button
               className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 mb-4"
               onClick={openReviewForm}
             >
-              Write a customer review
+              {t("Write a customer review")}
             </button>
           </div>
         </div>
@@ -484,7 +483,7 @@ ${keywords}
                 />
                 <div className="ml-4">
                   <div className="font-bold">{review?.userName}</div>
-                  <div className="text-gray-500 text-sm">Verified Purchase</div>
+                  <div className="text-gray-500 text-sm">{t("Verified Purchase")}</div>
                 </div>
               </div>
               <div className="flex items-center">
@@ -500,7 +499,7 @@ ${keywords}
                 </div>
               </div>
               <div className="text-gray-500 text-sm mb-4">
-                Reviewed On {review.createdAt}
+                {t("Reviewed On")} {review.createdAt}
               </div>
               <div className="text-lg mb-4">{review.comment}</div>
             </div>
@@ -510,7 +509,7 @@ ${keywords}
               className="btn btn-primary mt-4 mb-5"
               onClick={handleShowMoreReviews}
             >
-              See More Reviews
+              {t("See More Reviews")}
             </button>
           )}
           {showAllReviews &&
@@ -527,10 +526,10 @@ ${keywords}
                   <div className="ml-4">
                     <div className="font-bold">{review?.userName}</div>
                     <div className="text-gray-500 text-sm">
-                      Verified Purchase
+                      {t("Verified Purchase")}
                     </div>
                     <p className="text-muted">
-                      Reviewed On {review?.createdAt}
+                      {t("Reviewed On")} {review?.createdAt}
                     </p>
                   </div>
                 </div>
@@ -555,7 +554,7 @@ ${keywords}
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="fixed inset-0 bg-black opacity-50"></div>
           <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
-            <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
+            <h2 className="text-2xl font-semibold mb-4">{t("Leave a Review")}</h2>
             <div className="mb-4">
               <StarRating
                 rating={newReview.rating}
@@ -566,7 +565,7 @@ ${keywords}
               <input
                 type="text"
                 className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                placeholder="Title"
+                placeholder={t("Title")}
                 value={newReview.title}
                 onChange={(e) =>
                   setNewReview({ ...newReview, title: e.target.value })
@@ -576,7 +575,7 @@ ${keywords}
             <div className="mb-4">
               <textarea
                 className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                placeholder="Your Review"
+                placeholder={t("Your Review")}
                 value={newReview.comment}
                 onChange={(e) =>
                   setNewReview({ ...newReview, comment: e.target.value })
@@ -587,20 +586,20 @@ ${keywords}
               className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
               onClick={handleReviewSubmit}
             >
-              Submit Review
+              {t("Submit Review")}
             </button>
             <button
               className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
               onClick={closeModal}
             >
-              Cancel
+              {t("Cancel")}
             </button>
           </div>
         </div>
       )}
       {/* Related Tools Section */}
       <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
-        <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
+        <h2 className="text-2xl font-bold mb-5 text-center">{t("Related Tools")}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {relatedTools.map((tool, index) => (
             <Link
@@ -651,7 +650,7 @@ export async function getServerSideProps({ req, locale }) {
         faqs: contentData.translations[locale]?.faqs || [],
         relatedTools: contentData.translations[locale]?.relatedTools || [],
         existingContent: contentData.translations[locale]?.content || "",
-        ...(await serverSideTranslations(locale, ['common', 'tagextractor', 'navbar', 'footer'])),
+        ...(await serverSideTranslations(locale, ['description', 'navbar', 'footer'])),
       },
     };
   } catch (error) {
@@ -662,7 +661,7 @@ export async function getServerSideProps({ req, locale }) {
         faqs: [],
         relatedTools: [],
         existingContent: "",
-        ...(await serverSideTranslations(locale, ['common', 'tagextractor', 'navbar', 'footer'])),
+        ...(await serverSideTranslations(locale, ['description', 'navbar', 'footer'])),
       },
     };
   }

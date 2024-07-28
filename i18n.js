@@ -40,7 +40,8 @@ const NextI18NextInstance = new NextI18Next({
     "summary",
     "keyword",
     "footer",
-    "pricing"
+    "pricing",
+    "description"
   ], // Specify your namespaces here
   defaultNS: "common", // Set a default namespace
   fallbackNS: "common"

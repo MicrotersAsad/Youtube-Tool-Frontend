@@ -14,7 +14,6 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import StarRating from "./StarRating";
 import { format } from "date-fns";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
@@ -25,7 +24,8 @@ import { useTranslation } from 'react-i18next';
 import { i18n } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
-
+import dynamic from "next/dynamic";
+const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const TagGenerator = ({ initialMeta }) => {
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();

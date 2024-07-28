@@ -10,11 +10,11 @@ import {
   FaStar,
 } from "react-icons/fa";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
 import Head from "next/head";
-import StarRating from "./StarRating"; // Import StarRating component
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
@@ -23,7 +23,12 @@ import { format } from "date-fns";
 import { i18n, useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-const YtChannelDw = ({ meta, faqs }) => {
+// Dynamic import for StarRating component
+const StarRating = dynamic(() => import("./StarRating"), {
+  ssr: false,
+});
+
+const YtChannelDw = ({ meta, faqs, existingContent }) => {
   const { t } = useTranslation('banner');
   const { user, updateUserProfile } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -32,10 +37,7 @@ const YtChannelDw = ({ meta, faqs }) => {
   const [bannerUrl, setBannerUrl] = useState("");
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
-  const [content, setContent] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
-  const [quillContent, setQuillContent] = useState("");
-  const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
   const [relatedTools, setRelatedTools] = useState([]);
   const [translations, setTranslations] = useState([]);
@@ -67,8 +69,6 @@ const YtChannelDw = ({ meta, faqs }) => {
           throw new Error("Failed to fetch content");
         }
         const data = await response.json();
-        setQuillContent(data.translations[language]?.content || "");
-        setExistingContent(data.translations[language]?.content || "");  
         setRelatedTools(data.translations[language]?.relatedTools || []);
         setTranslations(data.translations);
       } catch (error) {
@@ -749,8 +749,7 @@ const YtChannelDw = ({ meta, faqs }) => {
                   placeholder={t('Your Review')}
                   value={newReview.comment}
                   onChange={(e) =>
-                    setNewReview({ ...newReview, comment: e.target.value })
-                  }
+                    setNewReview({ ...newReview, comment: e.target.value })}
                 />
               </div>
               <button
@@ -778,7 +777,7 @@ const YtChannelDw = ({ meta, faqs }) => {
             href={tool.link}
             className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
           >
-           <Image
+            <Image
               src={tool?.logo?.src}
               alt={`${tool.name} Icon`}
               width={64}
@@ -906,7 +905,7 @@ export async function getServerSideProps({ req, locale }) {
       props: {
         meta,
         faqs: contentData.translations[locale]?.faqs || [],
-       
+        existingContent: contentData.translations[locale]?.content || "",
         ...(await serverSideTranslations(locale, ['common','banner','navbar','footer'])),
       },
     };
@@ -916,12 +915,11 @@ export async function getServerSideProps({ req, locale }) {
       props: {
         meta: {},
         faqs: [],
-        relatedTools: [],
+        existingContent: "",
         ...(await serverSideTranslations(locale, ['common', 'banner','navbar','footer'])),
       },
     };
   }
 }
-
 
 export default YtChannelDw;

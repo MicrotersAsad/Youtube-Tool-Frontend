@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, Suspense, lazy } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Image from "next/image";
@@ -22,7 +22,6 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import Head from "next/head";
 import Link from "next/link";
-import StarRating from "./StarRating"; // Import StarRating component
 import { format } from "date-fns";
 import { i18n, useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
@@ -31,22 +30,22 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 
-const VideoDataViewer = ({ meta, faqs }) => {
+// Dynamically import heavy components
+const StarRating = lazy(() => import("./StarRating"));
+
+const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
   const { t } = useTranslation(['videoDataViewer']);
   const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [videoData, setVideoData] = useState(null);
   const [error, setError] = useState("");
-  const [quillContent, setQuillContent] = useState("");
-  const [existingContent, setExistingContent] = useState("");
   const [generateCount, setGenerateCount] = useState(0);
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false);
   const [isUpdated, setIsUpdated] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [relatedTools, setRelatedTools] = useState([]);
   const [translations, setTranslations] = useState([]);
   const [newReview, setNewReview] = useState({
     name: "",
@@ -59,9 +58,7 @@ const VideoDataViewer = ({ meta, faqs }) => {
   const [openIndex, setOpenIndex] = useState(null);
   const [showAllReviews, setShowAllReviews] = useState(false);
 
-  const closeModal = () => {
-    setModalVisible(false);
-  };
+  const closeModal = () => setModalVisible(false);
 
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -84,25 +81,8 @@ const VideoDataViewer = ({ meta, faqs }) => {
   }, [user]);
 
   useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const language = i18n.language;
-        const response = await fetch(`/api/content?category=video-data-viewer&language=${language}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch content");
-        }
-        const data = await response.json();
-        setQuillContent(data.translations[language]?.content || "");
-        setExistingContent(data.translations[language]?.content || "");  
-        setRelatedTools(data.translations[language]?.relatedTools || []);
-        setTranslations(data.translations);
-      } catch (error) {
-        console.error("Error fetching content");
-      }
-    };
-
-    fetchContent();
     fetchReviews();
+    
   }, [i18n.language]);
 
   const handleInputChange = (e) => {
@@ -251,7 +231,9 @@ const VideoDataViewer = ({ meta, faqs }) => {
     return totalReviews ? (ratingCount / totalReviews) * 100 : 0;
   };
 
-  const overallRating = (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1);
+  const overallRating = useMemo(() => (
+    (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
+  ), [reviews]);
 
   const handleShowMoreReviews = () => {
     setShowAllReviews(true);
@@ -264,6 +246,7 @@ const VideoDataViewer = ({ meta, faqs }) => {
     }
     setShowReviewForm(true);
   };
+
   const closeReviewForm = () => {
     setShowReviewForm(false);
   };
@@ -665,7 +648,9 @@ const VideoDataViewer = ({ meta, faqs }) => {
             <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
               <h2 className="text-2xl font-semibold mb-4">{t("Leave a Review")}</h2>
               <div className="mb-4">
-                <StarRating rating={newReview.rating} setRating={(rating) => setNewReview({ ...newReview, rating })} />
+                <Suspense fallback={<div>Loading...</div>}>
+                  <StarRating rating={newReview.rating} setRating={(rating) => setNewReview({ ...newReview, rating })} />
+                </Suspense>
               </div>
               <div className="mb-4">
                 <input
@@ -727,27 +712,19 @@ const VideoDataViewer = ({ meta, faqs }) => {
     </>
   );
 };
-
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : "http";
   const apiUrl = `${protocol}://${host}/api/content?category=video-data-viewer&language=${locale}`;
 
-
   try {
-    const [contentResponse] = await Promise.all([
-      fetch(apiUrl),
- 
-    ]);
+    const response = await fetch(apiUrl);
 
-    if (!contentResponse.ok) {
+    if (!response.ok) {
       throw new Error("Failed to fetch content");
     }
 
-    const [contentData] = await Promise.all([
-      contentResponse.json(),
-      
-    ]);
+    const contentData = await response.json();
 
     const meta = {
       title: contentData.translations[locale]?.title || "",
@@ -760,8 +737,9 @@ export async function getServerSideProps({ req, locale }) {
       props: {
         meta,
         faqs: contentData.translations[locale]?.faqs || [],
-       
-        ...(await serverSideTranslations(locale, ['common','videoDataViewer','navbar','footer'])),
+        existingContent: contentData.translations[locale]?.content || "",  // Add existingContent
+        relatedTools: contentData.translations[locale]?.relatedTools || [],
+        ...(await serverSideTranslations(locale, ['common', 'videoDataViewer', 'navbar', 'footer'])),
       },
     };
   } catch (error) {
@@ -770,8 +748,9 @@ export async function getServerSideProps({ req, locale }) {
       props: {
         meta: {},
         faqs: [],
+        existingContent: "",  // Ensure existingContent is included
         relatedTools: [],
-        ...(await serverSideTranslations(locale, ['common', 'videoDataViewer','navbar','footer'])),
+        ...(await serverSideTranslations(locale, ['common', 'videoDataViewer', 'navbar', 'footer'])),
       },
     };
   }

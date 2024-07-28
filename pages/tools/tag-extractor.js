@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
+import dynamic from 'next/dynamic';
 import {
   FaCopy, FaDownload, FaFacebook, FaInstagram, FaLinkedin, FaShareAlt, FaStar, FaTimes, FaTwitter
 } from "react-icons/fa";
 import { FaGrip } from "react-icons/fa6";
-import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Head from "next/head";
-import StarRating from "./StarRating";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
@@ -17,6 +16,11 @@ import Image from "next/image";
 import { format } from "date-fns";
 import { i18n, useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+// Importing Auth Context correctly
+import { useAuth } from "../../contexts/AuthContext";
+// Dynamic imports
+const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
+
 
 const TagExtractor = ({ meta, faqs, relatedTools, existingContent }) => {
   const { t } = useTranslation('tagextractor');
@@ -47,6 +51,7 @@ const TagExtractor = ({ meta, faqs, relatedTools, existingContent }) => {
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+
   useEffect(() => {
     const fetchContent = async () => {
       try {

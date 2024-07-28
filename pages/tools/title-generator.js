@@ -14,7 +14,6 @@ import Head from "next/head";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 import { format } from "date-fns";
 import { useRouter } from "next/router";
 import announce from "../../public/shape/announce.png";
@@ -24,7 +23,9 @@ import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 import { i18n, useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import StarRating from "./StarRating";
+import dynamic from 'next/dynamic';
+
+const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
 const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
   const { t } = useTranslation('titlegenerator');
@@ -37,9 +38,7 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
-  const [content, setContent] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
-  const [quillContent, setQuillContent] = useState("");
   const [reviews, setReviews] = useState([]);
   const [translations, setTranslations] = useState([]);
   const [newReview, setNewReview] = useState({
@@ -57,6 +56,7 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
   const closeModal = () => {
     setModalVisible(false);
   };
+
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -75,7 +75,6 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
     fetchContent();
     fetchReviews();
   }, [i18n.language, t]);
- 
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -369,99 +368,100 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
         <div>
           <Image className="shape1" src={announce} alt="announce" />
           <Image className="shape2" src={cloud} alt="cloud" />
-          <Image className="shape3" src={cloud2} alt="cloud" />
+          <Image className="shape3" src={cloud2} alt="cloud2" />
           <Image className="shape4" src={chart} alt="chart" />
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-        <Head>
-          <title>{meta?.title}</title>
-          <meta name="description" content={meta?.description} />
-          <meta property="og:url" content={meta?.url} />
-          <meta property="og:title" content={meta?.title} />
-          <meta property="og:description" content={meta?.description} />
-          <meta property="og:image" content={meta?.image || ""} />
-          <meta name="twitter:card" content={meta?.image || ""} />
-          <meta property="twitter:domain" content={meta?.url} />
-          <meta property="twitter:url" content={meta?.url} />
-          <meta name="twitter:title" content={meta?.title} />
-          <meta name="twitter:description" content={meta?.description} />
-          <meta name="twitter:image" content={meta?.image || ""} />
-          {/* - Webpage Schema */}
-          <script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebPage",
-              name: meta?.title,
-              url: meta?.url,
-              description: meta?.description,
-              breadcrumb: {
-                "@id": `${meta?.url}#breadcrumb`,
-              },
-              about: {
-                "@type": "Thing",
+          <Head>
+            <title>{meta?.title}</title>
+            <meta name="description" content={meta?.description} />
+            <meta property="og:url" content={meta?.url} />
+            <meta property="og:title" content={meta?.title} />
+            <meta property="og:description" content={meta?.description} />
+            <meta property="og:image" content={meta?.image || ""} />
+            <meta name="twitter:card" content={meta?.image || ""} />
+            <meta property="twitter:domain" content={meta?.url} />
+            <meta property="twitter:url" content={meta?.url} />
+            <meta name="twitter:title" content={meta?.title} />
+            <meta name="twitter:description" content={meta?.description} />
+            <meta name="twitter:image" content={meta?.image || ""} />
+            {/* - Webpage Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "WebPage",
                 name: meta?.title,
-              },
-              isPartOf: {
-                "@type": "WebSite",
                 url: meta?.url,
-              },
-            })}
-          </script>
-          {/* - Review Schema */}
-          <script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "SoftwareApplication",
-              name: meta?.title,
-              url: meta?.url,
-              applicationCategory: "Multimedia",
-              aggregateRating: {
-                "@type": "AggregateRating",
-                ratingValue: overallRating,
-                ratingCount: reviews?.length,
-                reviewCount: reviews?.length,
-              },
-              review: reviews.map((review) => ({
-                "@type": "Review",
-                author: {
-                  "@type": "Person",
-                  name: review.userName,
+                description: meta?.description,
+                breadcrumb: {
+                  "@id": `${meta?.url}#breadcrumb`,
                 },
-                datePublished: review.createdAt,
-                reviewBody: review.comment,
-                name: review.title,
-                reviewRating: {
-                  "@type": "Rating",
-                  ratingValue: review.rating,
+                about: {
+                  "@type": "Thing",
+                  name: meta?.title,
                 },
-              })),
-            })}
-          </script>
-          {/* - FAQ Schema */}
-          <script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              mainEntity: faqs.map((faq) => ({
-                "@type": "Question",
-                name: faq.question,
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: faq.answer,
+                isPartOf: {
+                  "@type": "WebSite",
+                  url: meta?.url,
                 },
-              })),
-            })}
-          </script>
-          {translations && Object.keys(translations).map(lang => (
-    <link
-      key={lang}
-      rel="alternate"
-      href={`${meta?.url}?locale=${lang}`}
-      hrefLang={lang} // Corrected property name
-    />
-  ))}
-        </Head>
+              })}
+            </script>
+            {/* - Review Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                name: meta?.title,
+                url: meta?.url,
+                applicationCategory: "Multimedia",
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: overallRating,
+                  ratingCount: reviews?.length,
+                  reviewCount: reviews?.length,
+                },
+                review: reviews.map((review) => ({
+                  "@type": "Review",
+                  author: {
+                    "@type": "Person",
+                    name: review.userName,
+                  },
+                  datePublished: review.createdAt,
+                  reviewBody: review.comment,
+                  name: review.title,
+                  reviewRating: {
+                    "@type": "Rating",
+                    ratingValue: review.rating,
+                  },
+                })),
+              })}
+            </script>
+            {/* - FAQ Schema */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: faqs.map((faq) => ({
+                  "@type": "Question",
+                  name: faq.question,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: faq.answer,
+                  },
+                })),
+              })}
+            </script>
+            {translations &&
+              Object.keys(translations).map((lang) => (
+                <link
+                  key={lang}
+                  rel="alternate"
+                  href={`${meta?.url}?locale=${lang}`}
+                  hrefLang={lang}
+                />
+              ))}
+          </Head>
 
           <h2 className="text-3xl text-white">{t('YouTube Title Generator')}</h2>
 
@@ -568,183 +568,141 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
         </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
-      <div className="generated-titles-container">
-        {generatedTitles.length > 0 && (
-          <div className="select-all-checkbox">
-            <input
-              type="checkbox"
-              checked={selectAll}
-              onChange={handleSelectAll}
-            />
-            <span>{t('Select All')}</span>
-          </div>
-        )}
-        {generatedTitles.map((title, index) => (
-          <div key={index} className="title-checkbox">
-            <input
-              className="me-2"
-              type="checkbox"
-              checked={title.selected}
-              onChange={() => toggleTitleSelect(index)}
-            />
-            {title.text}
-            <FaCopy
-              className="copy-icon"
-              onClick={() => copyToClipboard(title.text)}
-            />
-          </div>
-        ))}
-        {generatedTitles.some((title) => title.selected) && (
-          <button className="btn btn-primary" onClick={copySelectedTitles}>
-            {t('Copy All Titles')} <FaCopy />
-          </button>
-        )}
-        {generatedTitles.some((title) => title.selected) && (
-          <button
-            className="btn btn-primary ms-2"
-            onClick={downloadSelectedTitles}
-          >
-            {t('Download Titles')} <FaDownload />
-          </button>
-        )}
-      </div>
-      
-      <div className="content pt-6 pb-5">
-        <div
-          dangerouslySetInnerHTML={{ __html: existingContent }}
-          style={{ listStyleType: "none" }}
-        ></div>
-      </div>
-
-      <div className="p-5 shadow">
-        <div className="accordion">
-          <h2 className="faq-title">{t('Frequently Asked Questions')}</h2>
-          <p className="faq-subtitle">
-            {t('Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us')}
-          </p>
-          <div className="faq-grid">
-            {faqs?.map((faq, index) => (
-              <div key={index} className="faq-item">
-                <span id={`accordion-${index}`} className="target-fix"></span>
-                <a
-                  href={`#accordion-${index}`}
-                  id={`open-accordion-${index}`}
-                  className="accordion-header"
-                  onClick={() => toggleFAQ(index)}
-                >
-                  {t(faq.question)}
-                </a>
-                <a
-                  href={`#accordion-${index}`}
-                  id={`close-accordion-${index}`}
-                  className="accordion-header"
-                  onClick={() => toggleFAQ(index)}
-                >
-                  {t(faq.question)}
-                </a>
-                <div
-                  className={`accordion-content ${
-                    openIndex === index ? "open" : ""
-                  }`}
-                >
-                  <p>{t(faq.answer)}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="generated-titles-container">
+          {generatedTitles.length > 0 && (
+            <div className="select-all-checkbox">
+              <input
+                type="checkbox"
+                checked={selectAll}
+                onChange={handleSelectAll}
+              />
+              <span>{t('Select All')}</span>
+            </div>
+          )}
+          {generatedTitles.map((title, index) => (
+            <div key={index} className="title-checkbox">
+              <input
+                className="me-2"
+                type="checkbox"
+                checked={title.selected}
+                onChange={() => toggleTitleSelect(index)}
+              />
+              {title.text}
+              <FaCopy
+                className="copy-icon"
+                onClick={() => copyToClipboard(title.text)}
+              />
+            </div>
+          ))}
+          {generatedTitles.some((title) => title.selected) && (
+            <button className="btn btn-primary" onClick={copySelectedTitles}>
+              {t('Copy All Titles')} <FaCopy />
+            </button>
+          )}
+          {generatedTitles.some((title) => title.selected) && (
+            <button
+              className="btn btn-primary ms-2"
+              onClick={downloadSelectedTitles}
+            >
+              {t('Download Titles')} <FaDownload />
+            </button>
+          )}
         </div>
-      </div>
-      <hr className="mt-4 mb-2" />
-     
-      <div className="row pt-3">
-        <div className="col-md-4">
-          <div className=" text-3xl font-bold mb-2">{t('Customer Reviews')}</div>
-          <div className="flex items-center mb-2">
-            <div className="text-3xl font-bold mr-2">{overallRating}</div>
-            <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <FaStar
-                  key={i}
-                  color={i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"}
-                />
+
+        <div className="content pt-6 pb-5">
+          <div
+            dangerouslySetInnerHTML={{ __html: existingContent }}
+            style={{ listStyleType: "none" }}
+          ></div>
+        </div>
+
+        <div className="p-5 shadow">
+          <div className="accordion">
+            <h2 className="faq-title">{t('Frequently Asked Questions')}</h2>
+            <p className="faq-subtitle">
+              {t('Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us')}
+            </p>
+            <div className="faq-grid">
+              {faqs?.map((faq, index) => (
+                <div key={index} className="faq-item">
+                  <span id={`accordion-${index}`} className="target-fix"></span>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`open-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {t(faq.question)}
+                  </a>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`close-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {t(faq.question)}
+                  </a>
+                  <div
+                    className={`accordion-content ${
+                      openIndex === index ? "open" : ""
+                    }`}
+                  >
+                    <p>{t(faq.answer)}</p>
+                  </div>
+                </div>
               ))}
             </div>
-            <div className="ml-2 text-sm text-gray-500">
-              {reviews.length} {t('global ratings')}
-            </div>
-          </div>
-          <div>
-            {[5, 4, 3, 2, 1].map((rating) => (
-              <div key={rating} className="flex items-center mb-1">
-                <div className="w-12 text-right mr-4">{rating}-star</div>
-                <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
-                  <div
-                    className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0"
-                    style={{ width: `${calculateRatingPercentage(rating)}%` }}
-                  ></div>
-                </div>
-                <div className="w-12 text-left ml-4">
-                  {calculateRatingPercentage(rating).toFixed(1)}%
-                </div>
-              </div>
-            ))}
-          </div>
-          <hr />
-          <div className="pt-3">
-            <h4>{t('Review This Tool')}</h4>
-            <p>{t('Share Your Thoughts With Other Customers')}</p>
-            <button
-              className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 mb-4"
-              onClick={openReviewForm}
-            >
-              {t('Write a customer review')}
-            </button>
           </div>
         </div>
-        <div className="col-md-8">
-          {reviews.slice(0, 5).map((review, index) => (
-            <div key={index} className="border p-6 m-5 bg-white">
-              <div className="flex items-center mb-4">
-                <Image
-                  src={`data:image/jpeg;base64,${review?.userProfile}`}
-                  alt={review.name}
-                  className="w-12 h-12 rounded-full"
-                  width={48}
-                  height={48}
-                />
-                <div className="ml-4">
-                  <div className="font-bold">{review?.userName}</div>
-                  <div className="text-gray-500 text-sm">{t('Verified Purchase')}</div>
-                </div>
-              </div>
-              <div className="flex items-center">
+        <hr className="mt-4 mb-2" />
+
+        <div className="row pt-3">
+          <div className="col-md-4">
+            <div className=" text-3xl font-bold mb-2">{t('Customer Reviews')}</div>
+            <div className="flex items-center mb-2">
+              <div className="text-3xl font-bold mr-2">{overallRating}</div>
+              <div className="flex">
                 {[...Array(5)].map((_, i) => (
                   <FaStar
                     key={i}
-                    size={20}
-                    color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                    color={i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"}
                   />
                 ))}
-                <div>
-                  <span className="fw-bold mt-2 ms-2">{review?.title}</span>
-                </div>
               </div>
-              <div className="text-gray-500 text-sm mb-4">
-                {t('Reviewed On')} {review.createdAt}
+              <div className="ml-2 text-sm text-gray-500">
+                {reviews.length} {t('global ratings')}
               </div>
-              <div className="text-lg mb-4">{review.comment}</div>
             </div>
-          ))}
-          {!showAllReviews && reviews.length > 5 && (
-            <button
-              className="btn btn-primary mt-4 mb-5"
-              onClick={handleShowMoreReviews}
-            >
-              {t('See More Reviews')}
-            </button>
-          )}
-          {showAllReviews &&
-            reviews.slice(5).map((review, index) => (
+            <div>
+              {[5, 4, 3, 2, 1].map((rating) => (
+                <div key={rating} className="flex items-center mb-1">
+                  <div className="w-12 text-right mr-4">{rating}-star</div>
+                  <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
+                    <div
+                      className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0"
+                      style={{ width: `${calculateRatingPercentage(rating)}%` }}
+                    ></div>
+                  </div>
+                  <div className="w-12 text-left ml-4">
+                    {calculateRatingPercentage(rating).toFixed(1)}%
+                  </div>
+                </div>
+              ))}
+            </div>
+            <hr />
+            <div className="pt-3">
+              <h4>{t('Review This Tool')}</h4>
+              <p>{t('Share Your Thoughts With Other Customers')}</p>
+              <button
+                className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 mb-4"
+                onClick={openReviewForm}
+              >
+                {t('Write a customer review')}
+              </button>
+            </div>
+          </div>
+          <div className="col-md-8">
+            {reviews.slice(0, 5).map((review, index) => (
               <div key={index} className="border p-6 m-5 bg-white">
                 <div className="flex items-center mb-4">
                   <Image
@@ -756,17 +714,9 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
                   />
                   <div className="ml-4">
                     <div className="font-bold">{review?.userName}</div>
-                    <div className="text-gray-500 text-sm">
-                      {t('Verified Purchase')}
-                    </div>
-                    <p className="text-muted">
-                      {t('Reviewed On')} {review?.createdAt}
-                    </p>
+                    <div className="text-gray-500 text-sm">{t('Verified Purchase')}</div>
                   </div>
                 </div>
-                <div className="text-lg font-semibold">{review.title}</div>
-                <div className="text-gray-500 mb-4">{review.date}</div>
-                <div className="text-lg mb-4">{review.comment}</div>
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
                     <FaStar
@@ -775,84 +725,134 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
                       color={i < review.rating ? "#ffc107" : "#e4e5e9"}
                     />
                   ))}
+                  <div>
+                    <span className="fw-bold mt-2 ms-2">{review?.title}</span>
+                  </div>
                 </div>
+                <div className="text-gray-500 text-sm mb-4">
+                  {t('Reviewed On')} {review.createdAt}
+                </div>
+                <div className="text-lg mb-4">{review.comment}</div>
               </div>
             ))}
-        </div>
-      </div>
-
-      {modalVisible && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="fixed inset-0 bg-black opacity-50"></div>
-          <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
-            <h2 className="text-2xl font-semibold mb-4">{t('Leave a Review')}</h2>
-            <div className="mb-4">
-              <StarRating
-                rating={newReview.rating}
-                setRating={(rating) => setNewReview({ ...newReview, rating })}
-              />
-            </div>
-            <div className="mb-4">
-              <input
-                type="text"
-                className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                placeholder={t('Title')}
-                value={newReview.title}
-                onChange={(e) =>
-                  setNewReview({ ...newReview, title: e.target.value })
-                }
-              />
-            </div>
-            <div className="mb-4">
-              <textarea
-                className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                placeholder={t('Your Review')}
-                value={newReview.comment}
-                onChange={(e) =>
-                  setNewReview({ ...newReview, comment: e.target.value })
-                }
-              />
-            </div>
-            <button
-              className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
-              onClick={handleReviewSubmit}
-            >
-              {t('Submit Review')}
-            </button>
-            <button
-              className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
-              onClick={closeModal}
-            >
-              {t('Cancel')}
-            </button>
+            {!showAllReviews && reviews.length > 5 && (
+              <button
+                className="btn btn-primary mt-4 mb-5"
+                onClick={handleShowMoreReviews}
+              >
+                {t('See More Reviews')}
+              </button>
+            )}
+            {showAllReviews &&
+              reviews.slice(5).map((review, index) => (
+                <div key={index} className="border p-6 m-5 bg-white">
+                  <div className="flex items-center mb-4">
+                    <Image
+                      src={`data:image/jpeg;base64,${review?.userProfile}`}
+                      alt={review.name}
+                      className="w-12 h-12 rounded-full"
+                      width={48}
+                      height={48}
+                    />
+                    <div className="ml-4">
+                      <div className="font-bold">{review?.userName}</div>
+                      <div className="text-gray-500 text-sm">
+                        {t('Verified Purchase')}
+                      </div>
+                      <p className="text-muted">
+                        {t('Reviewed On')} {review?.createdAt}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-lg font-semibold">{review.title}</div>
+                  <div className="text-gray-500 mb-4">{review.date}</div>
+                  <div className="text-lg mb-4">{review.comment}</div>
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, i) => (
+                      <FaStar
+                        key={i}
+                        size={20}
+                        color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
           </div>
         </div>
-      )}
-      {/* Related Tools Section */}
-      <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
-      <h2 className="text-2xl font-bold mb-5 text-center">{t('Related Tools')}</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {relatedTools.map((tool, index) => (
-          <Link
-            key={index}
-            href={tool.link}
-            className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
-          >
-             <Image
-              src={tool?.logo?.src}
-              alt={`${tool.name} Icon`}
-              width={64}
-              height={64}
-              className="mr-4"
-              
-            />
-            <span className="text-blue-600 font-medium">{tool.name}</span>
-            </Link>
-        ))}
+
+        {showReviewForm && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-black opacity-50"></div>
+            <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
+              <h2 className="text-2xl font-semibold mb-4">{t('Leave a Review')}</h2>
+              <div className="mb-4">
+                <StarRating
+                  rating={newReview.rating}
+                  setRating={(rating) => setNewReview({ ...newReview, rating })}
+                />
+              </div>
+              <div className="mb-4">
+                <input
+                  type="text"
+                  className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                  placeholder={t('Title')}
+                  value={newReview.title}
+                  onChange={(e) =>
+                    setNewReview({ ...newReview, title: e.target.value })
+                  }
+                />
+              </div>
+              <div className="mb-4">
+                <textarea
+                  className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                  placeholder={t('Your Review')}
+                  value={newReview.comment}
+                  onChange={(e) =>
+                    setNewReview({ ...newReview, comment: e.target.value })
+                  }
+                />
+              </div>
+              <button
+                className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                onClick={handleReviewSubmit}
+              >
+                {t('Submit Review')}
+              </button>
+              <button
+                className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
+                onClick={() => setShowReviewForm(false)}
+              >
+                {t('Cancel')}
+              </button>
+            </div>
+          </div>
+        )}
+        {/* Related Tools Section */}
+        <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
+          <h2 className="text-2xl font-bold mb-5 text-center">{t('Related Tools')}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {relatedTools.map((tool, index) => (
+              <Link
+                key={index}
+                href={tool.link}
+                className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
+              >
+                <Image
+                  src={tool?.logo?.src}
+                  alt={`${tool.name} Icon`}
+                  width={64}
+                  height={64}
+                  className="mr-4"
+                />
+                <span className="text-blue-600 font-medium">{tool.name}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+        {/* End of Related Tools Section */}
       </div>
-    </div>
-      {/* End of Related Tools Section */}
-      <style>{`
+      <style jsx>{`
         .keywords-input-container {
           border: 2px solid #ccc;
           padding: 10px;
@@ -957,33 +957,23 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
           background-color: gray;
         }
       `}</style>
-      
-      </div>
     </>
   );
 };
-
 
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
   const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : "http";
   const apiUrl = `${protocol}://${host}/api/content?category=Titlegenerator&language=${locale}`;
 
-
   try {
-    const [contentResponse] = await Promise.all([
-      fetch(apiUrl),
- 
-    ]);
+    const contentResponse = await fetch(apiUrl);
 
     if (!contentResponse.ok) {
       throw new Error("Failed to fetch content");
     }
 
-    const [contentData] = await Promise.all([
-      contentResponse.json(),
-      
-    ]);
+    const contentData = await contentResponse.json();
 
     const meta = {
       title: contentData.translations[locale]?.title || "",
@@ -998,7 +988,7 @@ export async function getServerSideProps({ req, locale }) {
         faqs: contentData.translations[locale]?.faqs || [],
         relatedTools: contentData.translations[locale]?.relatedTools || [],
         existingContent: contentData.translations[locale]?.content || "",
-        ...(await serverSideTranslations(locale, ['titlegenerator','navbar','footer'])),
+        ...(await serverSideTranslations(locale, ['common', 'titlegenerator', 'navbar', 'footer'])),
       },
     };
   } catch (error) {
@@ -1009,7 +999,7 @@ export async function getServerSideProps({ req, locale }) {
         faqs: [],
         relatedTools: [],
         existingContent: "",
-        ...(await serverSideTranslations(locale, [ 'titlegenerator','navbar','footer'])),
+        ...(await serverSideTranslations(locale, ['common', 'titlegenerator', 'navbar', 'footer'])),
       },
     };
   }
