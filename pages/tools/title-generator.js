@@ -852,7 +852,7 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
         </div>
         {/* End of Related Tools Section */}
       </div>
-      <style jsx>{`
+      <style>{`
         .keywords-input-container {
           border: 2px solid #ccc;
           padding: 10px;
