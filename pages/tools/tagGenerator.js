@@ -704,47 +704,47 @@ const TagGenerator = ({ initialMeta }) => {
         
         <hr className="mt-4 mb-2" />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
   {/* Review Summary Section */}
-  <div className="bg-white p-6 rounded-lg shadow-md">
-    <h2 className="text-2xl font-semibold mb-4">{t('customerReviews')}</h2>
-    <div className="flex items-center mb-4">
-      <div className="text-4xl font-bold mr-3">{overallRating || '0'}</div>
-      <div className="flex items-center">
+  <div className="p-4 bg-white shadow-md rounded-md">
+    <div className="text-xl font-bold mb-2">{t('customerReviews')}</div>
+    <div className="flex items-center mb-2">
+      <div className="text-xl font-bold mr-2">{overallRating || '0'}</div>
+      <div className="flex">
         {[...Array(5)].map((_, i) => (
           <FaStar
             key={i}
             color={i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"}
-            size={24}
+            size={18}
           />
         ))}
       </div>
-      <div className="ml-3 text-sm text-gray-600">
+      <div className="ml-2 text-sm text-gray-500">
         {reviews.length} {t('globalRatings')}
       </div>
     </div>
-    <div className="space-y-2 mb-4">
+    <div>
       {[5, 4, 3, 2, 1].map((rating) => (
-        <div key={rating} className="flex items-center">
-          <div className="w-16 text-right mr-3 font-medium">{rating}-star</div>
-          <div className="flex-1 bg-gray-200 rounded-full relative h-4">
+        <div key={rating} className="flex items-center mb-2">
+          <div className="w-16 text-right mr-2">{rating}-star</div>
+          <div className="flex-1 h-3 bg-gray-200 rounded-full relative">
             <div
-              className="bg-yellow-500 rounded-full h-full absolute top-0 left-0"
+              className="h-3 bg-yellow-500 rounded-full absolute top-0 left-0"
               style={{ width: `${calculateRatingPercentage(rating)}%` }}
             ></div>
           </div>
-          <div className="w-16 text-left ml-3 font-medium">
+          <div className="w-16 text-left ml-2">
             {calculateRatingPercentage(rating).toFixed(1)}%
           </div>
         </div>
       ))}
     </div>
     <hr className="my-4" />
-    <div className="pt-4">
-      <h4 className="text-lg font-semibold mb-2">{t('reviewThisTool')}</h4>
-      <p className="text-gray-700 mb-4">{t('shareYourThoughts')}</p>
+    <div>
+      <h4 className="text-lg font-semibold">{t('reviewThisTool')}</h4>
+      <p className="text-sm text-gray-600">{t('shareYourThoughts')}</p>
       <button
-        className="bg-blue-600 text-white font-semibold py-2 px-5 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
+        className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
         onClick={openReviewForm}
       >
         {t('writeReview')}
@@ -753,60 +753,95 @@ const TagGenerator = ({ initialMeta }) => {
   </div>
 
   {/* Review List Section */}
-  <div className="col-span-2">
-    {reviews.slice(0, showAllReviews ? reviews.length : 5).map((review, index) => (
+  <div className="p-4 bg-white shadow-md rounded-md col-span-1 md:col-span-1">
+    {reviews.slice(0, 5).map((review, index) => (
       <div
         key={index}
-        className="border border-gray-200 p-6 mb-6 bg-white rounded-lg shadow-md"
+        className="border p-4 mb-4 bg-gray-50 rounded-md shadow-sm"
       >
-        <div className="flex items-center mb-4">
-          <div className="w-14 h-14 rounded-full overflow-hidden">
+        <div className="flex items-center mb-3">
+          <div className="w-10 h-10 rounded-full overflow-hidden">
             <Image
               src={`data:image/jpeg;base64,${review?.userProfile}`}
               alt={review.name}
-              width={56}
-              height={56}
+              width={40}
+              height={40}
               layout="intrinsic"
               priority
             />
           </div>
-          <div className="ml-4">
-            <div className="font-semibold">{review?.userName}</div>
-            <div className="text-gray-500 text-sm">{t('verifiedPurchase')}</div>
+          <div className="ml-3">
+            <div className="font-semibold text-sm">{review?.userName}</div>
+            <div className="text-gray-500 text-xs">{t('verifiedPurchase')}</div>
           </div>
         </div>
-        <div className="flex items-center mb-2">
+        <div className="flex items-center mb-3">
           {[...Array(5)].map((_, i) => (
             <FaStar
               key={i}
-              size={20}
+              size={18}
               color={i < review.rating ? "#ffc107" : "#e4e5e9"}
             />
           ))}
-          <span className="ml-3 font-semibold">{review?.title}</span>
         </div>
-        <div className="text-gray-600 text-sm mb-2">
-          {t('reviewedOn')} {review.createdAt}
-        </div>
-        <div className="text-lg mb-4">{review.comment}</div>
+        <div className="text-sm mb-2">{review.comment}</div>
+        <div className="text-gray-500 text-xs">{t('reviewedOn')} {review.createdAt}</div>
       </div>
     ))}
     {!showAllReviews && reviews.length > 5 && (
       <button
-        className="bg-blue-600 text-white font-semibold py-2 px-5 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out mt-4"
+        className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
         onClick={handleShowMoreReviews}
       >
         {t('seeMoreReviews')}
       </button>
     )}
+    {showAllReviews &&
+      reviews.slice(5).map((review, index) => (
+        <div
+          key={index}
+          className="border p-4 mb-4 bg-gray-50 rounded-md shadow-sm"
+        >
+          <div className="flex items-center mb-3">
+            <div className="w-10 h-10 rounded-full overflow-hidden">
+              <Image
+                src={`data:image/jpeg;base64,${review?.userProfile}`}
+                alt={review.name}
+                width={40}
+                height={40}
+                layout="intrinsic"
+                priority
+              />
+            </div>
+            <div className="ml-3">
+              <div className="font-semibold text-sm">{review?.userName}</div>
+              <div className="text-gray-500 text-xs">{t('verifiedPurchase')}</div>
+              <p className="text-gray-400 text-xs">
+                {t('reviewedOn')} {review?.createdAt}
+              </p>
+            </div>
+          </div>
+          <div className="text-sm font-semibold mb-2">{review.title}</div>
+          <div className="text-sm mb-2">{review.comment}</div>
+          <div className="flex items-center">
+            {[...Array(5)].map((_, i) => (
+              <FaStar
+                key={i}
+                size={18}
+                color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
   </div>
 
   {/* Review Modal */}
   {modalVisible && (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="fixed inset-0 bg-black opacity-50"></div>
-      <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-lg">
-        <h2 className="text-2xl font-semibold mb-4">{t('leaveReview')}</h2>
+      <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
+        <h2 className="text-xl font-semibold mb-4">{t('leaveReview')}</h2>
         <div className="mb-4">
           <StarRating
             rating={newReview.rating}
@@ -816,7 +851,7 @@ const TagGenerator = ({ initialMeta }) => {
         <div className="mb-4">
           <input
             type="text"
-            className="w-full p-3 border border-gray-300 rounded-md"
+            className="w-full p-2 border rounded-md"
             placeholder={t('reviewTitle')}
             value={newReview.title}
             onChange={(e) =>
@@ -826,7 +861,7 @@ const TagGenerator = ({ initialMeta }) => {
         </div>
         <div className="mb-4">
           <textarea
-            className="w-full p-3 border border-gray-300 rounded-md"
+            className="w-full p-2 border rounded-md"
             placeholder={t('yourReview')}
             value={newReview.comment}
             onChange={(e) =>
@@ -835,13 +870,13 @@ const TagGenerator = ({ initialMeta }) => {
           />
         </div>
         <button
-          className="bg-blue-600 text-white font-semibold py-2 px-5 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out w-full"
+          className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline w-full"
           onClick={handleReviewSubmit}
         >
           {t('submitReview')}
         </button>
         <button
-          className="bg-gray-600 text-white font-semibold py-2 px-5 rounded-md hover:bg-gray-700 transition duration-300 ease-in-out mt-2 w-full"
+          className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2 w-full"
           onClick={() => setModalVisible(false)}
         >
           {t('cancel')}
@@ -850,6 +885,7 @@ const TagGenerator = ({ initialMeta }) => {
     </div>
   )}
 </div>
+
 
 
 
@@ -907,7 +943,7 @@ export async function getServerSideProps({ req, locale }) {
     return {
       props: {
         initialMeta: meta,
-        ...(await serverSideTranslations(locale, ['common','tagextractor','navbar','footer'])),
+        ...(await serverSideTranslations(locale, ['common','navbar','footer'])),
       },
     };
   } catch (error) {
@@ -915,7 +951,7 @@ export async function getServerSideProps({ req, locale }) {
     return {
       props: {
         initialMeta: {},
-        ...(await serverSideTranslations(locale, ['common', 'tagextractor','navbar','footer'])),
+        ...(await serverSideTranslations(locale, ['common','navbar','footer'])),
       },
     };
   }
