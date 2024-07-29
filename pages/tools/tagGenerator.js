@@ -703,184 +703,183 @@ const TagGenerator = ({ initialMeta }) => {
 
         
         <hr className="mt-4 mb-2" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3">
-          <div>
-            <div className="text-3xl font-bold mb-2">{t('customerReviews')}</div>
-            <div className="flex items-center mb-2">
-              <div className="text-3xl font-bold mr-2">{overallRating}</div>
-              <div className="flex">
+
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3">
+      <div>
+        <div className="text-3xl font-bold mb-2">{t('customerReviews')}</div>
+        <div className="flex items-center mb-2">
+          <div className="text-3xl font-bold mr-2">{overallRating || '0'}</div>
+          <div className="flex">
+            {[...Array(5)].map((_, i) => (
+              <FaStar
+                key={i}
+                color={i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"}
+                size={20}
+              />
+            ))}
+          </div>
+          <div className="ml-2 text-sm text-gray-500">
+            {reviews.length} {t('globalRatings')}
+          </div>
+        </div>
+        <div>
+          {[5, 4, 3, 2, 1].map((rating) => (
+            <div key={rating} className="flex items-center mb-1">
+              <div className="w-12 text-right mr-4">{rating}-star</div>
+              <div className="flex-1 h-4 bg-gray-200 rounded-full relative min-w-[100px]">
+                <div
+                  className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0"
+                  style={{ width: `${calculateRatingPercentage(rating)}%` }}
+                ></div>
+              </div>
+              <div className="w-12 text-left ml-4">
+                {calculateRatingPercentage(rating).toFixed(1)}%
+              </div>
+            </div>
+          ))}
+        </div>
+        <hr />
+        <div className="pt-3">
+          <h4>{t('reviewThisTool')}</h4>
+          <p>{t('shareYourThoughts')}</p>
+          <button
+            className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
+            onClick={openReviewForm}
+          >
+            {t('writeReview')}
+          </button>
+        </div>
+      </div>
+
+      <div className="col-span-2">
+        {reviews.slice(0, 5).map((review, index) => (
+          <div key={index} className="border p-6 mb-5 bg-white rounded-md shadow-md min-h-[150px]">
+            <div className="flex items-center mb-4">
+              <Image
+                src={`data:image/jpeg;base64,${review?.userProfile}`}
+                alt={review.name}
+                className="w-12 h-12 rounded-full"
+                width={48}
+                height={48}
+                priority
+              />
+              <div className="ml-4">
+                <div className="font-bold">{review?.userName}</div>
+                <div className="text-gray-500 text-sm">{t('verifiedPurchase')}</div>
+              </div>
+            </div>
+            <div className="flex items-center">
+              {[...Array(5)].map((_, i) => (
+                <FaStar
+                  key={i}
+                  size={20}
+                  color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                />
+              ))}
+              <div>
+                <span className="fw-bold mt-2 ml-2">{review?.title}</span>
+              </div>
+            </div>
+
+            <div className="text-gray-500 text-sm mb-4">
+              {t('reviewedOn')} {review.createdAt}
+            </div>
+            <div className="text-lg mb-4">{review.comment}</div>
+          </div>
+        ))}
+        {!showAllReviews && reviews.length > 5 && (
+          <button
+            className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
+            onClick={handleShowMoreReviews}
+          >
+            {t('seeMoreReviews')}
+          </button>
+        )}
+        {showAllReviews &&
+          reviews.slice(5).map((review, index) => (
+            <div key={index} className="border p-6 mb-5 bg-white rounded-md shadow-md min-h-[150px]">
+              <div className="flex items-center mb-4">
+                <Image
+                  src={`data:image/jpeg;base64,${review?.userProfile}`}
+                  alt={review.name}
+                  className="w-12 h-12 rounded-full"
+                  width={48}
+                  height={48}
+                  priority
+                />
+                <div className="ml-4">
+                  <div className="font-bold">{review?.userName}</div>
+                  <div className="text-gray-500 text-sm">{t('verifiedPurchase')}</div>
+                  <p className="text-muted">
+                    {t('reviewedOn')} {review?.createdAt}
+                  </p>
+                </div>
+              </div>
+              <div className="text-lg font-semibold">{review.title}</div>
+              <div className="text-gray-500 mb-4">{review.date}</div>
+              <div className="text-lg mb-4">{review.comment}</div>
+              <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
                   <FaStar
                     key={i}
-                    color={i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"}
+                    size={20}
+                    color={i < review.rating ? "#ffc107" : "#e4e5e9"}
                   />
                 ))}
               </div>
-              <div className="ml-2 text-sm text-gray-500">
-                {reviews.length} {t('globalRatings')}
-              </div>
             </div>
-            <div>
-              {[5, 4, 3, 2, 1].map((rating) => (
-                <div key={rating} className="flex items-center mb-1">
-                  <div className="w-12 text-right mr-4">{rating}-star</div>
-                  <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
-                    <div
-                      className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0"
-                      style={{ width: `${calculateRatingPercentage(rating)}%` }}
-                    ></div>
-                  </div>
-                  <div className="w-12 text-left ml-4">
-                    {calculateRatingPercentage(rating).toFixed(1)}%
-                  </div>
-                </div>
-              ))}
-            </div>
-            <hr />
-            <div className="pt-3">
-              <h4>{t('reviewThisTool')}</h4>
-              <p>{t('shareYourThoughts')}</p>
-              <button
-                className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
-                onClick={openReviewForm}
-              >
-                {t('writeReview')}
-              </button>
-            </div>
-          </div>
+          ))}
+      </div>
 
-          <div className="col-span-2">
-            {reviews.slice(0, 5).map((review, index) => (
-              <div key={index} className="border p-6 mb-5 bg-white rounded-md shadow-md">
-                <div className="flex items-center mb-4">
-                  <Image
-                    src={`data:image/jpeg;base64,${review?.userProfile}`}
-                    alt={review.name}
-                    className="w-12 h-12 rounded-full"
-                    width={48}
-                    height={48}
-                    priority 
-                  />
-                  <div className="ml-4">
-                    <div className="font-bold">{review?.userName}</div>
-                    <div className="text-gray-500 text-sm">
-                      {t('verifiedPurchase')}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <FaStar
-                      key={i}
-                      size={20}
-                      color={i < review.rating ? "#ffc107" : "#e4e5e9"}
-                    />
-                  ))}
-                  <div>
-                    <span className="fw-bold mt-2 ml-2">{review?.title}</span>
-                  </div>
-                </div>
-
-                <div className="text-gray-500 text-sm mb-4">
-                  {t('reviewedOn')} {review.createdAt}
-                </div>
-                <div className="text-lg mb-4">{review.comment}</div>
-              </div>
-            ))}
-            {!showAllReviews && reviews.length > 5 && (
-              <button
-                className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
-                onClick={handleShowMoreReviews}
-              >
-                {t('seeMoreReviews')}
-              </button>
-            )}
-            {showAllReviews &&
-              reviews.slice(5).map((review, index) => (
-                <div key={index} className="border p-6 mb-5 bg-white rounded-md shadow-md">
-                  <div className="flex items-center mb-4">
-                    <Image
-                      src={`data:image/jpeg;base64,${review?.userProfile}`}
-                      alt={review.name}
-                      className="w-12 h-12 rounded-full"
-                      width={48}
-                      height={48}
-                      priority 
-                    />
-                    <div className="ml-4">
-                      <div className="font-bold">{review?.userName}</div>
-                      <div className="text-gray-500 text-sm">
-                        {t('verifiedPurchase')}
-                      </div>
-                      <p className="text-muted">
-                        {t('reviewedOn')} {review?.createdAt}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-lg font-semibold">{review.title}</div>
-                  <div className="text-gray-500 mb-4">{review.date}</div>
-                  <div className="text-lg mb-4">{review.comment}</div>
-                  <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <FaStar
-                        key={i}
-                        size={20}
-                        color={i < review.rating ? "#ffc107" : "#e4e5e9"}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
+      {modalVisible && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black opacity-50"></div>
+          <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-lg">
+            <h2 className="text-2xl font-semibold mb-4">{t('leaveReview')}</h2>
+            <div className="mb-4">
+              <StarRating
+                rating={newReview.rating}
+                setRating={(rating) => setNewReview({ ...newReview, rating })}
+              />
+            </div>
+            <div className="mb-4">
+              <input
+                type="text"
+                className="w-full p-2 border rounded-md"
+                placeholder={t('reviewTitle')}
+                value={newReview.title}
+                onChange={(e) =>
+                  setNewReview({ ...newReview, title: e.target.value })
+                }
+              />
+            </div>
+            <div className="mb-4">
+              <textarea
+                className="w-full p-2 border rounded-md"
+                placeholder={t('yourReview')}
+                value={newReview.comment}
+                onChange={(e) =>
+                  setNewReview({ ...newReview, comment: e.target.value })
+                }
+              />
+            </div>
+            <button
+              className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline w-full"
+              onClick={handleReviewSubmit}
+            >
+              {t('submitReview')}
+            </button>
+            <button
+              className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2 w-full"
+              onClick={() => setModalVisible(false)}
+            >
+              {t('cancel')}
+            </button>
           </div>
         </div>
+      )}
+    </div>
 
-        {modalVisible && (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="fixed inset-0 bg-black opacity-50"></div>
-            <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-lg">
-              <h2 className="text-2xl font-semibold mb-4">{t('leaveReview')}</h2>
-              <div className="mb-4">
-                <StarRating
-                  rating={newReview.rating}
-                  setRating={(rating) => setNewReview({ ...newReview, rating })}
-                />
-              </div>
-              <div className="mb-4">
-                <input
-                  type="text"
-                  className="w-full p-2 border rounded-md"
-                  placeholder={t('reviewTitle')}
-                  value={newReview.title}
-                  onChange={(e) =>
-                    setNewReview({ ...newReview, title: e.target.value })
-                  }
-                />
-              </div>
-              <div className="mb-4">
-                <textarea
-                  className="w-full p-2 border rounded-md"
-                  placeholder={t('yourReview')}
-                  value={newReview.comment}
-                  onChange={(e) =>
-                    setNewReview({ ...newReview, comment: e.target.value })
-                  }
-                />
-              </div>
-              <button
-                className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline w-full"
-                onClick={handleReviewSubmit}
-              >
-                {t('submitReview')}
-              </button>
-              <button
-                className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2 w-full"
-                onClick={() => setModalVisible(false)}
-              >
-                {t('cancel')}
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Related Tools Section */}
         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
