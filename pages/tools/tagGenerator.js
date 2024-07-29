@@ -15,16 +15,16 @@ import { useRouter } from "next/router";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { format } from "date-fns";
-import announce from "../../public/shape/announce.png";
-import chart from "../../public/shape/chart (1).png";
-import cloud from "../../public/shape/cloud.png";
-import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 import { useTranslation } from 'react-i18next';
 import { i18n } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import dynamic from "next/dynamic";
+import announce from "../../public/shape/announce.png";
+import chart from "../../public/shape/chart (1).png";
+import cloud from "../../public/shape/cloud.png";
+import cloud2 from "../../public/shape/cloud2.png";
 
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
@@ -641,253 +641,212 @@ const TagGenerator = ({ initialMeta }) => {
           ></article>
         </div>
 
-        {/* <div className="accordion p-4 sm:p-5 md:p-6 lg:p-8 shadow-lg rounded-lg">
-  <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-5 text-center">{t('frequentlyAskedQuestions')}</h2>
-  <p className="text-base sm:text-lg mb-3 sm:mb-4 text-center">{t('answeredAllFAQs')}</p>
-  <div className="faq-grid">
-    {faqs.map((faq, index) => (
-      <div key={index} className="faq-item mb-3 sm:mb-4">
-        <span id={`accordion-${index}`} className="block"></span>
-        <a
-          href={`#accordion-${index}`}
-          id={`open-accordion-${index}`}
-          className="block text-base sm:text-lg font-medium cursor-pointer"
-          onClick={() => toggleFAQ(index)}
-        >
-          {faq.question}
-        </a>
-        <div className={`accordion-content ${openIndex === index ? "block" : "hidden"} mt-2`}>
-          <p className="text-sm sm:text-base">{faq.answer}</p>
+        <div className="accordion p-4 sm:p-5 md:p-6 lg:p-8 shadow-lg rounded-lg">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-5 text-center">{t('frequentlyAskedQuestions')}</h2>
+          <p className="text-base sm:text-lg mb-3 sm:mb-4 text-center">{t('answeredAllFAQs')}</p>
+          <div className="faq-grid">
+            {faqs.map((faq, index) => (
+              <div key={index} className="faq-item mb-3 sm:mb-4">
+                <span id={`accordion-${index}`} className="block"></span>
+                <a
+                  href={`#accordion-${index}`}
+                  id={`open-accordion-${index}`}
+                  className="block text-base sm:text-lg font-medium cursor-pointer"
+                  onClick={() => toggleFAQ(index)}
+                >
+                  {faq.question}
+                </a>
+                <div className={`accordion-content ${openIndex === index ? "block" : "hidden"} mt-2`}>
+                  <p className="text-sm sm:text-base">{faq.answer}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-    ))}
-  </div>
-  
-</div> */}
-  <div className="accordion">
-            <h2 className="faq-title">{t('frequentlyAskedQuestions')}</h2>
-            <p className="faq-subtitle">
-              {t('answeredAllFAQs')}
-            </p>
-            <div className="faq-grid">
-              {faqs.map((faq, index) => (
-                <div key={index} className="faq-item">
-                  <span id={`accordion-${index}`} className="target-fix"></span>
-                  <a
-                    href={`#accordion-${index}`}
-                    id={`open-accordion-${index}`}
-                    className="accordion-header"
-                    onClick={() => toggleFAQ(index)}
-                  >
-                    {faq.question}
-                  </a>
-                  <a
-                    href={`#accordion-${index}`}
-                    id={`close-accordion-${index}`}
-                    className="accordion-header"
-                    onClick={() => toggleFAQ(index)}
-                  >
-                    {faq.question}
-                  </a>
-                  <div
-                    className={`accordion-content ${
-                      openIndex === index ? "open" : ""
-                    }`}
-                  >
-                    <p>{faq.answer}</p>
+
+        <hr className="mt-4 mb-2" />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+          {/* Review Summary Section */}
+          <div className="p-4 bg-white shadow-md rounded-md">
+            <div className="text-xl font-bold mb-2">{t('customerReviews')}</div>
+            <div className="flex items-center mb-2">
+              <div className="text-xl font-bold mr-2">{overallRating || '0'}</div>
+              <div className="flex">
+                {[...Array(5)].map((_, i) => (
+                  <FaStar
+                    key={i}
+                    color={i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"}
+                    size={18}
+                  />
+                ))}
+              </div>
+              <div className="ml-2 text-sm text-gray-500">
+                {reviews.length} {t('globalRatings')}
+              </div>
+            </div>
+            <div>
+              {[5, 4, 3, 2, 1].map((rating) => (
+                <div key={rating} className="flex items-center mb-2">
+                  <div className="w-16 text-right mr-2">{rating}-star</div>
+                  <div className="flex-1 h-3 bg-gray-200 rounded-full relative">
+                    <div
+                      className="h-3 bg-yellow-500 rounded-full absolute top-0 left-0"
+                      style={{ width: `${calculateRatingPercentage(rating)}%` }}
+                    ></div>
+                  </div>
+                  <div className="w-16 text-left ml-2">
+                    {calculateRatingPercentage(rating).toFixed(1)}%
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-
-        
-        <hr className="mt-4 mb-2" />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-  {/* Review Summary Section */}
-  <div className="p-4 bg-white shadow-md rounded-md">
-    <div className="text-xl font-bold mb-2">{t('customerReviews')}</div>
-    <div className="flex items-center mb-2">
-      <div className="text-xl font-bold mr-2">{overallRating || '0'}</div>
-      <div className="flex">
-        {[...Array(5)].map((_, i) => (
-          <FaStar
-            key={i}
-            color={i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"}
-            size={18}
-          />
-        ))}
-      </div>
-      <div className="ml-2 text-sm text-gray-500">
-        {reviews.length} {t('globalRatings')}
-      </div>
-    </div>
-    <div>
-      {[5, 4, 3, 2, 1].map((rating) => (
-        <div key={rating} className="flex items-center mb-2">
-          <div className="w-16 text-right mr-2">{rating}-star</div>
-          <div className="flex-1 h-3 bg-gray-200 rounded-full relative">
-            <div
-              className="h-3 bg-yellow-500 rounded-full absolute top-0 left-0"
-              style={{ width: `${calculateRatingPercentage(rating)}%` }}
-            ></div>
-          </div>
-          <div className="w-16 text-left ml-2">
-            {calculateRatingPercentage(rating).toFixed(1)}%
-          </div>
-        </div>
-      ))}
-    </div>
-    <hr className="my-4" />
-    <div>
-      <h4 className="text-lg font-semibold">{t('reviewThisTool')}</h4>
-      <p className="text-sm text-gray-600">{t('shareYourThoughts')}</p>
-      <button
-        className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
-        onClick={openReviewForm}
-      >
-        {t('writeReview')}
-      </button>
-    </div>
-  </div>
-
-  {/* Review List Section */}
-  <div className="p-4 bg-white shadow-md rounded-md col-span-1 md:col-span-1">
-    {reviews.slice(0, 5).map((review, index) => (
-      <div
-        key={index}
-        className="border p-4 mb-4 bg-gray-50 rounded-md shadow-sm"
-      >
-        <div className="flex items-center mb-3">
-          <div className="w-10 h-10 rounded-full overflow-hidden">
-            <Image
-              src={`data:image/jpeg;base64,${review?.userProfile}`}
-              alt={review.name}
-              width={40}
-              height={40}
-              layout="intrinsic"
-              priority
-            />
-          </div>
-          <div className="ml-3">
-            <div className="font-semibold text-sm">{review?.userName}</div>
-            <div className="text-gray-500 text-xs">{t('verifiedPurchase')}</div>
-          </div>
-        </div>
-        <div className="flex items-center mb-3">
-          {[...Array(5)].map((_, i) => (
-            <FaStar
-              key={i}
-              size={18}
-              color={i < review.rating ? "#ffc107" : "#e4e5e9"}
-            />
-          ))}
-        </div>
-        <div className="text-sm mb-2">{review.comment}</div>
-        <div className="text-gray-500 text-xs">{t('reviewedOn')} {review.createdAt}</div>
-      </div>
-    ))}
-    {!showAllReviews && reviews.length > 5 && (
-      <button
-        className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
-        onClick={handleShowMoreReviews}
-      >
-        {t('seeMoreReviews')}
-      </button>
-    )}
-    {showAllReviews &&
-      reviews.slice(5).map((review, index) => (
-        <div
-          key={index}
-          className="border p-4 mb-4 bg-gray-50 rounded-md shadow-sm"
-        >
-          <div className="flex items-center mb-3">
-            <div className="w-10 h-10 rounded-full overflow-hidden">
-              <Image
-                src={`data:image/jpeg;base64,${review?.userProfile}`}
-                alt={review.name}
-                width={40}
-                height={40}
-                layout="intrinsic"
-                priority
-              />
-            </div>
-            <div className="ml-3">
-              <div className="font-semibold text-sm">{review?.userName}</div>
-              <div className="text-gray-500 text-xs">{t('verifiedPurchase')}</div>
-              <p className="text-gray-400 text-xs">
-                {t('reviewedOn')} {review?.createdAt}
-              </p>
+            <hr className="my-4" />
+            <div>
+              <h4 className="text-lg font-semibold">{t('reviewThisTool')}</h4>
+              <p className="text-sm text-gray-600">{t('shareYourThoughts')}</p>
+              <button
+                className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
+                onClick={openReviewForm}
+              >
+                {t('writeReview')}
+              </button>
             </div>
           </div>
-          <div className="text-sm font-semibold mb-2">{review.title}</div>
-          <div className="text-sm mb-2">{review.comment}</div>
-          <div className="flex items-center">
-            {[...Array(5)].map((_, i) => (
-              <FaStar
-                key={i}
-                size={18}
-                color={i < review.rating ? "#ffc107" : "#e4e5e9"}
-              />
+
+          {/* Review List Section */}
+          <div className="p-4 bg-white shadow-md rounded-md col-span-1 md:col-span-1">
+            {reviews.slice(0, 5).map((review, index) => (
+              <div
+                key={index}
+                className="border p-4 mb-4 bg-gray-50 rounded-md shadow-sm"
+              >
+                <div className="flex items-center mb-3">
+                  <div className="w-10 h-10 rounded-full overflow-hidden">
+                    <Image
+                      src={`data:image/jpeg;base64,${review?.userProfile}`}
+                      alt={review.name}
+                      width={40}
+                      height={40}
+                      layout="intrinsic"
+                      priority
+                    />
+                  </div>
+                  <div className="ml-3">
+                    <div className="font-semibold text-sm">{review?.userName}</div>
+                    <div className="text-gray-500 text-xs">{t('verifiedPurchase')}</div>
+                  </div>
+                </div>
+                <div className="flex items-center mb-3">
+                  {[...Array(5)].map((_, i) => (
+                    <FaStar
+                      key={i}
+                      size={18}
+                      color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                    />
+                  ))}
+                </div>
+                <div className="text-sm mb-2">{review.comment}</div>
+                <div className="text-gray-500 text-xs">{t('reviewedOn')} {review.createdAt}</div>
+              </div>
             ))}
+            {!showAllReviews && reviews.length > 5 && (
+              <button
+                className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
+                onClick={handleShowMoreReviews}
+              >
+                {t('seeMoreReviews')}
+              </button>
+            )}
+            {showAllReviews &&
+              reviews.slice(5).map((review, index) => (
+                <div
+                  key={index}
+                  className="border p-4 mb-4 bg-gray-50 rounded-md shadow-sm"
+                >
+                  <div className="flex items-center mb-3">
+                    <div className="w-10 h-10 rounded-full overflow-hidden">
+                      <Image
+                        src={`data:image/jpeg;base64,${review?.userProfile}`}
+                        alt={review.name}
+                        width={40}
+                        height={40}
+                        layout="intrinsic"
+                        priority
+                      />
+                    </div>
+                    <div className="ml-3">
+                      <div className="font-semibold text-sm">{review?.userName}</div>
+                      <div className="text-gray-500 text-xs">{t('verifiedPurchase')}</div>
+                      <p className="text-gray-400 text-xs">
+                        {t('reviewedOn')} {review?.createdAt}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-sm font-semibold mb-2">{review.title}</div>
+                  <div className="text-sm mb-2">{review.comment}</div>
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, i) => (
+                      <FaStar
+                        key={i}
+                        size={18}
+                        color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
           </div>
-        </div>
-      ))}
-  </div>
 
-  {/* Review Modal */}
-  {modalVisible && (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="fixed inset-0 bg-black opacity-50"></div>
-      <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
-        <h2 className="text-xl font-semibold mb-4">{t('leaveReview')}</h2>
-        <div className="mb-4">
-          <StarRating
-            rating={newReview.rating}
-            setRating={(rating) => setNewReview({ ...newReview, rating })}
-          />
+          {/* Review Modal */}
+          {modalVisible && (
+            <div className="fixed inset-0 flex items-center justify-center z-50">
+              <div className="fixed inset-0 bg-black opacity-50"></div>
+              <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
+                <h2 className="text-xl font-semibold mb-4">{t('leaveReview')}</h2>
+                <div className="mb-4">
+                  <StarRating
+                    rating={newReview.rating}
+                    setRating={(rating) => setNewReview({ ...newReview, rating })}
+                  />
+                </div>
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded-md"
+                    placeholder={t('reviewTitle')}
+                    value={newReview.title}
+                    onChange={(e) =>
+                      setNewReview({ ...newReview, title: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="mb-4">
+                  <textarea
+                    className="w-full p-2 border rounded-md"
+                    placeholder={t('yourReview')}
+                    value={newReview.comment}
+                    onChange={(e) =>
+                      setNewReview({ ...newReview, comment: e.target.value })
+                    }
+                  />
+                </div>
+                <button
+                  className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline w-full"
+                  onClick={handleReviewSubmit}
+                >
+                  {t('submitReview')}
+                </button>
+                <button
+                  className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2 w-full"
+                  onClick={() => setModalVisible(false)}
+                >
+                  {t('cancel')}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-        <div className="mb-4">
-          <input
-            type="text"
-            className="w-full p-2 border rounded-md"
-            placeholder={t('reviewTitle')}
-            value={newReview.title}
-            onChange={(e) =>
-              setNewReview({ ...newReview, title: e.target.value })
-            }
-          />
-        </div>
-        <div className="mb-4">
-          <textarea
-            className="w-full p-2 border rounded-md"
-            placeholder={t('yourReview')}
-            value={newReview.comment}
-            onChange={(e) =>
-              setNewReview({ ...newReview, comment: e.target.value })
-            }
-          />
-        </div>
-        <button
-          className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline w-full"
-          onClick={handleReviewSubmit}
-        >
-          {t('submitReview')}
-        </button>
-        <button
-          className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2 w-full"
-          onClick={() => setModalVisible(false)}
-        >
-          {t('cancel')}
-        </button>
-      </div>
-    </div>
-  )}
-</div>
-
-
-
 
         {/* Related Tools Section */}
         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
