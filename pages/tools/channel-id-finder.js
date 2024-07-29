@@ -496,6 +496,11 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent }) => {
                     className={`accordion-content ${
                       openIndex === index ? "open" : ""
                     }`}
+                    style={{
+                      transition: "max-height 0.5s ease",
+                      overflow: "hidden",
+                      maxHeight: openIndex === index ? "500px" : "0",
+                    }}
                   >
                     <p>{t(faq.answer)}</p>
                   </div>

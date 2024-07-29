@@ -96,6 +96,7 @@ function Navbar() {
                         alt="YouTube Tools Logo"
                         height="70"
                         width="150"
+                        priority 
                       />
                     </Link>
                   </div>
@@ -198,6 +199,7 @@ function Navbar() {
                               className="w-8 h-8 rounded-full"
                               width={32}
                               height={32}
+                              priority 
                             />
                           ) : (
                             <span className="text-gray-500">No Image</span>
@@ -340,6 +342,7 @@ function Navbar() {
                               className="w-8 h-8 rounded-full"
                               width={32}
                               height={32}
+                              priority 
                             />
                           ) : (
                             <span className="text-gray-500">No Image</span>

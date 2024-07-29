@@ -88,7 +88,11 @@ li {
   margin: 0.5em 0;
 }
 
-
+@media (max-width: 600px) {
+  .tags-container {
+    flex-direction: column;
+  }
+}
 
 /* / Code Blocks / */
 code {

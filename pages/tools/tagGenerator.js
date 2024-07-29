@@ -25,6 +25,7 @@ import { i18n } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import dynamic from "next/dynamic";
+
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
 const TagGenerator = ({ initialMeta }) => {
@@ -45,7 +46,6 @@ const TagGenerator = ({ initialMeta }) => {
   const [existingContent, setExistingContent] = useState("");
   const [reviews, setReviews] = useState([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
   const [meta, setMeta] = useState(initialMeta);
   const [translations, setTranslations] = useState([]);
 
@@ -637,43 +637,36 @@ const TagGenerator = ({ initialMeta }) => {
           ></div>
         </div>
 
-    
-          <div className="accordion p-5 shadow">
-            <h2 className="faq-title">{t('frequentlyAskedQuestions')}</h2>
-            <p className="faq-subtitle">
-              {t('answeredAllFAQs')}
-            </p>
-            <div className="faq-grid">
-              {faqs.map((faq, index) => (
-                <div key={index} className="faq-item">
-                  <span id={`accordion-${index}`} className="target-fix"></span>
-                  <a
-                    href={`#accordion-${index}`}
-                    id={`open-accordion-${index}`}
-                    className="accordion-header"
-                    onClick={() => toggleFAQ(index)}
-                  >
-                    {faq.question}
-                  </a>
-                  <a
-                    href={`#accordion-${index}`}
-                    id={`close-accordion-${index}`}
-                    className="accordion-header"
-                    onClick={() => toggleFAQ(index)}
-                  >
-                    {faq.question}
-                  </a>
-                  <div
-                    className={`accordion-content ${
-                      openIndex === index ? "open" : ""
-                    }`}
-                  >
-                    <p>{faq.answer}</p>
-                  </div>
+        <div className="accordion p-5 shadow">
+          <h2 className="faq-title">{t('frequentlyAskedQuestions')}</h2>
+          <p className="faq-subtitle">{t('answeredAllFAQs')}</p>
+          <div className="faq-grid">
+            {faqs.map((faq, index) => (
+              <div key={index} className="faq-item">
+                <span id={`accordion-${index}`} className="target-fix"></span>
+                <a
+                  href={`#accordion-${index}`}
+                  id={`open-accordion-${index}`}
+                  className="accordion-header"
+                  onClick={() => toggleFAQ(index)}
+                >
+                  {faq.question}
+                </a>
+                <a
+                  href={`#accordion-${index}`}
+                  id={`close-accordion-${index}`}
+                  className="accordion-header"
+                  onClick={() => toggleFAQ(index)}
+                >
+                  {faq.question}
+                </a>
+                <div className={`accordion-content ${openIndex === index ? "open" : ""}`}>
+                  <p>{faq.answer}</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
+        </div>
         
         <hr className="mt-4 mb-2" />
         <div className="row pt-3">
@@ -685,9 +678,7 @@ const TagGenerator = ({ initialMeta }) => {
                 {[...Array(5)].map((_, i) => (
                   <FaStar
                     key={i}
-                    color={
-                      i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"
-                    }
+                    color={i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"}
                   />
                 ))}
               </div>
