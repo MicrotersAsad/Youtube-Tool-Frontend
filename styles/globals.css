@@ -999,3 +999,19 @@ svg{
 }
 
 }
+
+/* custom-quill-styles.css */
+.ql-syntax {
+  font-family: monospace;
+  font-size: 14px;
+  color: #d6336c;
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.ql-editor img {
+  max-width: 100%;
+  height: auto;
+}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, forwardRef } from 'react';
 import PropTypes from 'prop-types';
 import dynamic from 'next/dynamic';
 import 'react-quill/dist/quill.snow.css';
@@ -6,8 +6,8 @@ import 'react-quill/dist/quill.snow.css';
 // Dynamically import react-quill with no SSR
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
-const QuillWrapper = ({ initialContent, onChange }) => {
-  const [content, setContent] = useState(initialContent || '');
+const QuillWrapper = forwardRef(({ initialContent = '', onChange = () => {} }, ref) => {
+  const [content, setContent] = useState(initialContent);
   const quillRef = useRef(null);
 
   useEffect(() => {
@@ -15,10 +15,13 @@ const QuillWrapper = ({ initialContent, onChange }) => {
   }, [initialContent]);
 
   const handleChange = (value) => {
-    setContent(value);
-    onChange(value);
+    try {
+      setContent(value);
+      onChange(value);
+    } catch (error) {
+      console.error('Error updating content:', error);
+    }
   };
-
 
   const modules = {
     toolbar: {
@@ -31,7 +34,6 @@ const QuillWrapper = ({ initialContent, onChange }) => {
         [{ 'align': [] }],
         ['clean']
       ],
-     
     },
   };
 
@@ -45,7 +47,7 @@ const QuillWrapper = ({ initialContent, onChange }) => {
 
   return (
     <ReactQuill
-      ref={quillRef}
+      ref={ref || quillRef}
       value={content}
       onChange={handleChange}
       modules={modules}
@@ -53,11 +55,11 @@ const QuillWrapper = ({ initialContent, onChange }) => {
       theme="snow"
     />
   );
-};
+});
 
 QuillWrapper.propTypes = {
   initialContent: PropTypes.string,
-  onChange: PropTypes.func.isRequired,
+  onChange: PropTypes.func,
 };
 
 export default QuillWrapper;
