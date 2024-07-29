@@ -6,7 +6,6 @@ import styles from "../styles/Home.module.css";
 
 export default function Home({ meta,existingContent }) {
   const { t } = useTranslation("common");
-console.log(existingContent);
   return (
     <div className={styles.container}>
       <Head>
