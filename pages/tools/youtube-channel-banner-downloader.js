@@ -9,7 +9,6 @@ import {
   FaTwitter,
   FaStar,
 } from "react-icons/fa";
-import dynamic from 'next/dynamic';
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useAuth } from "../../contexts/AuthContext";

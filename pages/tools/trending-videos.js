@@ -24,7 +24,6 @@ import { format } from "date-fns";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { i18n, useTranslation } from "next-i18next";
 import Script from "next/script";
-import dynamic from 'next/dynamic';
 const StarRating = lazy(() => import('./StarRating'));
 
 
