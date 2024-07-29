@@ -383,10 +383,10 @@ const TagGenerator = ({ initialMeta }) => {
     <>
       <div className="bg-box">
         <div>
-          <Image className="shape1" src={announce} alt="announce" priority />
-          <Image className="shape2" src={cloud} alt="cloud" priority />
-          <Image className="shape3" src={cloud2} alt="cloud2" priority />
-          <Image className="shape4" src={chart} alt="chart" priority />
+          <Image className="shape1" src={announce} alt="announce" priority  />
+          <Image className="shape2" src={cloud} alt="cloud" priority  />
+          <Image className="shape3" src={cloud2} alt="cloud2" priority  />
+          <Image className="shape4" src={chart} alt="chart" priority  />
         </div>
         <Head>
           <title>{meta?.title}</title>
