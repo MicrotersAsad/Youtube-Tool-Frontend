@@ -16,7 +16,7 @@ import { format } from "date-fns";
 import { i18n, useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Script from "next/script";
-
+import dynamic from 'next/dynamic';
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const VideoSummarizer = ({ meta, faqs }) => {
   const { user, updateUserProfile } = useAuth();

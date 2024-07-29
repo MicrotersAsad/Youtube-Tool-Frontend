@@ -23,7 +23,7 @@ import { useTranslation } from "react-i18next";
 import { i18n } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Script from "next/script";
-
+import dynamic from 'next/dynamic';
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const YtEmbedCode = ({ meta, faqs }) => {
   const { t } = useTranslation('embed');
