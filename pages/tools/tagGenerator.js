@@ -27,14 +27,12 @@ import announce from "../../public/shape/announce.png";
   import cloud2 from "../../public/shape/cloud2.png";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
-const TagGenerator = ({ initialMeta,existingContent }) => {
+const TagGenerator = ({ initialMeta,existingContent,relatedTools,faqs }) => {
   const { user, updateUserProfile } = useAuth();
   
   const router = useRouter();
   const { t } = useTranslation('common');
   const [tags, setTags] = useState([]);
-  const [faqs, setFaqs] = useState([]);
-  const [relatedTools, setRelatedTools] = useState([]);
   const [input, setInput] = useState("");
   const [generatedTitles, setGeneratedTitles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
