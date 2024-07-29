@@ -704,7 +704,8 @@ const TagGenerator = ({ initialMeta }) => {
         
         <hr className="mt-4 mb-2" />
 
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3">
+      {/* Review Summary Section */}
       <div>
         <div className="text-3xl font-bold mb-2">{t('customerReviews')}</div>
         <div className="flex items-center mb-2">
@@ -751,18 +752,24 @@ const TagGenerator = ({ initialMeta }) => {
         </div>
       </div>
 
+      {/* Review List Section */}
       <div className="col-span-2">
         {reviews.slice(0, 5).map((review, index) => (
-          <div key={index} className="border p-6 mb-5 bg-white rounded-md shadow-md min-h-[150px]">
+          <div
+            key={index}
+            className="border p-6 mb-5 bg-white rounded-md shadow-md min-h-[150px]"
+          >
             <div className="flex items-center mb-4">
-              <Image
-                src={`data:image/jpeg;base64,${review?.userProfile}`}
-                alt={review.name}
-                className="w-12 h-12 rounded-full"
-                width={48}
-                height={48}
-                priority
-              />
+              <div className="w-12 h-12 rounded-full overflow-hidden">
+                <Image
+                  src={`data:image/jpeg;base64,${review?.userProfile}`}
+                  alt={review.name}
+                  width={48}
+                  height={48}
+                  layout="intrinsic"
+                  priority
+                />
+              </div>
               <div className="ml-4">
                 <div className="font-bold">{review?.userName}</div>
                 <div className="text-gray-500 text-sm">{t('verifiedPurchase')}</div>
@@ -780,7 +787,6 @@ const TagGenerator = ({ initialMeta }) => {
                 <span className="fw-bold mt-2 ml-2">{review?.title}</span>
               </div>
             </div>
-
             <div className="text-gray-500 text-sm mb-4">
               {t('reviewedOn')} {review.createdAt}
             </div>
@@ -797,16 +803,21 @@ const TagGenerator = ({ initialMeta }) => {
         )}
         {showAllReviews &&
           reviews.slice(5).map((review, index) => (
-            <div key={index} className="border p-6 mb-5 bg-white rounded-md shadow-md min-h-[150px]">
+            <div
+              key={index}
+              className="border p-6 mb-5 bg-white rounded-md shadow-md min-h-[150px]"
+            >
               <div className="flex items-center mb-4">
-                <Image
-                  src={`data:image/jpeg;base64,${review?.userProfile}`}
-                  alt={review.name}
-                  className="w-12 h-12 rounded-full"
-                  width={48}
-                  height={48}
-                  priority
-                />
+                <div className="w-12 h-12 rounded-full overflow-hidden">
+                  <Image
+                    src={`data:image/jpeg;base64,${review?.userProfile}`}
+                    alt={review.name}
+                    width={48}
+                    height={48}
+                    layout="intrinsic"
+                    priority
+                  />
+                </div>
                 <div className="ml-4">
                   <div className="font-bold">{review?.userName}</div>
                   <div className="text-gray-500 text-sm">{t('verifiedPurchase')}</div>
@@ -831,6 +842,7 @@ const TagGenerator = ({ initialMeta }) => {
           ))}
       </div>
 
+      {/* Review Modal */}
       {modalVisible && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="fixed inset-0 bg-black opacity-50"></div>
