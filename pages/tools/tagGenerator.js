@@ -383,10 +383,10 @@ const TagGenerator = ({ initialMeta }) => {
     <>
       <div className="bg-box">
         <div>
-          <Image className="shape1" src={announce} alt="announce" priority  />
-          <Image className="shape2" src={cloud} alt="cloud" priority  />
-          <Image className="shape3" src={cloud2} alt="cloud2" priority  />
-          <Image className="shape4" src={chart} alt="chart" priority  />
+          <Image className="shape1" src={announce} alt="announce" priority />
+          <Image className="shape2" src={cloud} alt="cloud" priority />
+          <Image className="shape3" src={cloud2} alt="cloud2" priority />
+          <Image className="shape4" src={chart} alt="chart" priority />
         </div>
         <Head>
           <title>{meta?.title}</title>
@@ -481,7 +481,7 @@ const TagGenerator = ({ initialMeta }) => {
           <ToastContainer />
           {modalVisible && (
             <div
-              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4  shadow-md mb-6 mt-3"
+              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
               role="alert"
             >
               <div className="flex justify-between items-center">
@@ -521,12 +521,15 @@ const TagGenerator = ({ initialMeta }) => {
           )}
 
           <div className="keywords-input-container">
-            <div className="tags-container">
+            <div className="tags-container flex flex-wrap gap-2 mb-4">
               {tags.map((tag, index) => (
-                <span className="tag" key={index}>
+                <span
+                  key={index}
+                  className="bg-gray-200 px-2 py-1 rounded-md flex items-center"
+                >
                   {tag}
                   <span
-                    className="remove-btn"
+                    className="ml-2 cursor-pointer"
                     onClick={() => setTags(tags.filter((_, i) => i !== index))}
                   >
                     ×
@@ -537,7 +540,7 @@ const TagGenerator = ({ initialMeta }) => {
             <input
               type="text"
               placeholder={t('addKeyword')}
-              className="input-box"
+              className="w-full p-2 border rounded-md"
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
@@ -547,7 +550,7 @@ const TagGenerator = ({ initialMeta }) => {
           <div className="center">
             <div className="flex flex-wrap gap-2 justify-center pt-5">
               <button
-                className="btn btn-danger whitespace-nowrap"
+                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
                 onClick={generateTitles}
                 disabled={isLoading || tags.length === 0}
                 style={{ minWidth: "50px" }}
@@ -560,34 +563,35 @@ const TagGenerator = ({ initialMeta }) => {
       </div>
       <div className="max-w-7xl mx-auto p-4">
         <div className="text-center">
-          <div className="flex gap-2">
-            <FaShareAlt className="text-danger fs-3" />
+          <div className="flex justify-center items-center gap-2">
+            <FaShareAlt className="text-red-500 text-xl" />
             <span> {t('shareOnSocialMedia')}</span>
             <FaFacebook
-              className="facebook-icon fs-3"
+              className="text-blue-600 text-xl cursor-pointer"
               onClick={() => shareOnSocialMedia("facebook")}
             />
             <FaInstagram
-              className="instagram-icon fs-3"
+              className="text-pink-500 text-xl cursor-pointer"
               onClick={() => shareOnSocialMedia("instagram")}
             />
             <FaTwitter
-              className="twitter-icon fs-3"
+              className="text-blue-400 text-xl cursor-pointer"
               onClick={() => shareOnSocialMedia("twitter")}
             />
             <FaLinkedin
-              className="linkedin-icon fs-3"
+              className="text-blue-700 text-xl cursor-pointer"
               onClick={() => shareOnSocialMedia("linkedin")}
             />
           </div>
         </div>
-        <div className="center">
+        <div className="text-center my-4">
           {generatedTitles.length > 0 && (
-            <div className="rounded p-3">
+            <div className="inline-block p-2 rounded-md bg-gray-200">
               <input
                 type="checkbox"
                 checked={selectAll}
                 onChange={handleSelectAll}
+                className="mr-2"
               />
               <span>{t('selectAll')}</span>
             </div>
@@ -597,17 +601,17 @@ const TagGenerator = ({ initialMeta }) => {
           {generatedTitles.map((title, index) => (
             <div
               key={index}
-              className="title-checkbox rounded flex items-center"
+              className="flex items-center p-2 border rounded-md"
             >
               <input
-                className="me-2 rounded"
+                className="mr-2"
                 type="checkbox"
                 checked={title.selected}
                 onChange={() => toggleTitleSelect(index)}
               />
               {title.text.replace(/^\d+\.\s*/, "")}
               <FaCopy
-                className="copy-icon ml-2 cursor-pointer"
+                className="ml-2 cursor-pointer"
                 onClick={() =>
                   copyToClipboard(title.text.replace(/^\d+\.\s*/, ""))
                 }
@@ -615,63 +619,93 @@ const TagGenerator = ({ initialMeta }) => {
             </div>
           ))}
         </div>
-        <div className="d-flex">
+        <div className="flex justify-center my-4">
           {generatedTitles.some((title) => title.selected) && (
-            <FaCopy
-              onClick={copySelectedTitles}
-              className="text-center text-red-500 cursor-pointer ms-2 fs-4"
-            />
-          )}
-          {generatedTitles.some((title) => title.selected) && (
-            <FaDownload
-              onClick={downloadSelectedTitles}
-              className="text-center text-red-500 cursor-pointer ms-2 fs-4"
-            />
+            <>
+              <FaCopy
+                onClick={copySelectedTitles}
+                className="text-red-500 cursor-pointer mx-2 text-2xl"
+              />
+              <FaDownload
+                onClick={downloadSelectedTitles}
+                className="text-red-500 cursor-pointer mx-2 text-2xl"
+              />
+            </>
           )}
         </div>
 
-        <div className="content pt-6 pb-5">
-          <div
+        <div className="content pt-5 pb-5">
+          <article
             dangerouslySetInnerHTML={{ __html: existingContent }}
-            style={{ listStyleType: "none" }}
-          ></div>
+            className="list-none"
+          ></article>
         </div>
 
-        <div className="accordion p-5 shadow">
-          <h2 className="faq-title">{t('frequentlyAskedQuestions')}</h2>
-          <p className="faq-subtitle">{t('answeredAllFAQs')}</p>
-          <div className="faq-grid">
-            {faqs.map((faq, index) => (
-              <div key={index} className="faq-item">
-                <span id={`accordion-${index}`} className="target-fix"></span>
-                <a
-                  href={`#accordion-${index}`}
-                  id={`open-accordion-${index}`}
-                  className="accordion-header"
-                  onClick={() => toggleFAQ(index)}
-                >
-                  {faq.question}
-                </a>
-                <a
-                  href={`#accordion-${index}`}
-                  id={`close-accordion-${index}`}
-                  className="accordion-header"
-                  onClick={() => toggleFAQ(index)}
-                >
-                  {faq.question}
-                </a>
-                <div className={`accordion-content ${openIndex === index ? "open" : ""}`}>
-                  <p>{faq.answer}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* <div className="accordion p-4 sm:p-5 md:p-6 lg:p-8 shadow-lg rounded-lg">
+  <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-5 text-center">{t('frequentlyAskedQuestions')}</h2>
+  <p className="text-base sm:text-lg mb-3 sm:mb-4 text-center">{t('answeredAllFAQs')}</p>
+  <div className="faq-grid">
+    {faqs.map((faq, index) => (
+      <div key={index} className="faq-item mb-3 sm:mb-4">
+        <span id={`accordion-${index}`} className="block"></span>
+        <a
+          href={`#accordion-${index}`}
+          id={`open-accordion-${index}`}
+          className="block text-base sm:text-lg font-medium cursor-pointer"
+          onClick={() => toggleFAQ(index)}
+        >
+          {faq.question}
+        </a>
+        <div className={`accordion-content ${openIndex === index ? "block" : "hidden"} mt-2`}>
+          <p className="text-sm sm:text-base">{faq.answer}</p>
         </div>
+      </div>
+    ))}
+  </div>
+  
+</div> */}
+  <div className="accordion">
+            <h2 className="faq-title">{t('frequentlyAskedQuestions')}</h2>
+            <p className="faq-subtitle">
+              {t('answeredAllFAQs')}
+            </p>
+            <div className="faq-grid">
+              {faqs.map((faq, index) => (
+                <div key={index} className="faq-item">
+                  <span id={`accordion-${index}`} className="target-fix"></span>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`open-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`close-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <div
+                    className={`accordion-content ${
+                      openIndex === index ? "open" : ""
+                    }`}
+                  >
+                    <p>{faq.answer}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
         
         <hr className="mt-4 mb-2" />
-        <div className="row pt-3">
-          <div className="col-md-4">
-            <div className=" text-3xl font-bold mb-2">{t('customerReviews')}</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3">
+          <div>
+            <div className="text-3xl font-bold mb-2">{t('customerReviews')}</div>
             <div className="flex items-center mb-2">
               <div className="text-3xl font-bold mr-2">{overallRating}</div>
               <div className="flex">
@@ -707,7 +741,7 @@ const TagGenerator = ({ initialMeta }) => {
               <h4>{t('reviewThisTool')}</h4>
               <p>{t('shareYourThoughts')}</p>
               <button
-                className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
+                className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
                 onClick={openReviewForm}
               >
                 {t('writeReview')}
@@ -715,9 +749,9 @@ const TagGenerator = ({ initialMeta }) => {
             </div>
           </div>
 
-          <div className="col-md-8">
+          <div className="col-span-2">
             {reviews.slice(0, 5).map((review, index) => (
-              <div key={index} className="border p-6 m-5 bg-white">
+              <div key={index} className="border p-6 mb-5 bg-white rounded-md shadow-md">
                 <div className="flex items-center mb-4">
                   <Image
                     src={`data:image/jpeg;base64,${review?.userProfile}`}
@@ -743,7 +777,7 @@ const TagGenerator = ({ initialMeta }) => {
                     />
                   ))}
                   <div>
-                    <span className="fw-bold mt-2 ms-2">{review?.title}</span>
+                    <span className="fw-bold mt-2 ml-2">{review?.title}</span>
                   </div>
                 </div>
 
@@ -755,7 +789,7 @@ const TagGenerator = ({ initialMeta }) => {
             ))}
             {!showAllReviews && reviews.length > 5 && (
               <button
-                className="btn btn-primary mt-4 mb-5"
+                className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
                 onClick={handleShowMoreReviews}
               >
                 {t('seeMoreReviews')}
@@ -763,7 +797,7 @@ const TagGenerator = ({ initialMeta }) => {
             )}
             {showAllReviews &&
               reviews.slice(5).map((review, index) => (
-                <div key={index} className="border p-6 m-5 bg-white">
+                <div key={index} className="border p-6 mb-5 bg-white rounded-md shadow-md">
                   <div className="flex items-center mb-4">
                     <Image
                       src={`data:image/jpeg;base64,${review?.userProfile}`}
@@ -803,7 +837,7 @@ const TagGenerator = ({ initialMeta }) => {
         {modalVisible && (
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="fixed inset-0 bg-black opacity-50"></div>
-            <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
+            <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-lg">
               <h2 className="text-2xl font-semibold mb-4">{t('leaveReview')}</h2>
               <div className="mb-4">
                 <StarRating
@@ -814,7 +848,7 @@ const TagGenerator = ({ initialMeta }) => {
               <div className="mb-4">
                 <input
                   type="text"
-                  className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                  className="w-full p-2 border rounded-md"
                   placeholder={t('reviewTitle')}
                   value={newReview.title}
                   onChange={(e) =>
@@ -824,7 +858,7 @@ const TagGenerator = ({ initialMeta }) => {
               </div>
               <div className="mb-4">
                 <textarea
-                  className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                  className="w-full p-2 border rounded-md"
                   placeholder={t('yourReview')}
                   value={newReview.comment}
                   onChange={(e) =>
@@ -833,13 +867,13 @@ const TagGenerator = ({ initialMeta }) => {
                 />
               </div>
               <button
-                className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline w-full"
                 onClick={handleReviewSubmit}
               >
                 {t('submitReview')}
               </button>
               <button
-                className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
+                className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2 w-full"
                 onClick={() => setModalVisible(false)}
               >
                 {t('cancel')}

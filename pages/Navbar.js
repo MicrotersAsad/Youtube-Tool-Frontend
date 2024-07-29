@@ -146,7 +146,7 @@ function Navbar() {
                     </div>
                   </div>
                 </div>
-                <div className="hidden lan sm:flex items-center inset-y-0 right-0 pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+                <div className="hidden sm:flex items-center inset-y-0 right-0 pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
                   <div className="relative inline-block text-left mr-4">
                     <Menu as="div" className="relative">
                       <div>

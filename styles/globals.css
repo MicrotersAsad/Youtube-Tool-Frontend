@@ -920,7 +920,7 @@ a {
 .faq-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 20px;
+  gap: 5px;
 }
 
 @media (min-width: 768px) {
@@ -965,4 +965,36 @@ svg{
 
 .stripe-dark-blue {
   color: #32325d;
+}
+
+
+/* Mobile view adjustments */
+@media (max-width: 768px) {
+  .accordion {
+    padding: 1rem; /* Adjust padding for mobile */
+  }
+
+  .accordion h2 {
+    font-size: 1rem; /* Smaller font size for mobile */
+  }
+
+  .accordion p {
+    font-size: 0.75rem; /* Smaller font size for mobile */
+  }
+
+  .faq-item {
+    margin-bottom: 0.75rem; /* Reduced margin for mobile */
+  }
+
+  .accordion-content p {
+    font-size: 0.875rem; /* Smaller font size for mobile */
+  }
+  .accordion div > a {
+    color: #fff;
+    font-size: 16px!important;
+    font-weight: normal;
+    padding-left: 15px;
+    text-shadow: 1px 1px 0 rgb(0 0 0 / 50%);
+}
+
 }
