@@ -794,24 +794,21 @@ const YouTubeChannelScraper = ({ meta, faqs }) => {
 
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : "http";
+  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
   const apiUrl = `${protocol}://${host}/api/content?category=YouTube-Channel-Search&language=${locale}`;
 
-
   try {
-    const [contentResponse] = await Promise.all([
-      fetch(apiUrl),
- 
-    ]);
+    const contentResponse = await fetch(apiUrl);
 
     if (!contentResponse.ok) {
       throw new Error("Failed to fetch content");
     }
 
-    const [contentData] = await Promise.all([
-      contentResponse.json(),
-      
-    ]);
+    const contentData = await contentResponse.json();
+
+    if (!contentData.translations || !contentData.translations[locale]) {
+      throw new Error("Invalid content data format");
+    }
 
     const meta = {
       title: contentData.translations[locale]?.title || "",
@@ -824,8 +821,7 @@ export async function getServerSideProps({ req, locale }) {
       props: {
         meta,
         faqs: contentData.translations[locale]?.faqs || [],
-       
-        ...(await serverSideTranslations(locale, ['common','search','navbar','footer'])),
+        ...(await serverSideTranslations(locale, ['common', 'search', 'navbar', 'footer'])),
       },
     };
   } catch (error) {
@@ -834,10 +830,10 @@ export async function getServerSideProps({ req, locale }) {
       props: {
         meta: {},
         faqs: [],
-        relatedTools: [],
-        ...(await serverSideTranslations(locale, ['common', 'search','navbar','footer'])),
+        ...(await serverSideTranslations(locale, ['common', 'search', 'navbar', 'footer'])),
       },
     };
   }
 }
+
 export default YouTubeChannelScraper;

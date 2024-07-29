@@ -714,7 +714,7 @@ const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
 };
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : "http";
+  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
   const apiUrl = `${protocol}://${host}/api/content?category=video-data-viewer&language=${locale}`;
 
   try {
@@ -725,6 +725,10 @@ export async function getServerSideProps({ req, locale }) {
     }
 
     const contentData = await response.json();
+
+    if (!contentData.translations || !contentData.translations[locale]) {
+      throw new Error("Invalid content data format");
+    }
 
     const meta = {
       title: contentData.translations[locale]?.title || "",
@@ -737,7 +741,7 @@ export async function getServerSideProps({ req, locale }) {
       props: {
         meta,
         faqs: contentData.translations[locale]?.faqs || [],
-        existingContent: contentData.translations[locale]?.content || "",  // Add existingContent
+        existingContent: contentData.translations[locale]?.content || "",
         relatedTools: contentData.translations[locale]?.relatedTools || [],
         ...(await serverSideTranslations(locale, ['common', 'videoDataViewer', 'navbar', 'footer'])),
       },
@@ -748,12 +752,13 @@ export async function getServerSideProps({ req, locale }) {
       props: {
         meta: {},
         faqs: [],
-        existingContent: "",  // Ensure existingContent is included
+        existingContent: "",
         relatedTools: [],
         ...(await serverSideTranslations(locale, ['common', 'videoDataViewer', 'navbar', 'footer'])),
       },
     };
   }
 }
+
 
 export default VideoDataViewer;

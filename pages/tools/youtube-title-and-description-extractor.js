@@ -758,25 +758,24 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
 
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : "http";
+  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
   const apiUrl = `${protocol}://${host}/api/content?category=youtube-title-and-description-extractor&language=${locale}`;
 
-
   try {
-    const [contentResponse] = await Promise.all([
-      fetch(apiUrl),
- 
-    ]);
+    const contentResponse = await fetch(apiUrl);
 
     if (!contentResponse.ok) {
       throw new Error("Failed to fetch content");
     }
 
-    const [contentData] = await Promise.all([
-      contentResponse.json(),
-      
-    ]);
-console.log(contentData);
+    const contentData = await contentResponse.json();
+
+    if (!contentData.translations || !contentData.translations[locale]) {
+      throw new Error("Invalid content data format");
+    }
+
+    console.log(contentData);
+
     const meta = {
       title: contentData.translations[locale]?.title || "",
       description: contentData.translations[locale]?.description || "",
@@ -788,8 +787,7 @@ console.log(contentData);
       props: {
         meta,
         faqs: contentData.translations[locale]?.faqs || [],
-       
-        ...(await serverSideTranslations(locale, ['common','tdextractor','navbar','footer'])),
+        ...(await serverSideTranslations(locale, ['common', 'tdextractor', 'navbar', 'footer'])),
       },
     };
   } catch (error) {
@@ -798,11 +796,11 @@ console.log(contentData);
       props: {
         meta: {},
         faqs: [],
-        relatedTools: [],
-        ...(await serverSideTranslations(locale, ['common', 'tdextractor','navbar','footer'])),
+        ...(await serverSideTranslations(locale, ['common', 'tdextractor', 'navbar', 'footer'])),
       },
     };
   }
 }
+
 
 export default TitleDescriptionExtractor;
