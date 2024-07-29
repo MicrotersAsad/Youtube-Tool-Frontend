@@ -13,6 +13,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { i18n, useTranslation } from "next-i18next";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import Script from "next/script";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
 const YouTubeDescriptionGenerator = ({ meta = [], faqs = [], relatedTools = [], existingContent = "" }) => {
@@ -251,7 +252,7 @@ ${keywords}
         <meta name="twitter:description" content={meta?.description} />
         <meta name="twitter:image" content={meta?.image || ""} />
         {/* - Webpage Schema */}
-        <script type="application/ld+json">
+        <Script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "WebPage",
@@ -270,9 +271,9 @@ ${keywords}
               url: meta?.url,
             },
           })}
-        </script>
+        </Script>
         {/* - Review Schema */}
-        <script type="application/ld+json">
+        <Script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
@@ -300,9 +301,9 @@ ${keywords}
               },
             })),
           })}
-        </script>
+        </Script>
         {/* - FAQ Schema */}
-        <script type="application/ld+json">
+        <Script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "FAQPage",
@@ -315,7 +316,7 @@ ${keywords}
               },
             })),
           })}
-        </script>
+        </Script>
         {translations && Object.keys(translations).map(lang => (
           <link
             key={lang}

@@ -214,7 +214,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
           <meta name="twitter:description" content={meta?.description} />
           <meta name="twitter:image" content={meta?.image || ""} />
           {/* - Webpage Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebPage",
@@ -233,9 +233,9 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
                 url: meta?.url,
               },
             })}
-          </script>
+          </Script>
           {/* - Review Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
@@ -263,9 +263,9 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
                 },
               })),
             })}
-          </script>
+          </Script>
           {/* - FAQ Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "FAQPage",
@@ -278,7 +278,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
                 },
               })),
             })}
-          </script>
+          </Script>
          {translations && Object.keys(translations).map(lang => (
     <link
       key={lang}

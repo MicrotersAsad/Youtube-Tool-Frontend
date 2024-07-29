@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
+import Script from 'next/script'; // Import Script from next/script
 import '../styles/globals.css';
 import { AuthProvider } from '../contexts/AuthContext';
 import Footer from './Footer';
@@ -61,13 +62,16 @@ function MyApp({ Component, pageProps }) {
         <meta name="twitter:image" content={pageProps.meta?.image || ""} />
         <link rel="icon" href="/favicon.ico" />
         <link
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
           rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
           integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
           crossOrigin="anonymous"
         />
-      
-        <script type="application/ld+json">
+        <Script
+          id="organization-schema"
+          type="application/ld+json"
+          strategy="lazyOnload" // Load after the page is interactive
+        >
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Organization",
@@ -85,7 +89,7 @@ function MyApp({ Component, pageProps }) {
               "https://www.linkedin.com/in/yourprofile"
             ]
           })}
-        </script>
+        </Script>
       </Head>
      
       <AuthProvider>

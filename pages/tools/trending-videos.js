@@ -15,8 +15,6 @@ import Link from "next/link";
 import { useAuth } from "../../contexts/AuthContext";
 import Head from "next/head";
 import { ToastContainer, toast } from "react-toastify";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import Image from "next/image";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
@@ -25,7 +23,7 @@ import cloud2 from "../../public/shape/cloud2.png";
 import { format } from "date-fns";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { i18n, useTranslation } from "next-i18next";
-import { languages } from "prismjs";
+import Script from "next/script";
 
 const StarRating = lazy(() => import('./StarRating'));
 
@@ -273,7 +271,7 @@ const TrendingVideos = ({ meta, faqs, relatedTools, existingContent }) => {
           <meta name="twitter:description" content={meta?.description} />
           <meta name="twitter:image" content={meta?.image || ""} />
           {/* - Webpage Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebPage",
@@ -292,9 +290,9 @@ const TrendingVideos = ({ meta, faqs, relatedTools, existingContent }) => {
                 url: meta?.url,
               },
             })}
-          </script>
+          </Script>
           {/* - Review Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
@@ -322,9 +320,9 @@ const TrendingVideos = ({ meta, faqs, relatedTools, existingContent }) => {
                 },
               })),
             })}
-          </script>
+          </Script>
           {/* - FAQ Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "FAQPage",
@@ -337,7 +335,7 @@ const TrendingVideos = ({ meta, faqs, relatedTools, existingContent }) => {
                 },
               })),
             })}
-          </script>
+          </Script>
           {translations && Object.keys(translations).map(lang => (
             <link
               key={lang}

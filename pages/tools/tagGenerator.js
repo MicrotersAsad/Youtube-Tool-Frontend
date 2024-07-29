@@ -25,6 +25,7 @@ import announce from "../../public/shape/announce.png";
   import chart from "../../public/shape/chart (1).png";
   import cloud from "../../public/shape/cloud.png";
   import cloud2 from "../../public/shape/cloud2.png";
+import Script from "next/script";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
 const TagGenerator = ({ initialMeta,existingContent,relatedTools,faqs }) => {
@@ -40,8 +41,6 @@ const TagGenerator = ({ initialMeta,existingContent,relatedTools,faqs }) => {
   const [selectAll, setSelectAll] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);
-  const [quillContent, setQuillContent] = useState("");
-
   const [reviews, setReviews] = useState([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [meta, setMeta] = useState(initialMeta);
@@ -71,16 +70,8 @@ const TagGenerator = ({ initialMeta,existingContent,relatedTools,faqs }) => {
         const response = await fetch(`/api/content?category=tagGenerator&language=${language}`);
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
-        setQuillContent(data.translations[language]?.content || "");
-        setFaqs(data.translations[language]?.faqs || []);
-        setRelatedTools(data.translations[language]?.relatedTools || []);
         setTranslations(data.translations);
-        setMeta({
-          title: data.translations[language]?.title || "",
-          description: data.translations[language]?.description || "",
-          image: data.translations[language]?.image || initialMeta.image,
-          url: initialMeta.url,
-        });
+    
       } catch (error) {
         console.error("Error fetching content:", error);
       }
@@ -406,7 +397,7 @@ const TagGenerator = ({ initialMeta,existingContent,relatedTools,faqs }) => {
           <meta name="twitter:description" content={meta?.description} />
           <meta name="twitter:image" content={meta?.image || ""} />
           {/* - Webpage Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebPage",
@@ -425,9 +416,9 @@ const TagGenerator = ({ initialMeta,existingContent,relatedTools,faqs }) => {
                 url: meta?.url,
               },
             })}
-          </script>
+          </Script>
           {/* - Review Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
@@ -455,9 +446,9 @@ const TagGenerator = ({ initialMeta,existingContent,relatedTools,faqs }) => {
                 },
               })),
             })}
-          </script>
+          </Script>
           {/* - FAQ Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "FAQPage",
@@ -470,7 +461,7 @@ const TagGenerator = ({ initialMeta,existingContent,relatedTools,faqs }) => {
                 },
               })),
             })}
-          </script>
+          </Script>
           {translations && Object.keys(translations).map(lang => (
             <link
               key={lang}

@@ -276,7 +276,7 @@ const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
           <meta name="twitter:description" content={meta?.description} />
           <meta name="twitter:image" content={meta?.image || ""} />
           {/* - Webpage Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebPage",
@@ -295,9 +295,9 @@ const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
                 url: meta?.url,
               },
             })}
-          </script>
+          </Script>
           {/* - Review Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
@@ -325,9 +325,9 @@ const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
                 },
               })),
             })}
-          </script>
+          </Script>
           {/* - FAQ Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "FAQPage",
@@ -340,7 +340,7 @@ const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
                 },
               })),
             })}
-          </script>
+          </Script>
           {translations && Object.keys(translations).map(lang => (
     <link
       key={lang}

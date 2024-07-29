@@ -24,6 +24,7 @@ import Image from "next/image";
 import { i18n, useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import dynamic from 'next/dynamic';
+import Script from "next/script";
 
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
@@ -387,7 +388,7 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
             <meta name="twitter:description" content={meta?.description} />
             <meta name="twitter:image" content={meta?.image || ""} />
             {/* - Webpage Schema */}
-            <script type="application/ld+json">
+            <Script type="application/ld+json">
               {JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "WebPage",
@@ -406,9 +407,9 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
                   url: meta?.url,
                 },
               })}
-            </script>
+            </Script>
             {/* - Review Schema */}
-            <script type="application/ld+json">
+            <Script type="application/ld+json">
               {JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "SoftwareApplication",
@@ -436,9 +437,9 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
                   },
                 })),
               })}
-            </script>
+            </Script>
             {/* - FAQ Schema */}
-            <script type="application/ld+json">
+            <Script type="application/ld+json">
               {JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "FAQPage",
@@ -451,7 +452,7 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
                   },
                 })),
               })}
-            </script>
+            </Script>
             {translations &&
               Object.keys(translations).map((lang) => (
                 <link

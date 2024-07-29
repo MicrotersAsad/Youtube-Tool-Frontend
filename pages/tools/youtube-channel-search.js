@@ -14,6 +14,7 @@ import cloud2 from "../../public/shape/cloud2.png";
 import { format } from "date-fns";
 import { i18n, useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import Script from "next/script";
 
 const YouTubeChannelScraper = ({ meta, faqs }) => {
   const { user, updateUserProfile, logout } = useAuth();
@@ -304,7 +305,7 @@ const YouTubeChannelScraper = ({ meta, faqs }) => {
           <meta name="twitter:description" content={meta?.description} />
           <meta name="twitter:image" content={meta?.image || ""} />
           {/* - Webpage Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebPage",
@@ -323,9 +324,9 @@ const YouTubeChannelScraper = ({ meta, faqs }) => {
                 url: meta?.url,
               },
             })}
-          </script>
+          </Script>
           {/* - Review Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
@@ -353,9 +354,9 @@ const YouTubeChannelScraper = ({ meta, faqs }) => {
                 },
               })),
             })}
-          </script>
+          </Script>
           {/* - FAQ Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "FAQPage",
@@ -368,7 +369,7 @@ const YouTubeChannelScraper = ({ meta, faqs }) => {
                 },
               })),
             })}
-          </script>
+          </Script>
          {translations && Object.keys(translations).map(lang => (
     <link
       key={lang}

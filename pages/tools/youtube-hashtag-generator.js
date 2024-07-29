@@ -23,6 +23,7 @@ import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { i18n } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import Script from "next/script";
 
 const YouTubeHashtagGenerator = ({ meta, faqs }) => {
   const { user, updateUserProfile } = useAuth();
@@ -377,7 +378,7 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
           <meta name="twitter:description" content={meta?.description} />
           <meta name="twitter:image" content={meta?.image || ""} />
           {/* - Webpage Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebPage",
@@ -396,9 +397,9 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
                 url: meta?.url,
               },
             })}
-          </script>
+          </Script>
           {/* - Review Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
@@ -426,9 +427,9 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
                 },
               })),
             })}
-          </script>
+          </Script>
           {/* - FAQ Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "FAQPage",
@@ -441,7 +442,7 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
                 },
               })),
             })}
-          </script>
+          </Script>
          {translations && Object.keys(translations).map(lang => (
     <link
       key={lang}

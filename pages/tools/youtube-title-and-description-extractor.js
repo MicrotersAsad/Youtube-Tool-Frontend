@@ -23,6 +23,7 @@ import Head from "next/head";
 import { format } from "date-fns";
 import { i18n, useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import Script from "next/script";
 
 const TitleDescriptionExtractor = ({ meta, faqs }) => {
   const { user, updateUserProfile } = useAuth();
@@ -280,7 +281,7 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
             <meta name="twitter:description" content={meta?.description} />
             <meta name="twitter:image" content={meta?.image || ""} />
             {/* - Webpage Schema */}
-            <script type="application/ld+json">
+            <Script type="application/ld+json">
               {JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "WebPage",
@@ -299,9 +300,9 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
                   url: meta?.url,
                 },
               })}
-            </script>
+            </Script>
             {/* - Review Schema */}
-            <script type="application/ld+json">
+            <Script type="application/ld+json">
               {JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "SoftwareApplication",
@@ -329,9 +330,9 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
                   },
                 })),
               })}
-            </script>
+            </Script>
             {/* - FAQ Schema */}
-            <script type="application/ld+json">
+            <Script type="application/ld+json">
               {JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "FAQPage",
@@ -344,7 +345,7 @@ const TitleDescriptionExtractor = ({ meta, faqs }) => {
                   },
                 })),
               })}
-            </script>
+            </Script>
             {translations && Object.keys(translations).map(lang => (
     <link
       key={lang}

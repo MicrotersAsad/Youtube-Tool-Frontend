@@ -18,6 +18,7 @@ import { i18n, useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 // Importing Auth Context correctly
 import { useAuth } from "../../contexts/AuthContext";
+import Script from "next/script";
 // Dynamic imports
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
@@ -329,7 +330,7 @@ const TagExtractor = ({ meta, faqs, relatedTools, existingContent }) => {
           <meta name="twitter:description" content={meta?.description} />
           <meta name="twitter:image" content={meta?.image || ""} />
           {/* - Webpage Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebPage",
@@ -348,9 +349,9 @@ const TagExtractor = ({ meta, faqs, relatedTools, existingContent }) => {
                 url: meta?.url,
               },
             })}
-          </script>
+          </Script>
           {/* - Review Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
@@ -378,9 +379,9 @@ const TagExtractor = ({ meta, faqs, relatedTools, existingContent }) => {
                 },
               })),
             })}
-          </script>
+          </Script>
           {/* - FAQ Schema */}
-          <script type="application/ld+json">
+          <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "FAQPage",
@@ -393,7 +394,7 @@ const TagExtractor = ({ meta, faqs, relatedTools, existingContent }) => {
                 },
               })),
             })}
-          </script>
+          </Script>
           {Object.keys(translations).map(lang => (
             <link
               key={lang}

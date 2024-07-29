@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { i18n } from "next-i18next";
+import Script from "next/script";
 
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
@@ -233,7 +234,7 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
             <meta name="twitter:description" content={meta?.description} />
             <meta name="twitter:image" content={meta?.image || ""} />
             {/* - Webpage Schema */}
-            <script type="application/ld+json">
+            <Script type="application/ld+json">
               {JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "WebPage",
@@ -252,9 +253,9 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
                   url: meta?.url,
                 },
               })}
-            </script>
+            </Script>
             {/* - Review Schema */}
-            <script type="application/ld+json">
+            <Script type="application/ld+json">
               {JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "SoftwareApplication",
@@ -282,9 +283,9 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
                   },
                 })),
               })}
-            </script>
+            </Script>
             {/* - FAQ Schema */}
-            <script type="application/ld+json">
+            <Script type="application/ld+json">
               {JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "FAQPage",
@@ -297,7 +298,7 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
                   },
                 })),
               })}
-            </script>
+            </Script>
             {translations && Object.keys(translations).map(lang => (
               <link
                 key={lang}
