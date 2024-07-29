@@ -6,6 +6,7 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 module.exports = withBundleAnalyzer({
   reactStrictMode: true,
   i18n,
+  swcMinify: true, // Enable SWC-based minification
 
   async rewrites() {
     return [
@@ -41,6 +42,13 @@ module.exports = withBundleAnalyzer({
   },
 
   images: {
-    domains: ['yt3.ggpht.com', 'yt3.googleusercontent.com', 'i.ytimg.com', 'lobster-app-2vkuu.ondigitalocean.app', 'learnmethods.com', '161.35.10.124'],
+    domains: [
+      'yt3.ggpht.com',
+      'yt3.googleusercontent.com',
+      'i.ytimg.com',
+      'lobster-app-2vkuu.ondigitalocean.app',
+      'learnmethods.com',
+      '161.35.10.124'
+    ],
   },
 });
