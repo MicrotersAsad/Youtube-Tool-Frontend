@@ -17,25 +17,7 @@ module.exports = withBundleAnalyzer({
     ];
   },
 
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: `
-              default-src 'self';
-              script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com;
-              img-src 'self' data: blob:; // Allow blob URLs if using Blob images
-              style-src 'self' 'unsafe-inline';
-              font-src 'self' data:;
-            `.replace(/\s{2,}/g, ' ').trim(),
-          },
-        ],
-      },
-    ];
-  },
+
 
   images: {
     domains: [

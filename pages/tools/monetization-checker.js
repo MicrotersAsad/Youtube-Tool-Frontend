@@ -804,10 +804,14 @@ export async function getServerSideProps({ req, locale }) {
     const contentResponse = await fetch(apiUrl);
 
     if (!contentResponse.ok) {
-      throw new Error("Failed to fetch content");
+      throw new Error(`Failed to fetch content: ${contentResponse.statusText}`);
     }
 
     const contentData = await contentResponse.json();
+
+    if (!contentData.translations || !contentData.translations[locale]) {
+      throw new Error("Invalid content data format");
+    }
 
     const meta = {
       title: contentData.translations[locale]?.title || "",
@@ -833,6 +837,7 @@ export async function getServerSideProps({ req, locale }) {
     };
   } catch (error) {
     console.error("Error fetching data:", error);
+
     return {
       props: {
         meta: {},
@@ -850,5 +855,6 @@ export async function getServerSideProps({ req, locale }) {
     };
   }
 }
+
 
 export default MonetizationChecker;

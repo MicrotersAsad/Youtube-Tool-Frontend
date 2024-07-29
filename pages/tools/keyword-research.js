@@ -682,24 +682,21 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
 
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : "http";
+  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
   const apiUrl = `${protocol}://${host}/api/content?category=keyword-research&language=${locale}`;
 
   try {
-    const [contentResponse] = await Promise.all([
-      fetch(apiUrl),
-    ]);
+    const contentResponse = await fetch(apiUrl);
 
     if (!contentResponse.ok) {
-      throw new Error("Failed to fetch content");
+      throw new Error('Failed to fetch content');
     }
 
     const contentData = await contentResponse.json();
-
     const meta = {
-      title: contentData.translations[locale]?.title || "",
-      description: contentData.translations[locale]?.description || "",
-      image: contentData.translations[locale]?.image || "",
+      title: contentData.translations[locale]?.title || '',
+      description: contentData.translations[locale]?.description || '',
+      image: contentData.translations[locale]?.image || '',
       url: `${protocol}://${host}/tools/keyword-research`,
     };
 
@@ -708,22 +705,23 @@ export async function getServerSideProps({ req, locale }) {
         meta,
         faqs: contentData.translations[locale]?.faqs || [],
         relatedTools: contentData.translations[locale]?.relatedTools || [],
-        existingContent: contentData.translations[locale]?.content || "",
-        ...(await serverSideTranslations(locale, [ 'keyword', 'navbar', 'footer'])),
+        existingContent: contentData.translations[locale]?.content || '',
+        ...(await serverSideTranslations(locale, ['keyword', 'navbar', 'footer'])),
       },
     };
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error('Error fetching data:', error);
     return {
       props: {
         meta: {},
         faqs: [],
         relatedTools: [],
-        existingContent: "",
-        ...(await serverSideTranslations(locale, [ 'keyword', 'navbar', 'footer'])),
+        existingContent: '',
+        ...(await serverSideTranslations(locale, ['keyword', 'navbar', 'footer'])),
       },
     };
   }
 }
+
 
 export default KeywordSearch;

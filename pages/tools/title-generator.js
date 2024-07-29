@@ -964,7 +964,7 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
 
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : "http";
+  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
   const apiUrl = `${protocol}://${host}/api/content?category=Titlegenerator&language=${locale}`;
 
   try {
@@ -975,6 +975,10 @@ export async function getServerSideProps({ req, locale }) {
     }
 
     const contentData = await contentResponse.json();
+
+    if (!contentData.translations || !contentData.translations[locale]) {
+      throw new Error("Invalid content data format");
+    }
 
     const meta = {
       title: contentData.translations[locale]?.title || "",
@@ -1005,5 +1009,6 @@ export async function getServerSideProps({ req, locale }) {
     };
   }
 }
+
 
 export default YTTitleGenerator;

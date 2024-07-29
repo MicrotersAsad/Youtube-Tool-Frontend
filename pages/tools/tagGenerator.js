@@ -887,13 +887,11 @@ const TagGenerator = ({ initialMeta,existingContent,relatedTools,faqs }) => {
 
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : "http";
+  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
   const apiUrl = `${protocol}://${host}/api/content?category=tagGenerator&language=${locale}`;
-  
+
   try {
-    const [contentResponse] = await Promise.all([
-      fetch(apiUrl),
-    ]);
+    const contentResponse = await fetch(apiUrl);
 
     if (!contentResponse.ok) {
       throw new Error("Failed to fetch content");
@@ -901,28 +899,36 @@ export async function getServerSideProps({ req, locale }) {
 
     const contentData = await contentResponse.json();
 
+    if (!contentData.translations || !contentData.translations[locale]) {
+      throw new Error("Invalid content data format");
+    }
+
     const meta = {
       title: contentData.translations[locale]?.title || "",
       description: contentData.translations[locale]?.description || "",
       image: contentData.translations[locale]?.image || "",
       url: `${protocol}://${host}/tools/tagGenerator`,
     };
-console.log(meta);
+
+    console.log(meta);
+
     return {
       props: {
         initialMeta: meta,
-        ...(await serverSideTranslations(locale, ['common','navbar','footer'])),
+        ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
       },
     };
   } catch (error) {
     console.error("Error fetching data:", error);
+
     return {
       props: {
         initialMeta: {},
-        ...(await serverSideTranslations(locale, ['common','navbar','footer'])),
+        ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
       },
     };
   }
 }
+
 
 export default TagGenerator;

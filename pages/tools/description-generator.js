@@ -639,21 +639,21 @@ ${keywords}
 
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : "http";
+  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
   const apiUrl = `${protocol}://${host}/api/content?category=DescriptionGenerator&language=${locale}`;
 
   try {
     const contentResponse = await fetch(apiUrl);
 
     if (!contentResponse.ok) {
-      throw new Error("Failed to fetch content");
+      throw new Error('Failed to fetch content');
     }
 
     const contentData = await contentResponse.json();
     const meta = {
-      title: contentData.translations[locale]?.title || "",
-      description: contentData.translations[locale]?.description || "",
-      image: contentData.translations[locale]?.image || "",
+      title: contentData.translations[locale]?.title || '',
+      description: contentData.translations[locale]?.description || '',
+      image: contentData.translations[locale]?.image || '',
       url: `${protocol}://${host}/tools/description-generator`,
     };
 
@@ -662,18 +662,18 @@ export async function getServerSideProps({ req, locale }) {
         meta,
         faqs: contentData.translations[locale]?.faqs || [],
         relatedTools: contentData.translations[locale]?.relatedTools || [],
-        existingContent: contentData.translations[locale]?.content || "",
+        existingContent: contentData.translations[locale]?.content || '',
         ...(await serverSideTranslations(locale, ['description', 'navbar', 'footer'])),
       },
     };
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error('Error fetching data:', error);
     return {
       props: {
         meta: {},
         faqs: [],
         relatedTools: [],
-        existingContent: "",
+        existingContent: '',
         ...(await serverSideTranslations(locale, ['description', 'navbar', 'footer'])),
       },
     };
