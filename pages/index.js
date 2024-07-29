@@ -4,9 +4,9 @@ import { useTranslation } from "react-i18next";
 import TagGenerator from "./tools/tagGenerator";
 import styles from "../styles/Home.module.css";
 
-export default function Home({ meta }) {
+export default function Home({ meta,existingContent }) {
   const { t } = useTranslation("common");
-
+console.log(existingContent);
   return (
     <div className={styles.container}>
       <Head>
@@ -22,7 +22,7 @@ export default function Home({ meta }) {
         <meta name="twitter:image" content={meta.image} />
       </Head>
       <main className={styles.main}>
-        <TagGenerator initialMeta={meta} />
+        <TagGenerator initialMeta={meta} existingContent={existingContent} />
       </main>
     </div>
   );
@@ -51,6 +51,7 @@ export async function getServerSideProps({ locale, req }) {
     return {
       props: {
         meta,
+        existingContent: contentData.translations[locale]?.content || "",
         ...(await serverSideTranslations(locale, [
           "common",
           "tagextractor",

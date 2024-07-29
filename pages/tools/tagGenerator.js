@@ -22,14 +22,14 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 import announce from "../../public/shape/announce.png";
-import chart from "../../public/shape/chart (1).png";
-import cloud from "../../public/shape/cloud.png";
-import cloud2 from "../../public/shape/cloud2.png";
-
+  import chart from "../../public/shape/chart (1).png";
+  import cloud from "../../public/shape/cloud.png";
+  import cloud2 from "../../public/shape/cloud2.png";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
-const TagGenerator = ({ initialMeta }) => {
+const TagGenerator = ({ initialMeta,existingContent }) => {
   const { user, updateUserProfile } = useAuth();
+  
   const router = useRouter();
   const { t } = useTranslation('common');
   const [tags, setTags] = useState([]);
@@ -43,7 +43,7 @@ const TagGenerator = ({ initialMeta }) => {
   const [generateCount, setGenerateCount] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);
   const [quillContent, setQuillContent] = useState("");
-  const [existingContent, setExistingContent] = useState("");
+
   const [reviews, setReviews] = useState([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [meta, setMeta] = useState(initialMeta);
@@ -74,7 +74,6 @@ const TagGenerator = ({ initialMeta }) => {
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
         setQuillContent(data.translations[language]?.content || "");
-        setExistingContent(data.translations[language]?.content || "");
         setFaqs(data.translations[language]?.faqs || []);
         setRelatedTools(data.translations[language]?.relatedTools || []);
         setTranslations(data.translations);
@@ -389,6 +388,13 @@ const TagGenerator = ({ initialMeta }) => {
           <Image className="shape4" src={chart} alt="chart" priority />
         </div>
         <Head>
+          <link
+            rel="preload"
+            href="/path/to/font.woff2"
+            as="font"
+            type="font/woff2"
+            crossOrigin="anonymous"
+          />
           <title>{meta?.title}</title>
           <meta name="description" content={meta?.description} />
           <meta property="og:url" content={meta?.url} />
@@ -641,29 +647,43 @@ const TagGenerator = ({ initialMeta }) => {
           ></article>
         </div>
 
-        <div className="accordion p-4 sm:p-5 md:p-6 lg:p-8 shadow-lg rounded-lg">
-          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-5 text-center">{t('frequentlyAskedQuestions')}</h2>
-          <p className="text-base sm:text-lg mb-3 sm:mb-4 text-center">{t('answeredAllFAQs')}</p>
-          <div className="faq-grid">
-            {faqs.map((faq, index) => (
-              <div key={index} className="faq-item mb-3 sm:mb-4">
-                <span id={`accordion-${index}`} className="block"></span>
-                <a
-                  href={`#accordion-${index}`}
-                  id={`open-accordion-${index}`}
-                  className="block text-base sm:text-lg font-medium cursor-pointer"
-                  onClick={() => toggleFAQ(index)}
-                >
-                  {faq.question}
-                </a>
-                <div className={`accordion-content ${openIndex === index ? "block" : "hidden"} mt-2`}>
-                  <p className="text-sm sm:text-base">{faq.answer}</p>
+        <div className="accordion">
+            <h2 className="faq-title">{t('frequentlyAskedQuestions')}</h2>
+            <p className="faq-subtitle">
+              {t('answeredAllFAQs')}
+            </p>
+            <div className="faq-grid">
+              {faqs.map((faq, index) => (
+                <div key={index} className="faq-item">
+                  <span id={`accordion-${index}`} className="target-fix"></span>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`open-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <a
+                    href={`#accordion-${index}`}
+                    id={`close-accordion-${index}`}
+                    className="accordion-header"
+                    onClick={() => toggleFAQ(index)}
+                  >
+                    {faq.question}
+                  </a>
+                  <div
+                    className={`accordion-content ${
+                      openIndex === index ? "open" : ""
+                    }`}
+                  >
+                    <p>{faq.answer}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-
+        
         <hr className="mt-4 mb-2" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
@@ -898,7 +918,7 @@ export async function getServerSideProps({ req, locale }) {
       image: contentData.translations[locale]?.image || "",
       url: `${protocol}://${host}/tools/tagGenerator`,
     };
-
+console.log(meta);
     return {
       props: {
         initialMeta: meta,
