@@ -14,7 +14,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
 import Image from "next/image";
 import { ToastContainer, toast } from "react-toastify";
-import StarRating from "./StarRating";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
@@ -25,6 +24,7 @@ import { i18n, useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Script from "next/script";
 
+const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const YtThumbnailDw = ({ meta, faqs }) => {
   const { isLoggedIn, user, updateUserProfile, logout } = useAuth();
   const [translations, setTranslations] = useState([]);

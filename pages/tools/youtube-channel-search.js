@@ -4,7 +4,6 @@ import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../../contexts/AuthContext";
 import Head from "next/head";
 import Link from "next/link";
-import StarRating from "./StarRating"; // Import StarRating component
 import { FaStar } from "react-icons/fa";
 import Image from "next/image";
 import announce from "../../public/shape/announce.png";
@@ -16,6 +15,7 @@ import { i18n, useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Script from "next/script";
 
+const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const YouTubeChannelScraper = ({ meta, faqs }) => {
   const { user, updateUserProfile, logout } = useAuth();
   const { t } = useTranslation('search');

@@ -13,7 +13,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
 import Head from "next/head";
-import StarRating from "./StarRating"; // Assuming StarRating is a custom component
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
@@ -25,6 +24,7 @@ import { i18n } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Script from "next/script";
 
+const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const YouTubeHashtagGenerator = ({ meta, faqs }) => {
   const { user, updateUserProfile } = useAuth();
   const { t } = useTranslation('hashtag');

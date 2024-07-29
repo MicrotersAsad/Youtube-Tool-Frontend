@@ -10,7 +10,6 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
-import StarRating from "./StarRating";
 import Head from "next/head";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
@@ -18,6 +17,7 @@ import { i18n } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Script from "next/script";
 
+const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const YouTubeCommentPicker = ({ meta, faqs }) => {
   const { t } = useTranslation('comment');
   const { user, updateUserProfile } = useAuth();

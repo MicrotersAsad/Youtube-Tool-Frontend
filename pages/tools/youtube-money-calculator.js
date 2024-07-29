@@ -3,7 +3,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import Head from "next/head";
 import { ToastContainer, toast } from "react-toastify";
 import { FaStar } from "react-icons/fa";
-import StarRating from "./StarRating";
 import Link from "next/link";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
@@ -15,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { i18n } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
+const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const YouTubeMoneyCalculator = ({ meta, faqs }) => {
   const { t } = useTranslation('calculator');
   const [dailyViews, setDailyViews] = useState(0);
