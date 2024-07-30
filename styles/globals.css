@@ -1017,5 +1017,5 @@ svg{
 }
 div.content > article.list-none > p > img{
   width: 100%;
-  height: auto;
+  height: 100%;
 }
