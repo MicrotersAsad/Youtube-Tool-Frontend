@@ -1015,3 +1015,7 @@ svg{
   max-width: 100%;
   height: auto;
 }
+div.content > article.list-none > p > img{
+  width: 100%;
+  height: auto;
+}
