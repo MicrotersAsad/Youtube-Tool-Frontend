@@ -13,6 +13,7 @@ import {
 } from "react-icons/fa";
 import Link from "next/link";
 import { useAuth } from "../../contexts/AuthContext";
+import { getContentProps } from '../../utils/getContentProps';
 import Head from "next/head";
 import { ToastContainer, toast } from "react-toastify";
 import Image from "next/image";
@@ -20,14 +21,12 @@ import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
-import { format } from "date-fns";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { i18n, useTranslation } from "next-i18next";
 import Script from "next/script";
 const StarRating = lazy(() => import('./StarRating'));
 
 
-const TrendingVideos = ({ meta, faqs, relatedTools, existingContent }) => {
+const TrendingVideos = ({ meta, faqs,reviews, relatedTools, content }) => {
   const { t } = useTranslation(['trending']);
   const [country, setCountry] = useState("All");
   const [categories, setCategories] = useState([]);
@@ -38,9 +37,7 @@ const TrendingVideos = ({ meta, faqs, relatedTools, existingContent }) => {
   const [isUpdated, setIsUpdated] = useState(false);
   const { user, updateUserProfile } = useAuth();
   const [generateCount, setGenerateCount] = useState(0);
-  const [quillContent, setQuillContent] = useState("");
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [reviews, setReviews] = useState([]);
   const [modalVisible, setModalVisible] = useState(true);
   const [translations, setTranslations] = useState([]);
   const [newReview, setNewReview] = useState({
@@ -57,24 +54,7 @@ const TrendingVideos = ({ meta, faqs, relatedTools, existingContent }) => {
   };
   const closeModal = () => setModalVisible(false);
 
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const language = i18n.language;
-        const response = await fetch(
-          `/api/content?category=trendingVideos&language=${language}`
-        );
-        if (!response.ok) throw new Error("Failed to fetch content");
-        const data = await response.json();
-        setTranslations(data.translations);
-      } catch (error) {
-        toast.error("Error fetching content");
-      }
-    };
 
-    fetchContent();
-    fetchReviews();
-  }, [i18n.language, t]);
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -88,19 +68,7 @@ const TrendingVideos = ({ meta, faqs, relatedTools, existingContent }) => {
     }
   }, [user]);
 
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch("/api/reviews?tool=trendingVideos");
-      const data = await response.json();
-      const formattedData = data.map((review) => ({
-        ...review,
-        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"), // Format the date here
-      }));
-      setReviews(formattedData);
-    } catch (error) {
-      console.error("Failed to fetch reviews:", error);
-    }
-  };
+ 
 
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
@@ -133,7 +101,7 @@ const TrendingVideos = ({ meta, faqs, relatedTools, existingContent }) => {
         userName: "",
       });
       setShowReviewForm(false);
-      fetchReviews();
+      fetchReviews('trendingVideos');
     } catch (error) {
       console.error("Failed to submit review:", error);
       toast.error(t('Failed to submit review'));
@@ -325,7 +293,7 @@ const TrendingVideos = ({ meta, faqs, relatedTools, existingContent }) => {
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "FAQPage",
-              mainEntity: faqs.map((faq) => ({
+              mainEntity: faqs?.map((faq) => ({
                 "@type": "Question",
                 name: faq.question,
                 acceptedAnswer: {
@@ -487,7 +455,7 @@ const TrendingVideos = ({ meta, faqs, relatedTools, existingContent }) => {
         )}
         <div className="content pt-6 pb-5">
           <div
-            dangerouslySetInnerHTML={{ __html: existingContent }}
+            dangerouslySetInnerHTML={{ __html: content }}
             style={{ listStyleType: "none" }}
           ></div>
         </div>
@@ -740,52 +708,9 @@ const TrendingVideos = ({ meta, faqs, relatedTools, existingContent }) => {
   );
 };
 
-export async function getServerSideProps({ req, locale }) {
-  const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
-  const apiUrl = `${protocol}://${host}/api/content?category=trendingVideos&language=${locale}`;
 
-  try {
-    const contentResponse = await fetch(apiUrl);
-
-    if (!contentResponse.ok) {
-      throw new Error("Failed to fetch content");
-    }
-
-    const contentData = await contentResponse.json();
-
-    if (!contentData.translations || !contentData.translations[locale]) {
-      throw new Error("Invalid content data format");
-    }
-
-    const meta = {
-      title: contentData.translations[locale]?.title || "",
-      description: contentData.translations[locale]?.description || "",
-      image: contentData.translations[locale]?.image || "",
-      url: `${protocol}://${host}/tools/title-generator`,
-    };
-
-    return {
-      props: {
-        meta,
-        faqs: contentData.translations[locale]?.faqs || [],
-        relatedTools: contentData.translations[locale]?.relatedTools || [],
-        existingContent: contentData.translations[locale]?.content || "",
-        ...(await serverSideTranslations(locale, ['navbar', 'footer', 'trending'])),
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    return {
-      props: {
-        meta: {},
-        faqs: [],
-        relatedTools: [],
-        existingContent: "",
-        ...(await serverSideTranslations(locale, ['navbar', 'footer', 'trending'])),
-      },
-    };
-  }
+export async function getServerSideProps(context) {
+  return getContentProps('trendingVideos', context.locale, context.req);
 }
 
 export default TrendingVideos;

@@ -11,14 +11,13 @@ import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 import Head from "next/head";
-import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
-import { i18n } from "next-i18next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Script from "next/script";
 import dynamic from 'next/dynamic';
+import { getContentProps } from "../../utils/getContentProps";
+
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
-const YouTubeCommentPicker = ({ meta, faqs }) => {
+const YouTubeCommentPicker = ({ meta, faqs,reviews, relatedTools, content }) => {
   const { t } = useTranslation('comment');
   const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState("");
@@ -33,53 +32,16 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
   const [translations, setTranslations] = useState([]);
   const [isUpdated, setIsUpdated] = useState(false);
   const [modalVisible, setModalVisible] = useState(true);
-  const [reviews, setReviews] = useState([]);
-  const [quillContent, setQuillContent] = useState("");
-  const [existingContent, setExistingContent] = useState("");
   const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
-  const [relatedTools, setRelatedTools] = useState([]);
   const [openIndex, setOpenIndex] = useState(null);
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const language = i18n.language;
-        const response = await fetch(`/api/content?category=youtube-comment-picker&language=${language}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch content");
-        }
-        const data = await response.json();
-        setQuillContent(data.translations[language]?.content || "");
-        setExistingContent(data.translations[language]?.content || "");  
-        setRelatedTools(data.translations[language]?.relatedTools || []);
-        setTranslations(data.translations);
-      } catch (error) {
-        console.error(t("Error fetching content"));
-      }
-    };
 
-    fetchContent();
-    fetchReviews();
-  }, [i18n.language]);
 
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch("/api/reviews?tool=youtube-comment-picker");
-      const data = await response.json();
-      const formattedData = data.map((review) => ({
-        ...review,
-        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"), // Format the date here
-      }));
-      setReviews(formattedData);
-    } catch (error) {
-      console.error(t("Failed to fetch reviews"), error);
-    }
-  };
 
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
@@ -112,7 +74,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
         userName: "",
       });
       setShowReviewForm(false);
-      fetchReviews();
+      fetchReviews('youtube-comment-picker');
     } catch (error) {
       console.error(t("Failed to submit review"), error);
       toast.error(t("Failed to submit review"));
@@ -544,10 +506,10 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
       </div>
       <div className="max-w-7xl mx-auto p-4">
         <div className="content pt-6 pb-5">
-          <div
-            dangerouslySetInnerHTML={{ __html: existingContent }}
+          <article
+            dangerouslySetInnerHTML={{ __html: content }}
             style={{ listStyleType: "none" }}
-          ></div>
+          ></article>
         </div>
         <div className="p-5 shadow">
           <div className="accordion">
@@ -556,7 +518,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
               {t("Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us")}
             </p>
             <div className="faq-grid">
-              {faqs.map((faq, index) => (
+              {faqs?.map((faq, index) => (
                 <div key={index} className="faq-item">
                   <span id={`accordion-${index}`} className="target-fix"></span>
                   <a
@@ -604,7 +566,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
                 ))}
               </div>
               <div className="ml-2 text-sm text-gray-500">
-                {reviews.length} {t("global ratings")}
+                {reviews?.length} {t("global ratings")}
               </div>
             </div>
             <div>
@@ -637,7 +599,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
           </div>
 
           <div className="col-md-8">
-            {reviews.slice(0, 5).map((review, index) => (
+            {reviews?.slice(0, 5).map((review, index) => (
               <div key={index} className="border p-6 m-5 bg-white">
                 <div className="flex items-center mb-4">
                   <Image
@@ -682,7 +644,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
               </button>
             )}
             {showAllReviews &&
-              reviews.slice(5).map((review, index) => (
+              reviews?.slice(5).map((review, index) => (
                 <div key={index} className="border p-6 m-5 bg-white">
                   <div className="flex items-center mb-4">
                     <Image
@@ -770,7 +732,7 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
       <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {relatedTools.map((tool, index) => (
+        {relatedTools?.map((tool, index) => (
           <a
             key={index}
             href={tool.link}
@@ -795,48 +757,9 @@ const YouTubeCommentPicker = ({ meta, faqs }) => {
   );
 };
 
-export async function getServerSideProps({ req, locale }) {
-  const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
-  const apiUrl = `${protocol}://${host}/api/content?category=youtube-comment-picker&language=${locale}`;
 
-  try {
-    const contentResponse = await fetch(apiUrl);
-
-    if (!contentResponse.ok) {
-      throw new Error("Failed to fetch content");
-    }
-
-    const contentData = await contentResponse.json();
-
-    if (!contentData.translations || !contentData.translations[locale]) {
-      throw new Error("Invalid content data format");
-    }
-
-    const meta = {
-      title: contentData.translations[locale]?.title || "",
-      description: contentData.translations[locale]?.description || "",
-      image: contentData.translations[locale]?.image || "",
-      url: `${protocol}://${host}/tools/youtube-comment-picker`,
-    };
-
-    return {
-      props: {
-        meta,
-        faqs: contentData.translations[locale]?.faqs || [],
-        ...(await serverSideTranslations(locale, ['common', 'comment', 'navbar', 'footer'])),
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    return {
-      props: {
-        meta: {},
-        faqs: [],
-        ...(await serverSideTranslations(locale, ['common', 'comment', 'navbar', 'footer'])),
-      },
-    };
-  }
+export async function getServerSideProps(context) {
+  return getContentProps('youtube-comment-picker', context.locale, context.req);
 }
 
 export default YouTubeCommentPicker;

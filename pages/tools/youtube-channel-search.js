@@ -10,13 +10,12 @@ import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
-import { format } from "date-fns";
 import { i18n, useTranslation } from "next-i18next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { getContentProps } from '../../utils/getContentProps';
 import Script from "next/script";
 import dynamic from 'next/dynamic';
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
-const YouTubeChannelScraper = ({ meta, faqs }) => {
+const YouTubeChannelScraper = ({ meta, faqs,reviews, relatedTools, content }) => {
   const { user, updateUserProfile, logout } = useAuth();
   const { t } = useTranslation('search');
   const [keyword, setKeyword] = useState("");
@@ -28,8 +27,6 @@ const YouTubeChannelScraper = ({ meta, faqs }) => {
   const [maxSubscriber, setMaxSubscriber] = useState(Infinity);
   const [page, setPage] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);
-  const [quillContent, setQuillContent] = useState("");
-  const [existingContent, setExistingContent] = useState("");
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [translations, setTranslations] = useState([]);
   const [generateCount, setGenerateCount] = useState(
@@ -37,7 +34,6 @@ const YouTubeChannelScraper = ({ meta, faqs }) => {
       ? Number(localStorage.getItem("generateCount")) || 0
       : 0
   );
-  const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({
     name: "",
     rating: 0,
@@ -47,48 +43,13 @@ const YouTubeChannelScraper = ({ meta, faqs }) => {
   const [modalVisible, setModalVisible] = useState(true);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
-  const [relatedTools, setRelatedTools] = useState([]);
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
   const closeModal = () => setModalVisible(false);
 
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const language = i18n.language;
-        const response = await fetch(`/api/content?category=YouTube-Channel-Search&language=${language}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch content");
-        }
-        const data = await response.json();
-        setQuillContent(data.translations[language]?.content || "");
-        setExistingContent(data.translations[language]?.content || "");  
-        setRelatedTools(data.translations[language]?.relatedTools || []);
-        setTranslations(data.translations);
-      } catch (error) {
-        toast.error(t("Error fetching content"));
-      }
-    };
 
-    fetchContent();
-    fetchReviews();
-  }, [i18n.language]);
-
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch("/api/reviews?tool=YouTube-Channel-Search");
-      const data = await response.json();
-      const formattedData = data.map((review) => ({
-        ...review,
-        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"), // Format the date here
-      }));
-      setReviews(formattedData);
-    } catch (error) {
-      console.error(t("Failed to fetch reviews:"), error);
-    }
-  };
 
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
@@ -121,7 +82,7 @@ const YouTubeChannelScraper = ({ meta, faqs }) => {
         userName: "",
       });
       setShowReviewForm(false);
-      fetchReviews();
+      fetchReviews('YouTube-Channel-Search');
     } catch (error) {
       console.error(t("Failed to submit review:"), error);
       toast.error(t("Failed to submit review."));
@@ -538,10 +499,10 @@ const YouTubeChannelScraper = ({ meta, faqs }) => {
           )}
         </div>
         <div className="content pt-6 pb-5">
-          <div
-            dangerouslySetInnerHTML={{ __html: existingContent }}
+          <article
+            dangerouslySetInnerHTML={{ __html: content }}
             style={{ listStyleType: "none" }}
-          ></div>
+          ></article>
         </div>
 
         <div className="p-5 shadow">
@@ -791,49 +752,9 @@ const YouTubeChannelScraper = ({ meta, faqs }) => {
     </>
   );
 };
-
-export async function getServerSideProps({ req, locale }) {
-  const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
-  const apiUrl = `${protocol}://${host}/api/content?category=YouTube-Channel-Search&language=${locale}`;
-
-  try {
-    const contentResponse = await fetch(apiUrl);
-
-    if (!contentResponse.ok) {
-      throw new Error("Failed to fetch content");
-    }
-
-    const contentData = await contentResponse.json();
-
-    if (!contentData.translations || !contentData.translations[locale]) {
-      throw new Error("Invalid content data format");
-    }
-
-    const meta = {
-      title: contentData.translations[locale]?.title || "",
-      description: contentData.translations[locale]?.description || "",
-      image: contentData.translations[locale]?.image || "",
-      url: `${protocol}://${host}/tools/youtube-channel-search`,
-    };
-
-    return {
-      props: {
-        meta,
-        faqs: contentData.translations[locale]?.faqs || [],
-        ...(await serverSideTranslations(locale, ['common', 'search', 'navbar', 'footer'])),
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    return {
-      props: {
-        meta: {},
-        faqs: [],
-        ...(await serverSideTranslations(locale, ['common', 'search', 'navbar', 'footer'])),
-      },
-    };
-  }
+export async function getServerSideProps(context) {
+  return getContentProps('YouTube-Channel-Search', context.locale, context.req);
 }
+
 
 export default YouTubeChannelScraper;

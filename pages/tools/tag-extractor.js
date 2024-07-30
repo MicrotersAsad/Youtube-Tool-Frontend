@@ -1,24 +1,33 @@
 // pages/tools/tag-extractor.js
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useRouter } from 'next/router';
-import { getContentProps } from '../../utils/getContentProps';
-import { FaShareAlt, FaFacebook, FaLinkedin, FaInstagram, FaTwitter, FaCopy, FaDownload, FaStar } from 'react-icons/fa';
-import Link from 'next/link';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import Image from 'next/image';
-import { useTranslation } from 'react-i18next';
-import dynamic from 'next/dynamic';
-import Head from 'next/head';
-import Script from 'next/script';
+import React, { useEffect, useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRouter } from "next/router";
+import { getContentProps } from "../../utils/getContentProps";
+import {
+  FaShareAlt,
+  FaFacebook,
+  FaLinkedin,
+  FaInstagram,
+  FaTwitter,
+  FaCopy,
+  FaDownload,
+  FaStar,
+} from "react-icons/fa";
+import Link from "next/link";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Image from "next/image";
+import { useTranslation } from "react-i18next";
+import dynamic from "next/dynamic";
+import Head from "next/head";
+import Script from "next/script";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const Banner = dynamic(() => import("../../components/Banner"), { ssr: false });
 
-const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
+const TagExtractor = ({ meta, faqs, reviews, relatedTools, content }) => {
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   const [videoUrl, setVideoUrl] = useState("");
   const [tags, setTags] = useState([]);
   const [input, setInput] = useState("");
@@ -147,8 +156,8 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(
-      () => toast.success(t('copied', { text })),
-      (err) => toast.error(t('failedToCopy'))
+      () => toast.success(t("copied", { text })),
+      (err) => toast.error(t("failedToCopy"))
     );
   };
 
@@ -242,7 +251,7 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
     }
 
     if (!newReview.rating || !newReview.comment) {
-      toast.error(t('allFieldsRequired'));
+      toast.error(t("allFieldsRequired"));
       return;
     }
 
@@ -262,7 +271,7 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
 
       if (!response.ok) throw new Error("Failed to submit review");
 
-      toast.success(t('reviewSubmitted'));
+      toast.success(t("reviewSubmitted"));
       setNewReview({
         name: "",
         rating: 0,
@@ -271,10 +280,10 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
         userProfile: "",
       });
       setShowReviewForm(false);
-      fetchReviews('tagExtractor');
+      fetchReviews("tagExtractor");
     } catch (error) {
       console.error("Failed to submit review:", error);
-      toast.error(t('reviewSubmitFailed'));
+      toast.error(t("reviewSubmitFailed"));
     }
   };
 
@@ -305,7 +314,7 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
   return (
     <>
       <div className="bg-box">
-        <Banner/>
+        <Banner />
         <Head>
           <link
             rel="preload"
@@ -392,7 +401,7 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
               })),
             })}
           </Script>
-          {Object.keys(faqs).map(lang => (
+          {Object.keys(faqs).map((lang) => (
             <link
               key={lang}
               rel="alternate"
@@ -402,7 +411,7 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
           ))}
         </Head>
         <div className="max-w-7xl mx-auto p-4">
-          <h2 className="text-3xl text-white">{t('YouTube Tag Extractor')}</h2>
+          <h2 className="text-3xl text-white">{t("YouTube Tag Extractor")}</h2>
           <ToastContainer />
           {modalVisible && (
             <div
@@ -421,18 +430,18 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
                   <div className="mt-4">
                     {!user ? (
                       <p className="text-center p-3 alert-warning">
-                        {t('loginToGenerateTags')}
+                        {t("loginToGenerateTags")}
                       </p>
                     ) : user.paymentStatus === "success" ||
                       user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        {t('generateUnlimitedTags')}
+                        {t("generateUnlimitedTags")}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        {t('notUpgraded')} {5 - generateCount} {t('moreTimes')}.{" "}
+                        {t("notUpgraded")} {5 - generateCount} {t("moreTimes")}.{" "}
                         <Link className="btn btn-warning ms-3" href="/pricing">
-                          {t('upgrade')}
+                          {t("upgrade")}
                         </Link>
                       </p>
                     )}
@@ -445,46 +454,45 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
             </div>
           )}
 
-<div className="flex justify-center pt-5">
-  <div className="w-full max-w-md px-4 md:px-6 lg:px-8">
-    <div className="mb-3">
-      <input
-        type="text"
-        className="w-full p-2 border border-gray-300 rounded-md"
-        placeholder={t('enterYoutubeUrl')}
-        aria-label="YouTube Video URL"
-        aria-describedby="button-addon2"
-        value={videoUrl}
-        onChange={handleUrlChange}
-      />
-    </div>
-    <button
-      className="w-full p-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-red-400"
-      type="button"
-      id="button-addon2"
-      onClick={fetchTags}
-      disabled={loading || fetchLimitExceeded}
-    >
-      {loading ? t('loading') : t('Generate Unlimited Tags')}
-    </button>
-    <small className="block mt-2 text-gray-300">
-      Example: https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s
-    </small>
-    {error && (
-      <div className="mt-3 p-2 bg-red-100 text-red-700 rounded-md">
-        {error}
-      </div>
-    )}
-  </div>
-</div>
-
+          <div className="flex justify-center pt-5">
+            <div className="w-full max-w-md px-4 md:px-6 lg:px-8">
+              <div className="mb-3">
+                <input
+                  type="text"
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  placeholder={t("enterYoutubeUrl")}
+                  aria-label="YouTube Video URL"
+                  aria-describedby="button-addon2"
+                  value={videoUrl}
+                  onChange={handleUrlChange}
+                />
+              </div>
+              <button
+                className="w-full p-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-red-400"
+                type="button"
+                id="button-addon2"
+                onClick={fetchTags}
+                disabled={loading || fetchLimitExceeded}
+              >
+                {loading ? t("loading") : t("Generate Unlimited Tags")}
+              </button>
+              <small className="block mt-2 text-gray-300">
+                Example: https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s
+              </small>
+              {error && (
+                <div className="mt-3 p-2 bg-red-100 text-red-700 rounded-md">
+                  {error}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
         <div className="text-center">
           <div className="flex justify-center items-center gap-2">
             <FaShareAlt className="text-red-500 text-xl" />
-            <span> {t('shareOnSocialMedia')}</span>
+            <span> {t("shareOnSocialMedia")}</span>
             <FaFacebook
               className="text-blue-600 text-xl cursor-pointer"
               onClick={() => shareOnSocialMedia("facebook")}
@@ -512,7 +520,7 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
                 onChange={handleSelectAll}
                 className="mr-2"
               />
-              <span>{t('selectAll')}</span>
+              <span>{t("selectAll")}</span>
             </div>
           )}
         </div>
@@ -560,62 +568,64 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
           ></article>
         </div>
 
-        <div className="accordion">
-            <h2 className="faq-title">{t('frequentlyAskedQuestions')}</h2>
-            <p className="faq-subtitle">
-              {t('answeredAllFAQs')}
-            </p>
-            <div className="faq-grid">
-              {faqs.map((faq, index) => (
-                <div key={index} className="faq-item">
-                  <span id={`accordion-${index}`} className="target-fix"></span>
-                  <a
-                    href={`#accordion-${index}`}
-                    id={`open-accordion-${index}`}
-                    className="accordion-header"
-                    onClick={() => toggleFAQ(index)}
-                  >
-                    {faq.question}
-                  </a>
-                  <a
-                    href={`#accordion-${index}`}
-                    id={`close-accordion-${index}`}
-                    className="accordion-header"
-                    onClick={() => toggleFAQ(index)}
-                  >
-                    {faq.question}
-                  </a>
-                  <div
-                    className={`accordion-content ${
-                      openIndex === index ? "open" : ""
-                    }`}
-                  >
-                    <p>{faq.answer}</p>
-                  </div>
+        <div className="accordion shadow p-5">
+          <h2 className="faq-title">{t("frequentlyAskedQuestions")}</h2>
+          <p className="faq-subtitle">{t("answeredAllFAQs")}</p>
+          <div className="faq-grid">
+            {faqs?.map((faq, index) => (
+              <div key={index} className="faq-item">
+                <span id={`accordion-${index}`} className="target-fix"></span>
+                <a
+                  href={`#accordion-${index}`}
+                  id={`open-accordion-${index}`}
+                  className="accordion-header"
+                  onClick={() => toggleFAQ(index)}
+                >
+                  {faq.question}
+                </a>
+                <a
+                  href={`#accordion-${index}`}
+                  id={`close-accordion-${index}`}
+                  className="accordion-header"
+                  onClick={() => toggleFAQ(index)}
+                >
+                  {faq.question}
+                </a>
+                <div
+                  className={`accordion-content ${
+                    openIndex === index ? "open" : ""
+                  }`}
+                >
+                  <p>{faq.answer}</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        
+        </div>
+
         <hr className="mt-4 mb-2" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
           {/* Review Summary Section */}
           <div className="p-4 bg-white shadow-md rounded-md">
-            <div className="text-xl font-bold mb-2">{t('customerReviews')}</div>
+            <div className="text-xl font-bold mb-2">{t("customerReviews")}</div>
             <div className="flex items-center mb-2">
-              <div className="text-xl font-bold mr-2">{overallRating || '0'}</div>
+              <div className="text-xl font-bold mr-2">
+                {overallRating || "0"}
+              </div>
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
                   <FaStar
                     key={i}
-                    color={i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"}
+                    color={
+                      i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"
+                    }
                     size={18}
                   />
                 ))}
               </div>
               <div className="ml-2 text-sm text-gray-500">
-                {reviews.length} {t('globalRatings')}
+                {reviews.length} {t("globalRatings")}
               </div>
             </div>
             <div>
@@ -636,20 +646,20 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
             </div>
             <hr className="my-4" />
             <div>
-              <h4 className="text-lg font-semibold">{t('reviewThisTool')}</h4>
-              <p className="text-sm text-gray-600">{t('shareYourThoughts')}</p>
+              <h4 className="text-lg font-semibold">{t("reviewThisTool")}</h4>
+              <p className="text-sm text-gray-600">{t("shareYourThoughts")}</p>
               <button
                 className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
                 onClick={openReviewForm}
               >
-                {t('writeReview')}
+                {t("writeReview")}
               </button>
             </div>
           </div>
 
           {/* Review List Section */}
           <div className="p-4 bg-white shadow-md rounded-md col-span-1 md:col-span-1">
-            {reviews.slice(0, 5).map((review, index) => (
+            {reviews?.slice(0, 5).map((review, index) => (
               <div
                 key={index}
                 className="border p-4 mb-4 bg-gray-50 rounded-md shadow-sm"
@@ -666,8 +676,12 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
                     />
                   </div>
                   <div className="ml-3">
-                    <div className="font-semibold text-sm">{review?.userName}</div>
-                    <div className="text-gray-500 text-xs">{t('verifiedPurchase')}</div>
+                    <div className="font-semibold text-sm">
+                      {review?.userName}
+                    </div>
+                    <div className="text-gray-500 text-xs">
+                      {t("verifiedPurchase")}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center mb-3">
@@ -680,7 +694,9 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
                   ))}
                 </div>
                 <div className="text-sm mb-2">{review.comment}</div>
-                <div className="text-gray-500 text-xs">{t('reviewedOn')} {review.createdAt}</div>
+                <div className="text-gray-500 text-xs">
+                  {t("reviewedOn")} {review.createdAt}
+                </div>
               </div>
             ))}
             {!showAllReviews && reviews.length > 5 && (
@@ -688,11 +704,11 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
                 className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
                 onClick={handleShowMoreReviews}
               >
-                {t('seeMoreReviews')}
+                {t("seeMoreReviews")}
               </button>
             )}
             {showAllReviews &&
-              reviews.slice(5).map((review, index) => (
+              reviews?.slice(5).map((review, index) => (
                 <div
                   key={index}
                   className="border p-4 mb-4 bg-gray-50 rounded-md shadow-sm"
@@ -709,14 +725,20 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
                       />
                     </div>
                     <div className="ml-3">
-                      <div className="font-semibold text-sm">{review?.userName}</div>
-                      <div className="text-gray-500 text-xs">{t('verifiedPurchase')}</div>
+                      <div className="font-semibold text-sm">
+                        {review?.userName}
+                      </div>
+                      <div className="text-gray-500 text-xs">
+                        {t("verifiedPurchase")}
+                      </div>
                       <p className="text-gray-400 text-xs">
-                        {t('reviewedOn')} {review?.createdAt}
+                        {t("reviewedOn")} {review?.createdAt}
                       </p>
                     </div>
                   </div>
-                  <div className="text-sm font-semibold mb-2">{review.title}</div>
+                  <div className="text-sm font-semibold mb-2">
+                    {review.title}
+                  </div>
                   <div className="text-sm mb-2">{review.comment}</div>
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (
@@ -736,18 +758,22 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
             <div className="fixed inset-0 flex items-center justify-center z-50">
               <div className="fixed inset-0 bg-black opacity-50"></div>
               <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
-                <h2 className="text-xl font-semibold mb-4">{t('leaveReview')}</h2>
+                <h2 className="text-xl font-semibold mb-4">
+                  {t("leaveReview")}
+                </h2>
                 <div className="mb-4">
                   <StarRating
                     rating={newReview.rating}
-                    setRating={(rating) => setNewReview({ ...newReview, rating })}
+                    setRating={(rating) =>
+                      setNewReview({ ...newReview, rating })
+                    }
                   />
                 </div>
                 <div className="mb-4">
                   <input
                     type="text"
                     className="w-full p-2 border rounded-md"
-                    placeholder={t('reviewTitle')}
+                    placeholder={t("reviewTitle")}
                     value={newReview.title}
                     onChange={(e) =>
                       setNewReview({ ...newReview, title: e.target.value })
@@ -757,7 +783,7 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
                 <div className="mb-4">
                   <textarea
                     className="w-full p-2 border rounded-md"
-                    placeholder={t('yourReview')}
+                    placeholder={t("yourReview")}
                     value={newReview.comment}
                     onChange={(e) =>
                       setNewReview({ ...newReview, comment: e.target.value })
@@ -768,13 +794,13 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
                   className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline w-full"
                   onClick={handleReviewSubmit}
                 >
-                  {t('submitReview')}
+                  {t("submitReview")}
                 </button>
                 <button
                   className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2 w-full"
                   onClick={() => setModalVisible(false)}
                 >
-                  {t('cancel')}
+                  {t("cancel")}
                 </button>
               </div>
             </div>
@@ -783,9 +809,11 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
 
         {/* Related Tools Section */}
         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
-          <h2 className="text-2xl font-bold mb-5 text-center">{t('relatedTools')}</h2>
+          <h2 className="text-2xl font-bold mb-5 text-center">
+            {t("relatedTools")}
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {relatedTools.map((tool, index) => (
+            {relatedTools?.map((tool, index) => (
               <a
                 key={index}
                 href={tool.link}
@@ -810,7 +838,7 @@ const TagExtractor = ({ meta, faqs,reviews, relatedTools, content }) => {
 };
 
 export async function getServerSideProps(context) {
-  return getContentProps('tagExtractor', context.locale, context.req);
+  return getContentProps("tagExtractor", context.locale, context.req);
 }
 
 export default TagExtractor;

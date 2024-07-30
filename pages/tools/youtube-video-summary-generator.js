@@ -12,13 +12,12 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
-import { format } from "date-fns";
 import { i18n, useTranslation } from "next-i18next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Script from "next/script";
 import dynamic from 'next/dynamic';
+import { getContentProps } from "../../utils/getContentProps";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
-const VideoSummarizer = ({ meta, faqs }) => {
+const VideoSummarizer = ({ meta, faqs, reviews, relatedTools, content }) => {
   const { user, updateUserProfile } = useAuth();
   const { t } = useTranslation('summary');
   const [videoUrl, setVideoUrl] = useState("");
@@ -30,9 +29,6 @@ const VideoSummarizer = ({ meta, faqs }) => {
   const [error, setError] = useState("");
   const [generateCount, setGenerateCount] = useState(5);
   const [isUpdated, setIsUpdated] = useState(false);
-  const [quillContent, setQuillContent] = useState("");
-  const [existingContent, setExistingContent] = useState("");
-  const [reviews, setReviews] = useState([]);
   const [translations, setTranslations] = useState([]);
   const [newReview, setNewReview] = useState({
     name: "",
@@ -40,7 +36,6 @@ const VideoSummarizer = ({ meta, faqs }) => {
     comment: "",
     userProfile: "",
   });
-  const [relatedTools, setRelatedTools] = useState([]);
   const [modalVisible, setModalVisible] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
@@ -50,48 +45,7 @@ const VideoSummarizer = ({ meta, faqs }) => {
     setOpenIndex(openIndex === index ? null : index);
   };
   
-
   const closeModal = () => setModalVisible(false);
-
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const language = i18n.language;
-        const response = await fetch(
-          `/api/content?category=YouTube-Video-Summary-Generator&language=${language}`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch content");
-        }
-        const data = await response.json();
-        setQuillContent(data.translations[language]?.content || "");
-        setExistingContent(data.translations[language]?.content || "");  
-        setRelatedTools(data.translations[language]?.relatedTools || []);
-        setTranslations(data.translations);
-      } catch (error) {
-        toast.error(t("Error fetching content"));
-      }
-    };
-
-    fetchContent();
-    fetchReviews();
-  }, [i18n.language]);
-
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch(
-        "/api/reviews?tool=YouTube-Video-Summary-Generator"
-      );
-      const data = await response.json();
-      const formattedData = data.map((review) => ({
-        ...review,
-        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"), // Format the date here
-      }));
-      setReviews(formattedData);
-    } catch (error) {
-      console.error("Failed to fetch reviews:", error);
-    }
-  };
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -164,7 +118,7 @@ const VideoSummarizer = ({ meta, faqs }) => {
       toast.success(t("Review submitted successfully!"));
       setNewReview({ rating: 0, comment: "", userProfile: "", userName: "" });
       setShowReviewForm(false);
-      fetchReviews();
+      fetchReviews('YouTube-Video-Summary-Generator');
     } catch (error) {
       console.error("Failed to submit review:", error);
       toast.error(t("Failed to submit review"));
@@ -459,19 +413,19 @@ const VideoSummarizer = ({ meta, faqs }) => {
           </div>
         )}
         <div className="content pt-6 pb-5">
-          <div
-            dangerouslySetInnerHTML={{ __html: existingContent }}
+          <article
+            dangerouslySetInnerHTML={{ __html: content }}
             style={{ listStyleType: "none" }}
-          ></div>
+          ></article>
         </div>
-        <div className="p-5 shadow">
-        <div className="accordion">
+        
+        <div className="accordion p-5 shadow">
   <h2 className="faq-title">{t("Frequently Asked Questions")}</h2>
   <p className="faq-subtitle">
     {t("Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us")}
   </p>
   <div className="faq-grid">
-    {faqs.map((faq, index) => (
+    {faqs?.map((faq, index) => (
       <div key={index} className="faq-item">
         <span id={`accordion-${index}`} className="target-fix"></span>
         <a
@@ -500,7 +454,7 @@ const VideoSummarizer = ({ meta, faqs }) => {
   </div>
 </div>
 
-        </div>
+    
         <hr className="mt-4 mb-2" />
         <div className="row pt-3">
           <div className="col-md-4">
@@ -551,7 +505,7 @@ const VideoSummarizer = ({ meta, faqs }) => {
           </div>
 
           <div className="col-md-8">
-            {reviews.slice(0, 5).map((review, index) => (
+            {reviews?.slice(0, 5).map((review, index) => (
               <div key={index} className="border p-6 m-5 bg-white">
                 <div className="flex items-center mb-4">
                   <Image
@@ -596,7 +550,7 @@ const VideoSummarizer = ({ meta, faqs }) => {
               </button>
             )}
             {showAllReviews &&
-              reviews.slice(5).map((review, index) => (
+              reviews?.slice(5).map((review, index) => (
                 <div key={index} className="border p-6 m-5 bg-white">
                   <div className="flex items-center mb-4">
                     <Image
@@ -684,7 +638,7 @@ const VideoSummarizer = ({ meta, faqs }) => {
            <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
       <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {relatedTools.map((tool, index) => (
+        {relatedTools?.map((tool, index) => (
           <a
             key={index}
             href={tool.link}
@@ -710,48 +664,8 @@ const VideoSummarizer = ({ meta, faqs }) => {
   );
 };
 
-export async function getServerSideProps({ req, locale }) {
-  const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
-  const apiUrl = `${protocol}://${host}/api/content?category=YouTube-Video-Summary-Generator&language=${locale}`;
-
-  try {
-    const contentResponse = await fetch(apiUrl);
-
-    if (!contentResponse.ok) {
-      throw new Error("Failed to fetch content");
-    }
-
-    const contentData = await contentResponse.json();
-
-    if (!contentData.translations || !contentData.translations[locale]) {
-      throw new Error("Invalid content data format");
-    }
-
-    const meta = {
-      title: contentData.translations[locale]?.title || "",
-      description: contentData.translations[locale]?.description || "",
-      image: contentData.translations[locale]?.image || "",
-      url: `${protocol}://${host}/tools/youtube-video-summary-generator`,
-    };
-
-    return {
-      props: {
-        meta,
-        faqs: contentData.translations[locale]?.faqs || [],
-        ...(await serverSideTranslations(locale, ['common', 'summary', 'navbar', 'footer'])),
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    return {
-      props: {
-        meta: {},
-        faqs: [],
-        ...(await serverSideTranslations(locale, ['common', 'summary', 'navbar', 'footer'])),
-      },
-    };
-  }
+export async function getServerSideProps(context) {
+  return getContentProps("YouTube-Video-Summary-Generator", context.locale, context.req);
 }
 
 export default VideoSummarizer;

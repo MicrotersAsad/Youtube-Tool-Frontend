@@ -642,7 +642,7 @@ const TagGenerator = ({ initialMeta,existingContent,relatedTools,faqs }) => {
               {t('answeredAllFAQs')}
             </p>
             <div className="faq-grid">
-              {faqs.map((faq, index) => (
+              {faqs?.map((faq, index) => (
                 <div key={index} className="faq-item">
                   <span id={`accordion-${index}`} className="target-fix"></span>
                   <a
@@ -725,7 +725,7 @@ const TagGenerator = ({ initialMeta,existingContent,relatedTools,faqs }) => {
 
           {/* Review List Section */}
           <div className="p-4 bg-white shadow-md rounded-md col-span-1 md:col-span-1">
-            {reviews.slice(0, 5).map((review, index) => (
+            {reviews?.slice(0, 5).map((review, index) => (
               <div
                 key={index}
                 className="border p-4 mb-4 bg-gray-50 rounded-md shadow-sm"
@@ -768,7 +768,7 @@ const TagGenerator = ({ initialMeta,existingContent,relatedTools,faqs }) => {
               </button>
             )}
             {showAllReviews &&
-              reviews.slice(5).map((review, index) => (
+              reviews?.slice(5).map((review, index) => (
                 <div
                   key={index}
                   className="border p-4 mb-4 bg-gray-50 rounded-md shadow-sm"
@@ -861,7 +861,7 @@ const TagGenerator = ({ initialMeta,existingContent,relatedTools,faqs }) => {
         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
           <h2 className="text-2xl font-bold mb-5 text-center">{t('relatedTools')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {relatedTools.map((tool, index) => (
+            {relatedTools?.map((tool, index) => (
               <a
                 key={index}
                 href={tool.link}

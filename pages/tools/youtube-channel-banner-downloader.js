@@ -500,10 +500,10 @@ const YtChannelDw = ({ meta, faqs,reviews, relatedTools, content }) => {
         )}
 
         <div className="content pt-6 pb-5">
-          <div
+          <article
             dangerouslySetInnerHTML={{ __html: content }}
             style={{ listStyleType: "none" }}
-          ></div>
+          ></article>
         </div>
 
         <div className="p-5 shadow">

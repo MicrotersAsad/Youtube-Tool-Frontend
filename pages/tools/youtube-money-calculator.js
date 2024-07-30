@@ -9,23 +9,18 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
-import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
-import { i18n } from "next-i18next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import dynamic from 'next/dynamic';
+import { getContentProps } from "../../utils/getContentProps";
+import Script from "next/script";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
-const YouTubeMoneyCalculator = ({ meta, faqs }) => {
+const YouTubeMoneyCalculator =({ meta, faqs, reviews, relatedTools, content })  => {
   const { t } = useTranslation('calculator');
   const [dailyViews, setDailyViews] = useState(0);
   const { user, updateUserProfile, logout } = useAuth();
   const [translations, setTranslations] = useState([]);
   const [generateCount, setGenerateCount] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);
-  const [quillContent, setQuillContent] = useState("");
-  const [existingContent, setExistingContent] = useState("");
-  const [relatedTools,setRelatedTools]=useState([])
-  const [reviews, setReviews] = useState([]);
   const [openIndex, setOpenIndex] = useState(null);
   const [newReview, setNewReview] = useState({
     name: "",
@@ -59,27 +54,6 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const language = i18n.language;
-        const response = await fetch(`/api/content?category=YouTube-Money-Calculator&language=${language}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch content");
-        }
-        const data = await response.json();
-        setQuillContent(data.translations[language]?.content || "");
-        setExistingContent(data.translations[language]?.content || "");  
-        setRelatedTools(data.translations[language]?.relatedTools || []);
-        setTranslations(data.translations);
-      } catch (error) {
-        console.error("Error fetching content");
-      }
-    };
-
-    fetchContent();
-    fetchReviews();
-  }, [i18n.language]);
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -106,21 +80,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
     setShowReviewForm(false);
   };
 
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch(
-        "/api/reviews?tool=YouTube-Money-Calculator"
-      );
-      const data = await response.json();
-      const formattedData = data.map((review) => ({
-        ...review,
-        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"), // Format the date here
-      }));
-      setReviews(formattedData);
-    } catch (error) {
-      console.error("Failed to fetch reviews:", error);
-    }
-  };
+ 
 
   const handleReviewSubmit = async () => {
     if (!user) {
@@ -158,7 +118,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
         userProfile: "",
       });
       setShowReviewForm(false);
-      fetchReviews();
+      fetchReviews("YouTube-Money-Calculator");
     } catch (error) {
       console.error("Failed to submit review:", error);
       toast.error("Failed to submit review");
@@ -269,7 +229,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "FAQPage",
-              mainEntity: faqs.map((faq) => ({
+              mainEntity: faqs?.map((faq) => ({
                 "@type": "Question",
                 name: faq.question,
                 acceptedAnswer: {
@@ -382,10 +342,10 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
       </div>
       <div className="max-w-7xl mx-auto p-4">
         <div className="content pt-6 pb-5">
-          <div
-            dangerouslySetInnerHTML={{ __html: existingContent }}
+          <article
+            dangerouslySetInnerHTML={{ __html: content }}
             style={{ listStyleType: "none" }}
-          ></div>
+          ></article>
         </div>
         <div className="p-5 shadow">
           <div className="accordion">
@@ -394,7 +354,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
              {t('Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us')}
             </p>
             <div className="faq-grid">
-              {faqs.map((faq, index) => (
+              {faqs?.map((faq, index) => (
                 <div key={index} className="faq-item">
                   <span id={`accordion-${index}`} className="target-fix"></span>
                   <a
@@ -475,7 +435,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
           </div>
 
           <div className="col-md-8">
-            {reviews.slice(0, 5).map((review, index) => (
+            {reviews?.slice(0, 5).map((review, index) => (
               <div key={index} className="border p-6 m-5 bg-white">
                 <div className="flex items-center mb-4">
                   <Image
@@ -520,7 +480,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
               </button>
             )}
             {showAllReviews &&
-              reviews.slice(5).map((review, index) => (
+              reviews?.slice(5).map((review, index) => (
                 <div key={index} className="border p-6 m-5 bg-white">
                   <div className="flex items-center mb-4">
                     <Image
@@ -608,7 +568,7 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
          <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
       <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {relatedTools.map((tool, index) => (
+        {relatedTools?.map((tool, index) => (
           <a
             key={index}
             href={tool.link}
@@ -714,48 +674,9 @@ const YouTubeMoneyCalculator = ({ meta, faqs }) => {
   );
 };
 
-export async function getServerSideProps({ req, locale }) {
-  const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
-  const apiUrl = `${protocol}://${host}/api/content?category=YouTube-Money-Calculator&language=${locale}`;
 
-  try {
-    const contentResponse = await fetch(apiUrl);
-
-    if (!contentResponse.ok) {
-      throw new Error("Failed to fetch content");
-    }
-
-    const contentData = await contentResponse.json();
-
-    if (!contentData.translations || !contentData.translations[locale]) {
-      throw new Error("Invalid content data format");
-    }
-
-    const meta = {
-      title: contentData.translations[locale]?.title || "",
-      description: contentData.translations[locale]?.description || "",
-      image: contentData.translations[locale]?.image || "",
-      url: `${protocol}://${host}/tools/youtube-money-calculator`,
-    };
-
-    return {
-      props: {
-        meta,
-        faqs: contentData.translations[locale]?.faqs || [],
-        ...(await serverSideTranslations(locale, ['common', 'calculator', 'navbar', 'footer'])),
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    return {
-      props: {
-        meta: {},
-        faqs: [],
-        ...(await serverSideTranslations(locale, ['common', 'calculator', 'navbar', 'footer'])),
-      },
-    };
-  }
+export async function getServerSideProps(context) {
+  return getContentProps("YouTube-Money-Calculator", context.locale, context.req);
 }
 
 export default YouTubeMoneyCalculator;

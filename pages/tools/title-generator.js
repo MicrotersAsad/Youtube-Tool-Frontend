@@ -10,11 +10,11 @@ import {
   FaStar,
 } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
+import { getContentProps } from '../../utils/getContentProps';
 import Head from "next/head";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { format } from "date-fns";
 import { useRouter } from "next/router";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
@@ -22,13 +22,12 @@ import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 import { i18n, useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import dynamic from 'next/dynamic';
 import Script from "next/script";
 
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
-const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
+const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content }) => {
   const { t } = useTranslation('titlegenerator');
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();
@@ -40,7 +39,6 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
   const [selectAll, setSelectAll] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);
-  const [reviews, setReviews] = useState([]);
   const [translations, setTranslations] = useState([]);
   const [newReview, setNewReview] = useState({
     name: "",
@@ -57,25 +55,6 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
   const closeModal = () => {
     setModalVisible(false);
   };
-
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const language = i18n.language;
-        const response = await fetch(
-          `/api/content?category=Titlegenerator&language=${language}`
-        );
-        if (!response.ok) throw new Error("Failed to fetch content");
-        const data = await response.json();
-        setTranslations(data.translations);
-      } catch (error) {
-        toast.error("Error fetching content");
-      }
-    };
-
-    fetchContent();
-    fetchReviews();
-  }, [i18n.language, t]);
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -279,20 +258,6 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
     }
   };
 
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch("/api/reviews?tool=titlegenerator");
-      const data = await response.json();
-      const formattedData = data.map((review) => ({
-        ...review,
-        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"), // Format the date here
-      }));
-      setReviews(formattedData);
-    } catch (error) {
-      console.error("Failed to fetch reviews:", error);
-    }
-  };
-
   const handleReviewSubmit = async () => {
     if (!user) {
       router.push("/login");
@@ -311,7 +276,7 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          tool: "titlegenerator",
+          tool: "Titlegenerator",
           ...newReview,
           userProfile: user?.profileImage || "not available",
           userName: user?.username,
@@ -329,7 +294,7 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
         userProfile: "",
       });
       setShowReviewForm(false);
-      fetchReviews();
+      fetchReviews("Titlegenerator");
     } catch (error) {
       toast.error(t('Failed to submit review.'));
     }
@@ -611,14 +576,13 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
         </div>
 
         <div className="content pt-6 pb-5">
-          <div
-            dangerouslySetInnerHTML={{ __html: existingContent }}
-            style={{ listStyleType: "none" }}
-          ></div>
+        <article
+            dangerouslySetInnerHTML={{ __html: content }}
+            className="list-none"
+          ></article>
         </div>
 
-        <div className="p-5 shadow">
-          <div className="accordion">
+        <div className="accordion shadow p-5">
             <h2 className="faq-title">{t('Frequently Asked Questions')}</h2>
             <p className="faq-subtitle">
               {t('Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us')}
@@ -633,7 +597,7 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
                     className="accordion-header"
                     onClick={() => toggleFAQ(index)}
                   >
-                    {t(faq.question)}
+                    {faq.question}
                   </a>
                   <a
                     href={`#accordion-${index}`}
@@ -641,20 +605,20 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
                     className="accordion-header"
                     onClick={() => toggleFAQ(index)}
                   >
-                    {t(faq.question)}
+                    {faq.question}
                   </a>
                   <div
                     className={`accordion-content ${
                       openIndex === index ? "open" : ""
                     }`}
                   >
-                    <p>{t(faq.answer)}</p>
+                    <p>{faq.answer}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
+        
         <hr className="mt-4 mb-2" />
 
         <div className="row pt-3">
@@ -696,7 +660,7 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
               <p>{t('Share Your Thoughts With Other Customers')}</p>
               <button
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 mb-4"
-                onClick={openReviewForm}
+                onClick={() => setShowReviewForm(true)}
               >
                 {t('Write a customer review')}
               </button>
@@ -785,7 +749,7 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
         {showReviewForm && (
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="fixed inset-0 bg-black opacity-50"></div>
-            <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
+            <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md mx-auto">
               <h2 className="text-2xl font-semibold mb-4">{t('Leave a Review')}</h2>
               <div className="mb-4">
                 <StarRating
@@ -829,6 +793,7 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
             </div>
           </div>
         )}
+
         {/* Related Tools Section */}
         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
           <h2 className="text-2xl font-bold mb-5 text-center">{t('Related Tools')}</h2>
@@ -962,53 +927,7 @@ const YTTitleGenerator = ({ meta, faqs, relatedTools, existingContent }) => {
   );
 };
 
-export async function getServerSideProps({ req, locale }) {
-  const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
-  const apiUrl = `${protocol}://${host}/api/content?category=Titlegenerator&language=${locale}`;
-
-  try {
-    const contentResponse = await fetch(apiUrl);
-
-    if (!contentResponse.ok) {
-      throw new Error("Failed to fetch content");
-    }
-
-    const contentData = await contentResponse.json();
-
-    if (!contentData.translations || !contentData.translations[locale]) {
-      throw new Error("Invalid content data format");
-    }
-
-    const meta = {
-      title: contentData.translations[locale]?.title || "",
-      description: contentData.translations[locale]?.description || "",
-      image: contentData.translations[locale]?.image || "",
-      url: `${protocol}://${host}/tools/title-generator`,
-    };
-
-    return {
-      props: {
-        meta,
-        faqs: contentData.translations[locale]?.faqs || [],
-        relatedTools: contentData.translations[locale]?.relatedTools || [],
-        existingContent: contentData.translations[locale]?.content || "",
-        ...(await serverSideTranslations(locale, ['common', 'titlegenerator', 'navbar', 'footer'])),
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    return {
-      props: {
-        meta: {},
-        faqs: [],
-        relatedTools: [],
-        existingContent: "",
-        ...(await serverSideTranslations(locale, ['common', 'titlegenerator', 'navbar', 'footer'])),
-      },
-    };
-  }
+export async function getServerSideProps(context) {
+  return getContentProps('Titlegenerator', context.locale, context.req);
 }
-
-
 export default YTTitleGenerator;

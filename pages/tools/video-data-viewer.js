@@ -22,18 +22,17 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import Head from "next/head";
 import Link from "next/link";
-import { format } from "date-fns";
 import { i18n, useTranslation } from "next-i18next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
-
+import { getContentProps } from '../../utils/getContentProps';
+import Script from "next/script";
 // Dynamically import heavy components
 const StarRating = lazy(() => import("./StarRating"));
 
-const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
+const VideoDataViewer = ({ meta, faqs,reviews, content, relatedTools }) => {
   const { t } = useTranslation(['videoDataViewer']);
   const { user, updateUserProfile } = useAuth();
   const [videoUrl, setVideoUrl] = useState("");
@@ -44,7 +43,6 @@ const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false);
   const [isUpdated, setIsUpdated] = useState(false);
-  const [reviews, setReviews] = useState([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [translations, setTranslations] = useState([]);
   const [newReview, setNewReview] = useState({
@@ -54,7 +52,7 @@ const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
     userProfile: "",
     userName: "",
   });
-  const [modalVisible, setModalVisible] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
   const [showAllReviews, setShowAllReviews] = useState(false);
 
@@ -79,11 +77,6 @@ const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
       setGenerateCount(5);
     }
   }, [user]);
-
-  useEffect(() => {
-    fetchReviews();
-    
-  }, [i18n.language]);
 
   const handleInputChange = (e) => {
     setError("");
@@ -144,23 +137,9 @@ const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
     }
   };
 
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch("/api/reviews?tool=video-data-viewer");
-      const data = await response.json();
-      const formattedData = data.map((review) => ({
-        ...review,
-        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"), // Format the date here
-      }));
-      setReviews(formattedData);
-    } catch (error) {
-      console.error("Failed to fetch reviews:", error);
-    }
-  };
-
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
-      toast.error(t("reviews.All fields are required."));
+      toast.error(t("All fields are required."));
       return;
     }
 
@@ -178,9 +157,9 @@ const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
         }),
       });
 
-      if (!response.ok) throw new Error(t("reviews.Failed to submit review."));
+      if (!response.ok) throw new Error(t("Failed to submit review."));
 
-      toast.success(t("reviews.Review submitted successfully!"));
+      toast.success(t("Review submitted successfully!"));
       setNewReview({
         name: "",
         rating: 0,
@@ -189,10 +168,10 @@ const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
         userName: "",
       });
       setShowReviewForm(false);
-      fetchReviews();
+      fetchReviews('video-data-viewer');
     } catch (error) {
       console.error("Failed to submit review:", error);
-      toast.error(t("reviews.Failed to submit review."));
+      toast.error(t("Failed to submit review."));
     }
   };
 
@@ -262,94 +241,95 @@ const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-        <Head>
-          <title>{meta?.title}</title>
-          <meta name="description" content={meta?.description} />
-          <meta property="og:url" content={meta?.url} />
-          <meta property="og:title" content={meta?.title} />
-          <meta property="og:description" content={meta?.description} />
-          <meta property="og:image" content={meta?.image || ""} />
-          <meta name="twitter:card" content={meta?.image || ""} />
-          <meta property="twitter:domain" content={meta?.url} />
-          <meta property="twitter:url" content={meta?.url} />
-          <meta name="twitter:title" content={meta?.title} />
-          <meta name="twitter:description" content={meta?.description} />
-          <meta name="twitter:image" content={meta?.image || ""} />
-          {/* - Webpage Schema */}
-          <Script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebPage",
-              name: meta?.title,
-              url: meta?.url,
-              description: meta?.description,
-              breadcrumb: {
-                "@id": `${meta?.url}#breadcrumb`,
-              },
-              about: {
-                "@type": "Thing",
+          <Head>
+            <title>{meta?.title}</title>
+            <meta name="description" content={meta?.description} />
+            <meta property="og:url" content={meta?.url} />
+            <meta property="og:title" content={meta?.title} />
+            <meta property="og:description" content={meta?.description} />
+            <meta property="og:image" content={meta?.image || ""} />
+            <meta name="twitter:card" content={meta?.image || ""} />
+            <meta property="twitter:domain" content={meta?.url} />
+            <meta property="twitter:url" content={meta?.url} />
+            <meta name="twitter:title" content={meta?.title} />
+            <meta name="twitter:description" content={meta?.description} />
+            <meta name="twitter:image" content={meta?.image || ""} />
+            {/* - Webpage Schema */}
+            <Script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "WebPage",
                 name: meta?.title,
-              },
-              isPartOf: {
-                "@type": "WebSite",
                 url: meta?.url,
-              },
-            })}
-          </Script>
-          {/* - Review Schema */}
-          <Script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "SoftwareApplication",
-              name: meta?.title,
-              url: meta?.url,
-              applicationCategory: "Multimedia",
-              aggregateRating: {
-                "@type": "AggregateRating",
-                ratingValue: overallRating,
-                ratingCount: reviews?.length,
-                reviewCount: reviews?.length,
-              },
-              review: reviews.map((review) => ({
-                "@type": "Review",
-                author: {
-                  "@type": "Person",
-                  name: review.userName,
+                description: meta?.description,
+                breadcrumb: {
+                  "@id": `${meta?.url}#breadcrumb`,
                 },
-                datePublished: review.createdAt,
-                reviewBody: review.comment,
-                name: review.title,
-                reviewRating: {
-                  "@type": "Rating",
-                  ratingValue: review.rating,
+                about: {
+                  "@type": "Thing",
+                  name: meta?.title,
                 },
-              })),
-            })}
-          </Script>
-          {/* - FAQ Schema */}
-          <Script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              mainEntity: faqs.map((faq) => ({
-                "@type": "Question",
-                name: faq.question,
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: faq.answer,
+                isPartOf: {
+                  "@type": "WebSite",
+                  url: meta?.url,
                 },
-              })),
-            })}
-          </Script>
-          {translations && Object.keys(translations).map(lang => (
-    <link
-      key={lang}
-      rel="alternate"
-      href={`${meta?.url}?locale=${lang}`}
-      hrefLang={lang} // Corrected property name
-    />
-  ))}
-        </Head>
+              })}
+            </Script>
+            {/* - Review Schema */}
+            <Script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                name: meta?.title,
+                url: meta?.url,
+                applicationCategory: "Multimedia",
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: overallRating,
+                  ratingCount: reviews?.length,
+                  reviewCount: reviews?.length,
+                },
+                review: reviews.map((review) => ({
+                  "@type": "Review",
+                  author: {
+                    "@type": "Person",
+                    name: review.userName,
+                  },
+                  datePublished: review.createdAt,
+                  reviewBody: review.comment,
+                  name: review.title,
+                  reviewRating: {
+                    "@type": "Rating",
+                    ratingValue: review.rating,
+                  },
+                })),
+              })}
+            </Script>
+            {/* - FAQ Schema */}
+            <Script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: faqs.map((faq) => ({
+                  "@type": "Question",
+                  name: faq.question,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: faq.answer,
+                  },
+                })),
+              })}
+            </Script>
+            {translations &&
+              Object.keys(translations).map((lang) => (
+                <link
+                  key={lang}
+                  rel="alternate"
+                  href={`${meta?.url}?locale=${lang}`}
+                  hrefLang={lang}
+                />
+              ))}
+          </Head>
           <h2 className="text-3xl pt-5 text-white">{t("YouTube Video Data Viewer")}</h2>
           <ToastContainer />
           {modalVisible && (
@@ -362,11 +342,11 @@ const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
                   {user ? (
                     user.paymentStatus === "success" || user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                       {t("Congratulations! Now you can get unlimited  Video Data View.")}
+                        {t("Congratulations! Now you can get unlimited Video Data View.")}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        {t(`You are not upgraded. You can get Video Data View   { remainingGenerations: 5 - generateCount } more times`)}{" "}
+                        {t("You are not upgraded. You can get Video Data View { remainingGenerations: 5 - generateCount } more times")}
                         <Link href="/pricing" className="btn btn-warning ms-3">
                           {t("Upgrade")}
                         </Link>
@@ -514,7 +494,7 @@ const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
         )}
 
         <div className="content pt-6 pb-5">
-          <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: "none" }}></div>
+          <article dangerouslySetInnerHTML={{ __html: content }} style={{ listStyleType: "none" }}></article>
         </div>
 
         <div className="p-5 shadow">
@@ -522,7 +502,7 @@ const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
             <h2 className="faq-title">{t("Frequently Asked Questions")}</h2>
             <p className="faq-subtitle">{t("Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us")}</p>
             <div className="faq-grid">
-              {faqs.map((faq, index) => (
+              {faqs?.map((faq, index) => (
                 <div key={index} className="faq-item">
                   <span id={`accordion-${index}`} className="target-fix"></span>
                   <a href={`#accordion-${index}`} id={`open-accordion-${index}`} className="accordion-header" onClick={() => toggleFAQ(index)}>
@@ -571,7 +551,7 @@ const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
               <p>{t("Share Your Thoughts With Other Customers")}</p>
               <button
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
-                onClick={openReviewForm}
+                onClick={() => setShowReviewForm(true)}
               >
                 {t("Write a customer review")}
               </button>
@@ -645,7 +625,7 @@ const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
         {showReviewForm && (
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="fixed inset-0 bg-black opacity-50"></div>
-            <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
+            <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md mx-auto">
               <h2 className="text-2xl font-semibold mb-4">{t("Leave a Review")}</h2>
               <div className="mb-4">
                 <Suspense fallback={<div>Loading...</div>}>
@@ -684,81 +664,36 @@ const VideoDataViewer = ({ meta, faqs, existingContent, relatedTools }) => {
             </div>
           </div>
         )}
-         {/* Related Tools Section */}
-         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
-      <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {relatedTools.map((tool, index) => (
-          <a
-            key={index}
-            href={tool.link}
-            className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
-          >
-            <Image
-              src={tool?.logo?.src}
-              alt={`${tool.name} Icon`}
-              width={64}
-              height={64}
-              className="mr-4"
-              
-            />
-            <span className="text-blue-600 font-medium">{tool.name}</span>
-          </a>
-        ))}
-      </div>
-    </div>
+        {/* Related Tools Section */}
+        <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
+          <h2 className="text-2xl font-bold mb-5 text-center">{t("Related Tools")}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {relatedTools?.map((tool, index) => (
+              <a
+                key={index}
+                href={tool.link}
+                className="flex items-center border rounded-lg p-4 bg-gray-100 transition"
+              >
+                <Image
+                  src={tool?.logo?.src}
+                  alt={`${tool.name} Icon`}
+                  width={64}
+                  height={64}
+                  className="mr-4"
+                />
+                <span className="text-blue-600 font-medium">{tool.name}</span>
+              </a>
+            ))}
+          </div>
+        </div>
         {/* End of Related Tools Section */}
       </div>
     </>
   );
 };
-export async function getServerSideProps({ req, locale }) {
-  const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
-  const apiUrl = `${protocol}://${host}/api/content?category=video-data-viewer&language=${locale}`;
 
-  try {
-    const response = await fetch(apiUrl);
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch content");
-    }
-
-    const contentData = await response.json();
-
-    if (!contentData.translations || !contentData.translations[locale]) {
-      throw new Error("Invalid content data format");
-    }
-
-    const meta = {
-      title: contentData.translations[locale]?.title || "",
-      description: contentData.translations[locale]?.description || "",
-      image: contentData.translations[locale]?.image || "",
-      url: `${protocol}://${host}/tools/video-data-viewer`,
-    };
-
-    return {
-      props: {
-        meta,
-        faqs: contentData.translations[locale]?.faqs || [],
-        existingContent: contentData.translations[locale]?.content || "",
-        relatedTools: contentData.translations[locale]?.relatedTools || [],
-        ...(await serverSideTranslations(locale, ['common', 'videoDataViewer', 'navbar', 'footer'])),
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    return {
-      props: {
-        meta: {},
-        faqs: [],
-        existingContent: "",
-        relatedTools: [],
-        ...(await serverSideTranslations(locale, ['common', 'videoDataViewer', 'navbar', 'footer'])),
-      },
-    };
-  }
+export async function getServerSideProps(context) {
+  return getContentProps('video-data-viewer', context.locale, context.req);
 }
-
 
 export default VideoDataViewer;

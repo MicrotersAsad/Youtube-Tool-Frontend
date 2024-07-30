@@ -19,13 +19,12 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Head from "next/head";
-import { format } from "date-fns";
 import { i18n, useTranslation } from "next-i18next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { getContentProps } from "../../utils/getContentProps";
 import Script from "next/script";
 import dynamic from 'next/dynamic';
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
-const YtThumbnailDw = ({ meta, faqs }) => {
+const YtThumbnailDw = ({ meta, faqs, reviews, relatedTools, content }) => {
   const { isLoggedIn, user, updateUserProfile, logout } = useAuth();
   const [translations, setTranslations] = useState([]);
   const [t]=useTranslation('thumbnail')
@@ -36,17 +35,12 @@ const YtThumbnailDw = ({ meta, faqs }) => {
   const [selectedThumbnailUrl, setSelectedThumbnailUrl] = useState("");
   const [generateCount, setGenerateCount] = useState(0);
   const [showShareIcons, setShowShareIcons] = useState(false);
-  const [content, setContent] = useState("");
-  const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
-  const [quillContent, setQuillContent] = useState("");
-  const [existingContent, setExistingContent] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
   const [showAllReviews, setShowAllReviews] = useState(false);
-  const [relatedTools,setRelatedTools]=useState([])
 
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -55,27 +49,7 @@ const YtThumbnailDw = ({ meta, faqs }) => {
   const closeModal = () => setModalVisible(false);
   const closeRform = () => setShowReviewForm(false);
 
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const language = i18n.language;
-        const response = await fetch(`/api/content?category=Youtube-Thumbnails-Generator&language=${language}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch content");
-        }
-        const data = await response.json();
-        console.log(data);
-        setQuillContent(data.translations[language]?.content || "");
-        setExistingContent(data.translations[language]?.content || "");  
-        setRelatedTools(data.translations[language]?.relatedTools || []);
-        setTranslations(data.translations);
-      } catch (error) {
-        console.error("Error fetching content");
-      }
-    };
-
-    fetchContent();
-  }, [i18n.language]);
+  
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -96,23 +70,9 @@ const YtThumbnailDw = ({ meta, faqs }) => {
     }
   }, [user]);
 
-  useEffect(() => {
-    fetchReviews();
-  }, []);
+ 
 
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch("/api/reviews?tool=yt-thumbnail-downloader");
-      const data = await response.json();
-      const formattedData = data.map((review) => ({
-        ...review,
-        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"), // Format the date here
-      }));
-      setReviews(formattedData);
-    } catch (error) {
-      console.error("Failed to fetch reviews:", error);
-    }
-  };
+
 
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
@@ -127,7 +87,7 @@ const YtThumbnailDw = ({ meta, faqs }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          tool: "yt-thumbnail-downloader",
+          tool: "Youtube-Thumbnails-Generator",
           ...newReview,
           userProfile: user?.profileImage || "not available",
           userName: user?.username,
@@ -145,7 +105,7 @@ const YtThumbnailDw = ({ meta, faqs }) => {
         userName: "",
       });
       setShowReviewForm(false);
-      fetchReviews();
+      fetchReviews('Youtube-Thumbnails-Generator');
     } catch (error) {
       console.error("Failed to submit review:", error);
       toast.error("Failed to submit review");
@@ -337,7 +297,7 @@ const YtThumbnailDw = ({ meta, faqs }) => {
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "FAQPage",
-              mainEntity: faqs.map((faq) => ({
+              mainEntity: faqs?.map((faq) => ({
                 "@type": "Question",
                 name: faq.question,
                 acceptedAnswer: {
@@ -494,10 +454,10 @@ const YtThumbnailDw = ({ meta, faqs }) => {
         </div>
 
         <div className="content pt-6 pb-5">
-          <div
-            dangerouslySetInnerHTML={{ __html: existingContent }}
+          <article
+            dangerouslySetInnerHTML={{ __html: content }}
             style={{ listStyleType: "none" }}
-          ></div>
+          ></article>
         </div>
 
         <div className="p-5 shadow">
@@ -507,7 +467,7 @@ const YtThumbnailDw = ({ meta, faqs }) => {
               {t('Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us')}
             </p>
             <div className="faq-grid">
-              {faqs.map((faq, index) => (
+              {faqs?.map((faq, index) => (
                 <div key={index} className="faq-item">
                   <span id={`accordion-${index}`} className="target-fix"></span>
                   <a
@@ -588,7 +548,7 @@ const YtThumbnailDw = ({ meta, faqs }) => {
           </div>
 
           <div className="col-md-8">
-            {reviews.slice(0, 5).map((review, index) => (
+            {reviews?.slice(0, 5).map((review, index) => (
               <div key={index} className="border p-6 m-5 bg-white">
                 <div className="flex items-center mb-4">
                   <Image
@@ -633,7 +593,7 @@ const YtThumbnailDw = ({ meta, faqs }) => {
               </button>
             )}
             {showAllReviews &&
-              reviews.slice(5).map((review, index) => (
+              reviews?.slice(5).map((review, index) => (
                 <div key={index} className="border p-6 m-5 bg-white">
                   <div className="flex items-center mb-4">
                     <Image
@@ -721,7 +681,7 @@ const YtThumbnailDw = ({ meta, faqs }) => {
          <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
       <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {relatedTools.map((tool, index) => (
+        {relatedTools?.map((tool, index) => (
           <a
             key={index}
             href={tool.link}
@@ -766,48 +726,8 @@ const YtThumbnailDw = ({ meta, faqs }) => {
   );
 };
 
-export async function getServerSideProps({ req, locale }) {
-  const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
-  const apiUrl = `${protocol}://${host}/api/content?category=Youtube-Thumbnails-Generator&language=${locale}`;
-
-  try {
-    const contentResponse = await fetch(apiUrl);
-
-    if (!contentResponse.ok) {
-      throw new Error("Failed to fetch content");
-    }
-
-    const contentData = await contentResponse.json();
-
-    if (!contentData.translations || !contentData.translations[locale]) {
-      throw new Error("Invalid content data format");
-    }
-
-    const meta = {
-      title: contentData.translations[locale]?.title || "",
-      description: contentData.translations[locale]?.description || "",
-      image: contentData.translations[locale]?.image || "",
-      url: `${protocol}://${host}/tools/youtube-thumbnail`,
-    };
-
-    return {
-      props: {
-        meta,
-        faqs: contentData.translations[locale]?.faqs || [],
-        ...(await serverSideTranslations(locale, ['common', 'thumbnail', 'navbar', 'footer'])),
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    return {
-      props: {
-        meta: {},
-        faqs: [],
-        ...(await serverSideTranslations(locale, ['common', 'thumbnail', 'navbar', 'footer'])),
-      },
-    };
-  }
+export async function getServerSideProps(context) {
+  return getContentProps("Youtube-Thumbnails-Generator", context.locale, context.req);
 }
 
 export default YtThumbnailDw;

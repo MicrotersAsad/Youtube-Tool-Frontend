@@ -7,6 +7,7 @@ export const getContentProps = async (category, locale, req) => {
 
   const contentProps = await fetchContent(category, locale, host, protocol);
   const reviews = await fetchReviews(category, host, protocol); // Pass protocol and host
+console.log(reviews);
 
   return {
     props: {

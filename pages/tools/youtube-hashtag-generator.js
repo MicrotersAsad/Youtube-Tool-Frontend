@@ -18,16 +18,20 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
-import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
-import { i18n } from "next-i18next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Script from "next/script";
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
+import { getContentProps } from "../../utils/getContentProps";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
-const YouTubeHashtagGenerator = ({ meta, faqs }) => {
+const YouTubeHashtagGenerator = ({
+  meta,
+  faqs,
+  reviews,
+  relatedTools,
+  content,
+}) => {
   const { user, updateUserProfile } = useAuth();
-  const { t } = useTranslation('hashtag');
+  const { t } = useTranslation("hashtag");
   const [tags, setTags] = useState([]);
   const [keyword, setKeyword] = useState("");
   const [generateHashTag, setGenerateHashTag] = useState([]);
@@ -35,44 +39,19 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [generateCount, setGenerateCount] = useState(5);
   const [selectAll, setSelectAll] = useState(false);
-  const [quillContent, setQuillContent] = useState("");
-  const [existingContent, setExistingContent] = useState("");
   const [prompt, setPrompt] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
-  const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
   const [modalVisible, setModalVisible] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
   const [translations, setTranslations] = useState([]);
-  const [relatedTools, setRelatedTools] = useState([]);
+
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
   const closeModal = () => setModalVisible(false);
-
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const language = i18n.language;
-        const response = await fetch(`/api/content?category=YouTube-Hashtag-Generator&language=${language}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch content");
-        }
-        const data = await response.json();
-        setQuillContent(data.translations[language]?.content || "");
-        setExistingContent(data.translations[language]?.content || "");  
-        setRelatedTools(data.translations[language]?.relatedTools || []);
-        setTranslations(data.translations);
-      } catch (error) {
-        console.error("Error fetching content");
-      }
-    };
-
-    fetchContent();
-    fetchReviews();
-  }, [i18n.language]);
 
   useEffect(() => {
     fetch("/api/deal")
@@ -203,7 +182,8 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
 
     try {
       const response = await fetch("/api/openaiKey");
-      if (!response.ok) throw new Error(`Failed to fetch API keys: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`Failed to fetch API keys: ${response.status}`);
 
       const keysData = await response.json();
       const apiKeys = keysData.map((key) => key.token);
@@ -212,27 +192,30 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
 
       for (const key of apiKeys) {
         try {
-          const result = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${key}`,
-            },
-            body: JSON.stringify({
-              model: "gpt-3.5-turbo-16k",
-              messages: [
-                {
-                  role: "system",
-                  content: `Generate a list of at least 20 SEO-friendly Hashtags for keywords like #money: "${tags.join(
-                    ", "
-                  )}".`,
-                },
-                { role: "user", content: tags.join(", ") },
-              ],
-              temperature: 0.7,
-              max_tokens: 3500,
-            }),
-          });
+          const result = await fetch(
+            "https://api.openai.com/v1/chat/completions",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${key}`,
+              },
+              body: JSON.stringify({
+                model: "gpt-3.5-turbo-16k",
+                messages: [
+                  {
+                    role: "system",
+                    content: `Generate a list of at least 20 SEO-friendly Hashtags for keywords like #money: "${tags.join(
+                      ", "
+                    )}".`,
+                  },
+                  { role: "user", content: tags.join(", ") },
+                ],
+                temperature: 0.7,
+                max_tokens: 3500,
+              }),
+            }
+          );
 
           const data = await result.json();
           console.log("API response:", data);
@@ -297,31 +280,10 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
         userName: "",
       });
       setShowReviewForm(false);
-      fetchReviews();
+      fetchReviews("YouTube-Hashtag-Generator");
     } catch (error) {
       console.error("Failed to submit review:", error);
       toast.error(t("Failed to submit review"));
-    }
-  };
-
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch("/api/reviews?tool=YouTube-Hashtag-Generator");
-      if (!response.ok) throw new Error("Failed to fetch reviews");
-  
-      const data = await response.json();
-      
-      const formattedData = data.map((review) => ({
-        ...review,
-        name: review.userName,
-        userProfile: review.userProfile,
-        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"), // Format the date here
-      }));
-  
-      setReviews(formattedData);
-    } catch (error) {
-      console.error("Failed to fetch reviews:", error);
-      toast.error(t("Failed to fetch reviews"));
     }
   };
 
@@ -348,9 +310,9 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
     }
     setShowReviewForm(true);
   };
-  const closeReviewForm =()=>{
-    setShowReviewForm(false)
-  }
+  const closeReviewForm = () => {
+    setShowReviewForm(false);
+  };
 
   return (
     <>
@@ -363,96 +325,98 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-        
-        <Head>
-          <title>{meta?.title}</title>
-          <meta name="description" content={meta?.description} />
-          <meta property="og:url" content={meta?.url} />
-          <meta property="og:title" content={meta?.title} />
-          <meta property="og:description" content={meta?.description} />
-          <meta property="og:image" content={meta?.image || ""} />
-          <meta name="twitter:card" content={meta?.image || ""} />
-          <meta property="twitter:domain" content={meta?.url} />
-          <meta property="twitter:url" content={meta?.url} />
-          <meta name="twitter:title" content={meta?.title} />
-          <meta name="twitter:description" content={meta?.description} />
-          <meta name="twitter:image" content={meta?.image || ""} />
-          {/* - Webpage Schema */}
-          <Script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebPage",
-              name: meta?.title,
-              url: meta?.url,
-              description: meta?.description,
-              breadcrumb: {
-                "@id": `${meta?.url}#breadcrumb`,
-              },
-              about: {
-                "@type": "Thing",
+          <Head>
+            <title>{meta?.title}</title>
+            <meta name="description" content={meta?.description} />
+            <meta property="og:url" content={meta?.url} />
+            <meta property="og:title" content={meta?.title} />
+            <meta property="og:description" content={meta?.description} />
+            <meta property="og:image" content={meta?.image || ""} />
+            <meta name="twitter:card" content={meta?.image || ""} />
+            <meta property="twitter:domain" content={meta?.url} />
+            <meta property="twitter:url" content={meta?.url} />
+            <meta name="twitter:title" content={meta?.title} />
+            <meta name="twitter:description" content={meta?.description} />
+            <meta name="twitter:image" content={meta?.image || ""} />
+            {/* - Webpage Schema */}
+            <Script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "WebPage",
                 name: meta?.title,
-              },
-              isPartOf: {
-                "@type": "WebSite",
                 url: meta?.url,
-              },
-            })}
-          </Script>
-          {/* - Review Schema */}
-          <Script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "SoftwareApplication",
-              name: meta?.title,
-              url: meta?.url,
-              applicationCategory: "Multimedia",
-              aggregateRating: {
-                "@type": "AggregateRating",
-                ratingValue: overallRating,
-                ratingCount: reviews?.length,
-                reviewCount: reviews?.length,
-              },
-              review: reviews.map((review) => ({
-                "@type": "Review",
-                author: {
-                  "@type": "Person",
-                  name: review.userName,
+                description: meta?.description,
+                breadcrumb: {
+                  "@id": `${meta?.url}#breadcrumb`,
                 },
-                datePublished: review.createdAt,
-                reviewBody: review.comment,
-                name: review.title,
-                reviewRating: {
-                  "@type": "Rating",
-                  ratingValue: review.rating,
+                about: {
+                  "@type": "Thing",
+                  name: meta?.title,
                 },
-              })),
-            })}
-          </Script>
-          {/* - FAQ Schema */}
-          <Script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              mainEntity: faqs.map((faq) => ({
-                "@type": "Question",
-                name: faq.question,
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: faq.answer,
+                isPartOf: {
+                  "@type": "WebSite",
+                  url: meta?.url,
                 },
-              })),
-            })}
-          </Script>
-         {translations && Object.keys(translations).map(lang => (
-    <link
-      key={lang}
-      rel="alternate"
-      href={`${meta?.url}?locale=${lang}`}
-      hrefLang={lang} // Corrected property name
-    />
-  ))}
-        </Head>
-          <h2 className="text-3xl text-white">{t("YouTube Hashtag Generator")}</h2>
+              })}
+            </Script>
+            {/* - Review Schema */}
+            <Script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                name: meta?.title,
+                url: meta?.url,
+                applicationCategory: "Multimedia",
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: overallRating,
+                  ratingCount: reviews?.length,
+                  reviewCount: reviews?.length,
+                },
+                review: reviews.map((review) => ({
+                  "@type": "Review",
+                  author: {
+                    "@type": "Person",
+                    name: review.userName,
+                  },
+                  datePublished: review.createdAt,
+                  reviewBody: review.comment,
+                  name: review.title,
+                  reviewRating: {
+                    "@type": "Rating",
+                    ratingValue: review.rating,
+                  },
+                })),
+              })}
+            </Script>
+            {/* - FAQ Schema */}
+            <Script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: faqs?.map((faq) => ({
+                  "@type": "Question",
+                  name: faq.question,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: faq.answer,
+                  },
+                })),
+              })}
+            </Script>
+            {translations &&
+              Object.keys(translations).map((lang) => (
+                <link
+                  key={lang}
+                  rel="alternate"
+                  href={`${meta?.url}?locale=${lang}`}
+                  hrefLang={lang} // Corrected property name
+                />
+              ))}
+          </Head>
+          <h2 className="text-3xl text-white">
+            {t("YouTube Hashtag Generator")}
+          </h2>
           <ToastContainer />
           {modalVisible && (
             <div
@@ -473,13 +437,17 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
                       <p className="text-center p-3 alert-warning">
                         {t("You need to be logged in to generate hashtags")}
                       </p>
-                    ) : user.paymentStatus === "success" || user.role === "admin" ? (
+                    ) : user.paymentStatus === "success" ||
+                      user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        {t("Congratulations!! Now you can generate unlimited hashtags.")}
+                        {t(
+                          "Congratulations!! Now you can generate unlimited hashtags."
+                        )}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        {t("You have not upgraded. You can generate")} {5 - generateCount} {t("more times")}.{" "}
+                        {t("You have not upgraded. You can generate")}{" "}
+                        {5 - generateCount} {t("more times")}.{" "}
                         <Link className="btn btn-warning ms-3" href="/pricing">
                           {t("Upgrade")}
                         </Link>
@@ -518,7 +486,10 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
               required
             />
           </div>
-          <p className="text-white text-center"> {t("Example: php, html, css")}</p>
+          <p className="text-white text-center">
+            {" "}
+            {t("Example: php, html, css")}
+          </p>
           <div className="center">
             <div className="flex flex-wrap gap-2 justify-center">
               <button
@@ -526,7 +497,10 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
                 onClick={generateHashTags}
                 disabled={isLoading || tags.length === 0}
               >
-                <span> {isLoading ? t("Generating...") : t("Generate Hashtag")}</span>
+                <span>
+                  {" "}
+                  {isLoading ? t("Generating...") : t("Generate Hashtag")}
+                </span>
               </button>
             </div>
           </div>
@@ -570,7 +544,10 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
         </div>
         <div className="generated-titles-container grid grid-cols-1 md:grid-cols-4 gap-4">
           {generateHashTag.map((title, index) => (
-            <div key={index} className="title-checkbox rounded flex items-center">
+            <div
+              key={index}
+              className="title-checkbox rounded flex items-center"
+            >
               <input
                 className="me-2 rounded"
                 type="checkbox"
@@ -580,7 +557,9 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
               {title.text.replace(/^\d+\.\s*/, "")}
               <FaCopy
                 className="copy-icon ml-2 cursor-pointer"
-                onClick={() => copyToClipboard(title.text.replace(/^\d+\.\s*/, ""))}
+                onClick={() =>
+                  copyToClipboard(title.text.replace(/^\d+\.\s*/, ""))
+                }
               />
             </div>
           ))}
@@ -601,20 +580,22 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
         </div>
         <div></div>
         <div className="content pt-6 pb-5">
-          <div
-            dangerouslySetInnerHTML={{ __html: existingContent }}
+          <article
+            dangerouslySetInnerHTML={{ __html: content }}
             style={{ listStyleType: "none" }}
-          ></div>
+          ></article>
         </div>
 
-        <div className='p-5 shadow'>
+        <div className="p-5 shadow">
           <div className="accordion">
             <h2 className="faq-title">{t("Frequently Asked Questions")}</h2>
             <p className="faq-subtitle">
-              {t("Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us")}
+              {t(
+                "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us"
+              )}
             </p>
             <div className="faq-grid">
-              {faqs.map((faq, index) => (
+              {faqs?.map((faq, index) => (
                 <div key={index} className="faq-item">
                   <span id={`accordion-${index}`} className="target-fix"></span>
                   <a
@@ -633,7 +614,11 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
                   >
                     {faq.question}
                   </a>
-                  <div className={`accordion-content ${openIndex === index ? 'open' : ''}`}>
+                  <div
+                    className={`accordion-content ${
+                      openIndex === index ? "open" : ""
+                    }`}
+                  >
                     <p>{faq.answer}</p>
                   </div>
                 </div>
@@ -644,7 +629,9 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
         <hr className="mt-4 mb-2" />
         <div className="row pt-3">
           <div className="col-md-4">
-            <div className=" text-3xl font-bold mb-2">{t("Customer Reviews")}</div>
+            <div className=" text-3xl font-bold mb-2">
+              {t("Customer Reviews")}
+            </div>
             <div className="flex items-center mb-2">
               <div className="text-3xl font-bold mr-2">{overallRating}</div>
               <div className="flex">
@@ -658,7 +645,7 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
                 ))}
               </div>
               <div className="ml-2 text-sm text-gray-500">
-                {reviews.length} {t("global ratings")}
+                {reviews?.length} {t("global ratings")}
               </div>
             </div>
             <div>
@@ -691,7 +678,7 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
           </div>
 
           <div className="col-md-8">
-            {reviews.slice(0, 5).map((review, index) => (
+            {reviews?.slice(0, 5).map((review, index) => (
               <div key={index} className="border p-6 m-5 bg-white">
                 <div className="flex items-center mb-4">
                   <Image
@@ -736,7 +723,7 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
               </button>
             )}
             {showAllReviews &&
-              reviews.slice(5).map((review, index) => (
+              reviews?.slice(5).map((review, index) => (
                 <div key={index} className="border p-6 m-5 bg-white">
                   <div className="flex items-center mb-4">
                     <Image
@@ -777,7 +764,9 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="fixed inset-0 bg-black opacity-50"></div>
             <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
-              <h2 className="text-2xl font-semibold mb-4">{t("Leave a Review")}</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                {t("Leave a Review")}
+              </h2>
               <div className="mb-4">
                 <StarRating
                   rating={newReview.rating}
@@ -820,76 +809,39 @@ const YouTubeHashtagGenerator = ({ meta, faqs }) => {
             </div>
           </div>
         )}
-         {/* Related Tools Section */}
-         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
-      <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {relatedTools.map((tool, index) => (
-          <a
-            key={index}
-            href={tool.link}
-            className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
-          >
-            <Image
-              src={tool?.logo?.src}
-              alt={`${tool.name} Icon`}
-              width={64}
-              height={64}
-              className="mr-4"
-              
-            />
-            <span className="text-blue-600 font-medium">{tool.name}</span>
-          </a>
-        ))}
-      </div>
-    </div>
+        {/* Related Tools Section */}
+        <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
+          <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {relatedTools?.map((tool, index) => (
+              <a
+                key={index}
+                href={tool.link}
+                className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
+              >
+                <Image
+                  src={tool?.logo?.src}
+                  alt={`${tool.name} Icon`}
+                  width={64}
+                  height={64}
+                  className="mr-4"
+                />
+                <span className="text-blue-600 font-medium">{tool.name}</span>
+              </a>
+            ))}
+          </div>
+        </div>
         {/* End of Related Tools Section */}
       </div>
     </>
   );
 };
-export async function getServerSideProps({ req, locale }) {
-  const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
-  const apiUrl = `${protocol}://${host}/api/content?category=YouTube-Hashtag-Generator&language=${locale}`;
-
-  try {
-    const contentResponse = await fetch(apiUrl);
-
-    if (!contentResponse.ok) {
-      throw new Error("Failed to fetch content");
-    }
-
-    const contentData = await contentResponse.json();
-
-    if (!contentData.translations || !contentData.translations[locale]) {
-      throw new Error("Invalid content data format");
-    }
-
-    const meta = {
-      title: contentData.translations[locale]?.title || "",
-      description: contentData.translations[locale]?.description || "",
-      image: contentData.translations[locale]?.image || "",
-      url: `${protocol}://${host}/tools/youtube-hashtag-generator`,
-    };
-
-    return {
-      props: {
-        meta,
-        faqs: contentData.translations[locale]?.faqs || [],
-        ...(await serverSideTranslations(locale, ['common', 'hashtag', 'navbar', 'footer'])),
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    return {
-      props: {
-        meta: {},
-        faqs: [],
-        ...(await serverSideTranslations(locale, ['common', 'hashtag', 'navbar', 'footer'])),
-      },
-    };
-  }
+export async function getServerSideProps(context) {
+  return getContentProps(
+    "YouTube-Hashtag-Generator",
+    context.locale,
+    context.req
+  );
 }
 
 export default YouTubeHashtagGenerator;
