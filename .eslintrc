@@ -7,11 +7,23 @@
   "extends": [
     "eslint:recommended",
     "plugin:react/recommended",
-    "plugin:@next/next/recommended"
+    "plugin:@next/next/recommended",
   ],
   "rules": {
     "react/no-unescaped-entities": "off",
-    "@next/next/no-page-custom-font": "off",
+    "@next/next/no-page-custom-font": "off"
+  },
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": 12,
+    "sourceType": "module"
+  },
+  "plugins": [
+    "react"
+  ],
+  "rules": {
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
     "no-undef": "off",
@@ -76,15 +88,5 @@
     "no-undef-init": "off",
     "no-undefined": "off",
     "no-use-before-define": "off"
-  },
-  "parserOptions": {
-    "ecmaFeatures": {
-      "jsx": true
-    },
-    "ecmaVersion": 12,
-    "sourceType": "module"
-  },
-  "plugins": [
-    "react"
-  ]
+  }
 }
