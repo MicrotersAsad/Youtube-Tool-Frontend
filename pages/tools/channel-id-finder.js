@@ -2,8 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import { useAuth } from "../../contexts/AuthContext";
 import { FaStar } from "react-icons/fa";
 import dynamic from "next/dynamic";
