@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import Image from "next/image";
 import dynamic from "next/dynamic";
+import { getContentProps } from '../../utils/getContentProps';
 import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
@@ -19,17 +20,15 @@ import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
-import { format } from "date-fns";
 import { i18n, useTranslation } from "next-i18next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Script from "next/script";
+import { fetchReviews } from "../../contexts/ContentContext";
 
-// Dynamic import for StarRating component
-const StarRating = dynamic(() => import("./StarRating"), {
-  ssr: false,
-});
+const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
+const Banner = dynamic(() => import("../../components/Banner"), { ssr: false });
 
-const YtChannelDw = ({ meta, faqs, existingContent }) => {
+
+const YtChannelDw = ({ meta, faqs,reviews, relatedTools, content }) => {
   const { t } = useTranslation('banner');
   const { user, updateUserProfile } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -39,8 +38,6 @@ const YtChannelDw = ({ meta, faqs, existingContent }) => {
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);
-  const [reviews, setReviews] = useState([]);
-  const [relatedTools, setRelatedTools] = useState([]);
   const [translations, setTranslations] = useState([]);
   const [newReview, setNewReview] = useState({
     name: "",
@@ -57,29 +54,6 @@ const YtChannelDw = ({ meta, faqs, existingContent }) => {
     setOpenIndex(openIndex === index ? null : index);
   };
   const closeModal = () => setModalVisible(false);
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setGenerateCount(Number(localStorage.getItem("generateCount")) || 0);
-    }
-    
-    const fetchContent = async () => {
-      try {
-        const language = i18n.language;
-        const response = await fetch(`/api/content?category=YouTube-Channel-Banner-Downloader&language=${language}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch content");
-        }
-        const data = await response.json();
-        setRelatedTools(data.translations[language]?.relatedTools || []);
-        setTranslations(data.translations);
-      } catch (error) {
-        console.error("Error fetching content");
-      }
-    };
-
-    fetchContent();
-    fetchReviews();
-  }, [i18n.language]);
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -249,21 +223,6 @@ const YtChannelDw = ({ meta, faqs, existingContent }) => {
     }
   };
 
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch(
-        "/api/reviews?tool=YouTube-Channel-Banner-Downloader"
-      );
-      const data = await response.json();
-      const formattedData = data.map((review) => ({
-        ...review,
-        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"), // Format the date here
-      }));
-      setReviews(formattedData);
-    } catch (error) {
-      console.error("Failed to fetch reviews:", error);
-    }
-  };
 
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
@@ -296,7 +255,7 @@ const YtChannelDw = ({ meta, faqs, existingContent }) => {
         userName: "",
       });
       setShowReviewForm(false);
-      fetchReviews();
+      fetchReviews('YouTube-Channel-Banner-Downloader');
     } catch (error) {
       console.error("Failed to submit review:", error);
       toast.error("Failed to submit review");
@@ -332,12 +291,7 @@ const YtChannelDw = ({ meta, faqs, existingContent }) => {
   return (
     <>
       <div className="bg-box">
-        <div>
-          <Image className="shape1" src={announce} alt="announce" />
-          <Image className="shape2" src={cloud} alt="announce" />
-          <Image className="shape3" src={cloud2} alt="announce" />
-          <Image className="shape4" src={chart} alt="announce" />
-        </div>
+        <Banner/>
 
         <div className="max-w-7xl mx-auto p-4">
         <Head>
@@ -547,7 +501,7 @@ const YtChannelDw = ({ meta, faqs, existingContent }) => {
 
         <div className="content pt-6 pb-5">
           <div
-            dangerouslySetInnerHTML={{ __html: existingContent }}
+            dangerouslySetInnerHTML={{ __html: content }}
             style={{ listStyleType: "none" }}
           ></div>
         </div>
@@ -873,52 +827,8 @@ const YtChannelDw = ({ meta, faqs, existingContent }) => {
     </>
   );
 };
-
-export async function getServerSideProps({ req, locale }) {
-  const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
-  const apiUrl = `${protocol}://${host}/api/content?category=YouTube-Channel-Banner-Downloader&language=${locale}`;
-
-  try {
-    const contentResponse = await fetch(apiUrl);
-
-    if (!contentResponse.ok) {
-      throw new Error("Failed to fetch content");
-    }
-
-    const contentData = await contentResponse.json();
-
-    if (!contentData.translations || !contentData.translations[locale]) {
-      throw new Error("Invalid content data format");
-    }
-
-    const meta = {
-      title: contentData.translations[locale]?.title || "",
-      description: contentData.translations[locale]?.description || "",
-      image: contentData.translations[locale]?.image || "",
-      url: `${protocol}://${host}/tools/youtube-channel-banner-downloader`,
-    };
-
-    return {
-      props: {
-        meta,
-        faqs: contentData.translations[locale]?.faqs || [],
-        existingContent: contentData.translations[locale]?.content || "",
-        ...(await serverSideTranslations(locale, ['common', 'banner', 'navbar', 'footer'])),
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    return {
-      props: {
-        meta: {},
-        faqs: [],
-        existingContent: "",
-        ...(await serverSideTranslations(locale, ['common', 'banner', 'navbar', 'footer'])),
-      },
-    };
-  }
+export async function getServerSideProps(context) {
+  return getContentProps('YouTube-Channel-Banner-Downloader', context.locale, context.req);
 }
-
 
 export default YtChannelDw;

@@ -7,6 +7,7 @@ import Footer from './Footer';
 import Navbar from './Navbar';
 import { appWithTranslation } from 'next-i18next';
 import 'react-quill/dist/quill.snow.css';
+import { ContentProvider } from '../contexts/ContentContext';
 
 function MyApp({ Component, pageProps }) {
   const [showButton, setShowButton] = useState(false);
@@ -93,9 +94,11 @@ function MyApp({ Component, pageProps }) {
       </Head>
      
       <AuthProvider>
+        <ContentProvider>
         <Navbar />
         <Component {...pageProps} />
         <Footer />
+        </ContentProvider>
       </AuthProvider>
 
       {showButton && (
