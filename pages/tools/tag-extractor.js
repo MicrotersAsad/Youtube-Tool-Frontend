@@ -21,8 +21,12 @@ import { useTranslation } from "react-i18next";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import Script from "next/script";
+import announce from "../../public/shape/announce.png";
+import chart from "../../public/shape/chart (1).png";
+import cloud from "../../public/shape/cloud.png";
+import cloud2 from "../../public/shape/cloud2.png";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
-const Banner = dynamic(() => import("../../components/Banner"), { ssr: false });
+
 
 const TagExtractor = ({ meta, faqs, reviews, relatedTools, content }) => {
   const { user, updateUserProfile } = useAuth();
@@ -314,7 +318,12 @@ const TagExtractor = ({ meta, faqs, reviews, relatedTools, content }) => {
   return (
     <>
       <div className="bg-box">
-        <Banner />
+      <div>
+          <Image className="shape1" src={announce} alt="announce" />
+          <Image className="shape2" src={cloud} alt="cloud" />
+          <Image className="shape3" src={cloud2} alt="cloud2" />
+          <Image className="shape4" src={chart} alt="chart" />
+        </div>
         <Head>
           <link
             rel="preload"
