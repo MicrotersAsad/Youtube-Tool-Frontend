@@ -1,3 +1,4 @@
+// utils/getContentProps.js
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { fetchContent, fetchReviews } from '../contexts/ContentContext';
 
@@ -6,8 +7,7 @@ export const getContentProps = async (category, locale, req) => {
   const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
 
   const contentProps = await fetchContent(category, locale, host, protocol);
-  const reviews = await fetchReviews(category, host, protocol); // Pass protocol and host
-console.log(reviews);
+  const reviews = await fetchReviews(category, host, protocol);
 
   return {
     props: {

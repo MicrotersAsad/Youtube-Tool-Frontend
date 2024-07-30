@@ -1,13 +1,11 @@
+// contexts/ContentContext.js
 import React, { createContext, useContext, useState } from 'react';
 import { format } from 'date-fns';
 
-// Create ContentContext
 const ContentContext = createContext();
 
-// Custom hook to use ContentContext
 export const useContent = () => useContext(ContentContext);
 
-// Function to fetch content based on category, locale, host, and protocol
 export const fetchContent = async (category, locale, host, protocol) => {
   try {
     const apiUrl = `${protocol}://${host}/api/content?category=${category}&language=${locale}`;
@@ -18,7 +16,7 @@ export const fetchContent = async (category, locale, host, protocol) => {
     }
 
     const contentData = await contentResponse.json();
-   
+
     if (!contentData.translations || !contentData.translations[locale]) {
       throw new Error('Invalid content data format');
     }
@@ -50,18 +48,17 @@ export const fetchContent = async (category, locale, host, protocol) => {
   }
 };
 
-// Function to fetch reviews based on tool, host, and protocol
 export const fetchReviews = async (tool, host, protocol) => {
   try {
     const apiUrl = `${protocol}://${host}/api/reviews?tool=${tool}`;
     const response = await fetch(apiUrl);
 
     if (!response.ok) throw new Error('Failed to fetch reviews');
-    
+
     const data = await response.json();
     const formattedData = data.map((review) => ({
       ...review,
-      createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"), // Format the date here
+      createdAt: format(new Date(review.createdAt), 'MMMM dd, yyyy'),
     }));
     return formattedData;
   } catch (error) {
@@ -70,7 +67,6 @@ export const fetchReviews = async (tool, host, protocol) => {
   }
 };
 
-// ContentProvider component to provide context values
 export const ContentProvider = ({ children }) => {
   const [content, setContent] = useState('');
   const [faqs, setFaqs] = useState([]);
@@ -83,7 +79,7 @@ export const ContentProvider = ({ children }) => {
   const [reviews, setReviews] = useState([]);
 
   return (
-    <ContentContext.Provider value={{ content, meta, faqs, reviews,fetchReviews }}>
+    <ContentContext.Provider value={{ content, meta, faqs, reviews, fetchReviews }}>
       {children}
     </ContentContext.Provider>
   );
