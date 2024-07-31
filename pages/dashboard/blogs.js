@@ -5,8 +5,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../../contexts/AuthContext';
 import Image from 'next/image';
+import QuillWrapper from '../../components/QuillEditor';
 
-const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
 
 function Blogs() {
   const { user } = useAuth();
@@ -121,7 +121,7 @@ function Blogs() {
         method,
         body: formData,
       });
-
+console.log(response);
       if (!response.ok) {
         const errorMessage = await response.text();
         throw new Error(`Failed to post content: ${errorMessage}`);
@@ -240,7 +240,8 @@ function Blogs() {
             </div>
             <div className="mb-6">
               <label htmlFor="content" className="block mb-2 text-lg font-medium">Content*</label>
-              <div className="border border-gray-300 rounded-lg shadow-sm p-3">
+            
+              <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', border: '1px solid #ccc', borderRadius: '10px', background: '#fff' }} >
                 <QuillWrapper initialContent={quillContent} onChange={handleQuillChange} />
               </div>
             </div>
