@@ -1,4 +1,3 @@
-// contexts/ContentContext.js
 import React, { createContext, useContext, useState } from 'react';
 import { format } from 'date-fns';
 
@@ -6,7 +5,8 @@ const ContentContext = createContext();
 
 export const useContent = () => useContext(ContentContext);
 
-export const fetchContent = async (category, locale, host, protocol) => {
+export const fetchContent = async (category, locale, host, protocol, setLoading) => {
+  setLoading(true);
   try {
     const apiUrl = `${protocol}://${host}/api/content?category=${category}&language=${locale}`;
     const contentResponse = await fetch(apiUrl);
@@ -45,10 +45,13 @@ export const fetchContent = async (category, locale, host, protocol) => {
       faqs: [],
       relatedTools: [],
     };
+  } finally {
+    setLoading(false);
   }
 };
 
-export const fetchReviews = async (tool, host, protocol) => {
+export const fetchReviews = async (tool, host, protocol, setLoading) => {
+  setLoading(true);
   try {
     const apiUrl = `${protocol}://${host}/api/reviews?tool=${tool}`;
     const response = await fetch(apiUrl);
@@ -64,6 +67,8 @@ export const fetchReviews = async (tool, host, protocol) => {
   } catch (error) {
     console.error('Failed to fetch reviews:', error);
     return [];
+  } finally {
+    setLoading(false);
   }
 };
 
