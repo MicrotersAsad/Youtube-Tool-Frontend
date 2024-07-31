@@ -314,13 +314,6 @@ const TagExtractor = ({ meta, faqs, reviews, relatedTools }) => {
           <Image className="shape4" src={chart} alt="chart" />
         </div>
         <Head>
-          <link
-            rel="preload"
-            href="/path/to/font.woff2"
-            as="font"
-            type="font/woff2"
-            crossOrigin="anonymous"
-          />
           <title>{meta?.title}</title>
           <meta name="description" content={meta?.description} />
           <meta property="og:url" content={meta?.url} />

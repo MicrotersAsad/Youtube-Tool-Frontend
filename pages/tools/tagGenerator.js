@@ -22,13 +22,13 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 import announce from "../../public/shape/announce.png";
-  import chart from "../../public/shape/chart (1).png";
-  import cloud from "../../public/shape/cloud.png";
-  import cloud2 from "../../public/shape/cloud2.png";
+import chart from "../../public/shape/chart (1).png";
+import cloud from "../../public/shape/cloud.png";
+import cloud2 from "../../public/shape/cloud2.png";
 import Script from "next/script";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
-const TagGenerator = ({ initialMeta,existingContent,relatedTools,faqs }) => {
+const TagGenerator = ({ initialMeta }) => {
   const { user, updateUserProfile } = useAuth();
   
   const router = useRouter();
@@ -45,6 +45,9 @@ const TagGenerator = ({ initialMeta,existingContent,relatedTools,faqs }) => {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [meta, setMeta] = useState(initialMeta);
   const [translations, setTranslations] = useState([]);
+  const [existingContent, setExistingContent] = useState('');
+  const [relatedTools, setRelatedTools] = useState([]);
+  const [faqs, setFaqs] = useState([]);
 
   const [newReview, setNewReview] = useState({
     name: "",
@@ -71,7 +74,15 @@ const TagGenerator = ({ initialMeta,existingContent,relatedTools,faqs }) => {
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
         setTranslations(data.translations);
-    
+        setExistingContent(data.translations[language]?.content || '');
+        setMeta({
+          title: data.translations[language]?.title || '',
+          description: data.translations[language]?.description || '',
+          image: data.translations[language]?.image || '',
+          url: `${window.location.protocol}//${window.location.host}/tools/tagGenerator`,
+        });
+        setFaqs(data.translations[language]?.faqs || []);
+        setRelatedTools(data.translations[language]?.relatedTools || []);
       } catch (error) {
         console.error("Error fetching content:", error);
       }
@@ -910,8 +921,6 @@ export async function getServerSideProps({ req, locale }) {
       url: `${protocol}://${host}/tools/tagGenerator`,
     };
 
-    console.log(meta);
-
     return {
       props: {
         initialMeta: meta,
@@ -929,6 +938,5 @@ export async function getServerSideProps({ req, locale }) {
     };
   }
 }
-
 
 export default TagGenerator;

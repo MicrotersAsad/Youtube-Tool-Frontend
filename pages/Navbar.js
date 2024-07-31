@@ -1,14 +1,15 @@
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useState, useEffect } from 'react';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
-import logo from '../public/yt icon.png';
 import Image from 'next/image';
 import { useTranslation } from 'next-i18next';
 import 'flag-icons/css/flag-icons.min.css'; // Import flag-icons CSS
-
+import NProgress from 'nprogress'; // Add this line
+import 'nprogress/nprogress.css'; // Add this line
+import logo from "../public/yt icon.png"
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
@@ -44,6 +45,23 @@ function Navbar() {
       router.push(router.pathname, router.asPath, { locale: lang });
     }
   };
+
+  useEffect(() => {
+    if (router) {
+      const handleRouteChange = () => NProgress.start();
+      const handleRouteComplete = () => NProgress.done();
+
+      router.events.on('routeChangeStart', handleRouteChange);
+      router.events.on('routeChangeComplete', handleRouteComplete);
+      router.events.on('routeChangeError', handleRouteComplete);
+
+      return () => {
+        router.events.off('routeChangeStart', handleRouteChange);
+        router.events.off('routeChangeComplete', handleRouteComplete);
+        router.events.off('routeChangeError', handleRouteComplete);
+      };
+    }
+  }, [router]);
 
   const navigation = [
     { key: "Home", href: '/', dropdown: false },

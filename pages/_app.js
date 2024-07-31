@@ -8,7 +8,6 @@ import Navbar from './Navbar';
 import { appWithTranslation } from 'next-i18next';
 import 'react-quill/dist/quill.snow.css';
 import { ContentProvider } from '../contexts/ContentContext';
-import { useRouter } from 'next/router';
 
 function MyApp({ Component, pageProps }) {
   const [showButton, setShowButton] = useState(false);
