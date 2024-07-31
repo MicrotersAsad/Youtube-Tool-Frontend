@@ -28,7 +28,7 @@ import cloud2 from "../../public/shape/cloud2.png";
 import Script from "next/script";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
-const TagGenerator = ({ initialMeta }) => {
+const TagGenerator = ({ initialMeta, loading, setLoading }) => {
   const { user, updateUserProfile } = useAuth();
   
   const router = useRouter();
@@ -377,7 +377,9 @@ const TagGenerator = ({ initialMeta }) => {
     }
     setModalVisible(true);
   };
-
+  if (loading) {
+    return <div>Loading...</div>;
+  }
   return (
     <>
       <div className="bg-box">

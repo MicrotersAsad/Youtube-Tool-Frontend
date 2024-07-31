@@ -151,7 +151,9 @@ const VideoSummarizer = ({ meta, faqs, reviews, relatedTools, content }) => {
   const closeReviewForm = () => {
     setShowReviewForm(false);
   };
-
+  if (loading) {
+    return <div>Loading...</div>;
+  }
   return (
     <>
       <div className="bg-box">

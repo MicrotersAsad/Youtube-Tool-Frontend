@@ -29,16 +29,14 @@ import { i18n } from "next-i18next";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
 
-const TagExtractor = ({ meta, faqs, reviews, relatedTools }) => {
+const TagExtractor = ({ meta, reviews }) => {
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();
   const { t } = useTranslation("common");
   const [videoUrl, setVideoUrl] = useState("");
   const [tags, setTags] = useState([]);
-  const [input, setInput] = useState("");
   const [content,setContent]=useState([])
   const [generatedTitles, setGeneratedTitles] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
@@ -47,7 +45,8 @@ const TagExtractor = ({ meta, faqs, reviews, relatedTools }) => {
   const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
+  const [faqs,setFaqs]=useState([])
+  const [relatedTools,setRelatedTools]=useState([])
   const [newReview, setNewReview] = useState({
     name: "",
     title: "",
@@ -66,7 +65,8 @@ const TagExtractor = ({ meta, faqs, reviews, relatedTools }) => {
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
         setContent(data.translations[language]?.content || '')
-    
+        setFaqs(contentData.translations[language]?.faqs || [])
+        setRelatedTools(contentData.translations[language]?.relatedTools || [])
       } catch (error) {
         console.error("Error fetching content:", error);
       }
@@ -303,7 +303,9 @@ const TagExtractor = ({ meta, faqs, reviews, relatedTools }) => {
     }
     setModalVisible(true);
   };
-
+  if (loading) {
+    return <div>Loading...</div>;
+  }
   return (
     <>
       <div className="bg-box">
@@ -832,5 +834,6 @@ const TagExtractor = ({ meta, faqs, reviews, relatedTools }) => {
 export async function getServerSideProps(context) {
   return getContentProps("tagExtractor", context.locale, context.req);
 }
+
 
 export default TagExtractor;
