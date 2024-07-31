@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic';
 import Layout from './layout';
 
 // Dynamically import the QuillWrapper component with SSR disabled
-const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
+const QuillWrapper = dynamic(() => import('../../components/QuillEditor'), { ssr: false });
 
 function Privacy() {
   const [quillContent, setQuillContent] = useState('');
