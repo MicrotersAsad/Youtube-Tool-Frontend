@@ -25,16 +25,18 @@ import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
+import { i18n } from "next-i18next";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
 
-const TagExtractor = ({ meta, faqs, reviews, relatedTools, content }) => {
+const TagExtractor = ({ meta, faqs, reviews, relatedTools }) => {
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();
   const { t } = useTranslation("common");
   const [videoUrl, setVideoUrl] = useState("");
   const [tags, setTags] = useState([]);
   const [input, setInput] = useState("");
+  const [content,setContent]=useState([])
   const [generatedTitles, setGeneratedTitles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showShareIcons, setShowShareIcons] = useState(false);
@@ -56,7 +58,23 @@ const TagExtractor = ({ meta, faqs, reviews, relatedTools, content }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const language = i18n.language || "en";
+        const response = await fetch(`/api/content?category=tagExtractor&language=${language}`);
+        if (!response.ok) throw new Error("Failed to fetch content");
+        const data = await response.json();
+        setContent(data.translations[language]?.content || '')
+    
+      } catch (error) {
+        console.error("Error fetching content:", error);
+      }
+    };
 
+    fetchContent();
+
+  }, [i18n.language]);
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
@@ -90,35 +108,6 @@ const TagExtractor = ({ meta, faqs, reviews, relatedTools, content }) => {
     }
   }, [user]);
 
-  const handleInputChange = (e) => {
-    const { value } = e.target;
-    setInput(value);
-    const parts = value
-      .split(/[,\.]/)
-      .map((part) => part.trim())
-      .filter((part) => part);
-    if (parts.length > 1) {
-      setTags([...tags, ...parts]);
-      setInput("");
-    }
-  };
-
-  const handleKeyDown = (event) => {
-    if (["Enter", ",", "."].includes(event.key)) {
-      event.preventDefault();
-      const newTag = input.trim();
-      if (newTag) {
-        setTags([
-          ...tags,
-          ...newTag
-            .split(/[,\.]/)
-            .map((tag) => tag.trim())
-            .filter((tag) => tag),
-        ]);
-        setInput("");
-      }
-    }
-  };
 
   const handleSelectAll = () => {
     const newSelection = !selectAll;
