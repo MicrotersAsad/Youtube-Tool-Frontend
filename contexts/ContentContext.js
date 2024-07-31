@@ -77,9 +77,10 @@ export const ContentProvider = ({ children }) => {
     url: '',
   });
   const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   return (
-    <ContentContext.Provider value={{ content, meta, faqs, reviews, fetchReviews }}>
+    <ContentContext.Provider value={{ content, meta, faqs, reviews, loading, setLoading, setContent, setFaqs, setMeta, setReviews }}>
       {children}
     </ContentContext.Provider>
   );

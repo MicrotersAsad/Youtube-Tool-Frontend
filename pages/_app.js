@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
-import Script from 'next/script'; // Import Script from next/script
+import Script from 'next/script';
 import '../styles/globals.css';
 import { AuthProvider } from '../contexts/AuthContext';
 import Footer from './Footer';
@@ -8,6 +8,7 @@ import Navbar from './Navbar';
 import { appWithTranslation } from 'next-i18next';
 import 'react-quill/dist/quill.snow.css';
 import { ContentProvider } from '../contexts/ContentContext';
+import { useRouter } from 'next/router';
 
 function MyApp({ Component, pageProps }) {
   const [showButton, setShowButton] = useState(false);
@@ -71,7 +72,7 @@ function MyApp({ Component, pageProps }) {
         <Script
           id="organization-schema"
           type="application/ld+json"
-          strategy="lazyOnload" // Load after the page is interactive
+          strategy="lazyOnload"
         >
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -92,12 +93,12 @@ function MyApp({ Component, pageProps }) {
           })}
         </Script>
       </Head>
-     
+      
       <AuthProvider>
         <ContentProvider>
-        <Navbar />
-        <Component {...pageProps} />
-        <Footer />
+          <Navbar />
+          <Component {...pageProps} />
+          <Footer />
         </ContentProvider>
       </AuthProvider>
 

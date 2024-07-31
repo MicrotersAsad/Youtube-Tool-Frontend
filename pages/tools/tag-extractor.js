@@ -419,6 +419,7 @@ const TagExtractor = ({ meta, faqs, reviews, relatedTools, content }) => {
             />
           ))}
         </Head>
+        {loading && <div className="loading">Loading...</div>}
         <div className="max-w-7xl mx-auto p-4">
           <h2 className="text-3xl text-white">{t("YouTube Tag Extractor")}</h2>
           <ToastContainer />
