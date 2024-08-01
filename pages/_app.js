@@ -6,11 +6,8 @@ import { AuthProvider } from '../contexts/AuthContext';
 import Footer from './Footer';
 import Navbar from './Navbar';
 import { appWithTranslation } from 'next-i18next';
-import 'react-quill/dist/quill.snow.css';
 import { ContentProvider } from '../contexts/ContentContext';
-import 'quill/dist/quill.snow.css';
-import 'highlight.js/styles/atom-one-dark.css';
-import 'katex/dist/katex.min.css';
+
 
 function MyApp({ Component, pageProps }) {
   const [showButton, setShowButton] = useState(false);

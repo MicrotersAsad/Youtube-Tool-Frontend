@@ -1,7 +1,7 @@
 /* Import Roboto font with font-display swap for better performance */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 @import 'flag-icons/css/flag-icons.min.css';
-@import 'react-quill/dist/quill.snow.css';
+
 /* Tailwind CSS base, components, and utilities */
 @tailwind base;
 @tailwind components;
@@ -18,8 +18,17 @@ body {
   padding: 0;
   font-display: swap;
 }
-.quill-container {
-  border: 1px solid red; /* Debugging style */
+/* Ensure the toolbar button is visible */
+/* Ensure that the Quill editor is visible */
+.ql-editor {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Ensure that the custom toolbar button is visible */
+.ql-toolbar .ql-image-url {
+  display: inline-block !important;
+  visibility: visible !important;
 }
 
 

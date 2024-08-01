@@ -29,13 +29,12 @@ import { i18n } from "next-i18next";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
 
-const TagExtractor = ({ meta, reviews }) => {
+const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();
   const { t } = useTranslation("common");
   const [videoUrl, setVideoUrl] = useState("");
   const [tags, setTags] = useState([]);
-  const [content,setContent]=useState([])
   const [generatedTitles, setGeneratedTitles] = useState([]);
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
@@ -45,8 +44,6 @@ const TagExtractor = ({ meta, reviews }) => {
   const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [faqs,setFaqs]=useState([])
-  const [relatedTools,setRelatedTools]=useState([])
   const [newReview, setNewReview] = useState({
     name: "",
     title: "",
