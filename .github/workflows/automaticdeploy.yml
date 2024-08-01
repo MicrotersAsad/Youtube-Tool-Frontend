@@ -25,12 +25,11 @@ jobs:
       run: npm run build
 
     - name: Deploy to server
-      uses: appleboy/ssh-action@0.1.9
+      uses: peaceiris/actions-ssh@v2
       with:
         host: ${{ secrets.DROPLET_IP }}
         username: ${{ secrets.DROPLET_USER }}
         key: ${{ secrets.DROPLET_SSH_KEY }}
-        port: 22
         script: |
           cd /var/www/Youtube-Tool-Frontend
           git pull origin main
