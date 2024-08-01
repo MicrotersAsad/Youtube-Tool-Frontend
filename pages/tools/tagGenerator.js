@@ -485,7 +485,7 @@ const TagGenerator = ({ initialMeta, loading, setLoading }) => {
           ))}
         </Head>
         <div className="max-w-7xl mx-auto p-4">
-          <h2 className="text-3xl text-white">{t('YouTube Tag Generator')}</h2>
+          <h2 className="text-3xl text-white">{t('YouTube Tag Generator')} Test</h2>
           <ToastContainer />
           {modalVisible && (
             <div
