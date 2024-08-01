@@ -1,3 +1,4 @@
+// pages/blog/[slug].js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
@@ -5,7 +6,8 @@ import Head from 'next/head';
 import { ClipLoader } from 'react-spinners';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Image from 'next/image';
-import Breadcrumb from "../Breadcrumb"; // Adjust the import path as needed
+import Breadcrumb from '../Breadcrumb'; // Adjust the import path as needed
+import Comments from '../../components/Comments'; // Import Comments component
 
 const BlogPost = ({ initialBlog }) => {
   const router = useRouter();
@@ -21,25 +23,15 @@ const BlogPost = ({ initialBlog }) => {
       const fetchData = async () => {
         try {
           const apiUrl = `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/api/blogs`;
-         
-
-          console.log(`Fetching data from: ${apiUrl}`); // Debugging log
-
           const { data } = await axios.get(apiUrl);
           const blogs = data;
 
-          // Debugging log
-          console.log(`Fetched data: ${JSON.stringify(blogs, null, 2)}`);
-
-          // Find the correct blog post that matches the slug within translations
           const blog = blogs.find(blog =>
             Object.values(blog.translations).some(translation => translation.slug === slug)
           );
 
           if (blog) {
             setBlog(blog);
-          } else {
-            console.log(`No blog found for slug: ${slug}`); // Debugging log
           }
 
         } catch (error) {
@@ -193,10 +185,12 @@ const BlogPost = ({ initialBlog }) => {
             <div className="my-4" dangerouslySetInnerHTML={{ __html: content.content }} />
           </div>
         </div>
+        <Comments slug={slug} /> {/* Add Comments component here */}
       </div>
     </div>
   );
 };
+
 export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
@@ -236,6 +230,5 @@ export async function getServerSideProps({ locale, params, req }) {
     };
   }
 }
-
 
 export default BlogPost;

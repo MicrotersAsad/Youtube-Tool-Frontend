@@ -1,10 +1,11 @@
-// pages/api/comments/[slug].js
+// pages/api/comments/[id].js
 import { connectToDatabase } from '../../../utils/mongodb';
 import { ObjectId } from 'mongodb';
 
 export default async function handler(req, res) {
   const { method, query } = req;
   const { slug } = query;
+  console.log(slug);
 
   if (!slug) {
     return res.status(400).json({ message: 'Slug is required' });

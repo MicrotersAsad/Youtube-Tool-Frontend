@@ -25,7 +25,7 @@ import Hashtag from "../../public/youtube-hastag-generator.png";
 import Embed from "../../public/youtube-embad-code-generator.png";
 
 // Dynamically import the QuillWrapper component with SSR disabled
-const QuillWrapper = dynamic(() => import('../../components/QuillEditor'), { ssr: false });
+const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
 
 function Content() {
   const [quillContent, setQuillContent] = useState('');

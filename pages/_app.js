@@ -95,7 +95,9 @@ function MyApp({ Component, pageProps }) {
           })}
         </Script>
       </Head>
-      
+      <Script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></Script>
+      <Script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></Script>
+      <Script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></Script>
       <AuthProvider>
         <ContentProvider>
           <Navbar />

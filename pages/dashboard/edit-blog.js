@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
 import Image from 'next/image';
 
-const QuillWrapper = dynamic(() => import('../../components/QuillEditor'), { ssr: false });
+const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
 
 function EditBlog() {
   const { user } = useAuth();

@@ -4,7 +4,7 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 });
 
 module.exports = withBundleAnalyzer({
-  reactStrictMode: true, 
+  reactStrictMode: true,
   i18n,
   swcMinify: true, // Enable SWC-based minification
 
@@ -17,8 +17,6 @@ module.exports = withBundleAnalyzer({
     ];
   },
 
-
-
   images: {
     domains: [
       'yt3.ggpht.com',
@@ -28,5 +26,18 @@ module.exports = withBundleAnalyzer({
       'learnmethods.com',
       '161.35.10.124',
     ],
+  },
+
+  webpack: (config, { isServer }) => {
+    // Enable filesystem caching for webpack builds
+    if (!isServer) {
+      config.cache = {
+        type: 'filesystem',
+        buildDependencies: {
+          config: [__filename],
+        },
+      };
+    }
+    return config;
   },
 });
