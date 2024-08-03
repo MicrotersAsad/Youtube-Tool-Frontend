@@ -18,28 +18,5 @@ module.exports = {
       "de",
     ],
     defaultLocale: "en",
-    ns: [
-      "common",
-      "navbar",
-      "tagextractor",
-      "trending",
-      "videoDataViewer",
-      "banner",
-      "logo",
-      "search",
-      "embed",
-      "hashtag",
-      "calculator",
-      "thumbnail",
-      "tdextractor",
-      "channelId",
-      "monetization",
-      "summary",
-      "keyword",
-      "footer",
-      "pricing"
-
-    ],
-    defaultNS: "common",
-  },
+  }
 };

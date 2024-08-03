@@ -22,9 +22,6 @@ module.exports = withBundleAnalyzer({
       'yt3.ggpht.com',
       'yt3.googleusercontent.com',
       'i.ytimg.com',
-      'lobster-app-2vkuu.ondigitalocean.app',
-      'learnmethods.com',
-      '161.35.10.124',
     ],
   },
 
