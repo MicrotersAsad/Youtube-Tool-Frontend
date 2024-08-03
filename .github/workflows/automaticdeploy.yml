@@ -34,10 +34,6 @@ jobs:
         key: ${{ secrets.DROPLET_SSH_KEY }}
         port: 22
         script: |
-          # Start SSH agent and add the SSH key
-          eval $(ssh-agent -s)
-          echo "${{ secrets.DROPLET_SSH_KEY }}" | tr -d '\r' | ssh-add - > /dev/null
-
           # Create and set permissions for SSH directory
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
@@ -47,6 +43,9 @@ jobs:
 
           # Navigate to project directory
           cd /var/www/Youtube-Tool-Frontend
+
+          # Check for untracked files and stash or clean them if needed
+          git stash --include-untracked
 
           # Set the correct Git remote URL for SSH
           git remote set-url origin git@github.com:MicrotersAsad/Youtube-Tool-Frontend.git
