@@ -4,10 +4,21 @@ import path from 'path';
 import { ObjectId } from 'mongodb';
 import { connectToDatabase } from '../../utils/mongodb';
 
+const sanitizeFilename = (filename) => {
+  return filename
+    .replace(/[^a-zA-Z-]/g, '') // Remove everything except alphabets and hyphens
+    .replace(/--+/g, '-')       // Replace multiple hyphens with a single hyphen
+    .replace(/^-+|-+$/g, '')    // Remove leading and trailing hyphens
+    .toLowerCase();
+};
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: './public/uploads',
-    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname),
+    filename: (req, file, cb) => {
+      const sanitizedFilename = sanitizeFilename(file.originalname);
+      cb(null, Date.now() + '-' + sanitizedFilename);
+    },
   }),
 });
 

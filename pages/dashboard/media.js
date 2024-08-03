@@ -85,11 +85,15 @@ export default function ImageGallery() {
     }
   };
 
-  const formatUrl = (url) => {
-    return url
-      .replace(/(\d+)/g, '') // Remove numbers
-      .replace(/\s+/g, '-')  // Replace spaces with hyphens
-      .replace(/-+/g, '-');  // Replace multiple hyphens with a single hyphen
+  const formatUrlForDisplay = (url) => {
+    const urlParts = url.split('/');
+    const fileName = urlParts.pop();
+    const cleanFileName = fileName
+      .replace(/[^a-zA-Z-]/g, '') // Remove everything except alphabets and hyphens
+      .replace(/--+/g, '-')       // Replace multiple hyphens with a single hyphen
+      .replace(/^-+|-+$/g, '')    // Remove leading and trailing hyphens
+      .toLowerCase();
+    return `${urlParts.join('/')}/${cleanFileName}`;
   };
 
   return (
@@ -115,11 +119,11 @@ export default function ImageGallery() {
                 <tr key={image._id} className="text-gray-700">
                   <td className="border px-4 py-2">{index + 1}</td>
                   <td className="border px-4 py-2">
-                    <Image src={formatUrl(image.url)} alt={image.title} width={64} height={64} />
+                    <Image src={image.url} alt={image.title} width={64} height={64} />
                   </td>
                   <td className="border px-4 py-2">
-                    <a href={formatUrl(image.url)} target="_blank" rel="noopener noreferrer" className="text-blue-500">
-                      {formatUrl(image.url)}
+                    <a href={image.url} target="_blank" rel="noopener noreferrer" className="text-blue-500">
+                      {formatUrlForDisplay(image.url)}
                     </a>
                   </td>
                   <td className="border px-4 py-2">{image.title}</td>
