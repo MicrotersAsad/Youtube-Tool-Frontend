@@ -1,14 +1,13 @@
 import React, { useEffect, useState, useRef, forwardRef } from 'react';
 import PropTypes from 'prop-types';
 import dynamic from 'next/dynamic';
-import 'react-quill/dist/quill.snow.css';
 
-// Dynamically import react-quill with no SSR
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+// Dynamically import jodit-react with no SSR
+const JoditEditor = dynamic(() => import('jodit-react'), { ssr: false });
 
-const QuillWrapper = forwardRef(({ initialContent = '', onChange = () => {} }, ref) => {
+const JoditWrapper = forwardRef(({ initialContent = '', onChange = () => {} }, ref) => {
   const [content, setContent] = useState(initialContent);
-  const quillRef = useRef(null);
+  const editorRef = useRef(null);
 
   useEffect(() => {
     setContent(initialContent);
@@ -23,43 +22,37 @@ const QuillWrapper = forwardRef(({ initialContent = '', onChange = () => {} }, r
     }
   };
 
-  const modules = {
-    toolbar: {
-      container: [
-        [{ 'header': '1' }, { 'header': '2' }, { 'header': [3, 4, 5, 6] }, { 'font': [] }],
-        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-        [{ 'code-block': 'code' }],
-        ['link', 'image', 'video'],
-        [{ 'align': [] }],
-        ['clean']
-      ],
-    },
+  const config = {
+    readonly: false,
+    toolbarAdaptive: false,
+    toolbarSticky: false,
+    toolbar: true,
+    height: 400,
+    buttons: [
+      'source', '|',
+      'bold', 'italic', 'underline', 'strikethrough', '|',
+      'ul', 'ol', '|',
+      'outdent', 'indent', '|',
+      'font', 'fontsize', 'brush', 'paragraph', '|',
+      'image', 'table', 'link', '|',
+      'align', 'undo', 'redo', '|',
+      'hr', 'eraser', 'fullsize'
+    ],
   };
 
-  const formats = [
-    'header', 'font',
-    'bold', 'italic', 'underline', 'strike', 'blockquote',
-    'list', 'bullet',
-    'code-block',
-    'link', 'image', 'video', 'align'
-  ];
-
   return (
-    <ReactQuill
-      ref={ref || quillRef}
+    <JoditEditor
+      ref={ref || editorRef}
       value={content}
-      onChange={handleChange}
-      modules={modules}
-      formats={formats}
-      theme="snow"
+      config={config}
+      onBlur={handleChange} // preferred to use `onBlur` instead of `onChange` for better performance
     />
   );
 });
 
-QuillWrapper.propTypes = {
+JoditWrapper.propTypes = {
   initialContent: PropTypes.string,
   onChange: PropTypes.func,
 };
 
-export default QuillWrapper;
+export default JoditWrapper;

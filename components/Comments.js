@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useAuth } from '../contexts/AuthContext';
 
 const Comment = ({ comment, slug, onReply }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyContent, setReplyContent] = useState('');
-
+  const { user, updateUserProfile } = useAuth();
   const handleReplySubmit = async (e) => {
     e.preventDefault();
 
