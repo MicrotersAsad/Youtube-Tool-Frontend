@@ -265,6 +265,17 @@ const Layout = ({ children }) => {
                   </Link>
                 </div>
               )}
+               <Link href="/dashboard/comment" passHref>
+                    <p
+                      className={`flex items-center mt-2 py-2 px-6 cursor-pointer rounded-md ${
+                        isActiveRoute('/dashboard/comment')
+                          ? 'bg-gray-300 text-gray-700'
+                          : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
+                      }`}
+                    >
+                      <FaBell className="mr-3" /> <span className="mx-3">Comment</span>
+                    </p>
+                  </Link>
             </div>
           )}
           
