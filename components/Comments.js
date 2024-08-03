@@ -8,6 +8,7 @@ const Comment = ({ comment, slug, onReply }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const { user, updateUserProfile } = useAuth();
+
   const handleReplySubmit = async (e) => {
     e.preventDefault();
 
@@ -80,6 +81,8 @@ const Comment = ({ comment, slug, onReply }) => {
 const Comments = ({ slug }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -105,9 +108,15 @@ const Comments = ({ slug }) => {
     setError(null);
 
     try {
-      const response = await axios.post(`/api/comments/${slug}`, { content: newComment });
+      const response = await axios.post(`/api/comments/${slug}`, {
+        content: newComment,
+        email,
+        name,
+      });
       setComments([...comments, response.data.comment]);
       setNewComment('');
+      setEmail('');
+      setName('');
       toast.info('Waiting for admin approval');
     } catch (error) {
       console.error('Error posting comment:', error);
@@ -143,12 +152,29 @@ const Comments = ({ slug }) => {
       <ToastContainer />
       <h2 className="text-3xl font-bold mb-6">Comments</h2>
       <form onSubmit={handleCommentSubmit} className="mb-6">
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Your name"
+          className="w-full p-4 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          required
+        />
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Your email"
+          className="w-full p-4 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          required
+        />
         <textarea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Write a comment..."
           className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
           rows="4"
+          required
         />
         <button
           type="submit"

@@ -59,13 +59,14 @@ export default async function handler(req, res) {
     }
 
     case 'POST': {
-      const { content, parentId } = req.body;
+      const { content, parentId, name, email } = req.body;
+
+      if (!content || !name || !email) {
+        return res.status(400).json({ message: 'Content, name, and email are required' });
+      }
+
       const author = req.user?.username || 'Anonymous';
       const authorProfile = req.user?.profileImage || null;
-
-      if (!content) {
-        return res.status(400).json({ message: 'Content is required' });
-      }
 
       const comment = {
         slug,
@@ -73,6 +74,8 @@ export default async function handler(req, res) {
         parentId: parentId ? new ObjectId(parentId) : null,
         author,
         authorProfile,
+        name,
+        email,
         createdAt: new Date(),
         approved: false, // New comments need admin approval
       };
