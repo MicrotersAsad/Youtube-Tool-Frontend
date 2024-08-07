@@ -107,7 +107,7 @@ const Comments = ({ slug }) => {
       setComments(response.data);
     } catch (error) {
       console.error('Error fetching comments:', error);
-      setError('Failed to load comments.');
+      // setError('Failed to load comments.');
     }
   };
 
