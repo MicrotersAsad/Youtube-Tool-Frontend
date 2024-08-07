@@ -14,7 +14,7 @@ function EditBlog() {
   const { user } = useAuth();
   const router = useRouter();
   const { id } = router.query;
-
+  const [slug, setSlug] = useState('');
   const [quillContent, setQuillContent] = useState('');
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -26,7 +26,8 @@ function EditBlog() {
   const [categories, setCategories] = useState([]);
   const [isDraft, setIsDraft] = useState(false);
   const [language, setLanguage] = useState('en'); // Default language
-
+  const [isSlugEditable, setIsSlugEditable] = useState(false);
+ 
   useEffect(() => {
     fetchCategories();
     if (id) {
@@ -58,18 +59,22 @@ function EditBlog() {
         const translation = data.translations[lang];
         setQuillContent(translation.content);
         setSelectedCategory(translation.category);
+        setSlug(translation.slug || '');
         setTitle(translation.title);
         setMetaTitle(translation.metaTitle);
         setMetaDescription(translation.metaDescription);
         setDescription(translation.description);
+        setImage(translation.image || null);
       } else {
         // Clear the form if the translation for the selected language does not exist
         setQuillContent('');
         setSelectedCategory('');
         setTitle('');
+        setSlug('');
         setMetaTitle('');
         setMetaDescription('');
         setDescription('');
+        setImage('');
       }
       setIsDraft(data.isDraft);
     } catch (error) {
@@ -77,6 +82,17 @@ function EditBlog() {
       setError(error.message);
     }
   };
+
+  useEffect(() => {
+    if (!isSlugEditable) {
+      const generateSlug = (str) => {
+        const cleanedTitle = str.replace(/[^\w\s]/gi, '');
+        return cleanedTitle.toLowerCase().split(' ').join('-');
+      };
+
+      setSlug(generateSlug(title));
+    }
+  }, [title, isSlugEditable]);
 
   const handleSave = useCallback(async () => {
     try {
@@ -97,9 +113,6 @@ function EditBlog() {
       formData.append('createdAt', new Date().toISOString());
       formData.append('isDraft', JSON.stringify(isDraft));
       formData.append('language', language); // Append language
-
-      // Generate slug from title
-      const slug = title.toLowerCase().split(' ').join('-');
       formData.append('slug', slug); // Append slug
 
       const response = await fetch(`/api/blogs?id=${id}`, {
@@ -119,7 +132,7 @@ function EditBlog() {
       console.error('Error updating content:', error.message);
       setError(error.message);
     }
-  }, [quillContent, selectedCategory, metaTitle, metaDescription, description, title, image, user, isDraft, id, router, language]);
+  }, [quillContent, selectedCategory, metaTitle, metaDescription, description, title, image, user, isDraft, id, router, language, slug]);
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
@@ -142,6 +155,10 @@ function EditBlog() {
 
   const handleLanguageChange = (e) => {
     setLanguage(e.target.value);
+  };
+
+  const handleSlugChange = (e) => {
+    setSlug(e.target.value);
   };
 
   return (
@@ -230,17 +247,27 @@ function EditBlog() {
               {/* Add more languages as needed */}
             </select>
           </div>
-          <div className="mb-3">
+          <div className="mb-6">
             <label htmlFor="slug" className="block mb-2 text-lg font-medium">Slug</label>
             <input
               id="slug"
               type="text"
-              value={title.toLowerCase().split(' ').join('-')}
-              readOnly
-              className="w-full border border-gray-300 rounded-lg p-3 bg-gray-100 shadow-sm"
+              value={slug}
+              onChange={handleSlugChange}
+              readOnly={!isSlugEditable}
+              className={`w-full border border-gray-300 rounded-lg p-3 ${!isSlugEditable ? 'bg-gray-100' : 'bg-white'} shadow-sm`}
             />
+            <div className="flex items-center mt-2">
+              <input
+                type="checkbox"
+                id="editSlug"
+                checked={isSlugEditable}
+                onChange={(e) => setIsSlugEditable(e.target.checked)}
+                className="mr-2"
+              />
+              <label htmlFor="editSlug" className="text-gray-700">Edit Slug</label>
+            </div>
           </div>
-         
           <div className="mb-3">
             <label htmlFor="description" className="block mb-2 text-lg font-medium">Description*</label>
             <textarea
@@ -252,27 +279,26 @@ function EditBlog() {
             <p className="text-gray-600 text-sm mt-1">Description max 200 characters</p>
           </div>
           <div className="mb-3">
-          <label htmlFor="image" className="block mb-2 text-lg font-medium">Image</label>
-          <input
-            type="file"
-            id="image"
-            onChange={handleImageChange}
-            className="block w-full text-gray-700"
-          />
-          {image && (
-            <div className="mt-4">
-              <Image src={image} alt="Preview" width={30} height={30} className="w-full h-auto rounded-lg shadow-md" />
-            </div>
-          )}
-          <p className="text-gray-600 text-sm mt-1">Valid image type: jpg/jpeg/png/svg</p>
-        </div>
+            <label htmlFor="image" className="block mb-2 text-lg font-medium">Image</label>
+            <input
+              type="file"
+              id="image"
+              onChange={handleImageChange}
+              className="block w-full text-gray-700"
+            />
+            {image && (
+              <div className="mt-4">
+                <Image src={image} alt="Preview" width={100} height={100} className="rounded-lg shadow-md" />
+              </div>
+            )}
+            <p className="text-gray-600 text-sm mt-1">Valid image type: jpg/jpeg/png/svg</p>
+          </div>
           <div className="mb-3 col-span-2">
             <label htmlFor="content" className="block mb-2 text-lg font-medium">Content*</label>
             <div className="border border-gray-300 rounded-lg shadow-sm p-3">
               <QuillWrapper initialContent={quillContent} onChange={handleQuillChange} />
             </div>
           </div>
-        
           {error && <div className="text-red-500 mb-6 col-span-2">Error: {error}</div>}
           <div className="mb-3 col-span-2 flex space-x-4">
             <button className="bg-blue-500 text-white p-3 rounded-lg shadow-md flex-1" onClick={handleSave}>Save & Edit</button>
