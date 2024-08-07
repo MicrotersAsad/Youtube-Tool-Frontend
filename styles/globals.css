@@ -1097,3 +1097,23 @@ tbody{
   display: flex;
   align-items: center;
 }
+.table-of-contents-wrapper {
+  background: #f1f1f1;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.toc-header {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toc-list {
+  margin-top: 10px;
+}
+
+.text-blue-500:hover {
+  text-decoration: underline;
+}

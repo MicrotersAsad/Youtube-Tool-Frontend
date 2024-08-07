@@ -8,7 +8,8 @@ import Image from 'next/image';
 import Breadcrumb from '../Breadcrumb';
 import Comments from '../../components/Comments';
 import { useToc } from '../../hook/useToc';
-import TableOfContents from '../../components/TableOfContents'; // Import your TOC component
+import TableOfContents from '../../components/TableOfContents';
+import ReactDOMServer from 'react-dom/server';
 import {
   FacebookShareButton,
   TwitterShareButton,
@@ -17,6 +18,17 @@ import {
   TwitterIcon,
   LinkedinIcon
 } from 'react-share';
+
+// Helper function to insert TOC before the first heading
+const insertTocBeforeFirstHeading = (content, tocHtml) => {
+  const firstHeadingIndex = content.search(/<h[1-6][^>]*>/);
+  if (firstHeadingIndex === -1) return content;
+
+  const beforeFirstHeading = content.slice(0, firstHeadingIndex);
+  const afterFirstHeading = content.slice(firstHeadingIndex);
+
+  return `${beforeFirstHeading}${tocHtml}${afterFirstHeading}`;
+};
 
 const BlogPost = ({ initialBlog }) => {
   const router = useRouter();
@@ -56,6 +68,8 @@ const BlogPost = ({ initialBlog }) => {
 
   const content = blog?.translations ? blog.translations[locale]?.content : '';
   const [toc, updatedContent] = useToc(content);
+  const tocHtml = toc ? ReactDOMServer.renderToStaticMarkup(<TableOfContents headings={toc} />) : '';
+  const contentWithToc = insertTocBeforeFirstHeading(updatedContent, tocHtml);
 
   useEffect(() => {
     if (blog && blog.translations) {
@@ -66,7 +80,7 @@ const BlogPost = ({ initialBlog }) => {
           "@type": "Article",
           "headline": content.title,
           "image": [
-            content.image || "https://example.com/photos/1x1/photo.jpg", // Replace with default or dynamic image URLs
+            content.image || "https://example.com/photos/1x1/photo.jpg",
           ],
           "datePublished": blog.createdAt,
           "dateModified": blog.updatedAt || blog.createdAt,
@@ -76,10 +90,10 @@ const BlogPost = ({ initialBlog }) => {
           },
           "publisher": {
             "@type": "Organization",
-            "name": "ytubetools", // Replace with your organization name
+            "name": "ytubetools",
             "logo": {
               "@type": "ImageObject",
-              "url": "https://example.com/logo.jpg" // Replace with your logo URL
+              "url": "https://example.com/logo.jpg"
             }
           },
           "description": content.description,
@@ -180,26 +194,13 @@ const BlogPost = ({ initialBlog }) => {
       </Head>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
         <div className="flex flex-col lg:flex-row">
-          
           <div className="flex-grow order-1 lg:order-2">
             <Breadcrumb blogTitle={postContent.title} />
             <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-8">
               <div className="p-6 bg-white border-b border-gray-200">
                 <h1 className="text-3xl font-bold mb-4">{postContent.title}</h1>
-                {/* <div className="text-gray-600 mb-4">{postContent.description}</div>
-                <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p> */}
-             
-                <div className="mb-4">
-                  <TableOfContents headings={toc} /> {/* Insert TOC before the first heading */}
-                </div>
-                <div className="my-4" dangerouslySetInnerHTML={{ __html: updatedContent }} />
-
-                {/* Add Post Owner Card */}
-               
-                  {/* <PostOwnerCard author={blog.author} /> */}
-              
-
-                {/* Add Social Share Buttons */}
+            
+                <div className="my-4" dangerouslySetInnerHTML={{ __html: contentWithToc }} />
                 <div className="my-8">
                   <h3 className="text-lg font-bold mb-4">Share this post</h3>
                   <div className="flex space-x-4">
@@ -228,16 +229,10 @@ export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
     const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
-    console.log(protocol);
-    const host = req.headers.host || 'localhost:3000'; // Default to localhost if not provided
-    console.log(host);
+    const host = req.headers.host || 'localhost:3000';
     const apiUrl = `${protocol}://${host}/api/blogs`;
 
-    console.log(`Fetching from: ${apiUrl}`); // Log the API URL
-
     const { data } = await axios.get(apiUrl);
-    console.log(`Received data: ${JSON.stringify(data)}`); // Log the received data
-
     const blogs = data;
 
     const blog = blogs.find(blog =>
