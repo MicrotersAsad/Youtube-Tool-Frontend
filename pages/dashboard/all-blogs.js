@@ -8,13 +8,14 @@ import 'react-toastify/dist/ReactToastify.css';
 function AllBlogs() {
   const [blogs, setBlogs] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedLanguages, setSelectedLanguages] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(''); // Single select
+  const [selectedLanguage, setSelectedLanguage] = useState(''); // Single select
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [blogsPerPage] = useState(10);
   const [loading, setLoading] = useState(false);
   const [showDrafts, setShowDrafts] = useState(false);
+  const [selectedBlogs, setSelectedBlogs] = useState([]);
 
   useEffect(() => {
     fetchCategories();
@@ -59,13 +60,11 @@ function AllBlogs() {
   };
 
   const handleCategoryChange = (e) => {
-    const options = Array.from(e.target.selectedOptions, option => option.value);
-    setSelectedCategories(options);
+    setSelectedCategory(e.target.value);
   };
 
   const handleLanguageChange = (e) => {
-    const options = Array.from(e.target.selectedOptions, option => option.value);
-    setSelectedLanguages(options);
+    setSelectedLanguage(e.target.value);
   };
 
   const handleDelete = async (id) => {
@@ -102,8 +101,8 @@ function AllBlogs() {
     const translations = blog.translations || {};
     return Object.entries(translations).map(([language, translation]) => {
       const categoryArray = getCategoriesArray(translation.category);
-      const categoryMatch = selectedCategories.length === 0 || selectedCategories.some(category => categoryArray.includes(category));
-      const languageMatch = selectedLanguages.length === 0 || selectedLanguages.includes(language);
+      const categoryMatch = !selectedCategory || selectedCategory === 'All' || categoryArray.includes(selectedCategory);
+      const languageMatch = !selectedLanguage || selectedLanguage === 'All' || selectedLanguage === language;
       const searchMatch = !search || translation.title.toLowerCase().includes(search.toLowerCase());
       const draftMatch = showDrafts ? translation.isDraft : !translation.isDraft;
       return categoryMatch && languageMatch && searchMatch && draftMatch ? { ...translation, _id: blog._id, language, languages: Object.keys(translations).join(', ') } : null;
@@ -120,6 +119,22 @@ function AllBlogs() {
     setCurrentPage(pageNumber);
   };
 
+  const handleSelectBlog = (blogId) => {
+    if (selectedBlogs.includes(blogId)) {
+      setSelectedBlogs(selectedBlogs.filter(id => id !== blogId));
+    } else {
+      setSelectedBlogs([...selectedBlogs, blogId]);
+    }
+  };
+
+  const handleSelectAllBlogs = () => {
+    if (selectedBlogs.length === currentBlogs.length) {
+      setSelectedBlogs([]);
+    } else {
+      setSelectedBlogs(currentBlogs.map(blog => blog._id));
+    }
+  };
+
   return (
     <Layout>
       <div className="container mx-auto p-5">
@@ -134,12 +149,11 @@ function AllBlogs() {
           />
           <div className="relative ml-0 md:ml-3 mb-3 md:mb-0">
             <select
-              multiple
-              value={selectedCategories}
+              value={selectedCategory}
               onChange={handleCategoryChange}
               className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-2 px-4 text-sm leading-tight focus:outline-none focus:border-blue-500"
             >
-              <option value="">All Categories</option>
+              <option value="All">All Categories</option>
               {categories.map((category) => (
                 <option key={category._id} value={category.name}>{category.name}</option>
               ))}
@@ -147,12 +161,11 @@ function AllBlogs() {
           </div>
           <div className="relative ml-0 md:ml-3 mb-3 md:mb-0">
             <select
-              multiple
-              value={selectedLanguages}
+              value={selectedLanguage}
               onChange={handleLanguageChange}
               className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-2 px-4 text-sm leading-tight focus:outline-none focus:border-blue-500"
             >
-              <option value="">All Languages</option>
+              <option value="All">All Languages</option>
               <option value="en">English</option>
               <option value="fr">French</option>
               <option value="zh-HANT">中国传统的</option>
@@ -188,6 +201,13 @@ function AllBlogs() {
             <table className="min-w-full bg-white border border-gray-300">
               <thead>
                 <tr>
+                  <th className="py-2 px-4 border-b">
+                    <input
+                      type="checkbox"
+                      checked={selectedBlogs.length === currentBlogs.length}
+                      onChange={handleSelectAllBlogs}
+                    />
+                  </th>
                   <th className="py-2 px-4 border-b">Title</th>
                   <th className="py-2 px-4 border-b">Category</th>
                   <th className="py-2 px-4 border-b">Languages</th>
@@ -198,6 +218,13 @@ function AllBlogs() {
               <tbody>
                 {currentBlogs.map((blog) => (
                   <tr key={blog._id}>
+                    <td className="py-2 px-4 border-b">
+                      <input
+                        type="checkbox"
+                        checked={selectedBlogs.includes(blog._id)}
+                        onChange={() => handleSelectBlog(blog._id)}
+                      />
+                    </td>
                     <td className="py-2 px-4 border-b">{blog.title}</td>
                     <td className="py-2 px-4 border-b">
                       {Array.isArray(blog.category) ? blog.category.join(', ') : blog.category}

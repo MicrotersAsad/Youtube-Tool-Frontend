@@ -67,6 +67,7 @@ export default function ImageGallery() {
   };
 
   const handleDelete = async (imageId) => {
+    console.log(`Deleting image with id: ${imageId}`);
     try {
       const response = await fetch(`/api/media?id=${imageId}`, {
         method: 'DELETE',
@@ -81,6 +82,7 @@ export default function ImageGallery() {
         setMessage(`Error: ${data.message}`);
       }
     } catch (error) {
+      console.log('Error deleting image:', error);
       setMessage(`Error: ${error.message}`);
     }
   };

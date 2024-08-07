@@ -1,4 +1,3 @@
-// pages/blog/[slug].js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
@@ -6,8 +5,18 @@ import Head from 'next/head';
 import { ClipLoader } from 'react-spinners';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Image from 'next/image';
-import Breadcrumb from '../Breadcrumb'; // Adjust the import path as needed
-import Comments from '../../components/Comments'; // Import Comments component
+import Breadcrumb from '../Breadcrumb';
+import Comments from '../../components/Comments';
+import { useToc } from '../../hook/useToc';
+import TableOfContents from '../../components/TableOfContents'; // Import your TOC component
+import {
+  FacebookShareButton,
+  TwitterShareButton,
+  LinkedinShareButton,
+  FacebookIcon,
+  TwitterIcon,
+  LinkedinIcon
+} from 'react-share';
 
 const BlogPost = ({ initialBlog }) => {
   const router = useRouter();
@@ -22,7 +31,7 @@ const BlogPost = ({ initialBlog }) => {
     if (!initialBlog && slug) {
       const fetchData = async () => {
         try {
-          const apiUrl = `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/api/blogs`;
+          const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/blogs`;
           const { data } = await axios.get(apiUrl);
           const blogs = data;
 
@@ -44,6 +53,9 @@ const BlogPost = ({ initialBlog }) => {
       fetchData();
     }
   }, [slug, initialBlog]);
+
+  const content = blog?.translations ? blog.translations[locale]?.content : '';
+  const [toc, updatedContent] = useToc(content);
 
   useEffect(() => {
     if (blog && blog.translations) {
@@ -120,29 +132,31 @@ const BlogPost = ({ initialBlog }) => {
     return <p className="text-red-500">No content available for this language.</p>;
   }
 
-  const content = blog.translations ? blog.translations[locale] : null;
-  console.log(content);
+  const postContent = blog.translations ? blog.translations[locale] : null;
 
-  if (!content) {
+  if (!postContent) {
     return <p className="text-red-500">No content available for this language.</p>;
   }
 
+  const shareUrl = `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog/${slug}`;
+  const title = postContent.title;
+
   return (
-    <div>
+    <div className="relative">
       <Head>
-        <title>{content.title} | ytubetools</title>
-        <meta name="description" content={content.description} />
-        <meta name="keywords" content={`SEO, Blog, ytubetools, ${content.title}`} />
+        <title>{postContent.title} | ytubetools</title>
+        <meta name="description" content={postContent.description} />
+        <meta name="keywords" content={`SEO, Blog, ytubetools, ${postContent.title}`} />
         <meta name="author" content={blog.author} />
-        <meta property="og:title" content={content.title} />
-        <meta property="og:description" content={content.description} />
-        <meta property="og:image" content={content.image || "https://example.com/photos/1x1/photo.jpg"} />
+        <meta property="og:title" content={postContent.title} />
+        <meta property="og:description" content={postContent.description} />
+        <meta property="og:image" content={postContent.image || "https://example.com/photos/1x1/photo.jpg"} />
         <meta property="og:url" content={`https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog/${slug}`} />
         <meta property="og:type" content="article" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={content.title} />
-        <meta name="twitter:description" content={content.description} />
-        <meta name="twitter:image" content={content.image || "https://example.com/photos/1x1/photo.jpg"} />
+        <meta name="twitter:title" content={postContent.title} />
+        <meta name="twitter:description" content={postContent.description} />
+        <meta name="twitter:image" content={postContent.image || "https://example.com/photos/1x1/photo.jpg"} />
         <meta name="twitter:site" content="@ytubetools" />
 
         {schemaData && (
@@ -165,27 +179,46 @@ const BlogPost = ({ initialBlog }) => {
         ))}
       </Head>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
-        <Breadcrumb blogTitle={content.title} />
-        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-          <div className="p-6 bg-white border-b border-gray-200">
-            <h1 className="text-3xl font-bold mb-4">{content.title}</h1>
-            <div className="text-gray-600 mb-4">{content.description}</div>
-            <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
-            {content.image && (
-              <div className="flex justify-center my-4">
-                <Image
-                  src={content.image}
-                  alt={content.title}
-                  width={800}
-                  height={630}
-                  style={{ borderRadius: '0.5rem', maxWidth: '100%' }}
-                />
+        <div className="flex flex-col lg:flex-row">
+          
+          <div className="flex-grow order-1 lg:order-2">
+            <Breadcrumb blogTitle={postContent.title} />
+            <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-8">
+              <div className="p-6 bg-white border-b border-gray-200">
+                <h1 className="text-3xl font-bold mb-4">{postContent.title}</h1>
+                {/* <div className="text-gray-600 mb-4">{postContent.description}</div>
+                <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p> */}
+             
+                <div className="mb-4">
+                  <TableOfContents headings={toc} /> {/* Insert TOC before the first heading */}
+                </div>
+                <div className="my-4" dangerouslySetInnerHTML={{ __html: updatedContent }} />
+
+                {/* Add Post Owner Card */}
+               
+                  {/* <PostOwnerCard author={blog.author} /> */}
+              
+
+                {/* Add Social Share Buttons */}
+                <div className="my-8">
+                  <h3 className="text-lg font-bold mb-4">Share this post</h3>
+                  <div className="flex space-x-4">
+                    <FacebookShareButton url={shareUrl} quote={title}>
+                      <FacebookIcon size={32} round />
+                    </FacebookShareButton>
+                    <TwitterShareButton url={shareUrl} title={title}>
+                      <TwitterIcon size={32} round />
+                    </TwitterShareButton>
+                    <LinkedinShareButton url={shareUrl} title={title}>
+                      <LinkedinIcon size={32} round />
+                    </LinkedinShareButton>
+                  </div>
+                </div>
               </div>
-            )}
-            <div className="my-4" dangerouslySetInnerHTML={{ __html: content.content }} />
+            </div>
+            <Comments slug={slug} /> {/* Add Comments component here */}
           </div>
         </div>
-        <Comments slug={slug} /> {/* Add Comments component here */}
       </div>
     </div>
   );

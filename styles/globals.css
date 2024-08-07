@@ -983,6 +983,8 @@ svg{
 
 /* Mobile view adjustments */
 @media (max-width: 768px) {
+
+  
   .accordion {
     padding: 1rem; /* Adjust padding for mobile */
   }
@@ -1040,4 +1042,58 @@ div.content > article.list-none > p > img {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 9999;
+}
+
+/* styles/globals.css */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  text-align: left;
+  
+}
+
+table th,
+table td {
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+}
+
+table th {
+  background-color: #f2f2f2;
+}
+
+table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+table tr:hover {
+  background-color: #f1f1f1;
+}
+tbody{
+  overflow-x: scroll;
+}
+.table-of-contents {
+  margin-bottom: 20px;
+}
+
+.toc-header {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: #f1f1f1;
+  border-radius: 5px;
+}
+
+.toc-list {
+  background: rgb(241, 241, 241); /* Set background color for TOC content */
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.toc-toggle {
+  display: flex;
+  align-items: center;
 }

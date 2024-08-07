@@ -85,6 +85,21 @@ const Comments = ({ slug }) => {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [captcha, setCaptcha] = useState('');
+  const [captchaInput, setCaptchaInput] = useState('');
+  const [captchaError, setCaptchaError] = useState('');
+
+  useEffect(() => {
+    if (slug) {
+      fetchComments();
+    }
+    generateCaptcha();
+  }, [slug]);
+
+  const generateCaptcha = () => {
+    const randomCaptcha = Math.random().toString(36).substring(2, 8);
+    setCaptcha(randomCaptcha);
+  };
 
   const fetchComments = async () => {
     try {
@@ -96,16 +111,16 @@ const Comments = ({ slug }) => {
     }
   };
 
-  useEffect(() => {
-    if (slug) {
-      fetchComments();
-    }
-  }, [slug]);
-
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    if (captchaInput !== captcha) {
+      setCaptchaError('Captcha does not match');
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await axios.post(`/api/comments/${slug}`, {
@@ -117,6 +132,7 @@ const Comments = ({ slug }) => {
       setNewComment('');
       setEmail('');
       setName('');
+      setCaptchaInput('');
       toast.info('Waiting for admin approval');
     } catch (error) {
       console.error('Error posting comment:', error);
@@ -176,6 +192,34 @@ const Comments = ({ slug }) => {
           rows="4"
           required
         />
+        <div className="mb-4">
+          <label htmlFor="captcha" className="block text-gray-700 font-bold mb-2">Captcha</label>
+          <div
+            className="captcha mb-2 bg-gray-200 p-2 rounded-md"
+            style={{
+              filter: 'blur(2px)',
+              fontFamily: "'Courier New', Courier, monospace",
+              fontSize: '24px',
+              fontWeight: 'bold',
+              letterSpacing: '2px',
+              textAlign: 'center',
+              background: 'linear-gradient(135deg, #f3f4f6 25%, #e5e7eb 25%, #e5e7eb 50%, #f3f4f6 50%, #f3f4f6 75%, #e5e7eb 75%, #e5e7eb)',
+              backgroundSize: '10px 10px'
+            }}
+          >
+            {captcha}
+          </div>
+          <input
+            type="text"
+            id="captcha"
+            value={captchaInput}
+            onChange={(e) => setCaptchaInput(e.target.value)}
+            placeholder="Enter captcha"
+            className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+            required
+          />
+          {captchaError && <p className="text-red-500 mt-2">{captchaError}</p>}
+        </div>
         <button
           type="submit"
           className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none"

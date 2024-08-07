@@ -3,13 +3,17 @@ import fs from 'fs';
 import path from 'path';
 import { ObjectId } from 'mongodb';
 import { connectToDatabase } from '../../utils/mongodb';
+import { slugify } from '../../utils/slugify'; // Ensure this utility function exists
 
 const sanitizeFilename = (filename) => {
-  return filename
+  const name = filename.substring(0, filename.lastIndexOf('.'));
+  const extension = filename.substring(filename.lastIndexOf('.'), filename.length);
+  const sanitizedBaseName = name
     .replace(/[^a-zA-Z-]/g, '') // Remove everything except alphabets and hyphens
     .replace(/--+/g, '-')       // Replace multiple hyphens with a single hyphen
     .replace(/^-+|-+$/g, '')    // Remove leading and trailing hyphens
     .toLowerCase();
+  return sanitizedBaseName + extension;
 };
 
 const upload = multer({
@@ -17,7 +21,7 @@ const upload = multer({
     destination: './public/uploads',
     filename: (req, file, cb) => {
       const sanitizedFilename = sanitizeFilename(file.originalname);
-      cb(null, Date.now() + '-' + sanitizedFilename);
+      cb(null, sanitizedFilename);
     },
   }),
 });
@@ -48,6 +52,7 @@ const handler = async (req, res) => {
     const { title } = req.body;
 
     try {
+      const sanitizedTitle = slugify(title || req.file.originalname);
       const filePath = path.join(process.cwd(), 'public/uploads', req.file.filename);
       const url = `/uploads/${req.file.filename}`;
 
