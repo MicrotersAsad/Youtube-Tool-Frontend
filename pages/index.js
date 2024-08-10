@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import TagGenerator from "./tools/tagGenerator";
 import styles from "../styles/Home.module.css";
 
-export default function Home({ meta,existingContent,faqs,relatedTools }) {
+export default function Home({ meta,existingContent,reviews,faqs,relatedTools }) {
 
   const { t } = useTranslation("common");
   return (
@@ -22,7 +22,7 @@ export default function Home({ meta,existingContent,faqs,relatedTools }) {
         <meta name="twitter:image" content={meta.image} />
       </Head>
       <main className={styles.main}>
-        <TagGenerator initialMeta={meta} existingContent={existingContent} faqs={faqs} relatedTools={relatedTools} />
+        <TagGenerator initialMeta={meta} existingContent={existingContent} reviews={reviews} faqs={faqs} relatedTools={relatedTools} />
       </main>
     </div>
   );
@@ -54,6 +54,7 @@ export async function getServerSideProps({ locale, req }) {
         existingContent: contentData.translations[locale]?.content || "",
         faqs: contentData.translations[locale]?.faqs || [],
         relatedTools: contentData.translations[locale]?.relatedTools || [],
+        reviews: contentData.translations[locale]?.reviews || [],
         ...(await serverSideTranslations(locale, [
           "common",
           "tagextractor",
@@ -78,6 +79,7 @@ export async function getServerSideProps({ locale, req }) {
         ])),
       },
     };
+    
   } catch (error) {
     console.error("Error fetching data:", error);
     return {

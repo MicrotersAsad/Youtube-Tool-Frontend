@@ -54,24 +54,7 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const language = i18n.language || "en";
-        const response = await fetch(`/api/content?category=tagExtractor&language=${language}`);
-        if (!response.ok) throw new Error("Failed to fetch content");
-        const data = await response.json();
-        setContent(data.translations[language]?.content || '')
-        setFaqs(contentData.translations[language]?.faqs || [])
-        setRelatedTools(contentData.translations[language]?.relatedTools || [])
-      } catch (error) {
-        console.error("Error fetching content:", error);
-      }
-    };
 
-    fetchContent();
-
-  }, [i18n.language]);
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
