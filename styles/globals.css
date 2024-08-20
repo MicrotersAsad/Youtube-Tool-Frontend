@@ -1035,7 +1035,7 @@ div.content > article.list-none > p > img {
   display: block;
   margin: 0 auto;
 }
-strong > img{
+p > img{
   width: 800px;
   height: 350px;
   display: block;
@@ -1123,3 +1123,5 @@ tbody{
 .text-blue-500:hover {
   text-decoration: underline;
 }
+
+
