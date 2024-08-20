@@ -1,6 +1,22 @@
 import { connectToDatabase, ObjectId } from '../../utils/mongodb';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
+
+const API_KEY = process.env.API_KEY; // Read API key from .env file
 
 export default async function handler(req, res) {
+  // Middleware to check for API key
+  const checkApiKey = (req, res) => {
+    const providedKey = req.headers['x-api-key'];
+    if (providedKey !== API_KEY) {
+      res.status(401).json({ message: 'Unauthorized: Invalid API Key' });
+      return false;
+    }
+    return true;
+  };
+
   const { db } = await connectToDatabase();
 
   const updateUsage = async (token) => {
@@ -26,6 +42,8 @@ export default async function handler(req, res) {
   };
 
   if (req.method === 'GET') {
+    if (!checkApiKey(req, res)) return;
+
     try {
       const tokens = await db.collection('openaiKey').find().toArray();
       res.json(tokens);
