@@ -1031,8 +1031,8 @@ svg{
 }
 
 div .content article img {
-  width: 800px !important;
-  height: 350px !important;
+  width: auto!important;
+  height: auto !important;
   display: block !important;
   margin: 0 auto !important;
 }

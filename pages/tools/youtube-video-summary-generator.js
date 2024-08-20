@@ -12,11 +12,13 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
-import { i18n, useTranslation } from "next-i18next";
+import { useTranslation } from "next-i18next";
 import Script from "next/script";
 import dynamic from 'next/dynamic';
 import { getContentProps } from "../../utils/getContentProps";
+
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
+
 const VideoSummarizer = ({ meta, faqs, reviews, relatedTools, content }) => {
   const { user, updateUserProfile } = useAuth();
   const { t } = useTranslation('summary');
@@ -151,9 +153,7 @@ const VideoSummarizer = ({ meta, faqs, reviews, relatedTools, content }) => {
   const closeReviewForm = () => {
     setShowReviewForm(false);
   };
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+
   return (
     <>
       <div className="bg-box">
@@ -316,12 +316,12 @@ const VideoSummarizer = ({ meta, faqs, reviews, relatedTools, content }) => {
             >
               {loading ? t("Generating...") : t("Generate Summary")}
             </button>
+            {loading && (
+              <div className="flex justify-center my-4">
+                <ClipLoader size={50} color={"#123abc"} loading={loading} />
+              </div>
+            )}
           </div>
-          {loading && (
-            <div className="flex justify-center my-4">
-              <ClipLoader size={50} color={"#123abc"} loading={loading} />
-            </div>
-          )}
         </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
@@ -617,8 +617,7 @@ const VideoSummarizer = ({ meta, faqs, reviews, relatedTools, content }) => {
                   placeholder={t("Your Review")}
                   value={newReview.comment}
                   onChange={(e) =>
-                    setNewReview({ ...newReview, comment: e.target.value })
-                  }
+                    setNewReview({ ...newReview, comment: e.target.value })}
                 />
               </div>
               <button

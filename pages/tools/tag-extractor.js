@@ -1,4 +1,3 @@
-// pages/tools/tag-extractor.js
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useRouter } from "next/router";
@@ -25,14 +24,13 @@ import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
-import { i18n } from "next-i18next";
+
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
-
-const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
+const TagExtractor = ({ meta, reviews, content, relatedTools, faqs }) => {
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();
-  const { t } = useTranslation("common");
+  const { t } = useTranslation("tagextractor");
   const [videoUrl, setVideoUrl] = useState("");
   const [tags, setTags] = useState([]);
   const [generatedTitles, setGeneratedTitles] = useState([]);
@@ -58,9 +56,11 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+
   const handleUrlChange = (e) => {
     setVideoUrl(e.target.value);
   };
+
   const closeModal = () => setModalVisible(false);
 
   useEffect(() => {
@@ -88,7 +88,6 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
     }
   }, [user]);
 
-
   const handleSelectAll = () => {
     const newSelection = !selectAll;
     setSelectAll(newSelection);
@@ -98,26 +97,6 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
         selected: newSelection,
       }))
     );
-  };
-
-  const shareOnSocialMedia = (socialNetwork) => {
-    const url = encodeURIComponent(window.location.href);
-    const socialMediaUrls = {
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
-      twitter: `https://twitter.com/intent/tweet?url=${url}`,
-      instagram: "Instagram sharing is only available via the mobile app.",
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
-    };
-
-    if (socialNetwork === "instagram") {
-      alert(socialMediaUrls[socialNetwork]);
-    } else {
-      window.open(socialMediaUrls[socialNetwork], "_blank");
-    }
-  };
-
-  const handleShareClick = () => {
-    setShowShareIcons(!showShareIcons);
   };
 
   const toggleTitleSelect = (index) => {
@@ -203,6 +182,14 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
       }
 
       const data = await response.json();
+      console.log(data);
+
+      const titlesWithSelection = data.tags.map((tag) => ({
+        text: tag,
+        selected: false,
+      }));
+
+      setGeneratedTitles(titlesWithSelection);
       setTags(data.tags || []);
       if (user && user.paymentStatus !== "success") {
         const newCount = generateCount - 1;
@@ -283,13 +270,11 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
     }
     setModalVisible(true);
   };
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+
   return (
     <>
       <div className="bg-box">
-      <div>
+        <div>
           <Image className="shape1" src={announce} alt="announce" />
           <Image className="shape2" src={cloud} alt="cloud" />
           <Image className="shape3" src={cloud2} alt="cloud2" />
@@ -308,7 +293,6 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
           <meta name="twitter:title" content={meta?.title} />
           <meta name="twitter:description" content={meta?.description} />
           <meta name="twitter:image" content={meta?.image || ""} />
-          {/* - Webpage Schema */}
           <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
@@ -329,7 +313,6 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
               },
             })}
           </Script>
-          {/* - Review Schema */}
           <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
@@ -359,7 +342,6 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
               })),
             })}
           </Script>
-          {/* - FAQ Schema */}
           <Script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
@@ -383,7 +365,7 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
             />
           ))}
         </Head>
-        {loading && <div className="loading">Loading...</div>}
+
         <div className="max-w-7xl mx-auto p-4">
           <h2 className="text-3xl text-white">{t("YouTube Tag Extractor")}</h2>
           <ToastContainer />
@@ -453,6 +435,11 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
               <small className="block mt-2 text-gray-300">
                 Example: https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s
               </small>
+              {loading && (
+                <div className="mt-3 text-center text-gray-500">
+                  {t("loading")}
+                </div>
+              )}
               {error && (
                 <div className="mt-3 p-2 bg-red-100 text-red-700 rounded-md">
                   {error}
@@ -463,28 +450,32 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
         </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
-        <div className="text-center">
-          <div className="flex justify-center items-center gap-2">
-            <FaShareAlt className="text-red-500 text-xl" />
-            <span> {t("shareOnSocialMedia")}</span>
-            <FaFacebook
-              className="text-blue-600 text-xl cursor-pointer"
-              onClick={() => shareOnSocialMedia("facebook")}
-            />
-            <FaInstagram
-              className="text-pink-500 text-xl cursor-pointer"
-              onClick={() => shareOnSocialMedia("instagram")}
-            />
-            <FaTwitter
-              className="text-blue-400 text-xl cursor-pointer"
-              onClick={() => shareOnSocialMedia("twitter")}
-            />
-            <FaLinkedin
-              className="text-blue-700 text-xl cursor-pointer"
-              onClick={() => shareOnSocialMedia("linkedin")}
-            />
-          </div>
-        </div>
+        {tags.length > 0 ? (
+          <ul className="tags-list grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {generatedTitles.map((title, index) => (
+              <li
+                key={index}
+                className="tag-item flex items-center p-2 border rounded-md"
+              >
+                <input
+                  type="checkbox"
+                  className="mr-2"
+                  checked={title.selected}
+                  onChange={() => toggleTitleSelect(index)}
+                />
+                {title.text.replace(/^\d+\.\s*/, "")}
+                <FaCopy
+                  className="ml-2 cursor-pointer"
+                  onClick={() =>
+                    copyToClipboard(title.text.replace(/^\d+\.\s*/, ""))
+                  }
+                />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p></p>
+        )}
         <div className="text-center my-4">
           {generatedTitles.length > 0 && (
             <div className="inline-block p-2 rounded-md bg-gray-200">
@@ -497,28 +488,6 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
               <span>{t("selectAll")}</span>
             </div>
           )}
-        </div>
-        <div className="generated-titles-container grid grid-cols-1 md:grid-cols-4 gap-4">
-          {generatedTitles.map((title, index) => (
-            <div
-              key={index}
-              className="flex items-center p-2 border rounded-md"
-            >
-              <input
-                className="mr-2"
-                type="checkbox"
-                checked={title.selected}
-                onChange={() => toggleTitleSelect(index)}
-              />
-              {title.text.replace(/^\d+\.\s*/, "")}
-              <FaCopy
-                className="ml-2 cursor-pointer"
-                onClick={() =>
-                  copyToClipboard(title.text.replace(/^\d+\.\s*/, ""))
-                }
-              />
-            </div>
-          ))}
         </div>
         <div className="flex justify-center my-4">
           {generatedTitles.some((title) => title.selected) && (
@@ -580,7 +549,6 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
         <hr className="mt-4 mb-2" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-          {/* Review Summary Section */}
           <div className="p-4 bg-white shadow-md rounded-md">
             <div className="text-xl font-bold mb-2">{t("customerReviews")}</div>
             <div className="flex items-center mb-2">
@@ -631,7 +599,6 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
             </div>
           </div>
 
-          {/* Review List Section */}
           <div className="p-4 bg-white shadow-md rounded-md col-span-1 md:col-span-1">
             {reviews?.slice(0, 5).map((review, index) => (
               <div
@@ -727,7 +694,6 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
               ))}
           </div>
 
-          {/* Review Modal */}
           {modalVisible && (
             <div className="fixed inset-0 flex items-center justify-center z-50">
               <div className="fixed inset-0 bg-black opacity-50"></div>
@@ -781,10 +747,9 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
           )}
         </div>
 
-        {/* Related Tools Section */}
         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
           <h2 className="text-2xl font-bold mb-5 text-center">
-            {t("relatedTools")}
+            {t("Related Tools")}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {relatedTools?.map((tool, index) => (
@@ -805,7 +770,6 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
             ))}
           </div>
         </div>
-        {/* End of Related Tools Section */}
       </div>
     </>
   );
@@ -814,6 +778,5 @@ const TagExtractor = ({ meta, reviews,content,relatedTools,faqs }) => {
 export async function getServerSideProps(context) {
   return getContentProps("tagExtractor", context.locale, context.req);
 }
-
 
 export default TagExtractor;

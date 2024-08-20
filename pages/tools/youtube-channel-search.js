@@ -460,6 +460,8 @@ const YouTubeChannelScraper = ({ meta, faqs,reviews, relatedTools, content }) =>
                 src={channel.snippet.thumbnails.high.url}
                 alt={channel.snippet.title}
                 className="w-full h-auto rounded-md mb-4"
+                width={300}
+                height={300}
               />
               <div className="channel-info">
                 <Link
