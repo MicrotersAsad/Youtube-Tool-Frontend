@@ -576,9 +576,9 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content }) => {
         </div>
 
         <div className="content pt-6 pb-5">
-        <article
+          <article
             dangerouslySetInnerHTML={{ __html: content }}
-            className="list-none"
+            style={{ listStyleType: "none" }}
           ></article>
         </div>
 

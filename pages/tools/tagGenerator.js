@@ -642,10 +642,10 @@ const TagGenerator = ({ initialMeta, loading, setLoading }) => {
           )}
         </div>
 
-        <div className="content pt-5 pb-5">
+        <div className="content pt-6 pb-5">
           <article
             dangerouslySetInnerHTML={{ __html: existingContent }}
-            className="list-none"
+            style={{ listStyleType: "none" }}
           ></article>
         </div>
 

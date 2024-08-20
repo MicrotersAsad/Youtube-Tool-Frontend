@@ -493,8 +493,11 @@ const VideoDataViewer = ({ meta, faqs,reviews, content, relatedTools }) => {
           </div>
         )}
 
-        <div className="content pt-6 pb-5">
-          <article dangerouslySetInnerHTML={{ __html: content }} style={{ listStyleType: "none" }}></article>
+<div className="content pt-6 pb-5">
+          <article
+            dangerouslySetInnerHTML={{ __html: content }}
+            style={{ listStyleType: "none" }}
+          ></article>
         </div>
 
         <div className="p-5 shadow">

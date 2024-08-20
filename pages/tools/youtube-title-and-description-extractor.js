@@ -454,7 +454,7 @@ const TitleDescriptionExtractor =({ meta, faqs, reviews, relatedTools, content }
           </div>
         )}
 
-        <div className="content pt-6 pb-5">
+<div className="content pt-6 pb-5">
           <article
             dangerouslySetInnerHTML={{ __html: content }}
             style={{ listStyleType: "none" }}

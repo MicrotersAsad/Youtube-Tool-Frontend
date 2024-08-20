@@ -394,11 +394,11 @@ ${keywords}
         </div>
       </div>
       <div className="content pt-6 pb-5">
-        <div
-          dangerouslySetInnerHTML={{ __html: existingContent }}
-          style={{ listStyleType: "none" }}
-        ></div>
-      </div>
+          <article
+            dangerouslySetInnerHTML={{ __html: existingContent }}
+            style={{ listStyleType: "none" }}
+          ></article>
+        </div>
       <div className="p-5 shadow">
         <div className="accordion">
           <h2 className="faq-title">{t("Frequently Asked Questions")}</h2>

@@ -341,7 +341,7 @@ const YouTubeMoneyCalculator =({ meta, faqs, reviews, relatedTools, content })  
         </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
-        <div className="content pt-6 pb-5">
+      <div className="content pt-6 pb-5">
           <article
             dangerouslySetInnerHTML={{ __html: content }}
             style={{ listStyleType: "none" }}

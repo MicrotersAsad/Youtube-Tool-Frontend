@@ -453,11 +453,11 @@ const TrendingVideos = ({ meta, faqs,reviews, relatedTools, content }) => {
             </div>
           </>
         )}
-        <div className="content pt-6 pb-5">
-          <div
+       <div className="content pt-6 pb-5">
+          <article
             dangerouslySetInnerHTML={{ __html: content }}
             style={{ listStyleType: "none" }}
-          ></div>
+          ></article>
         </div>
         {/* Reviews Section */}
         <div className="p-5 shadow">

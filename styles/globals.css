@@ -1029,18 +1029,15 @@ svg{
   max-width: 100%;
   height: auto;
 }
-div.content > article.list-none > p > img {
-  width: 800px;
-  height: 350px;
-  display: block;
-  margin: 0 auto;
+
+div .content article img {
+  width: 800px !important;
+  height: 350px !important;
+  display: block !important;
+  margin: 0 auto !important;
 }
-p > img{
-  width: 800px;
-  height: 350px;
-  display: block;
-  margin: 0 auto;
-}
+
+
 /* styles/globals.css */
 .loader {
   position: fixed;

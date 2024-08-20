@@ -424,11 +424,11 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
           </div>
         )}
 
-        <div className="content pt-6 pb-5">
-          <div
+<div className="content pt-6 pb-5">
+          <article
             dangerouslySetInnerHTML={{ __html: existingContent }}
             style={{ listStyleType: "none" }}
-          ></div>
+          ></article>
         </div>
         <div className="p-5 shadow">
           <div className="accordion">
