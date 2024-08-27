@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_KEY = process.env.NEXT_PUBLIC_KEYWORDS_EVERYWHERE_API_KEY;
-const SCRAPFLY_API_KEY = process.env.NEXT_PUBLIC_SCRAPFLY_API_KEY;
+const API_KEY ='d2d1cd60018aba643989';
+const SCRAPFLY_API_KEY = "scp-live-b8a1a7829f974c8f9455986a4dc04b5a";
 
 const log = (message) => {
     console.log(`${new Date().toISOString()} | ${message}`);
