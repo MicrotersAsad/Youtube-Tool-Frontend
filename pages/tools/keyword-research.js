@@ -16,13 +16,17 @@ import { useTranslation } from "react-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { i18n } from "next-i18next";
 import Script from "next/script";
-
+import Select from 'react-select';
+import countryList from 'react-select-country-list';
+import { saveAs } from 'file-saver';
+import * as XLSX from 'xlsx'
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
 const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
   const [keyword, setKeyword] = useState("");
-  const [country, setCountry] = useState("");
-  const [data, setData] = useState(null);
+  const [relatedKeywords, setRelatedKeywords] = useState(null);
+  const [googleSuggestionKeywords, setGoogleSuggestionKeywords] = useState(null);
+  const [country, setCountry] = useState({ value: 'us', label: 'United States' }); // Default country set to 'us'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { user, updateUserProfile } = useAuth();
@@ -41,7 +45,7 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
   const [openIndex, setOpenIndex] = useState(null);
   const [translations, setTranslations] = useState([]);
   const { t } = useTranslation('keyword');
-
+  const countryOptions = countryList().getData(); // Get the country list
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
@@ -59,7 +63,8 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
         const data = await response.json();
         setTranslations(data.translations);
       } catch (error) {
-        console.error("Error fetching content");
+        console.error("Error fetching content:", error);
+        setError("Failed to load content.");
       }
     };
 
@@ -69,7 +74,7 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
-      updateUserProfile().then(() => setIsUpdated(true));
+      updateUserProfile().then(() => setIsUpdated(true)).catch(err => console.error("Error updating user profile:", err));
     }
   }, [user, updateUserProfile, isUpdated]);
 
@@ -89,6 +94,8 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
   const fetchReviews = async () => {
     try {
       const response = await fetch("/api/reviews?tool=keyword-research");
+      if (!response.ok) throw new Error("Failed to fetch reviews");
+
       const data = await response.json();
       const formattedData = data.map((review) => ({
         ...review,
@@ -97,6 +104,7 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
       setReviews(formattedData);
     } catch (error) {
       console.error("Failed to fetch reviews:", error);
+      setError("Failed to load reviews.");
     }
   };
 
@@ -178,36 +186,73 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ keyword, country }),
+        body: JSON.stringify({ keyword, country: country.value }),
       });
+
       if (!res.ok) {
         const errorText = await res.text();
         throw new Error(`Error: ${res.status} ${errorText}`);
       }
+
       const result = await res.json();
-      if (Array.isArray(result.data)) {
-        setData(result.data.slice(0, 15)); // Limit to top 15 results
-      } else {
-        setError("Unexpected data format received from API");
-        setData(null);
-      }
+      setRelatedKeywords(result.relatedKeywords); // Set related keywords data
+      setGoogleSuggestionKeywords(result.googleSuggestionKeywords); // Set Google suggestions data
       setError(null);
     } catch (err) {
       setError(err.message);
-      setData(null);
+      setRelatedKeywords(null);
+      setGoogleSuggestionKeywords(null);
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text).then(() => {
-      toast.success("Keyword copied to clipboard!");
+  const allKeywords = [...(relatedKeywords || []), ...(googleSuggestionKeywords || [])];
+
+
+  const downloadCSV = () => {
+    const csvData = [
+      ['Keyword', 'Volume', 'CPC', 'Competition', 'Country'],
+      ...[...relatedKeywords, ...googleSuggestionKeywords].map(item => [
+        item.keyword,
+        item.volume,
+        `$${item.cpc.value}`,
+        item.competition,
+        item.country,
+      ]),
+    ];
+
+    const csvContent = `data:text/csv;charset=utf-8,${csvData.map(e => e.join(',')).join('\n')}`;
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', 'keyword_data.csv');
+    document.body.appendChild(link);
+    link.click();
+  };
+
+  const downloadExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet([...relatedKeywords, ...googleSuggestionKeywords]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Keywords');
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const data = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    saveAs(data, 'keyword_data.xlsx');
+  };
+
+  const copyToClipboard = () => {
+    const copyText = [...relatedKeywords, ...googleSuggestionKeywords].map(item =>
+      `${item.keyword}, Volume: ${item.volume}, CPC: $${item.cpc.value}, Competition: ${item.competition}, Country: ${item.country}`
+    ).join('\n');
+
+    navigator.clipboard.writeText(copyText).then(() => {
+      alert('Keywords copied to clipboard!');
     }).catch(() => {
-      toast.error("Failed to copy keyword.");
+      alert('Failed to copy keywords.');
     });
   };
+
 
   return (
     <>
@@ -347,26 +392,44 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
               </div>
             </div>
           )}
-          <div className="mb-4 center w-full sm:w-2/3">
+        
+        <div className="flex flex-col sm:flex-row items-center mb-4 w-full sm:w-2/3 mx-auto">
             <input
               type="text"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               placeholder="Enter a keyword"
-              className="p-2 m-2 border border-gray-300 rounded mr-2"
+              className="w-full p-2 mb-2 sm:mb-0 sm:mr-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-            <input
-              type="text"
+            <Select
+              options={countryOptions}
               value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              placeholder="Enter a country code"
-              className="p-2 m-2 border md:mt-2 border-gray-300 rounded mr-2"
+              onChange={setCountry}
+              className="w-full sm:w-1/2 p-2 mb-2 sm:mb-0  rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  height: '100%',
+                  minHeight: '50px',
+                  borderRadius: '8px',
+                  borderColor: '#D1D5DB',
+                  boxShadow: 'none',
+                  '&:hover': {
+                    borderColor: '#2563EB',
+                  },
+                }),
+                menu: (base) => ({
+                  ...base,
+                  borderRadius: '8px',
+                  marginTop: '5px',
+                }),
+              }}
             />
             <button
               onClick={fetchKeywordData}
-              className="p-2 sm:mt-3 bg-red-500 text-white rounded"
+              className="w-full sm:w-auto sm:mt-0 sm:ml-4 ps-5 pe-5 pt-2 pb-2 bg-blue-600 text-white font-semibold rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
             >
-              {t('Search')}
+              Search
             </button>
           </div>
 
@@ -380,49 +443,58 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
         </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
-        {data && !loading && data.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border border-gray-200">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2 border-b">{t("Keyword")}</th>
-                  <th className="px-4 py-2 border-b">{t("CPC")}</th>
-                  <th className="px-4 py-2 border-b">{t('Volume')}</th>
-                  <th className="px-4 py-2 border-b">{t("Competition")}</th>
-                  <th className="px-4 py-2 border-b">{t('Trend')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.map((item, index) => (
-                  <tr key={index} className="hover:bg-gray-100">
-                    <td className="px-4 py-2 border-b flex items-center">
-                      {item.keyword}
-                      <FaCopy
-                        className="ml-2 cursor-pointer text-blue-500"
-                        onClick={() => copyToClipboard(item.keyword)}
-                      />
-                    </td>
-                    <td className="px-4 py-2 border-b">
-                      {item.cpc.currency} {item.cpc.value}
-                    </td>
-                    <td className="px-4 py-2 border-b">{item.vol}</td>
-                    <td className="px-4 py-2 border-b">{item.competition}</td>
-                    <td className="px-4 py-2 border-b">
-                      <select className="p-2 border border-gray-300 rounded">
-                        {item.trend.map((trendItem, trendIndex) => (
-                          <option key={trendIndex} value={trendItem.value}>
-                            {trendItem.month} {trendItem.year}:{" "}
-                            {trendItem.value}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
+      {allKeywords && !loading && allKeywords.length > 0 && (
+        
+            <div className="overflow-x-auto">
+                 <div className="flex justify-end mt-4">
+                <button
+                  onClick={downloadCSV}
+                  className="p-2 bg-green-500 text-white rounded-lg shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 mr-2"
+                >
+                  Download CSV
+                </button>
+                <button
+                  onClick={downloadExcel}
+                  className="p-2 bg-yellow-500 text-white rounded-lg shadow-lg hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 mr-2"
+                >
+                  Download Excel
+                </button>
+                <button
+                  onClick={copyToClipboard}
+                  className="p-2 bg-gray-500 text-white rounded-lg shadow-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
+                >
+                  Copy All
+                </button>
+              </div>
+              <table className="min-w-full bg-white border border-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-2 border-b">Keyword</th>
+                    <th className="px-4 py-2 border-b">Volume</th>
+                    <th className="px-4 py-2 border-b">CPC</th>
+                    <th className="px-4 py-2 border-b">Competition</th>
+                    <th className="px-4 py-2 border-b">Country</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {allKeywords.map((item, index) => (
+                    <tr key={index} className="hover:bg-gray-100">
+                      <td className="px-4 py-2 border-b">{item.keyword}</td>
+                      <td className="px-4 py-2 border-b">{item.volume}</td>
+                      <td className="px-4 py-2 border-b">${item.cpc.value}</td>
+                      <td className="px-4 py-2 border-b">{item.competition}</td>
+                      <td className="px-4 py-2 border-b">{item.country}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+          )}
+        
+
+        
+
 
 <div className="content pt-6 pb-5">
           <article
@@ -675,7 +747,7 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
           </div>
         </div>
         {/* End of Related Tools Section */}
-      </div>
+        </div>
     </>
   );
 };
