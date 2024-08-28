@@ -34,15 +34,17 @@ const Users = () => {
           'Authorization': `Bearer ${token}`,
         },
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to fetch users');
       }
-
+  
       const result = await response.json();
       console.log(result);
       if (result.success && Array.isArray(result.data)) {
-        setUsers(result.data);
+        // Filter out only verified users
+        const verifiedUsers = result.data.filter(user => user.verified);
+        setUsers(verifiedUsers);
       } else {
         setUsers([]);
       }
@@ -52,6 +54,7 @@ const Users = () => {
       setLoading(false);
     }
   };
+  
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this user?')) {

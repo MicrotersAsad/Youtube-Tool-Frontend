@@ -3,12 +3,25 @@ import bcrypt from 'bcryptjs';
 import { connectToDatabase } from '../../utils/mongodb';
 import { sendVerificationEmail } from '../../utils/sendVerificationEmail';
 import { v4 as uuidv4 } from 'uuid';
+import path from 'path';
+import fs from 'fs';
 
-// Set up multer storage engine to store file in memory
-const storage = multer.memoryStorage();
-const upload = multer({ 
+// Set up multer storage engine to store file in public/upload directory
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = path.join(process.cwd(), 'public/upload');
+    // Ensure the directory exists
+    fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    cb(null, `${uuidv4()}-${file.originalname}`);
+  },
+});
+
+const upload = multer({
   storage: storage,
-  limits: { fileSize: 100 * 1024 } // Limit file size to 100 KB
+  limits: { fileSize: 100 * 1024 }, // Limit file size to 100 KB
 });
 
 export const config = {
@@ -32,8 +45,7 @@ export default async function handler(req, res) {
       }
 
       const { username, email, password, role, adminAnswer } = req.body;
-      const profileImageBuffer = req.file ? req.file.buffer : null;
-      const profileImageBase64 = profileImageBuffer ? profileImageBuffer.toString('base64') : null;
+      const profileImagePath = req.file ? `/upload/${req.file.filename}` : null;
 
       // Validate role and admin answer
       let finalRole = 'user';
@@ -58,10 +70,10 @@ export default async function handler(req, res) {
         username,
         email,
         password: hashedPassword,
-        profileImage: profileImageBase64,
+        profileImage: profileImagePath,
         verificationToken,
         verified: false,
-        role: finalRole, // Set role based on the verification
+        role: finalRole,
         createdAt: new Date(),
       });
 

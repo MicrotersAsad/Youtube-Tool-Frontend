@@ -401,6 +401,14 @@ const MonetizationChecker = ({ meta, faqs, relatedTools, existingContent }) => {
                     className="rounded-lg"
                   />
                 </div>
+                <h2 className="text-center font-semibold text-lg">
+      <span className="text-gray-700">{t("Monetization Status")}:</span>{" "}
+      <span className={`${
+        data.isMonetized ? "text-green-500" : "text-red-500"
+      } font-bold`}>
+        {data.isMonetized ? t("Monetized") : t("Not Monetized")}
+      </span>
+    </h2>
                 <table className="min-w-full bg-white">
                   <thead>
                     <tr>
@@ -479,67 +487,76 @@ const MonetizationChecker = ({ meta, faqs, relatedTools, existingContent }) => {
                 </table>
               </>
             )}
-            {data.type === "channel" && (
-              <>
-                <div className="flex justify-center mb-4">
-                  <Image
-                    src={data.thumbnails.high.url}
-                    alt="Channel Thumbnail"
-                    width={300}
-                    height={300}
-                    className="rounded-lg"
-                  />
-                </div>
-                <table className="min-w-full bg-white">
-                  <thead>
-                    <tr>
-                      <th className="px-4 py-2 border">{t("Property")}</th>
-                      <th className="px-4 py-2 border">{t("Value")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="px-4 py-2 border">{t("Channel URL")}</td>
-                      <td className="px-4 py-2 border">
-                        <a
-                          href={data.channelUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {data.channelUrl}
-                        </a>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-2 border">{t("Channel Title")}</td>
-                      <td className="px-4 py-2 border">{data.title}</td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-2 border">{t("Description")}</td>
-                      <td className="px-4 py-2 border">{data.description}</td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-2 border">{t("View Count")}</td>
-                      <td className="px-4 py-2 border">{data.viewCount}</td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-2 border">{t("Subscriber Count")}</td>
-                      <td className="px-4 py-2 border">
-                        {data.subscriberCount}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-2 border">{t("Video Count")}</td>
-                      <td className="px-4 py-2 border">{data.videoCount}</td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-2 border">{t("Monetization Status")}</td>
-                      <td className="px-4 py-2 border">{data.isMonetized}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </>
-            )}
+           {data.type === "channel" && (
+  <>
+    <div className="flex justify-center mb-4">
+      <Image
+        src={data.thumbnails.high.url}
+        alt="Channel Thumbnail"
+        width={300}
+        height={300}
+        className="rounded-lg"
+      />
+    </div>
+    <h2 className="text-center font-semibold text-lg">
+      <span className="text-gray-700">{t("Monetization Status")}:</span>{" "}
+      <span className={`${
+        data.isMonetized ? "text-green-500" : "text-red-500"
+      } font-bold`}>
+        {data.isMonetized ? t("Monetized") : t("Not Monetized")}
+      </span>
+    </h2>
+    <table className="min-w-full bg-white mt-4">
+      <thead>
+        <tr>
+          <th className="px-4 py-2 border">{t("Property")}</th>
+          <th className="px-4 py-2 border">{t("Value")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td className="px-4 py-2 border">{t("Channel URL")}</td>
+          <td className="px-4 py-2 border">
+            <a
+              href={data.channelUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {data.channelUrl}
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td className="px-4 py-2 border">{t("Channel Title")}</td>
+          <td className="px-4 py-2 border">{data.title}</td>
+        </tr>
+        <tr>
+          <td className="px-4 py-2 border">{t("Description")}</td>
+          <td className="px-4 py-2 border">{data.description}</td>
+        </tr>
+        <tr>
+          <td className="px-4 py-2 border">{t("View Count")}</td>
+          <td className="px-4 py-2 border">{data.viewCount}</td>
+        </tr>
+        <tr>
+          <td className="px-4 py-2 border">{t("Subscriber Count")}</td>
+          <td className="px-4 py-2 border">
+            {data.subscriberCount}
+          </td>
+        </tr>
+        <tr>
+          <td className="px-4 py-2 border">{t("Video Count")}</td>
+          <td className="px-4 py-2 border">{data.videoCount}</td>
+        </tr>
+        <tr>
+          <td className="px-4 py-2 border">{t("Monetization Status")}</td>
+          <td className="px-4 py-2 border">{data.isMonetized}</td>
+        </tr>
+      </tbody>
+    </table>
+  </>
+)}
+
           </div>
         )}
       <div className="content pt-6 pb-5">
