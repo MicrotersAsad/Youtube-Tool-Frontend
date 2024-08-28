@@ -39,6 +39,7 @@ function Content() {
   const [image, setImage] = useState(null);
   const [faqs, setFaqs] = useState([]);
   const [relatedTools, setRelatedTools] = useState([]);
+  const [existingImage, setExistingImage] = useState(null); // Store existing image
   const [availableLanguages, setAvailableLanguages] = useState([]);
   const { t } = useTranslation('navbar');
 
@@ -81,29 +82,23 @@ function Content() {
 
       if (data?.translations?.[selectedLanguage]) {
         const contentData = data.translations[selectedLanguage].content || '';
-        const faqsData = data.translations[selectedLanguage].faqs || [];
-        const relatedToolsData = data.translations[selectedLanguage].relatedTools || [];
         const metatitle = data.translations[selectedLanguage].title || '';
         const metaDescription = data.translations[selectedLanguage].description || '';
+        const imageUrl = data.translations[selectedLanguage].image || '';
 
         setQuillContent(contentData);
         setExistingContent(contentData);
         setTitle(metatitle);
         setDescription(metaDescription);
-        setFaqs(faqsData);
-        setRelatedTools(relatedToolsData);
-        setIsEditing(!!contentData); // Set editing mode based on whether content exists
-        setAvailableLanguages(Object.keys(data.translations));
+        setExistingImage(imageUrl); // Set the existing image URL
+        setIsEditing(!!contentData);
       } else {
-        // Clear the input fields if no content is available for the selected language
         clearFields();
-        setAvailableLanguages(Object.keys(data.translations || {}));
       }
     } catch (error) {
       console.error('Error fetching content:', error.message);
       setError(error.message);
-      clearFields(); // Clear fields if there's an error
-      setAvailableLanguages([]);
+      clearFields();
     }
   };
 
@@ -112,8 +107,8 @@ function Content() {
     setExistingContent('');
     setTitle('');
     setDescription('');
-    setFaqs([]);
-    setRelatedTools([]);
+    setImage(null);
+    setExistingImage(null); // Clear the existing image
     setIsEditing(false);
   };
 
@@ -126,18 +121,16 @@ function Content() {
       formData.append('content', quillContent);
       formData.append('title', title);
       formData.append('description', description);
-      formData.append('language', selectedLanguage); // Add language to form data
+      formData.append('language', selectedLanguage);
       if (image) {
         formData.append('image', image);
       }
-      formData.append('faqs', JSON.stringify(faqs));
-      formData.append('relatedTools', JSON.stringify(relatedTools));
 
       const response = await fetch(`/api/content?category=${selectedCategory}&language=${selectedLanguage}`, {
         method,
         body: formData,
       });
-console.log(response);
+
       if (!response.ok) {
         const errorMessage = await response.text();
         throw new Error(`Failed to post content: ${errorMessage}`);
@@ -146,12 +139,17 @@ console.log(response);
       // Handle success
       setError(null);
       setExistingContent(quillContent);
+      if (image) {
+        const imageData = await response.json(); // Assuming the response contains the updated image URL
+        setExistingImage(imageData.image); // Set the new image URL
+      }
       toast.success('Content uploaded successfully!');
     } catch (error) {
       console.error('Error posting content:', error.message);
       setError(error.message);
     }
-  }, [quillContent, selectedCategory, selectedLanguage, isEditing, title, description, image, faqs, relatedTools]);
+  }, [quillContent, selectedCategory, selectedLanguage, isEditing, title, description, image]);
+
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
@@ -381,6 +379,12 @@ console.log(response);
           />
           <p className="text-gray-600 text-xs italic">Recommended dimension: 1200 x 630</p>
         </div>
+        {existingImage && (
+          <div className="mb-5">
+            <p className="text-sm font-medium text-gray-700">Current Image:</p>
+            <img src={existingImage} alt="Current content image" className="mt-1" />
+          </div>
+        )}
         {error && <div className="text-red-500">Error: {error}</div>}
         <QuillWrapper initialContent={quillContent} onChange={handleQuillChange} />
         
