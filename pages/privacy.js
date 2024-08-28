@@ -8,7 +8,8 @@ const Privacy = ({ existingContent, meta }) => {
   const [quillContent, setQuillContent] = useState(existingContent || '');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const [title, setTitle] = useState(existingContent || '');
+  const [description, setDescription] = useState(existingContent || '');
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -18,8 +19,9 @@ const Privacy = ({ existingContent, meta }) => {
           throw new Error('Failed to fetch content');
         }
         const data = await response.json();
-        console.log("Fetched Data:", data);
         setQuillContent(data?.content || '');
+        setTitle(data?.metaTitle || '');
+        setDescription(data?.metaDescription || '')
         setLoading(false);
       } catch (error) {
         console.error('Error fetching content:', error.message);
@@ -31,23 +33,15 @@ const Privacy = ({ existingContent, meta }) => {
     fetchContent();
   }, [i18n.language]);
 
-  const handleQuillChange = useCallback((newContent) => {
-    setQuillContent(newContent);
-  }, []);
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <Head>
-        <title>{meta.title}</title>
-        <meta name="description" content={meta.description} />
-        <meta property="og:title" content={meta.title} />
-        <meta property="og:description" content={meta.description} />
-        <meta property="og:image" content={meta.image} />
-        <meta property="og:url" content={meta.url} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={meta.title} />
-        <meta name="twitter:description" content={meta.description} />
-        <meta name="twitter:image" content={meta.image} />
+        <title>{title || 'Privacy & Policy'}</title>
+        <meta name="description" content={description || 'Privacy & Policy'} />
+        <meta property="og:url" content="https://ytubetools.com/privacy" />
+        <meta property="og:description" content={description || 'Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel\'s performance with advanced features and insights.'} />
       </Head>
       <div className="content pt-6 pb-5">
         {error && <div className="text-red-500">Error: {error}</div>}

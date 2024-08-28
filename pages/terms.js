@@ -8,7 +8,8 @@ const Terms = ({ existingContent }) => {
   const [quillContent, setQuillContent] = useState(existingContent || '');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const [title, setTitle] = useState();
+  const [description, setDescription] = useState();
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -20,6 +21,8 @@ const Terms = ({ existingContent }) => {
         const data = await response.json();
         console.log("Fetched Data:", data);
         setQuillContent(data?.content || '');
+        setTitle(data?.metaTitle || '');
+        setDescription(data?.metaDescription || '')
         setLoading(false);
       } catch (error) {
         console.error('Error fetching content:', error.message);
@@ -37,17 +40,11 @@ const Terms = ({ existingContent }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <Head>
-        <title>Terms & Condition</title>
-        <meta name="description" content="This is the terms and conditions page for YouTube Tools." />
-        <meta property="og:title" content="Terms & Condition - YouTube Tools" />
-        <meta property="og:description" content="This is the terms and conditions page for YouTube Tools." />
-        <meta property="og:image" content="https://your-site.com/path-to-your-image.jpg" />
-        <meta property="og:url" content="https://your-site.com/terms" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Terms & Condition - YouTube Tools" />
-        <meta name="twitter:description" content="This is the terms and conditions page for YouTube Tools." />
-        <meta name="twitter:image" content="https://your-site.com/path-to-your-image.jpg" />
+    <Head>
+        <title>{title || 'Terms & Condition'}</title>
+        <meta name="description" content={description || 'Terms & Condition'} />
+        <meta property="og:url" content="https://ytubetools.com/terms" />
+        <meta property="og:description" content={description || 'Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel\'s performance with advanced features and insights.'} />
       </Head>
       <div className="content pt-6 pb-5">
         {error && <div className="text-red-500">Error: {error}</div>}

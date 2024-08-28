@@ -3,7 +3,7 @@ import { connectToDatabase } from '../../utils/mongodb';
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
-      const { content, language } = req.body;
+      const { content, language, metaTitle, metaDescription } = req.body;
       if (!content || !language) {
         return res.status(400).json({ message: 'Content and language are required' });
       }
@@ -11,7 +11,7 @@ export default async function handler(req, res) {
       const { db } = await connectToDatabase();
       const result = await db.collection('terms').updateOne(
         { page: 'terms', language },
-        { $set: { content } },
+        { $set: { content, metaTitle, metaDescription } },
         { upsert: true }
       );
 
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
       const result = await db.collection('terms').findOne({ page: 'terms', language: lang });
 
       if (!result) {
-        return res.status(200).json({ content: '' });
+        return res.status(200).json({ content: '', metaTitle: '', metaDescription: '' });
       }
 
       res.status(200).json(result);

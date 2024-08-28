@@ -8,6 +8,10 @@ const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { s
 function About() {
   const [quillContent, setQuillContent] = useState('');
   const [existingContent, setExistingContent] = useState('');
+  const [metaTitle, setMetaTitle] = useState('');
+  const [metaDescription, setMetaDescription] = useState('');
+  const [existingMetaTitle, setExistingMetaTitle] = useState('');
+  const [existingMetaDescription, setExistingMetaDescription] = useState('');
   const [error, setError] = useState(null);
   const [language, setLanguage] = useState('en'); // Default language
 
@@ -20,7 +24,11 @@ function About() {
         }
         const data = await response.json();
         setQuillContent(data?.content || '');
+        setMetaTitle(data?.metaTitle || '');
+        setMetaDescription(data?.metaDescription || '');
         setExistingContent(data?.content || '');
+        setExistingMetaTitle(data?.metaTitle || '');
+        setExistingMetaDescription(data?.metaDescription || '');
       } catch (error) {
         console.error('Error fetching content:', error.message);
         setError(error.message);
@@ -37,7 +45,7 @@ function About() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ content: quillContent, language }),
+        body: JSON.stringify({ content: quillContent, metaTitle, metaDescription, language }),
       });
 
       if (!response.ok) {
@@ -48,11 +56,13 @@ function About() {
       // Handle success
       setError(null);
       setExistingContent(quillContent);
+      setExistingMetaTitle(metaTitle);
+      setExistingMetaDescription(metaDescription);
     } catch (error) {
       console.error('Error posting content:', error.message);
       setError(error.message);
     }
-  }, [quillContent, language]);
+  }, [quillContent, metaTitle, metaDescription, language]);
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
@@ -90,6 +100,30 @@ function About() {
             <option value="de">Deutsch</option>
           </select>
         </div>
+        <div className="mb-4">
+          <label htmlFor="metaTitle" className="block text-sm font-medium text-gray-700">
+            Meta Title
+          </label>
+          <input
+            type="text"
+            id="metaTitle"
+            value={metaTitle}
+            onChange={(e) => setMetaTitle(e.target.value)}
+            className="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
+        </div>
+        <div className="mb-4">
+          <label htmlFor="metaDescription" className="block text-sm font-medium text-gray-700">
+            Meta Description
+          </label>
+          <textarea
+            id="metaDescription"
+            value={metaDescription}
+            onChange={(e) => setMetaDescription(e.target.value)}
+            className="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            rows="3"
+          />
+        </div>
         <QuillWrapper initialContent={quillContent} onChange={handleQuillChange} />
         <button
           className="btn btn-primary p-2 mt-3 bg-blue-500 text-white rounded-md hover:bg-blue-600"
@@ -100,6 +134,8 @@ function About() {
         
         <div className="mt-10">
           <h2 className="text-xl font-bold mb-4">About Us Content</h2>
+          <p className="text-sm font-medium text-gray-700">Meta Title: {existingMetaTitle}</p>
+          <p className="text-sm font-medium text-gray-700">Meta Description: {existingMetaDescription}</p>
           <div dangerouslySetInnerHTML={{ __html: existingContent }} className="prose"></div>
         </div>
       </div>
