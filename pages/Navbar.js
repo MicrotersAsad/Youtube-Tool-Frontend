@@ -211,19 +211,14 @@ function Navbar() {
                         <Menu.Button className="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
                           <span className="sr-only">Open user menu</span>
                           {user.profileImage ? (
-                           <Image
-                           src={
-                             user.profileImage.startsWith('http') || user.profileImage.startsWith('/upload/')
-                               ? user.profileImage // If it's a normal URL or path, use it directly
-                               : `data:image/jpeg;base64,${user.profileImage}` // If it's a Base64 string, convert it
-                           }
-                           alt="User profile image"
-                           className="w-8 h-8 rounded-full"
-                           width={32}
-                           height={32}
-                           priority 
-                         />
-                         
+                            <Image
+                              src={`data:image/jpeg;base64,${user.profileImage}`}
+                              alt="User profile image"
+                              className="w-8 h-8 rounded-full"
+                              width={32}
+                              height={32}
+                              priority 
+                            />
                           ) : (
                             <span className="text-gray-500">No Image</span>
                           )}
