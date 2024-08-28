@@ -1,14 +1,15 @@
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEnvelope, FaKey, FaEye, FaEyeSlash } from "react-icons/fa";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/AuthContext"; // Custom hook for authentication context
 import Image from "next/image";
 import signIn from "../public/login.svg";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 function LoginOrResetPassword() {
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth(); // Assume this hook provides login method and isAuthenticated status
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,6 +23,45 @@ function LoginOrResetPassword() {
   const [token, setToken] = useState("");
   const [message, setMessage] = useState("");
   const [isTokenSent, setIsTokenSent] = useState(false);
+
+  useEffect(() => {
+    // Check if the user is already authenticated
+    if (isAuthenticated) {
+      router.push("/"); // Redirect to the main page if already logged in
+    }
+
+    document.title = "Login | YtubeTools";
+    
+    // Meta tag for description
+    const metaDesc = document.createElement('meta');
+    metaDesc.name = 'description';
+    metaDesc.content = 'Login to access exclusive features on YtubeTools.';
+    document.querySelector('head').appendChild(metaDesc);
+
+    // Open Graph meta tags for social sharing
+    const ogTitle = document.createElement('meta');
+    ogTitle.property = 'og:title';
+    ogTitle.content = 'Login To YtubeTools';
+    document.querySelector('head').appendChild(ogTitle);
+
+    const ogDesc = document.createElement('meta');
+    ogDesc.property = 'og:description';
+    ogDesc.content = 'Login to access exclusive features on YtubeTools.';
+    document.querySelector('head').appendChild(ogDesc);
+
+    const ogUrl = document.createElement('meta');
+    ogUrl.property = 'og:url';
+    ogUrl.content = window.location.href;
+    document.querySelector('head').appendChild(ogUrl);
+
+    return () => {
+      // Cleanup meta tags when the component unmounts
+      document.querySelector('head').removeChild(metaDesc);
+      document.querySelector('head').removeChild(ogTitle);
+      document.querySelector('head').removeChild(ogDesc);
+      document.querySelector('head').removeChild(ogUrl);
+    };
+  }, [isAuthenticated, router]);
 
   const handleSubmitLogin = async (event) => {
     event.preventDefault();
@@ -42,7 +82,7 @@ function LoginOrResetPassword() {
         throw new Error(data.message || "Error logging in");
       }
 
-      login(data.token);
+      login(data.token); // Assuming login method from context sets the token and updates auth status
       localStorage.setItem("token", data.token); // Optionally store the token in localStorage
       toast.success("Login successful!");
       router.push("/"); // Redirect to the home page or dashboard

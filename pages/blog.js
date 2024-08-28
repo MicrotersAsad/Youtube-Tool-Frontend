@@ -6,6 +6,7 @@ import { ClipLoader } from 'react-spinners';
 import { FaArrowRight } from 'react-icons/fa';
 import { i18n } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import Head from 'next/head';
 
 const BlogSection = ({ initialBlogs }) => {
   const [loading, setLoading] = useState(!initialBlogs.length);
@@ -15,7 +16,6 @@ const BlogSection = ({ initialBlogs }) => {
   const blogsPerPage = 9;
 
   const filteredBlogs = blogsData.filter(blog => blog.translations[i18n.language]);
-  console.log(filteredBlogs);
   const currentBlogs = filteredBlogs.slice((currentPage - 1) * blogsPerPage, currentPage * blogsPerPage);
   const totalPages = Math.ceil(filteredBlogs.length / blogsPerPage);
 
@@ -24,7 +24,6 @@ const BlogSection = ({ initialBlogs }) => {
     try {
       const response = await axios.get(`/api/blogs`);
       setBlogsData(response.data);
-      console.log(blogsData);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching blogs:', error);
@@ -70,13 +69,15 @@ const BlogSection = ({ initialBlogs }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
-      <title>Ytubetools || Blog</title>
-      <meta name="description" content="Blog Page" />
-      <meta property="og:url" content="https://ytubetools.com/blog" />
-      <meta
-        property="og:description"
-        content="Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
-      />
+      <Head>
+        <title>YtubeTools Blog | Ytubetool</title>
+        <meta name="description" content="Blog Page" />
+        <meta property="og:url" content="https://ytubetools.com/blog" />
+        <meta
+          property="og:description"
+          content="Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights."
+        />
+      </Head>
 
       <div className="container mx-auto px-4 p-5">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mt-8">
