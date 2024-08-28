@@ -23,7 +23,7 @@ export default async function handler(req, res) {
           pass: emailConfig.pass,
         },
       });
-console.log(transporter);
+
 
       // Admin email
       const mailOptionsAdmin = {

@@ -49,6 +49,7 @@ const Layout = ({ children }) => {
       router.pathname === '/dashboard/about' ||
       router.pathname === '/dashboard/privacy'||
       router.pathname === '/dashboard/terms'||
+      router.pathname === '/dashboard/emailConfigForm'||
       router.pathname === '/dashboard/notice'
     ) {
       setimportantManagementOpen(true);
@@ -250,6 +251,17 @@ const Layout = ({ children }) => {
                       }`}
                     >
                       <FaKey className="mr-3" /> <span className="mx-3">Terms</span>
+                    </p>
+                  </Link>
+                  <Link href="/dashboard/emailConfigForm" passHref>
+                    <p
+                      className={`flex items-center mt-2 py-2 px-6 cursor-pointer rounded-md ${
+                        isActiveRoute('/dashboard/emailConfigForm')
+                          ? 'bg-gray-300 text-gray-700'
+                          : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
+                      }`}
+                    >
+                      <FaKey className="mr-3" /> <span className="mx-3">SMPTP Server</span>
                     </p>
                   </Link>
                   <Link href="/dashboard/notice" passHref>
