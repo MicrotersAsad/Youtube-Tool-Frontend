@@ -7,9 +7,10 @@ import signIn from "../public/login.svg";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import Head from "next/head";
 
 function LoginOrResetPassword() {
-  const { login, isAuthenticated } = useAuth(); // Assume this hook provides login method and isAuthenticated status
+  const { login, isAuthenticated,user } = useAuth(); // Assume this hook provides login method and isAuthenticated status
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,46 +24,12 @@ function LoginOrResetPassword() {
   const [token, setToken] = useState("");
   const [message, setMessage] = useState("");
   const [isTokenSent, setIsTokenSent] = useState(false);
-
   useEffect(() => {
-    // Check if the user is already authenticated
-    if (isAuthenticated) {
-      router.push("/"); // Redirect to the main page if already logged in
+    if (user) {
+      // Redirect to the main page if user is already logged in
+      router.push("/");
     }
-
-    document.title = "Login | YtubeTools";
-    
-    // Meta tag for description
-    const metaDesc = document.createElement('meta');
-    metaDesc.name = 'description';
-    metaDesc.content = 'Login to access exclusive features on YtubeTools.';
-    document.querySelector('head').appendChild(metaDesc);
-
-    // Open Graph meta tags for social sharing
-    const ogTitle = document.createElement('meta');
-    ogTitle.property = 'og:title';
-    ogTitle.content = 'Login To YtubeTools';
-    document.querySelector('head').appendChild(ogTitle);
-
-    const ogDesc = document.createElement('meta');
-    ogDesc.property = 'og:description';
-    ogDesc.content = 'Login to access exclusive features on YtubeTools.';
-    document.querySelector('head').appendChild(ogDesc);
-
-    const ogUrl = document.createElement('meta');
-    ogUrl.property = 'og:url';
-    ogUrl.content = window.location.href;
-    document.querySelector('head').appendChild(ogUrl);
-
-    return () => {
-      // Cleanup meta tags when the component unmounts
-      document.querySelector('head').removeChild(metaDesc);
-      document.querySelector('head').removeChild(ogTitle);
-      document.querySelector('head').removeChild(ogDesc);
-      document.querySelector('head').removeChild(ogUrl);
-    };
-  }, [isAuthenticated, router]);
-
+  }, [user, router]);
   const handleSubmitLogin = async (event) => {
     event.preventDefault();
     setError("");
@@ -149,6 +116,12 @@ function LoginOrResetPassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <Head>
+      <title>Login To YtubeTools</title>
+            <meta name="description" content='Login To YtubeTools' />
+            <meta property="og:url" content='https://ytubetools.com/register'/>
+           
+      </Head>
       <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-4xl">
         <ToastContainer />
         {/* Illustration Section */}

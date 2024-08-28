@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Layout from './layout';
 
@@ -8,6 +8,26 @@ export default function EmailConfigForm() {
   const [user, setUser] = useState('');
   const [pass, setPass] = useState('');
   const [fromName, setFromName] = useState('');
+  const [config, setConfig] = useState(null); // State to hold the current configuration
+
+  useEffect(() => {
+    // Fetch the current SMTP configuration when the component mounts
+    const fetchConfig = async () => {
+      try {
+        const response = await axios.get('/api/update-email-config');
+        setConfig(response.data); // Store the current configuration in the state
+        setSmtpHost(response.data.smtpHost || '');
+        setSmtpPort(response.data.smtpPort || '');
+        setUser(response.data.user || '');
+        setPass(response.data.pass || '');
+        setFromName(response.data.fromName || '');
+      } catch (error) {
+        console.error('Error fetching email configuration:', error);
+      }
+    };
+
+    fetchConfig();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,6 +51,8 @@ export default function EmailConfigForm() {
     <Layout>
       <div className="max-w-3xl mx-auto mt-10 p-8 bg-white shadow-lg rounded-lg">
         <h1 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Update Email Configuration</h1>
+        
+        {/* Form to update configuration */}
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
@@ -98,6 +120,34 @@ export default function EmailConfigForm() {
             </button>
           </div>
         </form>
+        {/* Display current configuration */}
+        {config && (
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">Current Configuration</h2>
+            <table className="min-w-full bg-white border border-gray-200">
+              <tbody>
+                <tr>
+                  <td className="border px-4 py-2 font-bold text-gray-700">SMTP Host</td>
+                  <td className="border px-4 py-2">{config.smtpHost}</td>
+                </tr>
+                <tr>
+                  <td className="border px-4 py-2 font-bold text-gray-700">SMTP Port</td>
+                  <td className="border px-4 py-2">{config.smtpPort}</td>
+                </tr>
+                <tr>
+                  <td className="border px-4 py-2 font-bold text-gray-700">Email User</td>
+                  <td className="border px-4 py-2">{config.user}</td>
+                </tr>
+                <tr>
+                  <td className="border px-4 py-2 font-bold text-gray-700">From Name</td>
+                  <td className="border px-4 py-2">{config.fromName}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        
       </div>
     </Layout>
   );

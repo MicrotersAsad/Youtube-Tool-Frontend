@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEnvelope, FaEye, FaEyeSlash, FaImage, FaKey, FaUser } from "react-icons/fa";
 import Image from "next/image";
 import signup from "../public/singup.svg";
@@ -6,9 +6,12 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import Head from "next/head";
+import { useAuth } from "../contexts/AuthContext";
 
 function Register() {
   const router = useRouter();
+  const { user, updateUserProfile } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -26,63 +29,11 @@ function Register() {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    // Check if the user is logged in
-    const checkLoginStatus = async () => {
-      try {
-        const response = await fetch("/api/check-login-status");
-        if (response.ok) {
-          const data = await response.json();
-          if (data.isLoggedIn) {
-            // If user is logged in, redirect to the main page
-            router.push("/");
-          }
-        }
-      } catch (error) {
-        console.error("Failed to check login status:", error);
-      }
-    };
-
-    checkLoginStatus();
-
-    document.title = "Register | YtubeTools";
-
-    // Meta tag for description
-    const metaDesc = document.createElement('meta');
-    metaDesc.name = 'description';
-    metaDesc.content = 'Register to access exclusive features on YtubeTools.';
-    document.querySelector('head').appendChild(metaDesc);
-
-    // Open Graph meta tags for social sharing
-    const ogTitle = document.createElement('meta');
-    ogTitle.property = 'og:title';
-    ogTitle.content = 'Register an Account on YtubeTools';
-    document.querySelector('head').appendChild(ogTitle);
-
-    const ogDesc = document.createElement('meta');
-    ogDesc.property = 'og:description';
-    ogDesc.content = 'Register to access exclusive features on YtubeTools.';
-    document.querySelector('head').appendChild(ogDesc);
-
-    const ogUrl = document.createElement('meta');
-    ogUrl.property = 'og:url';
-    ogUrl.content = window.location.href;
-    document.querySelector('head').appendChild(ogUrl);
-
-    // Additional meta tag
-    const customMeta = document.createElement('meta');
-    customMeta.name = 'keywords';
-    customMeta.content = 'Register, YtubeTools, YouTube, Account, Signup';
-    document.querySelector('head').appendChild(customMeta);
-
-    return () => {
-      // Cleanup meta tags when the component unmounts
-      document.querySelector('head').removeChild(metaDesc);
-      document.querySelector('head').removeChild(ogTitle);
-      document.querySelector('head').removeChild(ogDesc);
-      document.querySelector('head').removeChild(ogUrl);
-      document.querySelector('head').removeChild(customMeta);
-    };
-  }, [router]);
+    if (user) {
+      // Redirect to the main page if user is already logged in
+      router.push("/");
+    }
+  }, [user, router]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -180,6 +131,12 @@ function Register() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 pt-5 pb-5">
+      <Head>
+      <title>Register an Account on YtubeTools</title>
+            <meta name="description" content='Register an Account on YtubeTools' />
+            <meta property="og:url" content='https://ytubetools.com/register'/>
+           
+      </Head>
       <ToastContainer />
       <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-4xl">
         {/* Illustration Section */}
@@ -263,6 +220,7 @@ function Register() {
                   {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                 </span>
               </div>
+              
               
               <div className="mb-6">
                 <label htmlFor="profileImage" className="block text-gray-600 mb-2">

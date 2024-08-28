@@ -20,14 +20,17 @@ import {
   FaAngleRight,
   FaInfo,
   FaFile,
+  FaTools,
+  FaServer,
+  FaCommentDots,
 } from 'react-icons/fa';
-import { FaDownLeftAndUpRightToCenter } from 'react-icons/fa6';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [contentManagementOpen, setContentManagementOpen] = useState(false);
   const [apiManagementOpen, setApiManagementOpen] = useState(false);
-  const [importantManagementOpen, setimportantManagementOpen] = useState(false);
+  const [importantManagementOpen, setImportantManagementOpen] = useState(false);
+  const [settingOpen, setSettingOpen] = useState(false);
   const { user } = useAuth();
   const router = useRouter();
 
@@ -40,6 +43,13 @@ const Layout = ({ children }) => {
       setContentManagementOpen(true);
     }
     if (
+      router.pathname === '/dashboard/emailConfigForm' ||
+      router.pathname === '/dashboard/media' ||
+      router.pathname === '/dashboard/importExport'
+    ) {
+      setSettingOpen(true);
+    }
+    if (
       router.pathname === '/dashboard/addYtApi' ||
       router.pathname === '/dashboard/addopenaiKey'
     ) {
@@ -47,12 +57,11 @@ const Layout = ({ children }) => {
     }
     if (
       router.pathname === '/dashboard/about' ||
-      router.pathname === '/dashboard/privacy'||
-      router.pathname === '/dashboard/terms'||
-      router.pathname === '/dashboard/emailConfigForm'||
+      router.pathname === '/dashboard/privacy' ||
+      router.pathname === '/dashboard/terms' ||
       router.pathname === '/dashboard/notice'
     ) {
-      setimportantManagementOpen(true);
+      setImportantManagementOpen(true);
     }
   }, [user, router.pathname]);
 
@@ -67,8 +76,13 @@ const Layout = ({ children }) => {
   const toggleApiManagement = () => {
     setApiManagementOpen(!apiManagementOpen);
   };
-  const toggleimportantManagement = () => {
-    setimportantManagementOpen(!importantManagementOpen);
+
+  const toggleImportantManagement = () => {
+    setImportantManagementOpen(!importantManagementOpen);
+  };
+
+  const toggleSettingManagement = () => {
+    setSettingOpen(!settingOpen);
   };
 
   return (
@@ -96,7 +110,7 @@ const Layout = ({ children }) => {
                   : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
               }`}
             >
-              <FaTachometerAlt  className="mr-3 text-info" /> <span className="mx-3">Dashboard</span>
+              <FaTachometerAlt className="mr-3 text-info" /> <span className="mx-3">Dashboard</span>
             </p>
           </Link>
           {user && user.role === 'admin' && (
@@ -123,7 +137,9 @@ const Layout = ({ children }) => {
                 }`}
               >
                 <FaFolderOpen className="mr-3 text-primary" /> <span className="mx-3">Blogs</span>
-                <span className="ml-auto">{contentManagementOpen ? <FaChevronDown /> : <FaChevronRight />}</span>
+                <span className="ml-auto">
+                  {contentManagementOpen ? <FaChevronDown /> : <FaChevronRight />}
+                </span>
               </div>
               {contentManagementOpen && (
                 <div className="ml-6">
@@ -208,7 +224,7 @@ const Layout = ({ children }) => {
           {user && (user.role === 'admin' || user.role === 'moderator') && (
             <div>
               <div
-                onClick={toggleimportantManagement}
+                onClick={toggleImportantManagement}
                 className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
                   importantManagementOpen
                     ? 'bg-gray-300 text-gray-700'
@@ -250,18 +266,7 @@ const Layout = ({ children }) => {
                           : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
                       }`}
                     >
-                      <FaKey className="mr-3" /> <span className="mx-3">Terms</span>
-                    </p>
-                  </Link>
-                  <Link href="/dashboard/emailConfigForm" passHref>
-                    <p
-                      className={`flex items-center mt-2 py-2 px-6 cursor-pointer rounded-md ${
-                        isActiveRoute('/dashboard/emailConfigForm')
-                          ? 'bg-gray-300 text-gray-700'
-                          : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
-                      }`}
-                    >
-                      <FaKey className="mr-3" /> <span className="mx-3">SMPTP Server</span>
+                      <FaFileAlt className="mr-3" /> <span className="mx-3">Terms</span>
                     </p>
                   </Link>
                   <Link href="/dashboard/notice" passHref>
@@ -277,23 +282,71 @@ const Layout = ({ children }) => {
                   </Link>
                 </div>
               )}
-               <Link href="/dashboard/comment" passHref>
+            </div>
+          )}
+          {user && (user.role === 'admin' || user.role === 'moderator') && (
+            <div>
+              <div
+                onClick={toggleSettingManagement}
+                className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
+                  settingOpen
+                    ? 'bg-gray-300 text-gray-700'
+                    : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
+                }`}
+              >
+                <FaTools className="mr-3 text-red-500" /> <span className="mx-3">Settings</span>
+                <span className="ml-auto">{settingOpen ? <FaChevronDown /> : <FaChevronRight />}</span>
+              </div>
+              {settingOpen && (
+                <div className="ml-6">
+                  <Link href="/dashboard/media" passHref>
                     <p
                       className={`flex items-center mt-2 py-2 px-6 cursor-pointer rounded-md ${
-                        isActiveRoute('/dashboard/comment')
+                        isActiveRoute('/dashboard/media')
                           ? 'bg-gray-300 text-gray-700'
                           : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
                       }`}
                     >
-                      <FaBell className="mr-3" /> <span className="mx-3">Comment</span>
+                      <FaFile className="mr-3" /> <span className="mx-3">Media</span>
                     </p>
                   </Link>
+                  <Link href="/dashboard/importExport" passHref>
+                    <p
+                      className={`flex items-center mt-2 py-2 px-6 cursor-pointer rounded-md ${
+                        isActiveRoute('/dashboard/importExport')
+                          ? 'bg-gray-300 text-gray-700'
+                          : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
+                      }`}
+                    >
+                      <FaFileAlt className="mr-3" /> <span className="mx-3">Import/Export</span>
+                    </p>
+                  </Link>
+                  <Link href="/dashboard/emailConfigForm" passHref>
+                    <p
+                      className={`flex items-center mt-2 py-2 px-6 cursor-pointer rounded-md ${
+                        isActiveRoute('/dashboard/emailConfigForm')
+                          ? 'bg-gray-300 text-gray-700'
+                          : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
+                      }`}
+                    >
+                      <FaServer className="mr-3" /> <span className="mx-3">SMTP</span>
+                    </p>
+                  </Link>
+                </div>
+              )}
+              <Link href="/dashboard/comment" passHref>
+                <p
+                  className={`flex items-center mt-2 py-2 px-6 cursor-pointer rounded-md ${
+                    isActiveRoute('/dashboard/comment')
+                      ? 'bg-gray-300 text-gray-700'
+                      : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
+                  }`}
+                >
+                  <FaCommentDots className="mr-3" /> <span className="mx-3">Comment</span>
+                </p>
+              </Link>
             </div>
           )}
-          
-        
-         
-         
           {user && (user.role === 'admin' || user.role === 'moderator') && (
             <Link href="/dashboard/content" passHref>
               <p
@@ -307,7 +360,6 @@ const Layout = ({ children }) => {
               </p>
             </Link>
           )}
-         
           {user && (user.role === 'admin' || user.role === 'moderator') && (
             <Link href="/dashboard/review" passHref>
               <p
@@ -321,38 +373,15 @@ const Layout = ({ children }) => {
               </p>
             </Link>
           )}
-          {user && (user.role === 'admin' || user.role === 'moderator') && (
-            <Link href="/dashboard/importExport" passHref>
-              <p
-                className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
-                  isActiveRoute('/dashboard/importExport')
-                    ? 'bg-gray-300 text-gray-700'
-                    : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
-                }`}
-              >
-                <FaDownLeftAndUpRightToCenter className="mr-3 text-red-500" /> <span className="mx-3">Export & Import</span>
-              </p>
-            </Link>
-          )}
-          {user && (user.role === 'admin' || user.role === 'moderator') && (
-            <Link href="/dashboard/media" passHref>
-              <p
-                className={`flex items-center mt-4 py-2 px-6 cursor-pointer rounded-md ${
-                  isActiveRoute('/dashboard/media')
-                    ? 'bg-gray-300 text-gray-700'
-                    : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
-                }`}
-              >
-                <FaFile className="mr-3 text-red-500" /> <span className="mx-3">Media</span>
-              </p>
-            </Link>
-          )}
         </nav>
       </div>
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="flex items-center justify-between px-6 py-4 bg-white border-b-4 border-gray-200">
           <div className="flex items-center">
-            <button className="text-gray-500 focus:outline-none lg:hidden" onClick={() => setSidebarOpen(true)}>
+            <button
+              className="text-gray-500 focus:outline-none lg:hidden"
+              onClick={() => setSidebarOpen(true)}
+            >
               <svg
                 className="w-6 h-6"
                 fill="none"
@@ -360,7 +389,12 @@ const Layout = ({ children }) => {
                 viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 6h16M4 12h16m-7 6h7"
+                ></path>
               </svg>
             </button>
           </div>
