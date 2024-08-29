@@ -37,9 +37,9 @@ function Content() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
+  const [existingImage, setExistingImage] = useState(null); // State to hold the existing image URL
   const [faqs, setFaqs] = useState([]);
   const [relatedTools, setRelatedTools] = useState([]);
-  const [existingImage, setExistingImage] = useState(null); // Store existing image
   const [availableLanguages, setAvailableLanguages] = useState([]);
   const { t } = useTranslation('navbar');
 
@@ -64,7 +64,6 @@ function Content() {
     { name: 'Youtube Comment Picker', link: 'http://www.ytubetools.com/tools/youtube-comment-picker', logo: Comment },
     { name: 'YouTube Keyword Research', link: 'http://www.ytubetools.com/tools/keyword-research', logo: research },
     { name: 'YouTube Embed Code Generator', link: 'http://www.ytubetools.com/tools/youtube-embed-code-generator', logo: Embed },
-
     // Add more tools as needed
   ];
 
@@ -72,6 +71,44 @@ function Content() {
     fetchContent();
   }, [selectedCategory, selectedLanguage]); // Fetch content and FAQs when category or language changes
 
+  // const fetchContent = async () => {
+  //   try {
+  //     const response = await fetch(`/api/content?category=${selectedCategory}&language=${selectedLanguage}`);
+  //     if (!response.ok) {
+  //       throw new Error('Failed to fetch content');
+  //     }
+  //     const data = await response.json();
+
+  //     if (data?.translations?.[selectedLanguage]) {
+  //       const contentData = data.translations[selectedLanguage].content || '';
+  //       const faqsData = data.translations[selectedLanguage].faqs || [];
+  //       const relatedToolsData = data.translations[selectedLanguage].relatedTools || [];
+  //       const metatitle = data.translations[selectedLanguage].title || '';
+  //       const metaDescription = data.translations[selectedLanguage].description || '';
+  //       const imageUrl = data.translations[selectedLanguage].image || '';
+
+  //       setQuillContent(contentData);
+  //       setExistingContent(contentData);
+  //       setTitle(metatitle);
+  //       setDescription(metaDescription);
+  //       setImage(null); // Reset the image state
+  //       setExistingImage(imageUrl); // Set the existing image URL
+  //       setFaqs(faqsData);
+  //       setRelatedTools(relatedToolsData);
+  //       setIsEditing(!!contentData); // Set editing mode based on whether content exists
+  //       setAvailableLanguages(Object.keys(data.translations));
+  //     } else {
+  //       // Clear the input fields if no content is available for the selected language
+  //       clearFields();
+  //       setAvailableLanguages(Object.keys(data.translations || {}));
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching content:', error.message);
+  //     setError(error.message);
+  //     clearFields(); // Clear fields if there's an error
+  //     setAvailableLanguages([]);
+  //   }
+  // };
   const fetchContent = async () => {
     try {
       const response = await fetch(`/api/content?category=${selectedCategory}&language=${selectedLanguage}`);
@@ -79,36 +116,47 @@ function Content() {
         throw new Error('Failed to fetch content');
       }
       const data = await response.json();
-
+  
       if (data?.translations?.[selectedLanguage]) {
         const contentData = data.translations[selectedLanguage].content || '';
+        const faqsData = data.translations[selectedLanguage].faqs || [];
+        const relatedToolsData = data.translations[selectedLanguage].relatedTools || [];
         const metatitle = data.translations[selectedLanguage].title || '';
         const metaDescription = data.translations[selectedLanguage].description || '';
         const imageUrl = data.translations[selectedLanguage].image || '';
-
+  
         setQuillContent(contentData);
         setExistingContent(contentData);
         setTitle(metatitle);
         setDescription(metaDescription);
-        setExistingImage(imageUrl); // Set the existing image URL
-        setIsEditing(!!contentData);
+        setImage(null); // Reset the image state to ensure it updates correctly
+        setExistingImage(imageUrl); // Set the existing image URL from the fetched data
+        setFaqs(faqsData);
+        setRelatedTools(relatedToolsData);
+        setIsEditing(!!contentData); // Set editing mode based on whether content exists
+        setAvailableLanguages(Object.keys(data.translations));
       } else {
+        // Clear the input fields if no content is available for the selected language
         clearFields();
+        setAvailableLanguages(Object.keys(data.translations || {}));
       }
     } catch (error) {
       console.error('Error fetching content:', error.message);
       setError(error.message);
-      clearFields();
+      clearFields(); // Clear fields if there's an error
+      setAvailableLanguages([]);
     }
   };
-
+  
   const clearFields = () => {
     setQuillContent('');
     setExistingContent('');
     setTitle('');
     setDescription('');
     setImage(null);
-    setExistingImage(null); // Clear the existing image
+    setExistingImage(null);
+    setFaqs([]);
+    setRelatedTools([]);
     setIsEditing(false);
   };
 
@@ -121,10 +169,12 @@ function Content() {
       formData.append('content', quillContent);
       formData.append('title', title);
       formData.append('description', description);
-      formData.append('language', selectedLanguage);
+      formData.append('language', selectedLanguage); // Add language to form data
       if (image) {
         formData.append('image', image);
       }
+      formData.append('faqs', JSON.stringify(faqs));
+      formData.append('relatedTools', JSON.stringify(relatedTools));
 
       const response = await fetch(`/api/content?category=${selectedCategory}&language=${selectedLanguage}`, {
         method,
@@ -139,17 +189,13 @@ function Content() {
       // Handle success
       setError(null);
       setExistingContent(quillContent);
-      if (image) {
-        const imageData = await response.json(); // Assuming the response contains the updated image URL
-        setExistingImage(imageData.image); // Set the new image URL
-      }
+      setExistingImage(image ? URL.createObjectURL(image) : existingImage); // Set the existing image after upload
       toast.success('Content uploaded successfully!');
     } catch (error) {
       console.error('Error posting content:', error.message);
       setError(error.message);
     }
-  }, [quillContent, selectedCategory, selectedLanguage, isEditing, title, description, image]);
-
+  }, [quillContent, selectedCategory, selectedLanguage, isEditing, title, description, image, faqs, relatedTools, existingImage]);
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
@@ -377,14 +423,14 @@ function Content() {
             onChange={handleImageChange}
             className="mt-1 block w-full text-gray-700"
           />
+          {existingImage && (
+            <div className="mt-2">
+              <p className="text-gray-600 text-xs italic">Current Image:</p>
+              <img src={existingImage} alt="Existing" className="w-32 h-32 object-cover mt-1" />
+            </div>
+          )}
           <p className="text-gray-600 text-xs italic">Recommended dimension: 1200 x 630</p>
         </div>
-        {existingImage && (
-          <div className="mb-5">
-            <p className="text-sm font-medium text-gray-700">Current Image:</p>
-            <img src={existingImage} alt="Current content image" className="mt-1" />
-          </div>
-        )}
         {error && <div className="text-red-500">Error: {error}</div>}
         <QuillWrapper initialContent={quillContent} onChange={handleQuillChange} />
         
