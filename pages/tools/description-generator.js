@@ -239,18 +239,18 @@ ${keywords}
   return (
     <div className="max-w-7xl mx-auto p-4">
       <Head>
-        <title>{meta?.title}</title>
-        <meta name="description" content={meta?.description} />
-        <meta property="og:url" content={meta?.url} />
-        <meta property="og:title" content={meta?.title} />
-        <meta property="og:description" content={meta?.description} />
-        <meta property="og:image" content={meta?.image || ""} />
-        <meta name="twitter:card" content={meta?.image || ""} />
-        <meta property="twitter:domain" content={meta?.url} />
-        <meta property="twitter:url" content={meta?.url} />
-        <meta name="twitter:title" content={meta?.title} />
-        <meta name="twitter:description" content={meta?.description} />
-        <meta name="twitter:image" content={meta?.image || ""} />
+      <title>{meta?.title}</title>
+            <meta name="description" content={meta?.description} />
+            <meta property="og:url" content={meta?.url} />
+            <meta property="og:title" content={meta?.title} />
+            <meta property="og:description" content={meta?.description} />
+            <meta property="og:image" content={meta?.image || ""} />
+            <meta name="twitter:card" content={meta?.image || ""} />
+            <meta property="twitter:domain" content={meta?.url} />
+            <meta property="twitter:url" content={meta?.url} />
+            <meta name="twitter:title" content={meta?.title} />
+            <meta name="twitter:description" content={meta?.description} />
+            <meta name="twitter:image" content={meta?.image || ""} />
         {/* - Webpage Schema */}
         <Script type="application/ld+json">
           {JSON.stringify({
