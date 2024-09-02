@@ -4,12 +4,12 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import React, { useCallback, useEffect, useState } from 'react';
 import Head from 'next/head';
 
-const Terms = ({ existingContent }) => {
+const Terms = ({ existingContent, initialTitle, initialDescription }) => {
   const [quillContent, setQuillContent] = useState(existingContent || '');
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [title, setTitle] = useState();
-  const [description, setDescription] = useState();
+  const [title, setTitle] = useState(initialTitle || 'Terms & Condition');
+  const [description, setDescription] = useState(initialDescription || 'Terms & Condition');
+   const [loading,setLoading ]=useState()
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -21,8 +21,8 @@ const Terms = ({ existingContent }) => {
         const data = await response.json();
         console.log("Fetched Data:", data);
         setQuillContent(data?.content || '');
-        setTitle(data?.metaTitle || '');
-        setDescription(data?.metaDescription || '')
+        setTitle(data?.metaTitle || title);
+        setDescription(data?.metaDescription || description);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching content:', error.message);
@@ -40,11 +40,12 @@ const Terms = ({ existingContent }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <Head>
-        <title>{title || 'Terms & Condition'}</title>
-        <meta name="description" content={description || 'Terms & Condition'} />
+      <Head>
+        <title>{title}</title>
+        <meta name="description" content={description} />
         <meta property="og:url" content="https://ytubetools.com/terms" />
-        <meta property="og:description" content={description || 'Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel\'s performance with advanced features and insights.'} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
       </Head>
       <div className="content pt-6 pb-5">
         {error && <div className="text-red-500">Error: {error}</div>}
@@ -56,7 +57,7 @@ const Terms = ({ existingContent }) => {
 
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : "http";
+  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
   const apiUrl = `${protocol}://${host}/api/privacy?language=${locale}`;
 
   try {
@@ -71,6 +72,8 @@ export async function getServerSideProps({ req, locale }) {
     return {
       props: {
         existingContent: contentData.content || '',
+        initialTitle: contentData.metaTitle || 'Terms & Condition',
+        initialDescription: contentData.metaDescription || 'Terms & Condition',
         ...(await serverSideTranslations(locale, ['footer', 'navbar'])),
       },
     };
@@ -79,6 +82,8 @@ export async function getServerSideProps({ req, locale }) {
     return {
       props: {
         existingContent: '',
+        initialTitle: 'Terms & Condition',
+        initialDescription: 'Terms & Condition',
         ...(await serverSideTranslations(locale, ['footer', 'navbar'])),
       },
     };

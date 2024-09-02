@@ -14,6 +14,8 @@ function Terms() {
   const [existingMetaTitle, setExistingMetaTitle] = useState('');
   const [existingMetaDescription, setExistingMetaDescription] = useState('');
   const [language, setLanguage] = useState('en'); // Default language
+
+  // Fetch content on language change
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -22,7 +24,6 @@ function Terms() {
           throw new Error('Failed to fetch content');
         }
         const data = await response.json();
-     
         setQuillContent(data?.content || '');
         setMetaTitle(data?.metaTitle || '');
         setMetaDescription(data?.metaDescription || '');
@@ -38,15 +39,16 @@ function Terms() {
     fetchContent();
   }, [language]); // Refetch content when language changes
 
+  // Handle the submit event
   const handleSubmit = useCallback(async () => {
     try {
-      console.log("Submitting Data:", quillContent); // Add debugging
+      console.log("Submitting Data:", quillContent); // Debugging
       const response = await fetch('/api/terms', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ content: quillContent, language }),
+        body: JSON.stringify({ content: quillContent, metaTitle, metaDescription, language }),
       });
 
       if (!response.ok) {
@@ -55,17 +57,18 @@ function Terms() {
       }
 
       // Handle success
-      
       setError(null);
       setExistingContent(quillContent);
       setExistingMetaTitle(metaTitle);
       setExistingMetaDescription(metaDescription);
-     
+
+      // Optionally, display a success message
+      alert('Content saved successfully!');
     } catch (error) {
       console.error('Error posting content:', error.message);
       setError(error.message);
     }
-  }, [quillContent, language]);
+  }, [quillContent, metaTitle, metaDescription, language]);
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
@@ -74,7 +77,7 @@ function Terms() {
   return (
     <Layout>
       <div className='container p-5'>
-        <h2>Content Add For Terms  Page</h2>
+        <h2>Content Add For Terms Page</h2>
         <div className="mb-4">
           <label htmlFor="language" className="block text-sm font-medium text-gray-700">
             Select Language
@@ -131,7 +134,7 @@ function Terms() {
         <button className='btn btn-primary p-2 mt-3' onClick={handleSubmit}>Submit Content</button>
         
         <div className='mt-10'>
-          <h2>Terms  Content</h2>
+          <h2>Terms Content</h2>
           <p className="text-sm font-medium text-gray-700">Meta Title: {existingMetaTitle}</p>
           <p className="text-sm font-medium text-gray-700">Meta Description: {existingMetaDescription}</p>
           <div dangerouslySetInnerHTML={{ __html: existingContent }}></div>
