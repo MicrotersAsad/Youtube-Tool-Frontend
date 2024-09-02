@@ -252,95 +252,104 @@ const YouTubeChannelScraper =  ({ meta, reviews, content, relatedTools, faqs,rea
 
         <div className="max-w-7xl mx-auto p-4">
         <Head>
-        <title>{meta?.title}</title>
-        <meta name="description" content={meta?.description} />
-        <meta property="og:url"  content={`${meta?.url}/${i18n.language}/tools/youtube-channel-search`} />
-        <meta property="og:title" content={meta?.title} />
-        <meta property="og:description" content={meta?.description} />
-        <meta property="og:image" content={meta?.image || ""} />
-        <meta name="twitter:card" content={meta?.image || ""} />
-        <meta property="twitter:domain"  content={`${meta?.url}/${i18n.language}/tools/youtube-channel-search`}  />
-        <meta property="twitter:url"  content={`${meta?.url}/${i18n.language}/tools/youtube-channel-search`}  />
-        <meta name="twitter:title" content={meta?.title} />
-        <meta name="twitter:description" content={meta?.description} />
-        <meta name="twitter:image" content={meta?.image || ""} />
-
-        {/* Adding hrefLang for alternate languages */}
-        {translations && Object.keys(translations).map((lang) => (
-          <link
-            key={lang}
-            rel="alternate"
-            href={`${meta?.url}/${lang}/tools/youtube-channel-search`}
-            hrefLang={lang}
-          />
-        ))}
-        <link rel="alternate" href={`${meta?.url}`} hrefLang="en" />
-        
-        {/* JSON-LD Scripts */}
-        <Script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebPage",
-            name: meta?.title,
-            url: meta?.url,
-            description: meta?.description,
-            breadcrumb: {
-              "@id": `${meta?.url}#breadcrumb`,
-            },
-            about: {
-              "@type": "Thing",
-              name: meta?.title,
-            },
-            isPartOf: {
-              "@type": "WebSite",
-              url: meta?.url,
-            },
-          })}
-        </Script>
-        <Script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            name: meta?.title,
-            url: meta?.url,
-            applicationCategory: "Multimedia",
-            aggregateRating: {
-              "@type": "AggregateRating",
-              ratingValue: overallRating,
-              ratingCount: reviews?.length,
-              reviewCount: reviews?.length,
-            },
-            review: reviews.map((review) => ({
-              "@type": "Review",
-              author: {
-                "@type": "Person",
-                name: review.userName,
-              },
-              datePublished: review.createdAt,
-              reviewBody: review.comment,
-              name: review.title,
-              reviewRating: {
-                "@type": "Rating",
-                ratingValue: review.rating,
-              },
-            })),
-          })}
-        </Script>
-        <Script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faqs.map((faq) => ({
-              "@type": "Question",
-              name: faq.question,
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: faq.answer,
-              },
-            })),
-          })}
-        </Script>
-      </Head>
+  <title>{meta?.title}</title>
+  <meta name="description" content={meta?.description} />
+  
+  {/* Open Graph Tags */}
+  <meta property="og:url" content={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-channel-search`} />
+  <meta property="og:title" content={meta?.title} />
+  <meta property="og:description" content={meta?.description} />
+  <meta property="og:image" content={meta?.image || ""} />
+  
+  {/* Twitter Card Tags */}
+  <meta name="twitter:card" content={meta?.image || ""} />
+  <meta property="twitter:domain" content={meta?.url} />
+  <meta property="twitter:url" content={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-channel-search`} />
+  <meta name="twitter:title" content={meta?.title} />
+  <meta name="twitter:description" content={meta?.description} />
+  <meta name="twitter:image" content={meta?.image || ""} />
+  
+  {/* hreflang and Alternate Language Links */}
+  <link rel="alternate" href={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-channel-search`}  hrefLang="x-default" />
+  <link rel="alternate" href={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-channel-search`}  hrefLang="en" />
+  {translations && Object.keys(translations).map(lang => (
+    lang !== 'en' && (
+      <link
+        key={lang}
+        rel="alternate"
+        hrefLang={lang}
+        href={`${meta?.url}/${lang}/tools/youtube-channel-search`}
+      />
+    )
+  ))}
+  
+  {/* JSON-LD Structured Data */}
+  <Script type="application/ld+json">
+    {JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: meta?.title,
+      url: `${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-channel-search`,
+      description: meta?.description,
+      breadcrumb: {
+        "@id": `${meta?.url}#breadcrumb`,
+      },
+      about: {
+        "@type": "Thing",
+        name: meta?.title,
+      },
+      isPartOf: {
+        "@type": "WebSite",
+        url: meta?.url,
+      },
+    })}
+  </Script>
+  
+  <Script type="application/ld+json">
+    {JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: meta?.title,
+      url: `${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-channel-search`,
+      applicationCategory: "Multimedia",
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: overallRating,
+        ratingCount: reviews?.length,
+        reviewCount: reviews?.length,
+      },
+      review: reviews.map((review) => ({
+        "@type": "Review",
+        author: {
+          "@type": "Person",
+          name: review.userName,
+        },
+        datePublished: review.createdAt,
+        reviewBody: review.comment,
+        name: review.title,
+        reviewRating: {
+          "@type": "Rating",
+          ratingValue: review.rating,
+        },
+      })),
+    })}
+  </Script>
+  
+  <Script type="application/ld+json">
+    {JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqs.map((faq) => ({
+        "@type": "Question",
+        name: faq.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: faq.answer,
+        },
+      })),
+    })}
+  </Script>
+</Head>
           <h1 className="text-center text-white text-2xl font-bold mb-4">
             {t("YouTube Channel Search")}
           </h1>
