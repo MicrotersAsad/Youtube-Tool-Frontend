@@ -10,6 +10,7 @@ import 'flag-icons/css/flag-icons.min.css'; // Import flag-icons CSS
 import NProgress from 'nprogress'; // Add this line
 import 'nprogress/nprogress.css'; // Add this line
 import logo from "../public/yt icon.png"
+import { FaBookmark } from 'react-icons/fa';
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
@@ -89,7 +90,6 @@ function Navbar() {
     },
     { key: 'Pricing', href: '/pricing', dropdown: false },
     { key: 'Blog', href: '/blog', dropdown: false },
-    { key: 'Saved', href: '/saved-channels', dropdown: false },
     { key: 'About Us', href: '/about', dropdown: false },
     { key: 'Contact Us', href: '/contact', dropdown: false },
   ];
@@ -165,6 +165,18 @@ function Navbar() {
                     </div>
                   </div>
                 </div>
+                <Link
+  href="/saved-channels"
+  className={classNames(
+    router.pathname === '/saved-channels' ? 'bg-gray-700 text-white' : 'text-gray-300 hover:text-red-500 hover:bg-gray-700',
+    'px-3 py-2 rounded-md text-sm font-medium flex items-center'
+  )}
+>
+  <FaBookmark className="mr-2 fs-3 text-yellow-300" /> {/* This adds an icon */}
+  {/* Adjust this to the correct key for translation */}
+</Link>
+
+
                 <div className=" flex items-center inset-y-0 right-0 pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
                   <div className="relative inline-block text-left lan mr-4 hidden sm:flex block">
                     <Menu as="div" className="relative">
@@ -205,7 +217,7 @@ function Navbar() {
                       </Transition>
                     </Menu>
                   </div>
-
+                  
                   {user ? (
                     <Menu as="div" className="relative ml-3">
                       <div>
@@ -223,8 +235,11 @@ function Navbar() {
                           ) : (
                             <span className="text-gray-500">No Image</span>
                           )}
+                            
                         </Menu.Button>
+                        
                       </div>
+                     
                       <Transition
                         as={Fragment}
                         enter="transition ease-out duration-200"

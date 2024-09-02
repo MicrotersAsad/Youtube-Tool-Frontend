@@ -27,7 +27,6 @@ import chart from "../public/shape/chart (1).png";
 import cloud from "../public/shape/cloud.png";
 import cloud2 from "../public/shape/cloud2.png";
 import Script from "next/script";
-import { log } from "util";
 const StarRating = dynamic(() => import("./tools/StarRating"), { ssr: false });
 
 export default function Home() {
@@ -401,13 +400,13 @@ export default function Home() {
           />
           <title>{meta?.title}</title>
           <meta name="description" content={meta?.description} />
-          <meta property="og:url" content={meta?.url} />
+          <meta property="og:url" content={`${meta?.url}/${i18n.language}`} />
           <meta property="og:title" content={meta?.title} />
           <meta property="og:description" content={meta?.description} />
           <meta property="og:image" content={meta?.image || ""} />
           <meta name="twitter:card" content={meta?.image || ""} />
-          <meta property="twitter:domain" content={meta?.url} />
-          <meta property="twitter:url" content={meta?.url} />
+          <meta property="twitter:domain" content={`${meta?.url}/${i18n.language}`} />
+          <meta property="twitter:url" content={`${meta?.url}/${i18n.language}`} />
           <meta name="twitter:title" content={meta?.title} />
           <meta name="twitter:description" content={meta?.description} />
           <meta name="twitter:image" content={meta?.image || ""} />
