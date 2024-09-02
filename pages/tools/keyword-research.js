@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaCopy, FaStar } from "react-icons/fa";
+import { FaCopy, FaStar, FaThumbsUp, FaThumbsDown, FaBookmark, FaFlag } from "react-icons/fa";
 import ClipLoader from "react-spinners/ClipLoader";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
@@ -9,6 +9,7 @@ import Image from "next/image";
 import { useAuth } from "../../contexts/AuthContext";
 import Head from "next/head";
 import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 import Link from "next/link";
 import dynamic from 'next/dynamic';
 import { format } from "date-fns";
@@ -19,10 +20,10 @@ import Script from "next/script";
 import Select from 'react-select';
 import countryList from 'react-select-country-list';
 import { saveAs } from 'file-saver';
-import * as XLSX from 'xlsx'
+import * as XLSX from 'xlsx';
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
-const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
+const KeywordSearch = ({ meta, faqs, relatedTools, existingContent, reactions }) => {
   const [keyword, setKeyword] = useState("");
   const [relatedKeywords, setRelatedKeywords] = useState(null);
   const [googleSuggestionKeywords, setGoogleSuggestionKeywords] = useState(null);
@@ -46,9 +47,14 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
   const [translations, setTranslations] = useState([]);
   const { t } = useTranslation('keyword');
   const countryOptions = countryList().getData(); // Get the country list
-  const toggleFAQ = (index) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
+  const [likes, setLikes] = useState(reactions.likes || 0);
+  const [unlikes, setUnlikes] = useState(reactions.unlikes || 0);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [hasUnliked, setHasUnliked] = useState(false);
+  const [hasReported, setHasReported] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportText, setReportText] = useState("");
+  const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -62,6 +68,8 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
         }
         const data = await response.json();
         setTranslations(data.translations);
+        setLikes(data.reactions.likes || 0);
+        setUnlikes(data.reactions.unlikes || 0);
       } catch (error) {
         console.error("Error fetching content:", error);
         setError("Failed to load content.");
@@ -89,7 +97,22 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
     if (user && user.paymentStatus !== "success" && user.role !== "admin") {
       setGenerateCount(5);
     }
-  }, [user]);
+
+    if (user) {
+      const userAction = reactions.users?.[user.email];
+      if (userAction === "like") {
+        setHasLiked(true);
+      } else if (userAction === "unlike") {
+        setHasUnliked(true);
+      } else if (userAction === "report") {
+        setHasReported(true);
+      }
+    }
+
+    // Check if data is already saved
+    const savedTools = JSON.parse(localStorage.getItem('savedTools') || '[]');
+    setIsSaved(savedTools.some(tool => tool.toolUrl === window.location.href));
+  }, [user, reactions.users]);
 
   const fetchReviews = async () => {
     try {
@@ -207,9 +230,89 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    if (user) {
+      const userAction = reactions.users?.[user.email];
+      if (userAction === "like") {
+        setHasLiked(true);
+      } else if (userAction === "unlike") {
+        setHasUnliked(true);
+      } else if (userAction === "report") {
+        setHasReported(true);
+      }
+    }
+
+    // Check if data is already saved
+    const savedChannels = JSON.parse(localStorage.getItem('savedChannels') || '[]');
+    
+    setIsSaved(savedChannels.some(channel => channel.toolUrl === window.location.href));
+  }, [user, reactions.users]);
+
+  const handleReaction = async (action) => {
+    if (!user) {
+      toast.error("Please log in to react.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/content", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          category: "keyword-research",
+          userId: user.email,
+          action,
+          report: action === "report" ? reportText : undefined,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to update reaction");
+
+      const updatedData = await response.json();
+      setLikes(updatedData.reactions.likes || 0);
+      setUnlikes(updatedData.reactions.unlikes || 0);
+
+      if (action === "like") {
+        setHasLiked(!hasLiked); // Toggle the liked state
+        setHasUnliked(false);   // Reset dislike
+      } else if (action === "unlike") {
+        setHasUnliked(!hasUnliked); // Toggle the disliked state
+        setHasLiked(false);         // Reset like
+      } else if (action === "report") {
+        setHasReported(!hasReported); // Toggle the reported state
+        setShowReportModal(false);
+        setReportText("");
+        toast.success("Report submitted successfully.");
+      }
+    } catch (error) {
+      console.error("Failed to update reaction:", error);
+      toast.error("Failed to update reaction");
+    }
+  };
+
+  const saveChannel = () => {
+    const savedChannels = JSON.parse(localStorage.getItem('savedChannels') || '[]');
+    const currentTool = {
+      toolName: "YouTube Keyword Research", // Name of the current tool
+      toolUrl: window.location.href, // Current URL of the tool
+    };
+    
+    if (!isSaved) {
+      savedChannels.push(currentTool);
+      localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
+      setIsSaved(true);
+      toast.success("Tool saved successfully!");
+    } else {
+      const updatedChannels = savedChannels.filter(channel => channel.toolUrl !== currentTool.toolUrl);
+      localStorage.setItem('savedChannels', JSON.stringify(updatedChannels));
+      setIsSaved(false);
+      toast.success("Tool removed from saved list.");
+    }
+  };
 
   const allKeywords = [...(relatedKeywords || []), ...(googleSuggestionKeywords || [])];
-
 
   const downloadCSV = () => {
     const csvData = [
@@ -253,6 +356,11 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
     });
   };
 
+  // Button color logic
+  const likeButtonColor = hasLiked ? "#4CAF50" : "#ccc"; // Green if liked
+  const unlikeButtonColor = hasUnliked ? "#F44336" : "#ccc"; // Red if disliked
+  const reportButtonColor = hasReported ? "#FFD700" : "#ccc"; // Yellow if reported
+  const saveButtonColor = isSaved ? "#FFD700" : "#ccc";
 
   return (
     <>
@@ -265,97 +373,99 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-          <Head>
-            <title>{meta?.title}</title>
-            <meta name="description" content={meta?.description} />
-            <meta property="og:url" content={meta?.url} />
-            <meta property="og:title" content={meta?.title} />
-            <meta property="og:description" content={meta?.description} />
-            <meta property="og:image" content={meta?.image || ""} />
-            <meta name="twitter:card" content={meta?.image || ""} />
-            <meta property="twitter:domain" content={meta?.url} />
-            <meta property="twitter:url" content={meta?.url} />
-            <meta name="twitter:title" content={meta?.title} />
-            <meta name="twitter:description" content={meta?.description} />
-            <meta name="twitter:image" content={meta?.image || ""} />
-            {/* - Webpage Schema */}
-            <Script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "WebPage",
-                name: meta?.title,
-                url: meta?.url,
-                description: meta?.description,
-                breadcrumb: {
-                  "@id": `${meta?.url}#breadcrumb`,
-                },
-                about: {
-                  "@type": "Thing",
-                  name: meta?.title,
-                },
-                isPartOf: {
-                  "@type": "WebSite",
-                  url: meta?.url,
-                },
-              })}
-            </Script>
-            {/* - Review Schema */}
-            <Script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "SoftwareApplication",
-                name: meta?.title,
-                url: meta?.url,
-                applicationCategory: "Multimedia",
-                aggregateRating: {
-                  "@type": "AggregateRating",
-                  ratingValue: overallRating,
-                  ratingCount: reviews?.length,
-                  reviewCount: reviews?.length,
-                },
-                review: reviews.map((review) => ({
-                  "@type": "Review",
-                  author: {
-                    "@type": "Person",
-                    name: review.userName,
-                  },
-                  datePublished: review.createdAt,
-                  reviewBody: review.comment,
-                  name: review.title,
-                  reviewRating: {
-                    "@type": "Rating",
-                    ratingValue: review.rating,
-                  },
-                })),
-              })}
-            </Script>
-            {/* - FAQ Schema */}
-            <Script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                mainEntity: faqs.map((faq) => ({
-                  "@type": "Question",
-                  name: faq.question,
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: faq.answer,
-                  },
-                })),
-              })}
-            </Script>
-            {translations && Object.keys(translations).map(lang => (
-              <link
-                key={lang}
-                rel="alternate"
-                href={`${meta?.url}?locale=${lang}`}
-                hrefLang={lang}
-              />
-            ))}
-          </Head>
+        <Head>
+        <title>{meta?.title}</title>
+        <meta name="description" content={meta?.description} />
+        <meta property="og:url"  content={`${meta?.url}/${i18n.language}/tools/keyword-research`} />
+        <meta property="og:title" content={meta?.title} />
+        <meta property="og:description" content={meta?.description} />
+        <meta property="og:image" content={meta?.image || ""} />
+        <meta name="twitter:card" content={meta?.image || ""} />
+        <meta property="twitter:domain"  content={`${meta?.url}/${i18n.language}/tools/keyword-research`}  />
+        <meta property="twitter:url"  content={`${meta?.url}/${i18n.language}/tools/keyword-research`}  />
+        <meta name="twitter:title" content={meta?.title} />
+        <meta name="twitter:description" content={meta?.description} />
+        <meta name="twitter:image" content={meta?.image || ""} />
+
+        {/* Adding hrefLang for alternate languages */}
+        {translations && Object.keys(translations).map((lang) => (
+          <link
+            key={lang}
+            rel="alternate"
+            href={`${meta?.url}/${lang}/tools/keyword-research`}
+            hrefLang={lang}
+          />
+        ))}
+        <link rel="alternate" href={`${meta?.url}`} hrefLang="en" />
+        
+        {/* JSON-LD Scripts */}
+        <Script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            name: meta?.title,
+            url: meta?.url,
+            description: meta?.description,
+            breadcrumb: {
+              "@id": `${meta?.url}#breadcrumb`,
+            },
+            about: {
+              "@type": "Thing",
+              name: meta?.title,
+            },
+            isPartOf: {
+              "@type": "WebSite",
+              url: meta?.url,
+            },
+          })}
+        </Script>
+        <Script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: meta?.title,
+            url: meta?.url,
+            applicationCategory: "Multimedia",
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: overallRating,
+              ratingCount: reviews?.length,
+              reviewCount: reviews?.length,
+            },
+            review: reviews.map((review) => ({
+              "@type": "Review",
+              author: {
+                "@type": "Person",
+                name: review.userName,
+              },
+              datePublished: review.createdAt,
+              reviewBody: review.comment,
+              name: review.title,
+              reviewRating: {
+                "@type": "Rating",
+                ratingValue: review.rating,
+              },
+            })),
+          })}
+        </Script>
+        <Script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.map((faq) => ({
+              "@type": "Question",
+              name: faq.question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: faq.answer,
+              },
+            })),
+          })}
+        </Script>
+      </Head>
 
           <h2 className="text-3xl pt-5 text-white">{t('YouTube Keyword Research')}</h2>
-          <ToastContainer />
+        
           {modalVisible && (
             <div
               className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
@@ -392,7 +502,9 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
               </div>
             </div>
           )}
-        
+        <div className="shadow-md bg-white p-5 rounded">
+        <ToastContainer />
+       
         <div className="flex flex-col sm:flex-row items-center mb-4 w-full sm:w-2/3 mx-auto">
             <input
               type="text"
@@ -431,8 +543,80 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
             >
               Search
             </button>
+            
           </div>
-
+          <div className="reaction-bar  flex items-center justify-between mt-4 p-2">
+           <div className="flex items-center space-x-2 ps-5 mx-auto">
+              <button
+                onClick={() => handleReaction("like")}
+                className="flex items-center space-x-1"
+                style={{ color: likeButtonColor }}
+              >
+                <FaThumbsUp className="text-blue-600"/>
+                <span>{likes}</span>
+              </button>
+              <button
+                onClick={() => handleReaction("unlike")}
+                className="flex items-center space-x-1"
+                style={{ color: unlikeButtonColor }}
+              >
+                <FaThumbsDown className="text-red-400"/>
+                <span>{unlikes}</span>
+              </button>
+            
+              
+              <button
+                onClick={() => setShowReportModal(true)}
+                className="flex items-center space-x-1"
+                style={{ color: reportButtonColor }}
+              >
+                <FaFlag className="text-red-500"/>
+                <span className="text-red-500">Report</span>
+              </button>
+              <button
+                  onClick={saveChannel}
+                  className="flex items-center space-x-1"
+                  style={{ color: saveButtonColor }}
+                >
+                  {isSaved ? <FaBookmark /> : <FaBookmark />}
+                </button>
+              </div>
+            
+              
+             
+            </div>
+ </div>
+        {showReportModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-black opacity-50"></div>
+            <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
+              <h2 className="text-2xl font-semibold mb-4">
+                {t("Report This Tool")}
+              </h2>
+              <textarea
+                className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                placeholder={t("Describe your issue...")}
+                value={reportText}
+                onChange={(e) => setReportText(e.target.value)}
+              />
+              <div className="mt-4 flex justify-end space-x-4">
+                <button
+                  className="btn btn-secondary text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline"
+                  onClick={() => setShowReportModal(false)}
+                >
+                  {t("Cancel")}
+                </button>
+                <button
+                  className="btn btn-primary text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                  onClick={() => handleReaction("report")}
+                >
+                  {t("Submit Report")}
+                </button>
+              </div>
+            </div>
+          </div>
+          
+        )}
           {loading && (
             <div className="flex justify-center items-center">
               <ClipLoader color="#3b82f6" loading={loading} size={50} />
@@ -492,7 +676,7 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent }) => {
             
           )}
         
-
+     
         
 
 
@@ -769,8 +953,9 @@ export async function getServerSideProps({ req, locale }) {
       title: contentData.translations[locale]?.title || '',
       description: contentData.translations[locale]?.description || '',
       image: contentData.translations[locale]?.image || '',
-      url: `${protocol}://${host}/tools/keyword-research`,
+      url: `${protocol}://${host}`,
     };
+    const reactions = contentData.translations[locale]?.reactions || { likes: 0, unlikes: 0, reports: [], users: {} };
 
     return {
       props: {
@@ -778,6 +963,7 @@ export async function getServerSideProps({ req, locale }) {
         faqs: contentData.translations[locale]?.faqs || [],
         relatedTools: contentData.translations[locale]?.relatedTools || [],
         existingContent: contentData.translations[locale]?.content || '',
+        reactions,
         ...(await serverSideTranslations(locale, ['keyword', 'navbar', 'footer'])),
       },
     };
@@ -789,11 +975,11 @@ export async function getServerSideProps({ req, locale }) {
         faqs: [],
         relatedTools: [],
         existingContent: '',
+        reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
         ...(await serverSideTranslations(locale, ['keyword', 'navbar', 'footer'])),
       },
     };
   }
 }
-
 
 export default KeywordSearch;

@@ -6,28 +6,36 @@ import Head from "next/head";
 import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { FaStar } from "react-icons/fa";
+import { FaStar, FaThumbsUp, FaThumbsDown, FaBookmark, FaFlag } from "react-icons/fa";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import { format } from "date-fns";
 import { i18n, useTranslation } from "next-i18next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import dynamic from "next/dynamic";
 import Script from "next/script";
+import { getContentProps } from "../../utils/getContentProps";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
-const MonetizationChecker = ({ meta, faqs, relatedTools, existingContent }) => {
+const MonetizationChecker = ({ meta, reviews, content, relatedTools, faqs,reactions,translations}) => {
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();
   const { t } = useTranslation("monetization");
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [likes, setLikes] = useState(0);
+  const [unlikes, setUnlikes] = useState(0);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [hasUnliked, setHasUnliked] = useState(false);
+  const [hasReported, setHasReported] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportText, setReportText] = useState("");
+  const [isSaved, setIsSaved] = useState(false);
+
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
-  const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({
     rating: 0,
     comment: "",
@@ -38,7 +46,7 @@ const MonetizationChecker = ({ meta, faqs, relatedTools, existingContent }) => {
   const [generateCount, setGenerateCount] = useState(0);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
-  const [translations, setTranslations] = useState([]);
+
 
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -55,7 +63,8 @@ const MonetizationChecker = ({ meta, faqs, relatedTools, existingContent }) => {
         );
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
-        setTranslations(data.translations);
+        setLikes(data.reactions.likes || 0);
+        setUnlikes(data.reactions.unlikes || 0);
       } catch (error) {
         toast.error("Error fetching content");
       }
@@ -127,6 +136,7 @@ const MonetizationChecker = ({ meta, faqs, relatedTools, existingContent }) => {
       }
 
       const data = await response.json();
+      
       setData(data);
       toast.success(t("Data fetched successfully!"));
     } catch (error) {
@@ -136,7 +146,86 @@ const MonetizationChecker = ({ meta, faqs, relatedTools, existingContent }) => {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    if (user) {
+      const userAction = reactions.users?.[user.email];
+      if (userAction === "like") {
+        setHasLiked(true);
+      } else if (userAction === "unlike") {
+        setHasUnliked(true);
+      } else if (userAction === "report") {
+        setHasReported(true);
+      }
+    }
 
+    // Check if data is already saved
+    const savedChannels = JSON.parse(localStorage.getItem('savedChannels') || '[]');
+    
+    setIsSaved(savedChannels.some(channel => channel.toolUrl === window.location.href));
+  }, [user, reactions.users]);
+  const handleReaction = async (action) => {
+    if (!user) {
+      toast.error(t("Please log in to react."));
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/content", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          category: "monetization-checker",
+          userId: user.email,
+          action,
+          report: action === "report" ? reportText : undefined,
+        }),
+      });
+
+      if (!response.ok) throw new Error(t("Failed to update reaction"));
+
+      const updatedData = await response.json();
+      setLikes(updatedData.reactions.likes || 0);
+      setUnlikes(updatedData.reactions.unlikes || 0);
+
+      if (action === "like") {
+        setHasLiked(!hasLiked); // Toggle the liked state
+        setHasUnliked(false);   // Reset dislike
+      } else if (action === "unlike") {
+        setHasUnliked(!hasUnliked); // Toggle the disliked state
+        setHasLiked(false);         // Reset like
+      } else if (action === "report") {
+        setHasReported(!hasReported); // Toggle the reported state
+        setShowReportModal(false);
+        setReportText("");
+        toast.success(t("Report submitted successfully."));
+      }
+    } catch (error) {
+      toast.error(t("Failed to update reaction"));
+    }
+  };
+
+  const saveChannel = () => {
+    const savedChannels = JSON.parse(localStorage.getItem('savedChannels') || '[]');
+    const currentTool = {
+      toolName: "YouTube Moniotization Checker", // Name of the current tool
+      toolUrl: window.location.href, // Current URL of the tool
+    };
+    
+    if (!isSaved) {
+      savedChannels.push(currentTool);
+      localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
+      setIsSaved(true);
+      toast.success("Tool saved successfully!");
+    } else {
+      const updatedChannels = savedChannels.filter(channel => channel.toolUrl !== currentTool.toolUrl);
+      localStorage.setItem('savedChannels', JSON.stringify(updatedChannels));
+      setIsSaved(false);
+      toast.success("Tool removed from saved list.");
+    }
+  };
+  const saveButtonColor = isSaved ? "#FFD700" : "#ccc";
   const convertDuration = (duration) => {
     const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
     const hours = parseInt(match[1], 10) || 0;
@@ -218,95 +307,96 @@ const MonetizationChecker = ({ meta, faqs, relatedTools, existingContent }) => {
           <Image className="shape4" src={chart} alt="chart" />
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
-          <Head>
-            <title>{meta?.title}</title>
-            <meta name="description" content={meta?.description} />
-            <meta property="og:url" content={meta?.url} />
-            <meta property="og:title" content={meta?.title} />
-            <meta property="og:description" content={meta?.description} />
-            <meta property="og:image" content={meta?.image || ""} />
-            <meta name="twitter:card" content={meta?.image || ""} />
-            <meta property="twitter:domain" content={meta?.url} />
-            <meta property="twitter:url" content={meta?.url} />
-            <meta name="twitter:title" content={meta?.title} />
-            <meta name="twitter:description" content={meta?.description} />
-            <meta name="twitter:image" content={meta?.image || ""} />
-            {/* - Webpage Schema */}
-            <Script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "WebPage",
-                name: meta?.title,
-                url: meta?.url,
-                description: meta?.description,
-                breadcrumb: {
-                  "@id": `${meta?.url}#breadcrumb`,
-                },
-                about: {
-                  "@type": "Thing",
-                  name: meta?.title,
-                },
-                isPartOf: {
-                  "@type": "WebSite",
-                  url: meta?.url,
-                },
-              })}
-            </Script>
-            {/* - Review Schema */}
-            <Script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "SoftwareApplication",
-                name: meta?.title,
-                url: meta?.url,
-                applicationCategory: "Multimedia",
-                aggregateRating: {
-                  "@type": "AggregateRating",
-                  ratingValue: overallRating,
-                  ratingCount: reviews?.length,
-                  reviewCount: reviews?.length,
-                },
-                review: reviews.map((review) => ({
-                  "@type": "Review",
-                  author: {
-                    "@type": "Person",
-                    name: review.userName,
-                  },
-                  datePublished: review.createdAt,
-                  reviewBody: review.comment,
-                  name: review.title,
-                  reviewRating: {
-                    "@type": "Rating",
-                    ratingValue: review.rating,
-                  },
-                })),
-              })}
-            </Script>
-            {/* - FAQ Schema */}
-            <Script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                mainEntity: faqs.map((faq) => ({
-                  "@type": "Question",
-                  name: faq.question,
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: faq.answer,
-                  },
-                })),
-              })}
-            </Script>
-            {translations &&
-              Object.keys(translations).map((lang) => (
-                <link
-                  key={lang}
-                  rel="alternate"
-                  href={`${meta?.url}?locale=${lang}`}
-                  hrefLang={lang}
-                />
-              ))}
-          </Head>
+        <Head>
+        <title>{meta?.title}</title>
+        <meta name="description" content={meta?.description} />
+        <meta property="og:url"  content={`${meta?.url}/${i18n.language}/tools/monetization-checker`} />
+        <meta property="og:title" content={meta?.title} />
+        <meta property="og:description" content={meta?.description} />
+        <meta property="og:image" content={meta?.image || ""} />
+        <meta name="twitter:card" content={meta?.image || ""} />
+        <meta property="twitter:domain"  content={`${meta?.url}/${i18n.language}/tools/monetization-checker`}  />
+        <meta property="twitter:url"  content={`${meta?.url}/${i18n.language}/tools/monetization-checker`}  />
+        <meta name="twitter:title" content={meta?.title} />
+        <meta name="twitter:description" content={meta?.description} />
+        <meta name="twitter:image" content={meta?.image || ""} />
+
+        {/* Adding hrefLang for alternate languages */}
+        {translations && Object.keys(translations).map((lang) => (
+          <link
+            key={lang}
+            rel="alternate"
+            href={`${meta?.url}/${lang}/tools/monetization-checker`}
+            hrefLang={lang}
+          />
+        ))}
+        <link rel="alternate" href={`${meta?.url}`} hrefLang="en" />
+        
+        {/* JSON-LD Scripts */}
+        <Script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            name: meta?.title,
+            url: meta?.url,
+            description: meta?.description,
+            breadcrumb: {
+              "@id": `${meta?.url}#breadcrumb`,
+            },
+            about: {
+              "@type": "Thing",
+              name: meta?.title,
+            },
+            isPartOf: {
+              "@type": "WebSite",
+              url: meta?.url,
+            },
+          })}
+        </Script>
+        <Script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: meta?.title,
+            url: meta?.url,
+            applicationCategory: "Multimedia",
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: overallRating,
+              ratingCount: reviews?.length,
+              reviewCount: reviews?.length,
+            },
+            review: reviews.map((review) => ({
+              "@type": "Review",
+              author: {
+                "@type": "Person",
+                name: review.userName,
+              },
+              datePublished: review.createdAt,
+              reviewBody: review.comment,
+              name: review.title,
+              reviewRating: {
+                "@type": "Rating",
+                ratingValue: review.rating,
+              },
+            })),
+          })}
+        </Script>
+        <Script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.map((faq) => ({
+              "@type": "Question",
+              name: faq.question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: faq.answer,
+              },
+            })),
+          })}
+        </Script>
+      </Head>
           <ToastContainer />
           <h1 className="text-3xl font-bold text-center mb-6 text-white">
             {t("YouTube Monetization Checker")}
@@ -379,6 +469,75 @@ const MonetizationChecker = ({ meta, faqs, relatedTools, existingContent }) => {
             >
               {loading ? t("Loading...") : t("Check Monetization")}
             </button>
+            <div className="reaction-bar  flex items-center justify-between mt-4 p-2">
+           <div className="flex items-center space-x-2 ps-5 mx-auto">
+              <button
+                onClick={() => handleReaction("like")}
+                className="flex items-center space-x-1"
+                
+              >
+                <FaThumbsUp className="text-blue-600"/>
+                <span>{likes}</span>
+              </button>
+              <button
+                onClick={() => handleReaction("unlike")}
+                className="flex items-center space-x-1"
+                
+              >
+                <FaThumbsDown className="text-red-400"/>
+                <span>{unlikes}</span>
+              </button>
+            
+              
+              <button
+                onClick={() => setShowReportModal(true)}
+                className="flex items-center space-x-1"
+                
+              >
+                <FaFlag className="text-red-500"/>
+                <span className="text-red-500">Report</span>
+              </button>
+              <button
+                  onClick={saveChannel}
+                  className="flex items-center space-x-1"
+                  style={{ color: saveButtonColor }}
+                >
+                  {isSaved ? <FaBookmark /> : <FaBookmark />}
+                </button>
+              </div>
+            
+              
+              {showReportModal && (
+            <div className="fixed inset-0 flex items-center justify-center z-50">
+              <div className="fixed inset-0 bg-black opacity-50"></div>
+              <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
+                <h2 className="text-2xl font-semibold mb-4">
+                  {t("Report This Tool")}
+                </h2>
+                <textarea
+                  className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                  placeholder={t("Describe your issue...")}
+                  value={reportText}
+                  onChange={(e) => setReportText(e.target.value)}
+                />
+                <div className="mt-4 flex justify-end space-x-4">
+                  <button
+                    className="btn btn-secondary text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline"
+                    onClick={() => setShowReportModal(false)}
+                  >
+                    {t("Cancel")}
+                  </button>
+                  <button
+                    className="btn btn-primary text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                    onClick={() => handleReaction("report")}
+                  >
+                    {t("Submit Report")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+            </div>
           </div>
           {error && (
             <div className="alert alert-danger text-red-500 text-center mt-4">
@@ -561,7 +720,7 @@ const MonetizationChecker = ({ meta, faqs, relatedTools, existingContent }) => {
         )}
       <div className="content pt-6 pb-5">
           <article
-            dangerouslySetInnerHTML={{ __html: existingContent }}
+            dangerouslySetInnerHTML={{ __html: content }}
             style={{ listStyleType: "none" }}
           ></article>
         </div>
@@ -784,6 +943,11 @@ const MonetizationChecker = ({ meta, faqs, relatedTools, existingContent }) => {
             </div>
           </div>
         )}
+
+      
+
+       
+
         {/* Related Tools Section */}
         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
           <h2 className="text-2xl font-bold mb-5 text-center">{t("Related Tools")}</h2>
@@ -792,7 +956,7 @@ const MonetizationChecker = ({ meta, faqs, relatedTools, existingContent }) => {
               <a
                 key={index}
                 href={tool.link}
-                className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
+                className="flex items-center border rounded-lg p-4 bg-gray-100 transition"
               >
                 <Image
                   src={tool?.logo?.src}
@@ -812,66 +976,69 @@ const MonetizationChecker = ({ meta, faqs, relatedTools, existingContent }) => {
   );
 };
 
-export async function getServerSideProps({ req, locale }) {
-  const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
-  const apiUrl = `${protocol}://${host}/api/content?category=monetization-checker&language=${locale}`;
+// export async function getServerSideProps({ req, locale }) {
+//   const host = req.headers.host;
+//   const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
+//   const apiUrl = `${protocol}://${host}/api/content?category=monetization-checker&language=${locale}`;
 
-  try {
-    const contentResponse = await fetch(apiUrl);
+//   try {
+//     const contentResponse = await fetch(apiUrl);
 
-    if (!contentResponse.ok) {
-      throw new Error(`Failed to fetch content: ${contentResponse.statusText}`);
-    }
+//     if (!contentResponse.ok) {
+//       throw new Error(`Failed to fetch content: ${contentResponse.statusText}`);
+//     }
 
-    const contentData = await contentResponse.json();
+//     const contentData = await contentResponse.json();
 
-    if (!contentData.translations || !contentData.translations[locale]) {
-      throw new Error("Invalid content data format");
-    }
+//     if (!contentData.translations || !contentData.translations[locale]) {
+//       throw new Error("Invalid content data format");
+//     }
 
-    const meta = {
-      title: contentData.translations[locale]?.title || "",
-      description: contentData.translations[locale]?.description || "",
-      image: contentData.translations[locale]?.image || "",
-      url: `${protocol}://${host}/tools/monetization-checker`,
-    };
+//     const meta = {
+//       title: contentData.translations[locale]?.title || "",
+//       description: contentData.translations[locale]?.description || "",
+//       image: contentData.translations[locale]?.image || "",
+//       url: `${protocol}://${host}`,
+//     };
+//     const reactions = contentData.translations[locale]?.reactions || { likes: 0, unlikes: 0, reports: [], users: {} };
+//     return {
+//       props: {
+//         meta,
+//         faqs: contentData.translations[locale]?.faqs || [],
+//         relatedTools: contentData.translations[locale]?.relatedTools || [],
+//         existingContent: contentData.translations[locale]?.content || "",
+//         reactions,
+//         ...(await serverSideTranslations(locale, [
+//           "common",
+//           "tagextractor",
+//           "navbar",
+//           "footer",
+//           "monetization",
+//         ])),
+//       },
+//     };
+//   } catch (error) {
+//     console.error("Error fetching data:", error);
 
-    return {
-      props: {
-        meta,
-        faqs: contentData.translations[locale]?.faqs || [],
-        relatedTools: contentData.translations[locale]?.relatedTools || [],
-        existingContent: contentData.translations[locale]?.content || "",
-        ...(await serverSideTranslations(locale, [
-          "common",
-          "tagextractor",
-          "navbar",
-          "footer",
-          "monetization",
-        ])),
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching data:", error);
-
-    return {
-      props: {
-        meta: {},
-        faqs: [],
-        relatedTools: [],
-        existingContent: "",
-        ...(await serverSideTranslations(locale, [
-          "common",
-          "tagextractor",
-          "navbar",
-          "footer",
-          "monetization",
-        ])),
-      },
-    };
-  }
+//     return {
+//       props: {
+//         meta: {},
+//         faqs: [],
+//         relatedTools: [],
+//         existingContent: "",
+//         reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
+//         ...(await serverSideTranslations(locale, [
+//           "common",
+//           "tagextractor",
+//           "navbar",
+//           "footer",
+//           "monetization",
+//         ])),
+//       },
+//     };
+//   }
+// }
+export async function getServerSideProps(context) {
+  return getContentProps("monetization-checker", context.locale, context.req);
 }
-
-
 export default MonetizationChecker;

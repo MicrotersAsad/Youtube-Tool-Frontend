@@ -26,7 +26,7 @@ import Script from "next/script";
 
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
-const YouTubeChannelLogoDownloader = ({ meta, faqs,reviews, content, relatedTools }) => {
+const YouTubeChannelLogoDownloader =  ({ meta, reviews, content, relatedTools, faqs,reactions,translations}) => {
   const { t } = useTranslation(['logo']);
   const { isLoggedIn, user, updateUserProfile } = useAuth(); // Destructure authentication state from context
   const [isUpdated, setIsUpdated] = useState(false);
@@ -35,7 +35,6 @@ const YouTubeChannelLogoDownloader = ({ meta, faqs,reviews, content, relatedTool
   const [channelUrl, setChannelUrl] = useState(""); // State for input URL
   const [logoUrl, setLogoUrl] = useState(""); // State for fetched logo URL
   const [showShareIcons, setShowShareIcons] = useState(false); // State to toggle share icons visibility
-  const [translations, setTranslations] = useState([]);
   const [generateCount, setGenerateCount] = useState(
     typeof window !== "undefined"
       ? Number(localStorage.getItem("generateCount")) || 0
@@ -270,94 +269,96 @@ const YouTubeChannelLogoDownloader = ({ meta, faqs,reviews, content, relatedTool
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-          <Head>
-            <title>{meta?.title}</title>
-            <meta name="description" content={meta?.description} />
-            <meta property="og:url" content={meta?.url} />
-            <meta property="og:title" content={meta?.title} />
-            <meta property="og:description" content={meta?.description} />
-            <meta property="og:image" content={meta?.image || ""} />
-            <meta name="twitter:card" content={meta?.image || ""} />
-            <meta property="twitter:domain" content={meta?.url} />
-            <meta property="twitter:url" content={meta?.url} />
-            <meta name="twitter:title" content={meta?.title} />
-            <meta name="twitter:description" content={meta?.description} />
-            <meta name="twitter:image" content={meta?.image || ""} />
-            {/* - Webpage Schema */}
-            <Script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "WebPage",
-                name: meta?.title,
-                url: meta?.url,
-                description: meta?.description,
-                breadcrumb: {
-                  "@id": `${meta?.url}#breadcrumb`,
-                },
-                about: {
-                  "@type": "Thing",
-                  name: meta?.title,
-                },
-                isPartOf: {
-                  "@type": "WebSite",
-                  url: meta?.url,
-                },
-              })}
-            </Script>
-            {/* - Review Schema */}
-            <Script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "SoftwareApplication",
-                name: meta?.title,
-                url: meta?.url,
-                applicationCategory: "Multimedia",
-                aggregateRating: {
-                  "@type": "AggregateRating",
-                  ratingValue: overallRating,
-                  ratingCount: reviews?.length,
-                  reviewCount: reviews?.length,
-                },
-                review: reviews.map((review) => ({
-                  "@type": "Review",
-                  author: {
-                    "@type": "Person",
-                    name: review.userName,
-                  },
-                  datePublished: review.createdAt,
-                  reviewBody: review.comment,
-                  name: review.title,
-                  reviewRating: {
-                    "@type": "Rating",
-                    ratingValue: review.rating,
-                  },
-                })),
-              })}
-            </Script>
-            {/* - FAQ Schema */}
-            <Script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                mainEntity: faqs?.map((faq) => ({
-                  "@type": "Question",
-                  name: faq.question,
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: faq.answer,
-                  },
-                })),
-              })}
-            </Script>
-            {translations && Object.keys(translations).map(lang => (
-              <link
-                key={lang}
-                rel="alternate"
-                href={`${meta?.url}?locale=${lang}`}
-                hrefLang={lang} // Corrected property name
-              />
-            ))}
-          </Head>
+        <Head>
+        <title>{meta?.title}</title>
+        <meta name="description" content={meta?.description} />
+        <meta property="og:url"  content={`${meta?.url}/${i18n.language}/tools/youtube-channel-logo-downloader`} />
+        <meta property="og:title" content={meta?.title} />
+        <meta property="og:description" content={meta?.description} />
+        <meta property="og:image" content={meta?.image || ""} />
+        <meta name="twitter:card" content={meta?.image || ""} />
+        <meta property="twitter:domain"  content={`${meta?.url}/${i18n.language}/tools/youtube-channel-logo-downloader`}  />
+        <meta property="twitter:url"  content={`${meta?.url}/${i18n.language}/tools/youtube-channel-logo-downloader`}  />
+        <meta name="twitter:title" content={meta?.title} />
+        <meta name="twitter:description" content={meta?.description} />
+        <meta name="twitter:image" content={meta?.image || ""} />
+
+        {/* Adding hrefLang for alternate languages */}
+        {translations && Object.keys(translations).map((lang) => (
+          <link
+            key={lang}
+            rel="alternate"
+            href={`${meta?.url}/${lang}/tools/youtube-channel-logo-downloader`}
+            hrefLang={lang}
+          />
+        ))}
+        <link rel="alternate" href={`${meta?.url}`} hrefLang="en" />
+        
+        {/* JSON-LD Scripts */}
+        <Script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            name: meta?.title,
+            url: meta?.url,
+            description: meta?.description,
+            breadcrumb: {
+              "@id": `${meta?.url}#breadcrumb`,
+            },
+            about: {
+              "@type": "Thing",
+              name: meta?.title,
+            },
+            isPartOf: {
+              "@type": "WebSite",
+              url: meta?.url,
+            },
+          })}
+        </Script>
+        <Script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: meta?.title,
+            url: meta?.url,
+            applicationCategory: "Multimedia",
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: overallRating,
+              ratingCount: reviews?.length,
+              reviewCount: reviews?.length,
+            },
+            review: reviews.map((review) => ({
+              "@type": "Review",
+              author: {
+                "@type": "Person",
+                name: review.userName,
+              },
+              datePublished: review.createdAt,
+              reviewBody: review.comment,
+              name: review.title,
+              reviewRating: {
+                "@type": "Rating",
+                ratingValue: review.rating,
+              },
+            })),
+          })}
+        </Script>
+        <Script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.map((faq) => ({
+              "@type": "Question",
+              name: faq.question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: faq.answer,
+              },
+            })),
+          })}
+        </Script>
+      </Head>
           <h2 className="text-3xl pt-5 text-white">
             {t('YouTube Channel Logo Download')}
           </h2>

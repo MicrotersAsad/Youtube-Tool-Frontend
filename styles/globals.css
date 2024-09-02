@@ -1122,3 +1122,33 @@ tbody{
 }
 
 
+.saved-channels {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.channel-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.channel-info {
+  display: flex;
+  align-items: center;
+}
+
+.channel-details {
+  margin-left: 10px;
+}
+
+.channel-details h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.channel-details p {
+  margin: 0;
+  color: #666;
+}

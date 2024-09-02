@@ -20,8 +20,11 @@ const handler = async (req, res) => {
     case 'PUT':
       await handlePut(req, res);
       break;
+    case 'PATCH':
+      await handlePatch(req, res); // Use PATCH for reaction updates
+      break;
     default:
-      res.setHeader('Allow', ['GET', 'POST', 'PUT']);
+      res.setHeader('Allow', ['GET', 'POST', 'PUT', 'PATCH']);
       res.status(405).end(`Method ${method} Not Allowed`);
   }
 };
@@ -68,6 +71,7 @@ const handlePost = async (req, res) => {
       image: imageUrl,
       faqs,
       relatedTools,
+      reactions: { likes: 0, unlikes: 0, reports: [], users: {} }, // Initialize reactions and users
     };
 
     const { db } = await connectToDatabase();
@@ -132,5 +136,119 @@ const handlePut = async (req, res) => {
     res.status(200).json({ message: 'Document updated successfully' });
   });
 };
+
+// Handle PATCH requests for reactions (like, unlike, report)
+// Handle PATCH requests for reactions (like, unlike, report)
+const handlePatch = async (req, res) => {
+  try {
+    // Parse the request body
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', async () => {
+      const { category, userId, action, report } = JSON.parse(body);
+
+      if (!category || !userId || !action) {
+        return res.status(400).json({ message: 'Missing required fields' });
+      }
+
+      const { db } = await connectToDatabase();
+      const filter = { category };
+
+      const content = await db.collection('content').findOne(filter);
+      if (!content) {
+        return res.status(404).json({ message: 'Content not found' });
+      }
+
+      const userAction = content.reactions?.users?.[userId];
+      let updateDoc = {};
+
+      switch (action) {
+        case 'like':
+          if (userAction === 'like') {
+            // User had liked before, now removing like
+            updateDoc = {
+              $inc: { 'reactions.likes': -1 },
+              $unset: { [`reactions.users.${userId}`]: "" },
+            };
+          } else if (userAction === 'unlike') {
+            // User had unliked before, now liking and removing unlike
+            updateDoc = {
+              $inc: { 'reactions.likes': 1, 'reactions.unlikes': -1 },
+              $set: { [`reactions.users.${userId}`]: 'like' },
+            };
+          } else {
+            // User is liking for the first time
+            updateDoc = {
+              $inc: { 'reactions.likes': 1 },
+              $set: { [`reactions.users.${userId}`]: 'like' },
+            };
+          }
+          break;
+        case 'unlike':
+          if (userAction === 'unlike') {
+            // User had unliked before, now removing unlike
+            updateDoc = {
+              $inc: { 'reactions.unlikes': -1 },
+              $unset: { [`reactions.users.${userId}`]: "" },
+            };
+          } else if (userAction === 'like') {
+            // User had liked before, now unliking and removing like
+            updateDoc = {
+              $inc: { 'reactions.unlikes': 1, 'reactions.likes': -1 },
+              $set: { [`reactions.users.${userId}`]: 'unlike' },
+            };
+          } else {
+            // User is unliking for the first time
+            updateDoc = {
+              $inc: { 'reactions.unlikes': 1 },
+              $set: { [`reactions.users.${userId}`]: 'unlike' },
+            };
+          }
+          break;
+        case 'report':
+          if (userAction === 'report') {
+            // User had reported before, now removing report
+            updateDoc = {
+              $pull: { 'reactions.reports': { userId } },
+              $unset: { [`reactions.users.${userId}`]: "" },
+            };
+          } else {
+            // User is reporting for the first time
+            if (!report) {
+              return res.status(400).json({ message: 'Report details missing' });
+            }
+            updateDoc = {
+              $push: { 'reactions.reports': { userId, report } },
+              $set: { [`reactions.users.${userId}`]: 'report' },
+            };
+          }
+          break;
+        default:
+          return res.status(400).json({ message: 'Invalid action' });
+      }
+
+      const result = await db.collection('content').updateOne(filter, updateDoc);
+
+      if (!result.matchedCount && !result.modifiedCount) {
+        return res.status(500).json({ message: 'Failed to update reaction' });
+      }
+
+      const updatedContent = await db.collection('content').findOne(filter);
+      const { reactions } = updatedContent;
+
+      res.status(200).json({ reactions });
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+
+
+
+
 
 export default handler;

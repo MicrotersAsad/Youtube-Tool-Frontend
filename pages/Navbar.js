@@ -89,6 +89,7 @@ function Navbar() {
     },
     { key: 'Pricing', href: '/pricing', dropdown: false },
     { key: 'Blog', href: '/blog', dropdown: false },
+    { key: 'Saved', href: '/saved-channels', dropdown: false },
     { key: 'About Us', href: '/about', dropdown: false },
     { key: 'Contact Us', href: '/contact', dropdown: false },
   ];

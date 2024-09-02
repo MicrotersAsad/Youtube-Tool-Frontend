@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import { format } from 'date-fns';
+import { log } from 'util';
 
 const ContentContext = createContext();
 
@@ -20,22 +21,29 @@ export const fetchContent = async (category, locale, host, protocol, setLoading)
     if (!contentData.translations || !contentData.translations[locale]) {
       throw new Error('Invalid content data format');
     }
-
+    const reactions = contentData.translations[locale]?.reactions || { likes: 0, unlikes: 0, reports: [], users: {} };
+    const translations=contentData.translations
+    console.log(translations);
+    
     return {
       content: contentData.translations[locale]?.content || '',
       meta: {
         title: contentData.translations[locale]?.title || '',
         description: contentData.translations[locale]?.description || '',
         image: contentData.translations[locale]?.image || '',
-        url: `${protocol}://${host}/tools/${category}`,
+        url: `${protocol}://${host}`,
       },
       faqs: contentData.translations[locale]?.faqs || [],
       relatedTools: contentData.translations[locale]?.relatedTools || [],
+      reactions,
+      translations
     };
   } catch (error) {
     console.error('Error fetching data:', error);
     return {
       content: '',
+      reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
+      translations:[],
       meta: {
         title: 'Default Title',
         description: 'Default Description',
@@ -82,10 +90,12 @@ export const ContentProvider = ({ children }) => {
     url: '',
   });
   const [reviews, setReviews] = useState([]);
+  const [reactions, setReactions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [translations, setTranslations] = useState([]);
 
   return (
-    <ContentContext.Provider value={{ content, meta, faqs, reviews, loading, setLoading, setContent, setFaqs, setMeta, setReviews }}>
+    <ContentContext.Provider value={{ content, meta, faqs,reactions,translations, reviews, loading, setLoading, setContent, setFaqs, setMeta, setReviews,setTranslations }}>
       {children}
     </ContentContext.Provider>
   );

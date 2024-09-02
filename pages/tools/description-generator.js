@@ -1,8 +1,7 @@
-/* eslint-disable react/no-unescaped-entities */
 import Head from "next/head";
 import React, { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { FaEye, FaEyeSlash, FaStar } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaStar, FaThumbsUp, FaThumbsDown, FaFlag, FaBookmark } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../../contexts/AuthContext";
@@ -14,12 +13,21 @@ import { i18n, useTranslation } from "next-i18next";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import Script from "next/script";
+
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
-const YouTubeDescriptionGenerator = ({ meta = [], faqs = [], relatedTools = [], existingContent = "" }) => {
+const YouTubeDescriptionGenerator = ({ meta = [], faqs = [], relatedTools = [], existingContent = "", reactions }) => {
   const { user, updateUserProfile } = useAuth();
+  const [likes, setLikes] = useState(reactions.likes || 0);
+  const [unlikes, setUnlikes] = useState(reactions.unlikes || 0);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [hasUnliked, setHasUnliked] = useState(false);
+  const [hasReported, setHasReported] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportText, setReportText] = useState("");
   const { t } = useTranslation('description');
   const [openIndex, setOpenIndex] = useState(null);
+  
   const [videoInfo, setVideoInfo] = useState({
     aboutVideo: t("Welcome to [Your Channel Name]!\n\nIn this video, we're diving deep into the world of Full Stack Development. Whether you're a beginner or an experienced developer, these tips and guidelines will help you enhance your skills and stay ahead in the tech industry."),
     timestamps: t("00:00 - Introduction\n01:00 - First Topic\n02:00 - Second Topic\n03:00 - Third Topic"),
@@ -49,6 +57,7 @@ const YouTubeDescriptionGenerator = ({ meta = [], faqs = [], relatedTools = [], 
     { id: "contactSocial", title: t("Contact & Social"), visible: true },
     { id: "keywords", title: t("Keywords to Target (Optional)"), visible: true },
   ]);
+  const [isSaved, setIsSaved] = useState(false);
   const [translations, setTranslations] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
@@ -59,9 +68,28 @@ const YouTubeDescriptionGenerator = ({ meta = [], faqs = [], relatedTools = [], 
     title: "",
     userProfile: "",
   });
-  const [showReviewForm, setShowReviewForm] = useState(false);
   const router = useRouter();
 
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const language = i18n.language;
+        const response = await fetch(`/api/content?category=DescriptionGenerator&language=${language}`);
+        
+        if (!response.ok) throw new Error("Failed to fetch content");
+        const data = await response.json();
+        console.log(data);
+        setTranslations(data.translations);
+        setLikes(data.reactions.likes || 0);
+        setUnlikes(data.reactions.unlikes || 0);
+      } catch (error) {
+        console.error("Error fetching content:", error);
+        toast.error("Failed to fetch content");
+      }
+    };
+  
+    fetchContent();
+  }, [i18n.language]);
   useEffect(() => {
     fetchReviews();
   }, [i18n.language]);
@@ -236,22 +264,139 @@ ${keywords}
     });
   };
 
+  useEffect(() => {
+    if (user) {
+      const userAction = reactions.users?.[user.email];
+      if (userAction === "like") {
+        setHasLiked(true);
+      } else if (userAction === "unlike") {
+        setHasUnliked(true);
+      } else if (userAction === "report") {
+        setHasReported(true);
+      }
+    }
+
+    // Check if data is already saved
+    const savedChannels = JSON.parse(localStorage.getItem('savedChannels') || '[]');
+    
+    setIsSaved(savedChannels.some(channel => channel.toolUrl === window.location.href));
+  }, [user, reactions.users]);
+
+  const handleReaction = async (action) => {
+    if (!user) {
+      toast.error("Please log in to react.");
+      return;
+    }
+
+    try {
+      if (action === "report") {
+        const response = await fetch('/api/report', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userEmail: user.email,
+            reportText,
+            toolName: "YouTube Description Generator",
+            toolUrl: window.location.href,
+          }),
+        });
+
+        if (!response.ok) throw new Error("Failed to send report");
+
+        toast.success("Report submitted successfully.");
+        setHasReported(true);
+        setShowReportModal(false);
+        setReportText('');
+      } else {
+        // Existing logic for handling likes/unlikes
+        const response = await fetch('/api/content', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            category: "DescriptionGenerator",
+            userId: user.email,
+            action,
+          }),
+        });
+
+        if (!response.ok) throw new Error("Failed to update reaction");
+
+        const updatedData = await response.json();
+        setLikes(updatedData.reactions.likes || 0);
+        setUnlikes(updatedData.reactions.unlikes || 0);
+
+        if (action === "like") {
+          setHasLiked(!hasLiked);
+          setHasUnliked(false);
+        } else if (action === "unlike") {
+          setHasUnliked(!hasUnliked);
+          setHasLiked(false);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to update reaction or send report:", error);
+      toast.error("Failed to update reaction or send report");
+    }
+  };
+
+  const saveChannel = () => {
+    const savedChannels = JSON.parse(localStorage.getItem('savedChannels') || '[]');
+    const currentTool = {
+      toolName: "YouTube Description Generator", // Name of the current tool
+      toolUrl: window.location.href, // Current URL of the tool
+    };
+    
+    if (!isSaved) {
+      savedChannels.push(currentTool);
+      localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
+      setIsSaved(true);
+      toast.success("Tool saved successfully!");
+    } else {
+      const updatedChannels = savedChannels.filter(channel => channel.toolUrl !== currentTool.toolUrl);
+      localStorage.setItem('savedChannels', JSON.stringify(updatedChannels));
+      setIsSaved(false);
+      toast.success("Tool removed from saved list.");
+    }
+  };
+
+  // Button color logic
+  const likeButtonColor = hasLiked ? "#4CAF50" : "#ccc";
+  const unlikeButtonColor = hasUnliked ? "#F44336" : "#ccc";
+  const reportButtonColor = hasReported ? "#FFD700" : "#ccc";
+  const saveButtonColor = isSaved ? "#FFD700" : "#ccc";
+
   return (
     <div className="max-w-7xl mx-auto p-4">
       <Head>
-      <title>{meta?.title}</title>
-            <meta name="description" content={meta?.description} />
-            <meta property="og:url" content={meta?.url} />
-            <meta property="og:title" content={meta?.title} />
-            <meta property="og:description" content={meta?.description} />
-            <meta property="og:image" content={meta?.image || ""} />
-            <meta name="twitter:card" content={meta?.image || ""} />
-            <meta property="twitter:domain" content={meta?.url} />
-            <meta property="twitter:url" content={meta?.url} />
-            <meta name="twitter:title" content={meta?.title} />
-            <meta name="twitter:description" content={meta?.description} />
-            <meta name="twitter:image" content={meta?.image || ""} />
-        {/* - Webpage Schema */}
+        <title>{meta?.title}</title>
+        <meta name="description" content={meta?.description} />
+        <meta property="og:url"  content={`${meta?.url}/${i18n.language}/tools/description-generator`} />
+        <meta property="og:title" content={meta?.title} />
+        <meta property="og:description" content={meta?.description} />
+        <meta property="og:image" content={meta?.image || ""} />
+        <meta name="twitter:card" content={meta?.image || ""} />
+        <meta property="twitter:domain"  content={`${meta?.url}/${i18n.language}/tools/description-generator`}  />
+        <meta property="twitter:url"  content={`${meta?.url}/${i18n.language}/tools/description-generator`}  />
+        <meta name="twitter:title" content={meta?.title} />
+        <meta name="twitter:description" content={meta?.description} />
+        <meta name="twitter:image" content={meta?.image || ""} />
+
+        {/* Adding hrefLang for alternate languages */}
+        {translations && Object.keys(translations).map((lang) => (
+          <link
+            key={lang}
+            rel="alternate"
+            href={`${meta?.url}/${lang}/tools/description-generator`}
+            hrefLang={lang}
+          />
+        ))}
+        <link rel="alternate" href={`${meta?.url}`} hrefLang="en" />
+        
+        {/* JSON-LD Scripts */}
         <Script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -272,7 +417,6 @@ ${keywords}
             },
           })}
         </Script>
-        {/* - Review Schema */}
         <Script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -302,7 +446,6 @@ ${keywords}
             })),
           })}
         </Script>
-        {/* - FAQ Schema */}
         <Script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -317,14 +460,6 @@ ${keywords}
             })),
           })}
         </Script>
-        {translations && Object.keys(translations).map(lang => (
-          <link
-            key={lang}
-            rel="alternate"
-            href={`${meta?.url}?locale=${lang}`}
-            hrefLang={lang} // Corrected property name
-          />
-        ))}
       </Head>
       <ToastContainer />
       <h1 className="text-2xl font-bold mb-4 text-center">
@@ -378,6 +513,7 @@ ${keywords}
             </Droppable>
           </DragDropContext>
         </div>
+
         <div>
           <h2 className="text-xl font-semibold mb-4 text-center">
             {t("Generated Video Description")}
@@ -391,14 +527,87 @@ ${keywords}
           >
             {t("Copy to Clipboard")}
           </button>
+          <div className="reaction-bar shadow-sm flex items-center space-x-4 mt-4 p-2">
+            <div className="flex items-center space-x-2 ps-5">
+              <button
+                onClick={() => handleReaction("like")}
+                className="flex items-center space-x-1"
+                style={{ color: likeButtonColor }}
+              >
+                <FaThumbsUp className="text-blue-600"/>
+                <span>{likes}</span>
+              </button>
+              <button
+                onClick={() => handleReaction("unlike")}
+                className="flex items-center space-x-1"
+                style={{ color: unlikeButtonColor }}
+              >
+                <FaThumbsDown className="text-red-400"/>
+                <span>{unlikes}</span>
+              </button>
+            </div>
+           
+            <div className="mx-auto">
+              <button
+                onClick={() => setShowReportModal(true)}
+                className="flex items-center space-x-1"
+                style={{ color: reportButtonColor }}
+              >
+                <FaFlag className="text-red-500"/>
+                <span className="text-red-500">Report</span>
+              </button>
+              
+            </div>
+            <div className="flex items-center">
+                <button
+                  onClick={saveChannel}
+                  className="flex items-center space-x-1"
+                  style={{ color: saveButtonColor }}
+                >
+                  {isSaved ? <FaBookmark /> : <FaBookmark />}
+                </button>
+              </div>
+          </div>
+
+          {showReportModal && (
+            <div className="fixed inset-0 flex items-center justify-center z-50">
+              <div className="fixed inset-0 bg-black opacity-50"></div>
+              <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
+                <h2 className="text-2xl font-semibold mb-4">
+                  {t("Report This Tool")}
+                </h2>
+                <textarea
+                  className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                  placeholder={t("Describe your issue...")}
+                  value={reportText}
+                  onChange={(e) => setReportText(e.target.value)}
+                />
+                <div className="mt-4 flex justify-end space-x-4">
+                  <button
+                    className="btn btn-secondary text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline"
+                    onClick={() => setShowReportModal(false)}
+                  >
+                    {t("Cancel")}
+                  </button>
+                  <button
+                    className="btn btn-primary text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                    onClick={() => handleReaction("report")}
+                  >
+                    {t("Submit Report")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
       <div className="content pt-6 pb-5">
-          <article
-            dangerouslySetInnerHTML={{ __html: existingContent }}
-            style={{ listStyleType: "none" }}
-          ></article>
-        </div>
+        <article
+          dangerouslySetInnerHTML={{ __html: existingContent }}
+          style={{ listStyleType: "none" }}
+        ></article>
+      </div>
       <div className="p-5 shadow">
         <div className="accordion">
           <h2 className="faq-title">{t("Frequently Asked Questions")}</h2>
@@ -426,9 +635,7 @@ ${keywords}
                   {faq.question}
                 </a>
                 <div
-                  className={`accordion-content ${
-                    openIndex === index ? "open" : ""
-                  }`}
+                  className={`accordion-content ${openIndex === index ? "open" : ""}`}
                 >
                   <p>{faq.answer}</p>
                 </div>
@@ -440,7 +647,7 @@ ${keywords}
       <hr className="mt-4 mb-2" />
       <div className="row pt-3">
         <div className="col-md-4">
-          <div className=" text-3xl font-bold mb-2">{t("Customer reviews")}</div>
+          <div className="text-3xl font-bold mb-2">{t("Customer reviews")}</div>
           <div className="flex items-center mb-2">
             <div className="text-3xl font-bold mr-2">{overallRating}</div>
             <div className="flex">
@@ -566,7 +773,7 @@ ${keywords}
       {modalVisible && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="fixed inset-0 bg-black opacity-50"></div>
-          <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
+          <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
             <h2 className="text-2xl font-semibold mb-4">{t("Leave a Review")}</h2>
             <div className="mb-4">
               <StarRating
@@ -610,7 +817,6 @@ ${keywords}
           </div>
         </div>
       )}
-      {/* Related Tools Section */}
       <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
         <h2 className="text-2xl font-bold mb-5 text-center">{t("Related Tools")}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -632,7 +838,6 @@ ${keywords}
           ))}
         </div>
       </div>
-      {/* End of Related Tools Section */}
     </div>
   );
 };
@@ -650,12 +855,14 @@ export async function getServerSideProps({ req, locale }) {
     }
 
     const contentData = await contentResponse.json();
+    
     const meta = {
       title: contentData.translations[locale]?.title || '',
       description: contentData.translations[locale]?.description || '',
       image: contentData.translations[locale]?.image || '',
-      url: `${protocol}://${host}/tools/description-generator`,
+      url: `${protocol}://${host}`,
     };
+    const reactions = contentData.translations[locale]?.reactions || { likes: 0, unlikes: 0, reports: [], users: {} };
 
     return {
       props: {
@@ -663,6 +870,7 @@ export async function getServerSideProps({ req, locale }) {
         faqs: contentData.translations[locale]?.faqs || [],
         relatedTools: contentData.translations[locale]?.relatedTools || [],
         existingContent: contentData.translations[locale]?.content || '',
+        reactions,
         ...(await serverSideTranslations(locale, ['description', 'navbar', 'footer'])),
       },
     };
@@ -674,6 +882,7 @@ export async function getServerSideProps({ req, locale }) {
         faqs: [],
         relatedTools: [],
         existingContent: '',
+        reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
         ...(await serverSideTranslations(locale, ['description', 'navbar', 'footer'])),
       },
     };

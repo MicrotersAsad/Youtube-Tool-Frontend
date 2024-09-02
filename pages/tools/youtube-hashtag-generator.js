@@ -22,14 +22,9 @@ import { useTranslation } from "react-i18next";
 import Script from "next/script";
 import dynamic from "next/dynamic";
 import { getContentProps } from "../../utils/getContentProps";
+import { i18n } from "next-i18next";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
-const YouTubeHashtagGenerator = ({
-  meta,
-  faqs,
-  reviews,
-  relatedTools,
-  content,
-}) => {
+const YouTubeHashtagGenerator = ({ meta, reviews, content, relatedTools, faqs,reactions,translations})  => {
   const { user, updateUserProfile } = useAuth();
   const { t } = useTranslation("hashtag");
   const [tags, setTags] = useState([]);
@@ -46,7 +41,6 @@ const YouTubeHashtagGenerator = ({
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
-  const [translations, setTranslations] = useState([]);
 
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -325,95 +319,96 @@ const YouTubeHashtagGenerator = ({
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-          <Head>
-            <title>{meta?.title}</title>
-            <meta name="description" content={meta?.description} />
-            <meta property="og:url" content={meta?.url} />
-            <meta property="og:title" content={meta?.title} />
-            <meta property="og:description" content={meta?.description} />
-            <meta property="og:image" content={meta?.image || ""} />
-            <meta name="twitter:card" content={meta?.image || ""} />
-            <meta property="twitter:domain" content={meta?.url} />
-            <meta property="twitter:url" content={meta?.url} />
-            <meta name="twitter:title" content={meta?.title} />
-            <meta name="twitter:description" content={meta?.description} />
-            <meta name="twitter:image" content={meta?.image || ""} />
-            {/* - Webpage Schema */}
-            <Script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "WebPage",
-                name: meta?.title,
-                url: meta?.url,
-                description: meta?.description,
-                breadcrumb: {
-                  "@id": `${meta?.url}#breadcrumb`,
-                },
-                about: {
-                  "@type": "Thing",
-                  name: meta?.title,
-                },
-                isPartOf: {
-                  "@type": "WebSite",
-                  url: meta?.url,
-                },
-              })}
-            </Script>
-            {/* - Review Schema */}
-            <Script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "SoftwareApplication",
-                name: meta?.title,
-                url: meta?.url,
-                applicationCategory: "Multimedia",
-                aggregateRating: {
-                  "@type": "AggregateRating",
-                  ratingValue: overallRating,
-                  ratingCount: reviews?.length,
-                  reviewCount: reviews?.length,
-                },
-                review: reviews.map((review) => ({
-                  "@type": "Review",
-                  author: {
-                    "@type": "Person",
-                    name: review.userName,
-                  },
-                  datePublished: review.createdAt,
-                  reviewBody: review.comment,
-                  name: review.title,
-                  reviewRating: {
-                    "@type": "Rating",
-                    ratingValue: review.rating,
-                  },
-                })),
-              })}
-            </Script>
-            {/* - FAQ Schema */}
-            <Script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                mainEntity: faqs?.map((faq) => ({
-                  "@type": "Question",
-                  name: faq.question,
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: faq.answer,
-                  },
-                })),
-              })}
-            </Script>
-            {translations &&
-              Object.keys(translations).map((lang) => (
-                <link
-                  key={lang}
-                  rel="alternate"
-                  href={`${meta?.url}?locale=${lang}`}
-                  hrefLang={lang} // Corrected property name
-                />
-              ))}
-          </Head>
+        <Head>
+        <title>{meta?.title}</title>
+        <meta name="description" content={meta?.description} />
+        <meta property="og:url"  content={`${meta?.url}/${i18n.language}/tools/youtube-hashtag-generator`} />
+        <meta property="og:title" content={meta?.title} />
+        <meta property="og:description" content={meta?.description} />
+        <meta property="og:image" content={meta?.image || ""} />
+        <meta name="twitter:card" content={meta?.image || ""} />
+        <meta property="twitter:domain"  content={`${meta?.url}/${i18n.language}/tools/youtube-hashtag-generator`}  />
+        <meta property="twitter:url"  content={`${meta?.url}/${i18n.language}/tools/youtube-hashtag-generator`}  />
+        <meta name="twitter:title" content={meta?.title} />
+        <meta name="twitter:description" content={meta?.description} />
+        <meta name="twitter:image" content={meta?.image || ""} />
+
+        {/* Adding hrefLang for alternate languages */}
+        {translations && Object.keys(translations).map((lang) => (
+          <link
+            key={lang}
+            rel="alternate"
+            href={`${meta?.url}/${lang}/tools/youtube-hashtag-generator`}
+            hrefLang={lang}
+          />
+        ))}
+        <link rel="alternate" href={`${meta?.url}`} hrefLang="en" />
+        
+        {/* JSON-LD Scripts */}
+        <Script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            name: meta?.title,
+            url: meta?.url,
+            description: meta?.description,
+            breadcrumb: {
+              "@id": `${meta?.url}#breadcrumb`,
+            },
+            about: {
+              "@type": "Thing",
+              name: meta?.title,
+            },
+            isPartOf: {
+              "@type": "WebSite",
+              url: meta?.url,
+            },
+          })}
+        </Script>
+        <Script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: meta?.title,
+            url: meta?.url,
+            applicationCategory: "Multimedia",
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: overallRating,
+              ratingCount: reviews?.length,
+              reviewCount: reviews?.length,
+            },
+            review: reviews.map((review) => ({
+              "@type": "Review",
+              author: {
+                "@type": "Person",
+                name: review.userName,
+              },
+              datePublished: review.createdAt,
+              reviewBody: review.comment,
+              name: review.title,
+              reviewRating: {
+                "@type": "Rating",
+                ratingValue: review.rating,
+              },
+            })),
+          })}
+        </Script>
+        <Script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.map((faq) => ({
+              "@type": "Question",
+              name: faq.question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: faq.answer,
+              },
+            })),
+          })}
+        </Script>
+      </Head>
           <h2 className="text-3xl text-white">
             {t("YouTube Hashtag Generator")}
           </h2>

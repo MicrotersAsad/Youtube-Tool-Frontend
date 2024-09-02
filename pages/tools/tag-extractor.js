@@ -24,11 +24,21 @@ import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
+import { i18n } from "next-i18next";
 
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
-const TagExtractor = ({ meta, reviews, content, relatedTools, faqs }) => {
+const TagExtractor = ({ meta, reviews, content, relatedTools, faqs,reactions }) => {
   const { user, updateUserProfile } = useAuth();
+  const [translations, setTranslations] = useState([]);
+  const [likes, setLikes] = useState(reactions.likes || 0);
+  const [unlikes, setUnlikes] = useState(reactions.unlikes || 0);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [hasUnliked, setHasUnliked] = useState(false);
+  const [hasReported, setHasReported] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportText, setReportText] = useState("");
+  const [isSaved, setIsSaved] = useState(false);
   const router = useRouter();
   const { t } = useTranslation("tagextractor");
   const [videoUrl, setVideoUrl] = useState("");
@@ -52,6 +62,30 @@ const TagExtractor = ({ meta, reviews, content, relatedTools, faqs }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const language = i18n.language;
+        const response = await fetch(
+          `/api/content?category=tag-extractor&language=${language}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch content");
+        }
+        const data = await response.json();
+        setTranslations(data.translations);
+        setLikes(data.reactions.likes || 0);
+        setUnlikes(data.reactions.unlikes || 0);
+      } catch (error) {
+        console.error("Error fetching content:", error);
+        setError("Failed to load content.");
+      }
+    };
+
+    fetchContent(i18n.language);
+  }, [i18n.language]);
+
+
 
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -281,91 +315,95 @@ const TagExtractor = ({ meta, reviews, content, relatedTools, faqs }) => {
           <Image className="shape4" src={chart} alt="chart" />
         </div>
         <Head>
-          <title>{meta?.title}</title>
-          <meta name="description" content={meta?.description} />
-          <meta property="og:url" content={meta?.url} />
-          <meta property="og:title" content={meta?.title} />
-          <meta property="og:description" content={meta?.description} />
-          <meta property="og:image" content={meta?.image || ""} />
-          <meta name="twitter:card" content={meta?.image || ""} />
-          <meta property="twitter:domain" content={meta?.url} />
-          <meta property="twitter:url" content={meta?.url} />
-          <meta name="twitter:title" content={meta?.title} />
-          <meta name="twitter:description" content={meta?.description} />
-          <meta name="twitter:image" content={meta?.image || ""} />
-          <Script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebPage",
-              name: meta?.title,
-              url: meta?.url,
-              description: meta?.description,
-              breadcrumb: {
-                "@id": `${meta?.url}#breadcrumb`,
-              },
-              about: {
-                "@type": "Thing",
-                name: meta?.title,
-              },
-              isPartOf: {
-                "@type": "WebSite",
-                url: meta?.url,
-              },
-            })}
-          </Script>
-          <Script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "SoftwareApplication",
-              name: meta?.title,
-              url: meta?.url,
-              applicationCategory: "Multimedia",
-              aggregateRating: {
-                "@type": "AggregateRating",
-                ratingValue: overallRating,
-                ratingCount: reviews?.length,
-                reviewCount: reviews?.length,
-              },
-              review: reviews.map((review) => ({
-                "@type": "Review",
-                author: {
-                  "@type": "Person",
-                  name: review.userName,
-                },
-                datePublished: review.createdAt,
-                reviewBody: review.comment,
-                name: review.title,
-                reviewRating: {
-                  "@type": "Rating",
-                  ratingValue: review.rating,
-                },
-              })),
-            })}
-          </Script>
-          <Script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              mainEntity: faqs?.map((faq) => ({
-                "@type": "Question",
-                name: faq.question,
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: faq.answer,
-                },
-              })),
-            })}
-          </Script>
-          {Object.keys(faqs).map((lang) => (
-            <link
-              key={lang}
-              rel="alternate"
-              href={`${meta?.url}?locale=${lang}`}
-              hrefLang={lang} // Corrected property name
-            />
-          ))}
-        </Head>
+        <title>{meta?.title}</title>
+        <meta name="description" content={meta?.description} />
+        <meta property="og:url"  content={`${meta?.url}/${i18n.language}/tools/tag-extractor`} />
+        <meta property="og:title" content={meta?.title} />
+        <meta property="og:description" content={meta?.description} />
+        <meta property="og:image" content={meta?.image || ""} />
+        <meta name="twitter:card" content={meta?.image || ""} />
+        <meta property="twitter:domain"  content={`${meta?.url}/${i18n.language}/tools/tag-extractor`}  />
+        <meta property="twitter:url"  content={`${meta?.url}/${i18n.language}/tools/tag-extractor`}  />
+        <meta name="twitter:title" content={meta?.title} />
+        <meta name="twitter:description" content={meta?.description} />
+        <meta name="twitter:image" content={meta?.image || ""} />
 
+        {/* Adding hrefLang for alternate languages */}
+        {translations && Object.keys(translations).map((lang) => (
+          <link
+            key={lang}
+            rel="alternate"
+            href={`${meta?.url}/${lang}/tools/tag-extractor`}
+            hrefLang={lang}
+          />
+        ))}
+       
+        
+        {/* JSON-LD Scripts */}
+        <Script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            name: meta?.title,
+            url: meta?.url,
+            description: meta?.description,
+            breadcrumb: {
+              "@id": `${meta?.url}#breadcrumb`,
+            },
+            about: {
+              "@type": "Thing",
+              name: meta?.title,
+            },
+            isPartOf: {
+              "@type": "WebSite",
+              url: meta?.url,
+            },
+          })}
+        </Script>
+        <Script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: meta?.title,
+            url: meta?.url,
+            applicationCategory: "Multimedia",
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: overallRating,
+              ratingCount: reviews?.length,
+              reviewCount: reviews?.length,
+            },
+            review: reviews.map((review) => ({
+              "@type": "Review",
+              author: {
+                "@type": "Person",
+                name: review.userName,
+              },
+              datePublished: review.createdAt,
+              reviewBody: review.comment,
+              name: review.title,
+              reviewRating: {
+                "@type": "Rating",
+                ratingValue: review.rating,
+              },
+            })),
+          })}
+        </Script>
+        <Script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.map((faq) => ({
+              "@type": "Question",
+              name: faq.question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: faq.answer,
+              },
+            })),
+          })}
+        </Script>
+      </Head>
         <div className="max-w-7xl mx-auto p-4">
           <h2 className="text-3xl text-white">{t("YouTube Tag Extractor")}</h2>
           <ToastContainer />
