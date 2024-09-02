@@ -400,13 +400,13 @@ export default function Home() {
           />
           <title>{meta?.title}</title>
           <meta name="description" content={meta?.description} />
-          <meta property="og:url" content={`${meta?.url}/${i18n.language}`} />
+          <meta property="og:url"content={`${meta?.url}/${i18n.language !== 'en' ? i18n.language : ''}`} />
           <meta property="og:title" content={meta?.title} />
           <meta property="og:description" content={meta?.description} />
           <meta property="og:image" content={meta?.image || ""} />
           <meta name="twitter:card" content={meta?.image || ""} />
-          <meta property="twitter:domain" content={`${meta?.url}/${i18n.language}`} />
-          <meta property="twitter:url" content={`${meta?.url}/${i18n.language}`} />
+          <meta property="twitter:domain" content={`${meta?.url}/${i18n.language !== 'en' ? i18n.language : ''}`} />
+          <meta property="twitter:url" ccontent={`${meta?.url}/${i18n.language !== 'en' ? i18n.language : ''}`} />
           <meta name="twitter:title" content={meta?.title} />
           <meta name="twitter:description" content={meta?.description} />
           <meta name="twitter:image" content={meta?.image || ""} />
@@ -476,14 +476,18 @@ export default function Home() {
               })),
             })}
           </Script>
+          <link rel="alternate" hreflang="x-default" href={meta?.url} />
+          <link rel="alternate" hreflang="en" href={meta?.url} />
           {translations && Object.keys(translations).map(lang => (
-            <link
-              key={lang}
-              rel="alternate"
-              href={`${meta?.url}/${lang}`}
-              hrefLang={lang} // Corrected property name
-            />
-          ))}
+    lang !== 'en' && (
+      <link
+        key={lang}
+        rel="alternate"
+        hrefLang={lang} 
+        href={`${meta?.url}/${lang}`}
+      />
+    )
+  ))}
         </Head>
         <div className="max-w-7xl mx-auto p-4">
           <h2 className="text-3xl text-white">{t('YouTube Tag Generator')}</h2>

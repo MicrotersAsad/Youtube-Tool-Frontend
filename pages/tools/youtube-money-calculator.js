@@ -13,12 +13,12 @@ import { useTranslation } from "react-i18next";
 import dynamic from 'next/dynamic';
 import { getContentProps } from "../../utils/getContentProps";
 import Script from "next/script";
-import { i18n } from "next-i18next";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const YouTubeMoneyCalculator =({ meta, reviews, content, relatedTools, faqs,reactions,translations})   => {
   const { t } = useTranslation('calculator');
   const [dailyViews, setDailyViews] = useState(0);
   const { user, updateUserProfile, logout } = useAuth();
+
   const [generateCount, setGenerateCount] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);

@@ -14,7 +14,7 @@ const Terms = ({ existingContent }) => {
     const fetchContent = async () => {
       try {
         const language = i18n.language;
-        const response = await fetch(`/api/privacy?lang=${language}`);
+        const response = await fetch(`/api/terms?lang=${language}`);
         if (!response.ok) {
           throw new Error('Failed to fetch content');
         }
