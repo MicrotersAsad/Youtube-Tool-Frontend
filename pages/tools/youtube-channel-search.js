@@ -28,7 +28,6 @@ const YouTubeChannelScraper =  ({ meta, reviews, content, relatedTools, faqs,rea
   const [page, setPage] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [translations, setTranslations] = useState([]);
   const [generateCount, setGenerateCount] = useState(
     typeof window !== "undefined"
       ? Number(localStorage.getItem("generateCount")) || 0
