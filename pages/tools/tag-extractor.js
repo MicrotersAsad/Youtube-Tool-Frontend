@@ -11,6 +11,10 @@ import {
   FaDownload,
   FaStar,
   FaTools,
+  FaFacebook,
+  FaLinkedin,
+  FaTwitter,
+  FaInstagram,
 } from "react-icons/fa";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
@@ -633,28 +637,34 @@ const TagExtractor = ({ meta, reviews, content, relatedTools, faqs,reactions }) 
     <div className="flex items-center space-x-4">
       <button
         onClick={() => handleReaction("like")}
-        className="flex items-center space-x-1 text-purple-600 hover:text-purple-800"
+        className="flex items-center space-x-1"
         style={{ color: likeButtonColor }}
       >
-        <FaThumbsUp className="text-xl text-green-500" />
+        <FaThumbsUp className="text-xl " />
         <span>{likes}</span>
       </button>
       <button
         onClick={() => handleReaction("unlike")}
-        className="flex items-center space-x-1 text-red-400 hover:text-red-600"
+        className="flex items-center space-x-1"
         style={{ color: unlikeButtonColor }}
       >
-        <FaThumbsDown className="text-xl text-red-500" />
+        <FaThumbsDown className="text-xl" />
         <span>{unlikes}</span>
       </button>
       <button
         onClick={() => setShowReportModal(true)}
-        className="flex items-center space-x-1 text-red-500 hover:text-red-700"
+        className="flex items-center space-x-1"
         style={{ color: reportButtonColor }}
       >
-        <FaFlag className="text-xl text-red-500" />
+        <FaFlag className="text-xl" />
         <span>Report</span>
       </button>
+    </div>
+    <div>
+      <FaFacebook className="fs-3 pe-2"/>
+      <FaLinkedin className="fs-3 pe-2"/>
+      <FaTwitter className="fs-3 pe-2"/>
+      <FaInstagram className="fs-3 pe-2"/>
     </div>
   </div>
 
