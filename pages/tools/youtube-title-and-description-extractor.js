@@ -9,6 +9,10 @@ import {
   FaCopy,
   FaDownload,
   FaStar,
+  FaBookmark, 
+  FaThumbsUp,
+  FaThumbsDown,
+  FaFlag 
 } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
@@ -45,7 +49,33 @@ const TitleDescriptionExtractor =({ meta, reviews, content, relatedTools, faqs,r
   const [modalVisible, setModalVisible] = useState(true);
   const [openIndex, setOpenIndex] = useState(null);
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [likes, setLikes] = useState(reactions.likes || 0);
+  const [unlikes, setUnlikes] = useState(reactions.unlikes || 0);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [hasUnliked, setHasUnliked] = useState(false);
+  const [hasReported, setHasReported] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportText, setReportText] = useState("");
+  const [isSaved, setIsSaved] = useState(false);
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const language = i18n.language || "en";
+        const response = await fetch(
+          `/api/content?category=youtube-title-and-description-extractor&language=${language}`
+        );
+        if (!response.ok) throw new Error("Failed to fetch content");
+        const data = await response.json();
 
+        setLikes(data.reactions?.likes || 0);
+        setUnlikes(data.reactions?.unlikes || 0);
+      } catch (error) {
+        console.error("Error fetching content:", error);
+      }
+    };
+
+    fetchContent();
+  }, [i18n.language]);
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
@@ -216,7 +246,110 @@ const TitleDescriptionExtractor =({ meta, reviews, content, relatedTools, faqs,r
   const overallRating = (
     reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
   ).toFixed(1);
+  useEffect(() => {
+    if (user) {
+      const userAction = reactions.users?.[user.email];
+      if (userAction === "like") {
+        setHasLiked(true);
+      } else if (userAction === "unlike") {
+        setHasUnliked(true);
+      } else if (userAction === "report") {
+        setHasReported(true);
+      }
 
+      // Check if data is already saved using the current URL
+      const savedChannels = JSON.parse(
+        localStorage.getItem("savedChannels") || "[]"
+      );
+      const isChannelSaved = savedChannels.some(
+        (channel) => channel.toolUrl === window.location.href
+      );
+      setIsSaved(isChannelSaved);
+    }
+  }, [user, reactions.users]);
+
+  const handleReaction = async (action) => {
+    if (!user) {
+      toast.error("Please log in to react.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/content", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          category: "Youtube-Thumbnails-Generator",
+          userId: user.email,
+          action,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update reaction");
+      }
+
+      const updatedData = await response.json();
+      setLikes(updatedData.reactions.likes || 0);
+      setUnlikes(updatedData.reactions.unlikes || 0);
+
+      if (action === "like") {
+        if (hasLiked) {
+          toast.error("You have already liked this.");
+        } else {
+          setHasLiked(true);
+          setHasUnliked(false);
+        }
+      } else if (action === "unlike") {
+        if (hasUnliked) {
+          setHasUnliked(false);
+        } else {
+          setHasLiked(false);
+          setHasUnliked(true);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to update reaction:", error);
+      toast.error(error.message);
+    }
+  };
+
+  const saveChannel = () => {
+    const savedChannels = JSON.parse(
+      localStorage.getItem("savedChannels") || "[]"
+    );
+    const currentTool = {
+      toolName: "YouTube Thumbnail Downloader", // Name of the current tool
+      toolUrl: window.location.href, // Current URL of the tool
+    };
+
+    const existingChannelIndex = savedChannels.findIndex(
+      (channel) => channel.toolUrl === currentTool.toolUrl
+    );
+
+    if (existingChannelIndex === -1) {
+      // If the tool is not already saved, save it
+      savedChannels.push(currentTool);
+      localStorage.setItem("savedChannels", JSON.stringify(savedChannels));
+      setIsSaved(true);
+      toast.success("Tool saved successfully!");
+    } else {
+      // If the tool is already saved, remove it
+      savedChannels.splice(existingChannelIndex, 1);
+      localStorage.setItem("savedChannels", JSON.stringify(savedChannels));
+      setIsSaved(false);
+      toast.success("Tool removed from saved list.");
+    }
+  };
+
+  // বাটন রঙের লজিক
+  const likeButtonColor = hasLiked ? "#4CAF50" : "#ccc"; // লাইক করা থাকলে সবুজ
+  const unlikeButtonColor = hasUnliked ? "#F44336" : "#ccc"; // ডিসলাইক করা থাকলে লাল
+  const reportButtonColor = hasReported ? "#FFD700" : "#ccc"; // রিপোর্ট করা থাকলে হলুদ
+  const saveButtonColor = isSaved ? "#FFD700" : "#ccc";
   return (
     <>
       <div className="bg-box">

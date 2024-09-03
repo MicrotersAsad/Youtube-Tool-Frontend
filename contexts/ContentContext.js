@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
 import { format } from 'date-fns';
-import { log } from 'util';
 
 const ContentContext = createContext();
 
@@ -23,7 +22,6 @@ export const fetchContent = async (category, locale, host, protocol, setLoading)
     }
     const reactions = contentData.translations[locale]?.reactions || { likes: 0, unlikes: 0, reports: [], users: {} };
     const translations=contentData.translations
-    console.log(translations);
     
     return {
       content: contentData.translations[locale]?.content || '',

@@ -2,8 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import Head from "next/head";
 import { ToastContainer, toast } from "react-toastify";
-import { FaStar } from "react-icons/fa";
+import { FaStar,  FaFlag ,
+  FaBookmark, 
+  FaThumbsUp,
+  FaThumbsDown, } from "react-icons/fa";
 import Link from "next/link";
+import "react-toastify/dist/ReactToastify.css";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
@@ -13,12 +17,20 @@ import { useTranslation } from "react-i18next";
 import dynamic from 'next/dynamic';
 import { getContentProps } from "../../utils/getContentProps";
 import Script from "next/script";
+import { i18n } from "next-i18next";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const YouTubeMoneyCalculator =({ meta, reviews, content, relatedTools, faqs,reactions,translations})   => {
   const { t } = useTranslation('calculator');
   const [dailyViews, setDailyViews] = useState(0);
   const { user, updateUserProfile, logout } = useAuth();
-
+  const [likes, setLikes] = useState(reactions.likes || 0);
+  const [unlikes, setUnlikes] = useState(reactions.unlikes || 0);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [hasUnliked, setHasUnliked] = useState(false);
+  const [hasReported, setHasReported] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportText, setReportText] = useState("");
+  const [isSaved, setIsSaved] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
@@ -80,7 +92,25 @@ const YouTubeMoneyCalculator =({ meta, reviews, content, relatedTools, faqs,reac
     setShowReviewForm(false);
   };
 
- 
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const language = i18n.language || "en";
+        const response = await fetch(
+          `/api/content?category=YouTube-Money-Calculator&language=${language}`
+        );
+        if (!response.ok) throw new Error("Failed to fetch content");
+        const data = await response.json();
+
+        setLikes(data.reactions?.likes || 0);
+        setUnlikes(data.reactions?.unlikes || 0);
+      } catch (error) {
+        console.error("Error fetching content:", error);
+      }
+    };
+
+    fetchContent();
+  }, [i18n.language]);
 
   const handleReviewSubmit = async () => {
     if (!user) {
@@ -151,6 +181,110 @@ const YouTubeMoneyCalculator =({ meta, reviews, content, relatedTools, faqs,reac
   const closeReviewForm = () => {
     setShowReviewForm(false);
   };
+  useEffect(() => {
+    if (user) {
+      const userAction = reactions.users?.[user.email];
+      if (userAction === "like") {
+        setHasLiked(true);
+      } else if (userAction === "unlike") {
+        setHasUnliked(true);
+      } else if (userAction === "report") {
+        setHasReported(true);
+      }
+
+      // Check if data is already saved using the current URL
+      const savedChannels = JSON.parse(
+        localStorage.getItem("savedChannels") || "[]"
+      );
+      const isChannelSaved = savedChannels.some(
+        (channel) => channel.toolUrl === window.location.href
+      );
+      setIsSaved(isChannelSaved);
+    }
+  }, [user, reactions.users]);
+
+  const handleReaction = async (action) => {
+    if (!user) {
+      toast.error("Please log in to react.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/content", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          category: "YouTube-Money-Calculator",
+          userId: user.email,
+          action,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update reaction");
+      }
+
+      const updatedData = await response.json();
+      setLikes(updatedData.reactions.likes || 0);
+      setUnlikes(updatedData.reactions.unlikes || 0);
+
+      if (action === "like") {
+        if (hasLiked) {
+          toast.error("You have already liked this.");
+        } else {
+          setHasLiked(true);
+          setHasUnliked(false);
+        }
+      } else if (action === "unlike") {
+        if (hasUnliked) {
+          setHasUnliked(false);
+        } else {
+          setHasLiked(false);
+          setHasUnliked(true);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to update reaction:", error);
+      toast.error(error.message);
+    }
+  };
+
+  const saveChannel = () => {
+    const savedChannels = JSON.parse(
+      localStorage.getItem("savedChannels") || "[]"
+    );
+    const currentTool = {
+      toolName: "YouTube Money Calculator", // Name of the current tool
+      toolUrl: window.location.href, // Current URL of the tool
+    };
+
+    const existingChannelIndex = savedChannels.findIndex(
+      (channel) => channel.toolUrl === currentTool.toolUrl
+    );
+
+    if (existingChannelIndex === -1) {
+      // If the tool is not already saved, save it
+      savedChannels.push(currentTool);
+      localStorage.setItem("savedChannels", JSON.stringify(savedChannels));
+      setIsSaved(true);
+      toast.success("Tool saved successfully!");
+    } else {
+      // If the tool is already saved, remove it
+      savedChannels.splice(existingChannelIndex, 1);
+      localStorage.setItem("savedChannels", JSON.stringify(savedChannels));
+      setIsSaved(false);
+      toast.success("Tool removed from saved list.");
+    }
+  };
+
+  // বাটন রঙের লজিক
+  const likeButtonColor = hasLiked ? "#4CAF50" : "#ccc"; // লাইক করা থাকলে সবুজ
+  const unlikeButtonColor = hasUnliked ? "#F44336" : "#ccc"; // ডিসলাইক করা থাকলে লাল
+  const reportButtonColor = hasReported ? "#FFD700" : "#ccc"; // রিপোর্ট করা থাকলে হলুদ
+  const saveButtonColor = isSaved ? "#FFD700" : "#ccc";
   return (
     <>
       <div className="bg-box">
@@ -347,6 +481,80 @@ const YouTubeMoneyCalculator =({ meta, reviews, content, relatedTools, faqs,reac
                   </div>
                 </div>
               </div>
+               {/* Reaction Bar */}
+  <div className="reaction-bar flex flex-col sm:flex-row items-center justify-between mt-4 p-3">
+    <div className="flex items-center space-x-2">
+      <button
+        onClick={() => handleReaction("like")}
+        className="flex items-center space-x-1"
+        style={{ color: likeButtonColor }}
+      >
+        <FaThumbsUp className="text-purple-600" />
+        <span>{likes} |</span>
+      </button>
+
+      <button
+        onClick={() => handleReaction("unlike")}
+        className="flex items-center space-x-1"
+        style={{ color: unlikeButtonColor }}
+      >
+        <FaThumbsDown className="text-red-400" />
+        <span>{unlikes} |</span>
+      </button>
+
+      <button
+        onClick={() => setShowReportModal(true)}
+        className="flex items-center space-x-1"
+        style={{ color: reportButtonColor }}
+      >
+        <FaFlag className="text-red-500" />
+        <span className="text-red-500">Report</span>
+      </button>
+    </div>
+
+    <div className="flex items-center mt-3 sm:mt-0">
+      <button
+        onClick={saveChannel}
+        className="flex items-center space-x-1"
+        style={{ color: saveButtonColor }}
+      >
+        {isSaved ? (
+          <FaBookmark className="text-yellow-300" />
+        ) : (
+          <FaBookmark className="text-yellow-300" />
+        )}
+      </button>
+    </div>
+  </div>
+
+  {showReportModal && (
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black opacity-50"></div>
+      <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
+        <h2 className="text-2xl font-semibold mb-4">{t("Report This Tool")}</h2>
+        <textarea
+          className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+          placeholder={t("Describe your issue...")}
+          value={reportText}
+          onChange={(e) => setReportText(e.target.value)}
+        />
+        <div className="mt-4 flex justify-end space-x-4">
+          <button
+            className="btn btn-secondary text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline"
+            onClick={() => setShowReportModal(false)}
+          >
+            {t("Cancel")}
+          </button>
+          <button
+            className="btn btn-primary text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+            onClick={() => handleReaction("report")}
+          >
+            {t("Submit Report")}
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
             </div>
           </div>
         </div>

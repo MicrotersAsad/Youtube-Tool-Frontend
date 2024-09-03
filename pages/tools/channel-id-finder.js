@@ -63,7 +63,6 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions 
         
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
-        console.log(data);
         setTranslations(data.translations);
         setLikes(data.reactions.likes || 0);
         setUnlikes(data.reactions.unlikes || 0);
@@ -254,89 +253,81 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions 
     setIsSaved(isChannelSaved);
   }, [user, reactions.users, videoUrl]);
 
+
   const handleReaction = async (action) => {
     if (!user) {
       toast.error("Please log in to react.");
       return;
     }
-
+  
     try {
-      if (action === "report") {
-        const response = await fetch('/api/report', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userEmail: user.email,
-            reportText,
-            toolName: "YouTube Description Generator",
-            toolUrl: window.location.href,
-          }),
-        });
-
-        if (!response.ok) throw new Error("Failed to send report");
-
-        toast.success("Report submitted successfully.");
-        setHasReported(true);
-        setShowReportModal(false);
-        setReportText('');
-      } else {
-        // Existing logic for handling likes/unlikes
-        const response = await fetch('/api/content', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            category: "DescriptionGenerator",
-            userId: user.email,
-            action,
-          }),
-        });
-
-        if (!response.ok) throw new Error("Failed to update reaction");
-
-        const updatedData = await response.json();
-        setLikes(updatedData.reactions.likes || 0);
-        setUnlikes(updatedData.reactions.unlikes || 0);
-
-        if (action === "like") {
-          setHasLiked(!hasLiked);
+      const response = await fetch('/api/content', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          category: "channel-id-finder",
+          userId: user.email,
+          action,
+        }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update reaction");
+      }
+  
+      const updatedData = await response.json();
+      setLikes(updatedData.reactions.likes || 0);
+      setUnlikes(updatedData.reactions.unlikes || 0);
+  
+      if (action === "like") {
+        if (hasLiked) {
+          toast.error("You have already liked this.");
+        } else {
+          setHasLiked(true);
           setHasUnliked(false);
-        } else if (action === "unlike") {
-          setHasUnliked(!hasUnliked);
+        }
+      } else if (action === "unlike") {
+        if (hasUnliked) {
+          setHasUnliked(false);
+        } else {
           setHasLiked(false);
+          setHasUnliked(true);
         }
       }
     } catch (error) {
-      console.error("Failed to update reaction or send report:", error);
-      toast.error("Failed to update reaction or send report");
+      console.error("Failed to update reaction:", error);
+      toast.error(error.message);
     }
   };
-
+  
+  
   
   const saveChannel = () => {
     const savedChannels = JSON.parse(localStorage.getItem('savedChannels') || '[]');
+    const currentTool = {
+      toolName: "YouTube Channel ID Finder", // Name of the current tool
+      toolUrl: window.location.href, // Current URL of the tool
+    };
     
     if (!isSaved) {
-      const channelInfo = {
-        videoUrl,
-        channelData,
-        toolName: "YouTube Channel ID Finder", // Add tool name here
-        toolUrl: window.location.href // Add current tool URL here
-      };
-      savedChannels.push(channelInfo);
+      savedChannels.push(currentTool);
       localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
       setIsSaved(true);
-      toast.success("Channel saved successfully!");
+      toast.success("Tool saved successfully!");
     } else {
-      const updatedChannels = savedChannels.filter(channel => channel.videoUrl !== videoUrl);
+      const updatedChannels = savedChannels.filter(channel => channel.toolUrl !== currentTool.toolUrl);
       localStorage.setItem('savedChannels', JSON.stringify(updatedChannels));
       setIsSaved(false);
-      toast.success("Channel removed from saved list.");
+      toast.success("Tool removed from saved list.");
     }
   };
+
+
+  
+  
   
   
   // বাটন রঙের লজিক

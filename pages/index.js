@@ -2,6 +2,10 @@
 import React, { useState, useEffect } from "react";
 import {
   FaShareAlt,
+  FaThumbsUp, 
+  FaThumbsDown ,
+  FaFlag ,
+  FaBookmark ,
   FaFacebook,
   FaLinkedin,
   FaInstagram,
@@ -29,7 +33,7 @@ import cloud2 from "../public/shape/cloud2.png";
 import Script from "next/script";
 const StarRating = dynamic(() => import("./tools/StarRating"), { ssr: false });
 
-export default function Home() {
+export default function Home(reactions ) {
   const { user, updateUserProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -49,7 +53,14 @@ export default function Home() {
   const [existingContent, setExistingContent] = useState('');
   const [relatedTools, setRelatedTools] = useState([]);
   const [faqs, setFaqs] = useState([]);
-
+  const [likes, setLikes] = useState(reactions.likes || 0);
+  const [unlikes, setUnlikes] = useState(reactions.unlikes || 0);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [hasUnliked, setHasUnliked] = useState(false);
+  const [hasReported, setHasReported] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportText, setReportText] = useState("");
+  const [isSaved, setIsSaved] = useState(false);
   const [newReview, setNewReview] = useState({
     name: "",
     title: "",
@@ -75,7 +86,12 @@ export default function Home() {
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
         setTranslations(data.translations);
+  
         setExistingContent(data.translations[language]?.content || '');
+        setLikes(data.reactions.likes || 0);
+        setUnlikes(data.reactions.unlikes || 0);
+        
+        
         setMeta({
           title: data.translations[language]?.title || '',
           description: data.translations[language]?.description || '',
@@ -378,6 +394,106 @@ export default function Home() {
     }
     setModalVisible(true);
   };
+  useEffect(() => {
+    if (user) {
+      const userAction = reactions.users?.[user.email];
+      if (userAction === "like") {
+        setHasLiked(true);
+      } else if (userAction === "unlike") {
+        setHasUnliked(true);
+      } else if (userAction === "report") {
+        setHasReported(true);
+      }
+  
+      // Check if data is already saved using the current URL
+      const savedChannels = JSON.parse(localStorage.getItem('savedChannels') || '[]');
+      const isChannelSaved = savedChannels.some(channel => channel.toolUrl === window.location.href);
+      setIsSaved(isChannelSaved);
+    }
+  }, [user, reactions.users]);
+  
+
+  const handleReaction = async (action) => {
+    if (!user) {
+      toast.error("Please log in to react.");
+      return;
+    }
+  
+    try {
+      const response = await fetch('/api/content', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          category: "tagGenerator",
+          userId: user.email,
+          action,
+        }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update reaction");
+      }
+  
+      const updatedData = await response.json();
+      setLikes(updatedData.reactions.likes || 0);
+      setUnlikes(updatedData.reactions.unlikes || 0);
+  
+      if (action === "like") {
+        if (hasLiked) {
+          toast.error("You have already liked this.");
+        } else {
+          setHasLiked(true);
+          setHasUnliked(false);
+        }
+      } else if (action === "unlike") {
+        if (hasUnliked) {
+          setHasUnliked(false);
+        } else {
+          setHasLiked(false);
+          setHasUnliked(true);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to update reaction:", error);
+      toast.error(error.message);
+    }
+  };
+  
+  
+  
+  const saveChannel = () => {
+    const savedChannels = JSON.parse(localStorage.getItem('savedChannels') || '[]');
+    const currentTool = {
+      toolName: "YouTube Tag Generator", // Name of the current tool
+      toolUrl: window.location.href, // Current URL of the tool
+    };
+  
+    const existingChannelIndex = savedChannels.findIndex(channel => channel.toolUrl === currentTool.toolUrl);
+  
+    if (existingChannelIndex === -1) {
+      // If the tool is not already saved, save it
+      savedChannels.push(currentTool);
+      localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
+      setIsSaved(true);
+      toast.success("Tool saved successfully!");
+    } else {
+      // If the tool is already saved, remove it
+      savedChannels.splice(existingChannelIndex, 1);
+      localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
+      setIsSaved(false);
+      toast.success("Tool removed from saved list.");
+    }
+  };
+  
+
+  // বাটন রঙের লজিক
+  const likeButtonColor = hasLiked ? "#4CAF50" : "#ccc"; // লাইক করা থাকলে সবুজ
+  const unlikeButtonColor = hasUnliked ? "#F44336" : "#ccc"; // ডিসলাইক করা থাকলে লাল
+  const reportButtonColor = hasReported ? "#FFD700" : "#ccc"; // রিপোর্ট করা থাকলে হলুদ
+  const saveButtonColor = isSaved ? "#FFD700" : "#ccc";
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -532,71 +648,112 @@ export default function Home() {
               </div>
             </div>
           )}
+<div className="border max-w-4xl mx-auto rounded-xl shadow bg-white p-4">
+  <div className="keywords-input-container">
+    <div className="mb-3">
+      <label className="block text-gray-700 text-sm font-bold mb-2">
+        Enter YouTube Channel or Video URL <span className="text-red-500">*</span>
+      </label>
+      <input
+        type="text"
+        className="w-full p-2 border border-gray-300 rounded-md"
+        placeholder="e.g. www.youtube.com/channel/xxxxxx or www.youtube.com/watch?v=xxxxxxx"
+        aria-label="YouTube Video URL"
+        value={input}
+        onChange={handleInputChange}
+        required
+      />
+    </div>
+    <button
+      className="w-full p-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+      type="button"
+      onClick={generateTitles}
+      disabled={isLoading || tags.length === 0}
+    >
+      {isLoading ? 'Loading...' : 'Extract Links'}
+    </button>
+  </div>
+  
+  <div className="mt-4 text-center text-gray-500 text-sm">
+    Example: https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s
+  </div>
 
-          <div className="keywords-input-container">
-            <div className="tags-container flex flex-wrap gap-2 mb-4">
-              {tags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="bg-gray-200 px-2 py-1 rounded-md flex items-center"
-                >
-                  {tag}
-                  <span
-                    className="ml-2 cursor-pointer"
-                    onClick={() => setTags(tags.filter((_, i) => i !== index))}
-                  >
-                    ×
-                  </span>
-                </span>
-              ))}
-            </div>
-            <input
-              type="text"
-              placeholder={t('addKeyword')}
-              className="w-full p-2 border rounded-md"
-              value={input}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-              required
-            />
-          </div>
-          <div className="center">
-            <div className="flex flex-wrap gap-2 justify-center pt-5">
-              <button
-                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
-                onClick={generateTitles}
-                disabled={isLoading || tags.length === 0}
-                style={{ minWidth: "50px" }}
-              >
-                {isLoading ? t('generating') : t('generateTag')}
-              </button>
-            </div>
-          </div>
+  {/* Reaction Bar */}
+  <div className="reaction-bar shadow-sm flex items-center justify-between mt-4 p-3">
+    <div className="flex items-center space-x-2">
+      <button
+        onClick={() => handleReaction("like")}
+        className="flex items-center space-x-1"
+        style={{ color: likeButtonColor }}
+      >
+        <FaThumbsUp className="text-purple-600"/>
+        <span>{likes}</span>
+      </button>
+      
+      <button
+        onClick={() => handleReaction("unlike")}
+        className="flex items-center space-x-1"
+        style={{ color: unlikeButtonColor }}
+      >
+        <FaThumbsDown className="text-red-400"/>
+        <span>{unlikes}</span>
+      </button>
+
+      <button
+        onClick={() => setShowReportModal(true)}
+        className="flex items-center space-x-1"
+        style={{ color: reportButtonColor }}
+      >
+        <FaFlag className="text-red-500"/>
+        <span className="text-red-500">Report</span>
+      </button>
+    </div>
+    
+    <div className="flex items-center">
+      <button
+        onClick={saveChannel}
+        className="flex items-center space-x-1"
+        style={{ color: saveButtonColor }}
+      >
+        <FaBookmark className="text-purple-600"/>
+      </button>
+    </div>
+  </div>
+
+  {showReportModal && (
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black opacity-50"></div>
+      <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
+        <h2 className="text-2xl font-semibold mb-4">Report This Tool</h2>
+        <textarea
+          className="w-full p-2 border border-gray-300 rounded-md"
+          placeholder="Describe your issue..."
+          value={reportText}
+          onChange={(e) => setReportText(e.target.value)}
+        />
+        <div className="mt-4 flex justify-end space-x-4">
+          <button
+            className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-700"
+            onClick={() => setShowReportModal(false)}
+          >
+            Cancel
+          </button>
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            onClick={() => handleReaction("report")}
+          >
+            Submit Report
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+
         </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
-        <div className="text-center">
-          <div className="flex justify-center items-center gap-2">
-            <FaShareAlt className="text-red-500 text-xl" />
-            <span> {t('shareOnSocialMedia')}</span>
-            <FaFacebook
-              className="text-blue-600 text-xl cursor-pointer"
-              onClick={() => shareOnSocialMedia("facebook")}
-            />
-            <FaInstagram
-              className="text-pink-500 text-xl cursor-pointer"
-              onClick={() => shareOnSocialMedia("instagram")}
-            />
-            <FaTwitter
-              className="text-blue-400 text-xl cursor-pointer"
-              onClick={() => shareOnSocialMedia("twitter")}
-            />
-            <FaLinkedin
-              className="text-blue-700 text-xl cursor-pointer"
-              onClick={() => shareOnSocialMedia("linkedin")}
-            />
-          </div>
-        </div>
+      
         <div className="text-center my-4">
           {generatedTitles.length > 0 && (
             <div className="inline-block p-2 rounded-md bg-gray-200">
@@ -920,7 +1077,7 @@ export async function getServerSideProps({ req, locale }) {
     if (!contentData.translations || !contentData.translations[locale]) {
       throw new Error("Invalid content data format");
     }
-
+    const reactions = contentData.translations[locale]?.reactions || { likes: 0, unlikes: 0, reports: [], users: {} };
     const meta = {
       title: contentData.translations[locale]?.title || "",
       description: contentData.translations[locale]?.description || "",
@@ -932,6 +1089,7 @@ export async function getServerSideProps({ req, locale }) {
     return {
       props: {
         initialMeta: meta,
+        reactions,
         ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
       },
     };
@@ -941,6 +1099,7 @@ export async function getServerSideProps({ req, locale }) {
     return {
       props: {
         initialMeta: {},
+        reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
         ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
       },
     };

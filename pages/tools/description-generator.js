@@ -343,10 +343,11 @@ ${keywords}
     }
   };
 
+   
   const saveChannel = () => {
     const savedChannels = JSON.parse(localStorage.getItem('savedChannels') || '[]');
     const currentTool = {
-      toolName: "YouTube Description Generator", // Name of the current tool
+      toolName: "Youtube Description Generator", // Name of the current tool
       toolUrl: window.location.href, // Current URL of the tool
     };
     
@@ -362,6 +363,7 @@ ${keywords}
       toast.success("Tool removed from saved list.");
     }
   };
+
 
   // Button color logic
   const likeButtonColor = hasLiked ? "#4CAF50" : "#ccc";

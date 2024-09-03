@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import {
   FaShareAlt,
+  FaThumbsUp,
+  FaThumbsDown,
+  FaFlag,
+  FaBookmark,
   FaFacebook,
   FaLinkedin,
   FaInstagram,
@@ -10,7 +14,7 @@ import {
   FaStar,
 } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
-import { getContentProps } from '../../utils/getContentProps';
+import { getContentProps } from "../../utils/getContentProps";
 import Head from "next/head";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
@@ -21,14 +25,22 @@ import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
-import { i18n, useTranslation } from 'next-i18next';
-import dynamic from 'next/dynamic';
+import { i18n, useTranslation } from "next-i18next";
+import dynamic from "next/dynamic";
 import Script from "next/script";
 
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
-const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translations }) => {
-  const { t } = useTranslation('titlegenerator');
+const YTTitleGenerator = ({
+  meta,
+  faqs,
+  reviews,
+  relatedTools,
+  content,
+  translations,
+  reactions: initialReactions,
+}) => {
+  const { t } = useTranslation("titlegenerator");
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();
   const [tags, setTags] = useState([]);
@@ -50,11 +62,36 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
+  const [likes, setLikes] = useState(initialReactions.likes || 0);
+  const [unlikes, setUnlikes] = useState(initialReactions.unlikes || 0);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [hasUnliked, setHasUnliked] = useState(false);
+  const [hasReported, setHasReported] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportText, setReportText] = useState("");
+  const [isSaved, setIsSaved] = useState(false);
 
   const closeModal = () => {
     setModalVisible(false);
   };
-
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const language = i18n.language;
+        const response = await fetch(`/api/content?category=Titlegenerator&language=${language}`);
+        
+        if (!response.ok) throw new Error("Failed to fetch content");
+        const data = await response.json();
+        setLikes(data.reactions.likes || 0);
+        setUnlikes(data.reactions.unlikes || 0);
+      } catch (error) {
+        console.error("Error fetching content:", error);
+        toast.error("Failed to fetch content");
+      }
+    };
+  
+    fetchContent();
+  }, [i18n.language]);
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
       updateUserProfile().then(() => setIsUpdated(true));
@@ -66,6 +103,24 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
       setGenerateCount(5);
     }
   }, [user]);
+
+  useEffect(() => {
+    // Initialize reactions state with server-side data on initial render
+    if (user) {
+      const userAction = initialReactions.users?.[user.email];
+      if (userAction === "like") {
+        setHasLiked(true);
+      } else if (userAction === "unlike") {
+        setHasUnliked(true);
+      } else if (userAction === "report") {
+        setHasReported(true);
+      }
+
+      const savedChannels = JSON.parse(localStorage.getItem("savedChannels") || "[]");
+      const isChannelSaved = savedChannels.some(channel => channel.toolUrl === window.location.href);
+      setIsSaved(isChannelSaved);
+    }
+  }, [user, initialReactions.users]);
 
   const handleInputChange = (e) => {
     const { value } = e.target;
@@ -144,10 +199,10 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(
       () => {
-        toast.success(t('copied', { text }));
+        toast.success(t("copied", { text }));
       },
       (err) => {
-        toast.error(t('failedToCopy'));
+        toast.error(t("failedToCopy"));
       }
     );
   };
@@ -176,7 +231,7 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
 
   const generateTitles = async () => {
     if (!user) {
-      toast.error(t('Please sign in to use this tool.'));
+      toast.error(t("Please sign in to use this tool."));
       return;
     }
 
@@ -185,7 +240,11 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
       user.role !== "admin" &&
       generateCount <= 0
     ) {
-      toast.error(t('You are not upgraded. You can generate titles {{remaining}} more times. Upgrade', { remaining: generateCount }));
+      toast.error(
+        t("You are not upgraded. You can generate titles {{remaining}} more times. Upgrade", {
+          remaining: generateCount,
+        })
+      );
       return;
     }
 
@@ -264,7 +323,7 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
     }
 
     if (!newReview.rating || !newReview.comment) {
-      toast.error(t('All fields are required.'));
+      toast.error(t("All fields are required."));
       return;
     }
 
@@ -284,7 +343,7 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
 
       if (!response.ok) throw new Error("Failed to submit review");
 
-      toast.success(t('Review submitted successfully.'));
+      toast.success(t("Review submitted successfully."));
       setNewReview({
         name: "",
         rating: 0,
@@ -295,7 +354,7 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
       setShowReviewForm(false);
       fetchReviews("Titlegenerator");
     } catch (error) {
-      toast.error(t('Failed to submit review.'));
+      toast.error(t("Failed to submit review."));
     }
   };
 
@@ -327,6 +386,91 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
     setOpenIndex(openIndex === index ? null : index);
   };
 
+  const handleReaction = async (action) => {
+    if (!user) {
+      toast.error("Please log in to react.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/content", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          category: "Titlegenerator",
+          userId: user.email,
+          action,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update reaction");
+      }
+
+      const updatedData = await response.json();
+      console.log(updatedData);
+
+      setLikes(updatedData.reactions.likes || 0);
+      setUnlikes(updatedData.reactions.unlikes || 0);
+
+      if (action === "like") {
+        if (hasLiked) {
+          toast.error("You have already liked this.");
+        } else {
+          setHasLiked(true);
+          setHasUnliked(false);
+        }
+      } else if (action === "unlike") {
+        if (hasUnliked) {
+          setHasUnliked(false);
+        } else {
+          setHasLiked(false);
+          setHasUnliked(true);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to update reaction:", error);
+      toast.error(error.message);
+    }
+  };
+
+  const saveChannel = () => {
+    const savedChannels = JSON.parse(
+      localStorage.getItem("savedChannels") || "[]"
+    );
+    const currentTool = {
+      toolName: "Youtube Title Generator", // Name of the current tool
+      toolUrl: window.location.href, // Current URL of the tool
+    };
+
+    const existingChannelIndex = savedChannels.findIndex(
+      (channel) => channel.toolUrl === currentTool.toolUrl
+    );
+
+    if (existingChannelIndex === -1) {
+      // If the tool is not already saved, save it
+      savedChannels.push(currentTool);
+      localStorage.setItem("savedChannels", JSON.stringify(savedChannels));
+      setIsSaved(true);
+      toast.success("Tool saved successfully!");
+    } else {
+      // If the tool is already saved, remove it
+      savedChannels.splice(existingChannelIndex, 1);
+      localStorage.setItem("savedChannels", JSON.stringify(savedChannels));
+      setIsSaved(false);
+      toast.success("Tool removed from saved list.");
+    }
+  };
+
+  // Button color logic
+  const likeButtonColor = hasLiked ? "#4CAF50" : "#ccc"; // Green if liked
+  const unlikeButtonColor = hasUnliked ? "#F44336" : "#ccc"; // Red if disliked
+  const reportButtonColor = hasReported ? "#FFD700" : "#ccc"; // Yellow if reported
+  const saveButtonColor = isSaved ? "#FFD700" : "#ccc";
+
   return (
     <>
       <div className="bg-box">
@@ -338,107 +482,135 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-        <Head>
-  <title>{meta?.title}</title>
-  <meta name="description" content={meta?.description} />
-  
-  {/* Open Graph Tags */}
-  <meta property="og:url" content={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/title-generator`} />
-  <meta property="og:title" content={meta?.title} />
-  <meta property="og:description" content={meta?.description} />
-  <meta property="og:image" content={meta?.image || ""} />
-  
-  {/* Twitter Card Tags */}
-  <meta name="twitter:card" content={meta?.image || ""} />
-  <meta property="twitter:domain" content={meta?.url} />
-  <meta property="twitter:url" content={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/title-generator`} />
-  <meta name="twitter:title" content={meta?.title} />
-  <meta name="twitter:description" content={meta?.description} />
-  <meta name="twitter:image" content={meta?.image || ""} />
-  
-  {/* hreflang and Alternate Language Links */}
-  <link rel="alternate" href={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/title-generator`}  hrefLang="x-default" />
-  <link rel="alternate" href={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/title-generator`}  hrefLang="en" />
-  {translations && Object.keys(translations).map(lang => (
-    lang !== 'en' && (
-      <link
-        key={lang}
-        rel="alternate"
-        hrefLang={lang}
-        href={`${meta?.url}/${lang}/tools/title-generator`}
-      />
-    )
-  ))}
-  
-  {/* JSON-LD Structured Data */}
-  <Script type="application/ld+json">
-    {JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      name: meta?.title,
-      url: `${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/title-generator`,
-      description: meta?.description,
-      breadcrumb: {
-        "@id": `${meta?.url}#breadcrumb`,
-      },
-      about: {
-        "@type": "Thing",
-        name: meta?.title,
-      },
-      isPartOf: {
-        "@type": "WebSite",
-        url: meta?.url,
-      },
-    })}
-  </Script>
-  
-  <Script type="application/ld+json">
-    {JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      name: meta?.title,
-      url: `${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/title-generator`,
-      applicationCategory: "Multimedia",
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: overallRating,
-        ratingCount: reviews?.length,
-        reviewCount: reviews?.length,
-      },
-      review: reviews.map((review) => ({
-        "@type": "Review",
-        author: {
-          "@type": "Person",
-          name: review.userName,
-        },
-        datePublished: review.createdAt,
-        reviewBody: review.comment,
-        name: review.title,
-        reviewRating: {
-          "@type": "Rating",
-          ratingValue: review.rating,
-        },
-      })),
-    })}
-  </Script>
-  
-  <Script type="application/ld+json">
-    {JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: faqs.map((faq) => ({
-        "@type": "Question",
-        name: faq.question,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: faq.answer,
-        },
-      })),
-    })}
-  </Script>
-</Head>
+          <Head>
+            <title>{meta?.title}</title>
+            <meta name="description" content={meta?.description} />
 
-          <h2 className="text-3xl text-white">{t('YouTube Title Generator')}</h2>
+            {/* Open Graph Tags */}
+            <meta
+              property="og:url"
+              content={`${meta?.url}${
+                i18n.language !== "en" ? `/${i18n.language}` : ""
+              }/tools/title-generator`}
+            />
+            <meta property="og:title" content={meta?.title} />
+            <meta property="og:description" content={meta?.description} />
+            <meta property="og:image" content={meta?.image || ""} />
+
+            {/* Twitter Card Tags */}
+            <meta name="twitter:card" content={meta?.image || ""} />
+            <meta property="twitter:domain" content={meta?.url} />
+            <meta
+              property="twitter:url"
+              content={`${meta?.url}${
+                i18n.language !== "en" ? `/${i18n.language}` : ""
+              }/tools/title-generator`}
+            />
+            <meta name="twitter:title" content={meta?.title} />
+            <meta name="twitter:description" content={meta?.description} />
+            <meta name="twitter:image" content={meta?.image || ""} />
+
+            {/* hreflang and Alternate Language Links */}
+            <link
+              rel="alternate"
+              href={`${meta?.url}${
+                i18n.language !== "en" ? `/${i18n.language}` : ""
+              }/tools/title-generator`}
+              hrefLang="x-default"
+            />
+            <link
+              rel="alternate"
+              href={`${meta?.url}${
+                i18n.language !== "en" ? `/${i18n.language}` : ""
+              }/tools/title-generator`}
+              hrefLang="en"
+            />
+            {translations &&
+              Object.keys(translations).map(
+                (lang) =>
+                  lang !== "en" && (
+                    <link
+                      key={lang}
+                      rel="alternate"
+                      hrefLang={lang}
+                      href={`${meta?.url}/${lang}/tools/title-generator`}
+                    />
+                  )
+              )}
+
+            {/* JSON-LD Structured Data */}
+            <Script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "WebPage",
+                name: meta?.title,
+                url: `${meta?.url}${
+                  i18n.language !== "en" ? `/${i18n.language}` : ""
+                }/tools/title-generator`,
+                description: meta?.description,
+                breadcrumb: {
+                  "@id": `${meta?.url}#breadcrumb`,
+                },
+                about: {
+                  "@type": "Thing",
+                  name: meta?.title,
+                },
+                isPartOf: {
+                  "@type": "WebSite",
+                  url: meta?.url,
+                },
+              })}
+            </Script>
+
+            <Script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                name: meta?.title,
+                url: `${meta?.url}${
+                  i18n.language !== "en" ? `/${i18n.language}` : ""
+                }/tools/title-generator`,
+                applicationCategory: "Multimedia",
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: overallRating,
+                  ratingCount: reviews?.length,
+                  reviewCount: reviews?.length,
+                },
+                review: reviews.map((review) => ({
+                  "@type": "Review",
+                  author: {
+                    "@type": "Person",
+                    name: review.userName,
+                  },
+                  datePublished: review.createdAt,
+                  reviewBody: review.comment,
+                  name: review.title,
+                  reviewRating: {
+                    "@type": "Rating",
+                    ratingValue: review.rating,
+                  },
+                })),
+              })}
+            </Script>
+
+            <Script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: faqs.map((faq) => ({
+                  "@type": "Question",
+                  name: faq.question,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: faq.answer,
+                  },
+                })),
+              })}
+            </Script>
+          </Head>
+
+          <h2 className="text-3xl text-white">{t("YouTube Title Generator")}</h2>
 
           {modalVisible && (
             <div
@@ -451,19 +623,22 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        {t('Congratulations! Now you can generate unlimited titles.')}
+                        {t("Congratulations! Now you can generate unlimited titles.")}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        {t('You are not upgraded. You can generate titles {{remaining}} more times. Upgrade', { remaining: 5 - generateCount })}
+                        {t(
+                          "You are not upgraded. You can generate titles {{remaining}} more times. Upgrade",
+                          { remaining: 5 - generateCount }
+                        )}
                         <Link href="/pricing" className="btn btn-warning ms-3">
-                          {t('Upgrade')}
+                          {t("Upgrade")}
                         </Link>
                       </p>
                     )
                   ) : (
                     <p className="text-center p-3 alert-warning">
-                      {t('Please sign in to use this tool.')}
+                      {t("Please sign in to use this tool.")}
                     </p>
                   )}
                 </div>
@@ -477,68 +652,147 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
             </div>
           )}
           <ToastContainer />
-          <div className="keywords-input-container">
-            <div className="tags-container">
-              {tags.map((tag, index) => (
-                <span className="tag" key={index}>
-                  {tag}
-                  <span
-                    className="remove-btn"
-                    onClick={() => setTags(tags.filter((_, i) => i !== index))}
-                  >
-                    ×
+          <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
+            <div className="keywords-input-container">
+              <div className="tags-container">
+                {tags.map((tag, index) => (
+                  <span className="tag" key={index}>
+                    {tag}
+                    <span
+                      className="remove-btn"
+                      onClick={() =>
+                        setTags(tags.filter((_, i) => i !== index))
+                      }
+                    >
+                      ×
+                    </span>
                   </span>
-                </span>
-              ))}
+                ))}
+              </div>
+              <input
+                type="text"
+                placeholder={t("Add a keyword")}
+                className="input-box"
+                value={input}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                required
+              />
             </div>
-            <input
-              type="text"
-              placeholder={t('Add a keyword')}
-              className="input-box"
-              value={input}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-              required
-            />
-          </div>
-          <div className="center">
-            <div className="flex flex-wrap gap-2 justify-center pt-5">
-              <button
-                className="btn btn-danger whitespace-nowrap"
-                onClick={generateTitles}
-                disabled={isLoading || tags.length === 0}
-                style={{ minWidth: "50px" }}
-              >
-                {isLoading ? t('Generating...') : t('Generate Titles')}
-              </button>
-              <button
-                className="btn btn-danger whitespace-nowrap"
-                onClick={handleShareClick}
-                style={{ minWidth: "50px" }}
-              >
-                <FaShareAlt />
-              </button>
-              {showShareIcons && (
-                <div className="flex gap-2">
-                  <FaFacebook
-                    className="facebook-icon"
-                    onClick={() => shareOnSocialMedia("facebook")}
+            <div className="center">
+              <div className="flex flex-wrap gap-2 justify-center pt-5">
+                <button
+                  className="btn btn-danger whitespace-nowrap"
+                  onClick={generateTitles}
+                  disabled={isLoading || tags.length === 0}
+                  style={{ minWidth: "50px" }}
+                >
+                  {isLoading ? t("Generating...") : t("Generate Titles")}
+                </button>
+                <button
+                  className="btn btn-danger whitespace-nowrap"
+                  onClick={handleShareClick}
+                  style={{ minWidth: "50px" }}
+                >
+                  <FaShareAlt />
+                </button>
+                {showShareIcons && (
+                  <div className="flex gap-2">
+                    <FaFacebook
+                      className="facebook-icon"
+                      onClick={() => shareOnSocialMedia("facebook")}
+                    />
+                    <FaInstagram
+                      className="instagram-icon"
+                      onClick={() => shareOnSocialMedia("instagram")}
+                    />
+                    <FaTwitter
+                      className="twitter-icon"
+                      onClick={() => shareOnSocialMedia("twitter")}
+                    />
+                    <FaLinkedin
+                      className="linkedin-icon"
+                      onClick={() => shareOnSocialMedia("linkedin")}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            {/* Reaction Bar */}
+            <div className="reaction-bar shadow-sm flex items-center justify-between mt-4 p-3">
+              <div className="flex items-center space-x-2 ps-5">
+                <button
+                  onClick={() => handleReaction("like")}
+                  className="flex items-center space-x-1"
+                  style={{ color: likeButtonColor }}
+                >
+                  <FaThumbsUp className="text-purple-600" />
+                  <span>{likes} |</span>
+                </button>
+
+                <button
+                  onClick={() => handleReaction("unlike")}
+                  className="flex items-center space-x-1"
+                  style={{ color: unlikeButtonColor }}
+                >
+                  <FaThumbsDown className="text-red-400" />
+                  <span>{unlikes} |</span>
+                </button>
+
+                <button
+                  onClick={() => setShowReportModal(true)}
+                  className="flex items-center space-x-1"
+                  style={{ color: reportButtonColor }}
+                >
+                  <FaFlag className="text-red-500" />
+                  <span className="text-red-500">Report</span>
+                </button>
+              </div>
+              <div className="flex items-center">
+                <button
+                  onClick={saveChannel}
+                  className="flex items-center space-x-1"
+                  style={{ color: saveButtonColor }}
+                >
+                  {isSaved ? (
+                    <FaBookmark className="text-yellow-300" />
+                  ) : (
+                    <FaBookmark className="text-yellow-300" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {showReportModal && (
+              <div className="fixed inset-0 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black opacity-50"></div>
+                <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
+                  <h2 className="text-2xl font-semibold mb-4">
+                    {t("Report This Tool")}
+                  </h2>
+                  <textarea
+                    className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                    placeholder={t("Describe your issue...")}
+                    value={reportText}
+                    onChange={(e) => setReportText(e.target.value)}
                   />
-                  <FaInstagram
-                    className="instagram-icon"
-                    onClick={() => shareOnSocialMedia("instagram")}
-                  />
-                  <FaTwitter
-                    className="twitter-icon"
-                    onClick={() => shareOnSocialMedia("twitter")}
-                  />
-                  <FaLinkedin
-                    className="linkedin-icon"
-                    onClick={() => shareOnSocialMedia("linkedin")}
-                  />
+                  <div className="mt-4 flex justify-end space-x-4">
+                    <button
+                      className="btn btn-secondary text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline"
+                      onClick={() => setShowReportModal(false)}
+                    >
+                      {t("Cancel")}
+                    </button>
+                    <button
+                      className="btn btn-primary text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                      onClick={() => handleReaction("report")}
+                    >
+                      {t("Submit Report")}
+                    </button>
+                  </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -551,7 +805,7 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
                 checked={selectAll}
                 onChange={handleSelectAll}
               />
-              <span>{t('Select All')}</span>
+              <span>{t("Select All")}</span>
             </div>
           )}
           {generatedTitles.map((title, index) => (
@@ -571,7 +825,7 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
           ))}
           {generatedTitles.some((title) => title.selected) && (
             <button className="btn btn-primary" onClick={copySelectedTitles}>
-              {t('Copy All Titles')} <FaCopy />
+              {t("Copy All Titles")} <FaCopy />
             </button>
           )}
           {generatedTitles.some((title) => title.selected) && (
@@ -579,7 +833,7 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
               className="btn btn-primary ms-2"
               onClick={downloadSelectedTitles}
             >
-              {t('Download Titles')} <FaDownload />
+              {t("Download Titles")} <FaDownload />
             </button>
           )}
         </div>
@@ -592,47 +846,51 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
         </div>
 
         <div className="accordion shadow p-5">
-            <h2 className="faq-title">{t('Frequently Asked Questions')}</h2>
-            <p className="faq-subtitle">
-              {t('Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us')}
-            </p>
-            <div className="faq-grid">
-              {faqs?.map((faq, index) => (
-                <div key={index} className="faq-item">
-                  <span id={`accordion-${index}`} className="target-fix"></span>
-                  <a
-                    href={`#accordion-${index}`}
-                    id={`open-accordion-${index}`}
-                    className="accordion-header"
-                    onClick={() => toggleFAQ(index)}
-                  >
-                    {faq.question}
-                  </a>
-                  <a
-                    href={`#accordion-${index}`}
-                    id={`close-accordion-${index}`}
-                    className="accordion-header"
-                    onClick={() => toggleFAQ(index)}
-                  >
-                    {faq.question}
-                  </a>
-                  <div
-                    className={`accordion-content ${
-                      openIndex === index ? "open" : ""
-                    }`}
-                  >
-                    <p>{faq.answer}</p>
-                  </div>
+          <h2 className="faq-title">{t("Frequently Asked Questions")}</h2>
+          <p className="faq-subtitle">
+            {t(
+              "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us"
+            )}
+          </p>
+          <div className="faq-grid">
+            {faqs?.map((faq, index) => (
+              <div key={index} className="faq-item">
+                <span id={`accordion-${index}`} className="target-fix"></span>
+                <a
+                  href={`#accordion-${index}`}
+                  id={`open-accordion-${index}`}
+                  className="accordion-header"
+                  onClick={() => toggleFAQ(index)}
+                >
+                  {faq.question}
+                </a>
+                <a
+                  href={`#accordion-${index}`}
+                  id={`close-accordion-${index}`}
+                  className="accordion-header"
+                  onClick={() => toggleFAQ(index)}
+                >
+                  {faq.question}
+                </a>
+                <div
+                  className={`accordion-content ${
+                    openIndex === index ? "open" : ""
+                  }`}
+                >
+                  <p>{faq.answer}</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        
+        </div>
+
         <hr className="mt-4 mb-2" />
 
         <div className="row pt-3">
           <div className="col-md-4">
-            <div className=" text-3xl font-bold mb-2">{t('Customer Reviews')}</div>
+            <div className=" text-3xl font-bold mb-2">
+              {t("Customer Reviews")}
+            </div>
             <div className="flex items-center mb-2">
               <div className="text-3xl font-bold mr-2">{overallRating}</div>
               <div className="flex">
@@ -644,7 +902,7 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
                 ))}
               </div>
               <div className="ml-2 text-sm text-gray-500">
-                {reviews.length} {t('global ratings')}
+                {reviews.length} {t("global ratings")}
               </div>
             </div>
             <div>
@@ -654,7 +912,9 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
                   <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
                     <div
                       className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0"
-                      style={{ width: `${calculateRatingPercentage(rating)}%` }}
+                      style={{
+                        width: `${calculateRatingPercentage(rating)}%`,
+                      }}
                     ></div>
                   </div>
                   <div className="w-12 text-left ml-4">
@@ -665,13 +925,13 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
             </div>
             <hr />
             <div className="pt-3">
-              <h4>{t('Review This Tool')}</h4>
-              <p>{t('Share Your Thoughts With Other Customers')}</p>
+              <h4>{t("Review This Tool")}</h4>
+              <p>{t("Share Your Thoughts With Other Customers")}</p>
               <button
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 mb-4"
                 onClick={() => setShowReviewForm(true)}
               >
-                {t('Write a customer review')}
+                {t("Write a customer review")}
               </button>
             </div>
           </div>
@@ -688,7 +948,9 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
                   />
                   <div className="ml-4">
                     <div className="font-bold">{review?.userName}</div>
-                    <div className="text-gray-500 text-sm">{t('Verified Purchase')}</div>
+                    <div className="text-gray-500 text-sm">
+                      {t("Verified Purchase")}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center">
@@ -700,11 +962,13 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
                     />
                   ))}
                   <div>
-                    <span className="fw-bold mt-2 ms-2">{review?.title}</span>
+                    <span className="fw-bold mt-2 ms-2">
+                      {review?.title}
+                    </span>
                   </div>
                 </div>
                 <div className="text-gray-500 text-sm mb-4">
-                  {t('Reviewed On')} {review.createdAt}
+                  {t("Reviewed On")} {review.createdAt}
                 </div>
                 <div className="text-lg mb-4">{review.comment}</div>
               </div>
@@ -714,7 +978,7 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
                 className="btn btn-primary mt-4 mb-5"
                 onClick={handleShowMoreReviews}
               >
-                {t('See More Reviews')}
+                {t("See More Reviews")}
               </button>
             )}
             {showAllReviews &&
@@ -731,10 +995,10 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
                     <div className="ml-4">
                       <div className="font-bold">{review?.userName}</div>
                       <div className="text-gray-500 text-sm">
-                        {t('Verified Purchase')}
+                        {t("Verified Purchase")}
                       </div>
                       <p className="text-muted">
-                        {t('Reviewed On')} {review?.createdAt}
+                        {t("Reviewed On")} {review?.createdAt}
                       </p>
                     </div>
                   </div>
@@ -759,18 +1023,22 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="fixed inset-0 bg-black opacity-50"></div>
             <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md mx-auto">
-              <h2 className="text-2xl font-semibold mb-4">{t('Leave a Review')}</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                {t("Leave a Review")}
+              </h2>
               <div className="mb-4">
                 <StarRating
                   rating={newReview.rating}
-                  setRating={(rating) => setNewReview({ ...newReview, rating })}
+                  setRating={(rating) =>
+                    setNewReview({ ...newReview, rating })
+                  }
                 />
               </div>
               <div className="mb-4">
                 <input
                   type="text"
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder={t('Title')}
+                  placeholder={t("Title")}
                   value={newReview.title}
                   onChange={(e) =>
                     setNewReview({ ...newReview, title: e.target.value })
@@ -780,7 +1048,7 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
               <div className="mb-4">
                 <textarea
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder={t('Your Review')}
+                  placeholder={t("Your Review")}
                   value={newReview.comment}
                   onChange={(e) =>
                     setNewReview({ ...newReview, comment: e.target.value })
@@ -791,13 +1059,13 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
                 className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
                 onClick={handleReviewSubmit}
               >
-                {t('Submit Review')}
+                {t("Submit Review")}
               </button>
               <button
                 className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
                 onClick={() => setShowReviewForm(false)}
               >
-                {t('Cancel')}
+                {t("Cancel")}
               </button>
             </div>
           </div>
@@ -805,7 +1073,9 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
 
         {/* Related Tools Section */}
         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
-          <h2 className="text-2xl font-bold mb-5 text-center">{t('Related Tools')}</h2>
+          <h2 className="text-2xl font-bold mb-5 text-center">
+            {t("Related Tools")}
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {relatedTools.map((tool, index) => (
               <Link
@@ -841,12 +1111,14 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
           max-width: 600px;
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
           background-color: #fff;
+          margin-top:20px;
         }
 
         .tags-container {
           display: flex;
           flex-wrap: wrap;
-          margin-bottom: 8px;
+          margin-top: 18px;
+
         }
 
         .tag {
@@ -937,6 +1209,7 @@ const YTTitleGenerator = ({ meta, faqs, reviews, relatedTools, content,translati
 };
 
 export async function getServerSideProps(context) {
-  return getContentProps('Titlegenerator', context.locale, context.req);
+  return getContentProps("Titlegenerator", context.locale, context.req);
 }
 export default YTTitleGenerator;
+

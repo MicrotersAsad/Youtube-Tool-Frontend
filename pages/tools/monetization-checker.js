@@ -206,10 +206,11 @@ const MonetizationChecker = ({ meta, reviews, content, relatedTools, faqs,reacti
     }
   };
 
+  
   const saveChannel = () => {
     const savedChannels = JSON.parse(localStorage.getItem('savedChannels') || '[]');
     const currentTool = {
-      toolName: "YouTube Moniotization Checker", // Name of the current tool
+      toolName: "YouTube Monetization Checker", // Name of the current tool
       toolUrl: window.location.href, // Current URL of the tool
     };
     
@@ -225,6 +226,8 @@ const MonetizationChecker = ({ meta, reviews, content, relatedTools, faqs,reacti
       toast.success("Tool removed from saved list.");
     }
   };
+
+
   const saveButtonColor = isSaved ? "#FFD700" : "#ccc";
   const convertDuration = (duration) => {
     const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);

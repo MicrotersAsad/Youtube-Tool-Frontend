@@ -4,20 +4,35 @@ import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../../contexts/AuthContext";
 import Head from "next/head";
 import Link from "next/link";
-import { FaStar } from "react-icons/fa";
+import {
+  FaStar,
+  FaFlag,
+  FaBookmark,
+  FaThumbsUp,
+  FaThumbsDown,
+} from "react-icons/fa";
 import Image from "next/image";
+
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import { i18n, useTranslation } from "next-i18next";
-import { getContentProps } from '../../utils/getContentProps';
+import { getContentProps } from "../../utils/getContentProps";
 import Script from "next/script";
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
-const YouTubeChannelScraper =  ({ meta, reviews, content, relatedTools, faqs,reactions,translations}) => {
+const YouTubeChannelScraper = ({
+  meta,
+  reviews,
+  content,
+  relatedTools,
+  faqs,
+  reactions = { likes: 0, unlikes: 0 }, // Provide a default value here
+  translations,
+}) => {
   const { user, updateUserProfile, logout } = useAuth();
-  const { t } = useTranslation('search');
+  const { t } = useTranslation("search");
   const [keyword, setKeyword] = useState("");
   const [channels, setChannels] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -42,13 +57,39 @@ const YouTubeChannelScraper =  ({ meta, reviews, content, relatedTools, faqs,rea
   const [modalVisible, setModalVisible] = useState(true);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
+  const [likes, setLikes] = useState(reactions.likes || 0);
+  const [unlikes, setUnlikes] = useState(reactions.unlikes || 0);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [hasUnliked, setHasUnliked] = useState(false);
+  const [hasReported, setHasReported] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportText, setReportText] = useState("");
+  const [isSaved, setIsSaved] = useState(false);
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
   const closeModal = () => setModalVisible(false);
 
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const language = i18n.language || "en";
+        const response = await fetch(
+          `/api/content?category=YouTube-Channel-Search&language=${language}`
+        );
+        if (!response.ok) throw new Error("Failed to fetch content");
+        const data = await response.json();
 
+        setLikes(data.reactions?.likes || 0);
+        setUnlikes(data.reactions?.unlikes || 0);
+      } catch (error) {
+        console.error("Error fetching content:", error);
+      }
+    };
+
+    fetchContent();
+  }, [i18n.language]);
 
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
@@ -81,7 +122,7 @@ const YouTubeChannelScraper =  ({ meta, reviews, content, relatedTools, faqs,rea
         userName: "",
       });
       setShowReviewForm(false);
-      fetchReviews('YouTube-Channel-Search');
+      fetchReviews("YouTube-Channel-Search");
     } catch (error) {
       console.error(t("Failed to submit review:"), error);
       toast.error(t("Failed to submit review."));
@@ -117,7 +158,9 @@ const YouTubeChannelScraper =  ({ meta, reviews, content, relatedTools, faqs,rea
       generateCount >= 5
     ) {
       toast.error(
-        t("You have reached the limit of generating tags. Please upgrade your plan for unlimited use.")
+        t(
+          "You have reached the limit of generating tags. Please upgrade your plan for unlimited use."
+        )
       );
       setLoading(false);
       return;
@@ -171,7 +214,9 @@ const YouTubeChannelScraper =  ({ meta, reviews, content, relatedTools, faqs,rea
     } catch (error) {
       console.error("Error:", error);
       setError(
-        `${t("An error occurred while fetching channel data:")} ${error.message}`
+        `${t("An error occurred while fetching channel data:")} ${
+          error.message
+        }`
       );
     } finally {
       setLoading(false);
@@ -239,7 +284,110 @@ const YouTubeChannelScraper =  ({ meta, reviews, content, relatedTools, faqs,rea
   const closeReviewForm = () => {
     setShowReviewForm(false);
   };
+  useEffect(() => {
+    if (user) {
+      const userAction = reactions.users?.[user.email];
+      if (userAction === "like") {
+        setHasLiked(true);
+      } else if (userAction === "unlike") {
+        setHasUnliked(true);
+      } else if (userAction === "report") {
+        setHasReported(true);
+      }
 
+      // Check if data is already saved using the current URL
+      const savedChannels = JSON.parse(
+        localStorage.getItem("savedChannels") || "[]"
+      );
+      const isChannelSaved = savedChannels.some(
+        (channel) => channel.toolUrl === window.location.href
+      );
+      setIsSaved(isChannelSaved);
+    }
+  }, [user, reactions.users]);
+
+  const handleReaction = async (action) => {
+    if (!user) {
+      toast.error("Please log in to react.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/content", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          category: "YouTube-Channel-Search",
+          userId: user.email,
+          action,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update reaction");
+      }
+
+      const updatedData = await response.json();
+      setLikes(updatedData.reactions.likes || 0);
+      setUnlikes(updatedData.reactions.unlikes || 0);
+
+      if (action === "like") {
+        if (hasLiked) {
+          toast.error("You have already liked this.");
+        } else {
+          setHasLiked(true);
+          setHasUnliked(false);
+        }
+      } else if (action === "unlike") {
+        if (hasUnliked) {
+          setHasUnliked(false);
+        } else {
+          setHasLiked(false);
+          setHasUnliked(true);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to update reaction:", error);
+      toast.error(error.message);
+    }
+  };
+
+  const saveChannel = () => {
+    const savedChannels = JSON.parse(
+      localStorage.getItem("savedChannels") || "[]"
+    );
+    const currentTool = {
+      toolName: "YouTube Channel Search", // Name of the current tool
+      toolUrl: window.location.href, // Current URL of the tool
+    };
+
+    const existingChannelIndex = savedChannels.findIndex(
+      (channel) => channel.toolUrl === currentTool.toolUrl
+    );
+
+    if (existingChannelIndex === -1) {
+      // If the tool is not already saved, save it
+      savedChannels.push(currentTool);
+      localStorage.setItem("savedChannels", JSON.stringify(savedChannels));
+      setIsSaved(true);
+      toast.success("Tool saved successfully!");
+    } else {
+      // If the tool is already saved, remove it
+      savedChannels.splice(existingChannelIndex, 1);
+      localStorage.setItem("savedChannels", JSON.stringify(savedChannels));
+      setIsSaved(false);
+      toast.success("Tool removed from saved list.");
+    }
+  };
+
+  // বাটন রঙের লজিক
+  const likeButtonColor = hasLiked ? "#4CAF50" : "#ccc"; // লাইক করা থাকলে সবুজ
+  const unlikeButtonColor = hasUnliked ? "#F44336" : "#ccc"; // ডিসলাইক করা থাকলে লাল
+  const reportButtonColor = hasReported ? "#FFD700" : "#ccc"; // রিপোর্ট করা থাকলে হলুদ
+  const saveButtonColor = isSaved ? "#FFD700" : "#ccc";
   return (
     <>
       <div className="bg-box">
@@ -251,105 +399,133 @@ const YouTubeChannelScraper =  ({ meta, reviews, content, relatedTools, faqs,rea
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-        <Head>
-  <title>{meta?.title}</title>
-  <meta name="description" content={meta?.description} />
-  
-  {/* Open Graph Tags */}
-  <meta property="og:url" content={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-channel-search`} />
-  <meta property="og:title" content={meta?.title} />
-  <meta property="og:description" content={meta?.description} />
-  <meta property="og:image" content={meta?.image || ""} />
-  
-  {/* Twitter Card Tags */}
-  <meta name="twitter:card" content={meta?.image || ""} />
-  <meta property="twitter:domain" content={meta?.url} />
-  <meta property="twitter:url" content={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-channel-search`} />
-  <meta name="twitter:title" content={meta?.title} />
-  <meta name="twitter:description" content={meta?.description} />
-  <meta name="twitter:image" content={meta?.image || ""} />
-  
-  {/* hreflang and Alternate Language Links */}
-  <link rel="alternate" href={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-channel-search`}  hrefLang="x-default" />
-  <link rel="alternate" href={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-channel-search`}  hrefLang="en" />
-  {translations && Object.keys(translations).map(lang => (
-    lang !== 'en' && (
-      <link
-        key={lang}
-        rel="alternate"
-        hrefLang={lang}
-        href={`${meta?.url}/${lang}/tools/youtube-channel-search`}
-      />
-    )
-  ))}
-  
-  {/* JSON-LD Structured Data */}
-  <Script type="application/ld+json">
-    {JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      name: meta?.title,
-      url: `${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-channel-search`,
-      description: meta?.description,
-      breadcrumb: {
-        "@id": `${meta?.url}#breadcrumb`,
-      },
-      about: {
-        "@type": "Thing",
-        name: meta?.title,
-      },
-      isPartOf: {
-        "@type": "WebSite",
-        url: meta?.url,
-      },
-    })}
-  </Script>
-  
-  <Script type="application/ld+json">
-    {JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      name: meta?.title,
-      url: `${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-channel-search`,
-      applicationCategory: "Multimedia",
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: overallRating,
-        ratingCount: reviews?.length,
-        reviewCount: reviews?.length,
-      },
-      review: reviews.map((review) => ({
-        "@type": "Review",
-        author: {
-          "@type": "Person",
-          name: review.userName,
-        },
-        datePublished: review.createdAt,
-        reviewBody: review.comment,
-        name: review.title,
-        reviewRating: {
-          "@type": "Rating",
-          ratingValue: review.rating,
-        },
-      })),
-    })}
-  </Script>
-  
-  <Script type="application/ld+json">
-    {JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: faqs.map((faq) => ({
-        "@type": "Question",
-        name: faq.question,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: faq.answer,
-        },
-      })),
-    })}
-  </Script>
-</Head>
+          <Head>
+            <title>{meta?.title}</title>
+            <meta name="description" content={meta?.description} />
+
+            {/* Open Graph Tags */}
+            <meta
+              property="og:url"
+              content={`${meta?.url}${
+                i18n.language !== "en" ? `/${i18n.language}` : ""
+              }/tools/youtube-channel-search`}
+            />
+            <meta property="og:title" content={meta?.title} />
+            <meta property="og:description" content={meta?.description} />
+            <meta property="og:image" content={meta?.image || ""} />
+
+            {/* Twitter Card Tags */}
+            <meta name="twitter:card" content={meta?.image || ""} />
+            <meta property="twitter:domain" content={meta?.url} />
+            <meta
+              property="twitter:url"
+              content={`${meta?.url}${
+                i18n.language !== "en" ? `/${i18n.language}` : ""
+              }/tools/youtube-channel-search`}
+            />
+            <meta name="twitter:title" content={meta?.title} />
+            <meta name="twitter:description" content={meta?.description} />
+            <meta name="twitter:image" content={meta?.image || ""} />
+
+            {/* hreflang and Alternate Language Links */}
+            <link
+              rel="alternate"
+              href={`${meta?.url}${
+                i18n.language !== "en" ? `/${i18n.language}` : ""
+              }/tools/youtube-channel-search`}
+              hrefLang="x-default"
+            />
+            <link
+              rel="alternate"
+              href={`${meta?.url}${
+                i18n.language !== "en" ? `/${i18n.language}` : ""
+              }/tools/youtube-channel-search`}
+              hrefLang="en"
+            />
+            {translations &&
+              Object.keys(translations).map(
+                (lang) =>
+                  lang !== "en" && (
+                    <link
+                      key={lang}
+                      rel="alternate"
+                      hrefLang={lang}
+                      href={`${meta?.url}/${lang}/tools/youtube-channel-search`}
+                    />
+                  )
+              )}
+
+            {/* JSON-LD Structured Data */}
+            <Script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "WebPage",
+                name: meta?.title,
+                url: `${meta?.url}${
+                  i18n.language !== "en" ? `/${i18n.language}` : ""
+                }/tools/youtube-channel-search`,
+                description: meta?.description,
+                breadcrumb: {
+                  "@id": `${meta?.url}#breadcrumb`,
+                },
+                about: {
+                  "@type": "Thing",
+                  name: meta?.title,
+                },
+                isPartOf: {
+                  "@type": "WebSite",
+                  url: meta?.url,
+                },
+              })}
+            </Script>
+
+            <Script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                name: meta?.title,
+                url: `${meta?.url}${
+                  i18n.language !== "en" ? `/${i18n.language}` : ""
+                }/tools/youtube-channel-search`,
+                applicationCategory: "Multimedia",
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: overallRating,
+                  ratingCount: reviews?.length,
+                  reviewCount: reviews?.length,
+                },
+                review: reviews.map((review) => ({
+                  "@type": "Review",
+                  author: {
+                    "@type": "Person",
+                    name: review.userName,
+                  },
+                  datePublished: review.createdAt,
+                  reviewBody: review.comment,
+                  name: review.title,
+                  reviewRating: {
+                    "@type": "Rating",
+                    ratingValue: review.rating,
+                  },
+                })),
+              })}
+            </Script>
+
+            <Script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: faqs.map((faq) => ({
+                  "@type": "Question",
+                  name: faq.question,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: faq.answer,
+                  },
+                })),
+              })}
+            </Script>
+          </Head>
           <h1 className="text-center text-white text-2xl font-bold mb-4">
             {t("YouTube Channel Search")}
           </h1>
@@ -364,11 +540,16 @@ const YouTubeChannelScraper =  ({ meta, reviews, content, relatedTools, faqs,rea
                     user.paymentStatus === "success" ||
                     user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        {t("Congratulations! Now you can get unlimited Channel Details.")}
+                        {t(
+                          "Congratulations! Now you can get unlimited Channel Details."
+                        )}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        {t("You are not upgraded. You can get Channel Details {{remainingGenerations}} more times.", { remainingGenerations: 5 - generateCount })}
+                        {t(
+                          "You are not upgraded. You can get Channel Details {{remainingGenerations}} more times.",
+                          { remainingGenerations: 5 - generateCount }
+                        )}
                         <Link href="/pricing" className="btn btn-warning ms-3">
                           {t("Upgrade")}
                         </Link>
@@ -389,67 +570,142 @@ const YouTubeChannelScraper =  ({ meta, reviews, content, relatedTools, faqs,rea
               </div>
             </div>
           )}
+          <div className="max-w-lg mx-auto bg-white rounded-lg shadow-md p-6">
+            <form className="max-w-sm mx-auto" onSubmit={handleSearchClick}>
+              <div className="mb-3">
+                <label
+                  htmlFor="text"
+                  className="block mb-2 text-sm font-medium "
+                >
+                  {t("Enter Keyword")}
+                </label>
+                <input
+                  type="text"
+                  id="text"
+                  className="shadow-sm bg-gray-50 border border-gray-300 text-whitetext-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
+                  placeholder={t("Enter Keyword")}
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label
+                  htmlFor="number"
+                  className="block mb-2 text-sm font-medium "
+                >
+                  {t("Min Subscriber")}
+                </label>
+                <input
+                  type="number"
+                  id="number"
+                  className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900  text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
+                  placeholder={t("Min Subscriber")}
+                  value={minSubscriber}
+                  onChange={(e) => setMinSubscriber(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label
+                  htmlFor="repeat-number"
+                  className="block mb-2 text-sm font-medium "
+                >
+                  {t("Max Subscriber")}
+                </label>
+                <input
+                  type="number"
+                  id="repeat-number"
+                  className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
+                  placeholder={t("Max Subscriber")}
+                  value={maxSubscriber}
+                  onChange={(e) => setMaxSubscriber(e.target.value)}
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                className="bg-blue-500 text-white px-4 py-2 rounded-md"
+              >
+                {t("Search")}
+              </button>
+            </form>
+            <div className="reaction-bar flex items-center justify-between mt-4 p-3">
+              <div className="flex items-center space-x-2 ps-5">
+                <button
+                  onClick={() => handleReaction("like")}
+                  className="flex items-center space-x-1"
+                  style={{ color: likeButtonColor }}
+                >
+                  <FaThumbsUp className="text-purple-600" />
+                  <span>{likes} |</span>
+                </button>
 
-          <form className="max-w-sm mx-auto" onSubmit={handleSearchClick}>
-            <div className="mb-3">
-              <label
-                htmlFor="text"
-                className="block mb-2 text-sm font-medium text-white dark:text-white"
-              >
-                {t("Enter Keyword")}
-              </label>
-              <input
-                type="text"
-                id="text"
-                className="shadow-sm bg-gray-50 border border-gray-300 text-whitetext-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
-                placeholder={t("Enter Keyword")}
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label
-                htmlFor="number"
-                className="block mb-2 text-sm font-medium text-white dark:text-white"
-              >
-                {t("Min Subscriber")}
-              </label>
-              <input
-                type="number"
-                id="number"
-                className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900  text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
-                placeholder={t("Min Subscriber")}
-                value={minSubscriber}
-                onChange={(e) => setMinSubscriber(e.target.value)}
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label
-                htmlFor="repeat-number"
-                className="block mb-2 text-sm font-medium text-white dark:text-white"
-              >
-                {t("Max Subscriber")}
-              </label>
-              <input
-                type="number"
-                id="repeat-number"
-                className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
-                placeholder={t("Max Subscriber")}
-                value={maxSubscriber}
-                onChange={(e) => setMaxSubscriber(e.target.value)}
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded-md"
-            >
-              {t("Search")}
-            </button>
-          </form>
+                <button
+                  onClick={() => handleReaction("unlike")}
+                  className="flex items-center space-x-1"
+                  style={{ color: unlikeButtonColor }}
+                >
+                  <FaThumbsDown className="text-red-400" />
+                  <span>{unlikes} |</span>
+                </button>
 
+                <button
+                  onClick={() => setShowReportModal(true)}
+                  className="flex items-center space-x-1"
+                  style={{ color: reportButtonColor }}
+                >
+                  <FaFlag className="text-red-500" />
+                  <span className="text-red-500">Report</span>
+                </button>
+              </div>
+
+              <div className="flex items-center">
+                <button
+                  onClick={saveChannel}
+                  className="flex items-center space-x-1"
+                  style={{ color: saveButtonColor }}
+                >
+                  {isSaved ? (
+                    <FaBookmark className="text-yellow-300" />
+                  ) : (
+                    <FaBookmark className="text-yellow-300" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {showReportModal && (
+              <div className="fixed inset-0 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black opacity-50"></div>
+                <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
+                  <h2 className="text-2xl font-semibold mb-4">
+                    {t("Report This Tool")}
+                  </h2>
+                  <textarea
+                    className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                    placeholder={t("Describe your issue...")}
+                    value={reportText}
+                    onChange={(e) => setReportText(e.target.value)}
+                  />
+                  <div className="mt-4 flex justify-end space-x-4">
+                    <button
+                      className="btn btn-secondary text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline"
+                      onClick={() => setShowReportModal(false)}
+                    >
+                      {t("Cancel")}
+                    </button>
+                    <button
+                      className="btn btn-primary text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                      onClick={() => handleReaction("report")}
+                    >
+                      {t("Submit Report")}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>{" "}
           {loading && <div className="loader mt-4 mx-auto"></div>}
           {error && (
             <div className="text-red-500 text-center mt-4">{error}</div>
@@ -521,7 +777,9 @@ const YouTubeChannelScraper =  ({ meta, reviews, content, relatedTools, faqs,rea
           <div className="accordion">
             <h2 className="faq-title">{t("Frequently Asked Questions")}</h2>
             <p className="faq-subtitle">
-              {t("Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us")}
+              {t(
+                "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us"
+              )}
             </p>
             <div className="faq-grid">
               {faqs.map((faq, index) => (
@@ -558,7 +816,9 @@ const YouTubeChannelScraper =  ({ meta, reviews, content, relatedTools, faqs,rea
         <hr className="mt-4 mb-2" />
         <div className="row pt-3">
           <div className="col-md-4">
-            <div className=" text-3xl font-bold mb-2">{t("Customer reviews")}</div>
+            <div className=" text-3xl font-bold mb-2">
+              {t("Customer reviews")}
+            </div>
             <div className="flex items-center mb-2">
               <div className="text-3xl font-bold mr-2">{overallRating}</div>
               <div className="flex">
@@ -691,7 +951,9 @@ const YouTubeChannelScraper =  ({ meta, reviews, content, relatedTools, faqs,rea
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="fixed inset-0 bg-black opacity-50"></div>
             <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
-              <h2 className="text-2xl font-semibold mb-4">{t("Leave a Review")}</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                {t("Leave a Review")}
+              </h2>
               <div className="mb-4">
                 <StarRating
                   rating={newReview.rating}
@@ -734,29 +996,28 @@ const YouTubeChannelScraper =  ({ meta, reviews, content, relatedTools, faqs,rea
             </div>
           </div>
         )}
-         {/* Related Tools Section */}
-         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
-      <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {relatedTools.map((tool, index) => (
-          <a
-            key={index}
-            href={tool.link}
-            className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
-          >
-            <Image
-              src={tool?.logo?.src}
-              alt={`${tool.name} Icon`}
-              width={64}
-              height={64}
-              className="mr-4"
-              
-            />
-            <span className="text-blue-600 font-medium">{tool.name}</span>
-          </a>
-        ))}
-      </div>
-    </div>
+        {/* Related Tools Section */}
+        <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
+          <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {relatedTools.map((tool, index) => (
+              <a
+                key={index}
+                href={tool.link}
+                className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
+              >
+                <Image
+                  src={tool?.logo?.src}
+                  alt={`${tool.name} Icon`}
+                  width={64}
+                  height={64}
+                  className="mr-4"
+                />
+                <span className="text-blue-600 font-medium">{tool.name}</span>
+              </a>
+            ))}
+          </div>
+        </div>
         {/* End of Related Tools Section */}
       </div>
 
@@ -765,8 +1026,7 @@ const YouTubeChannelScraper =  ({ meta, reviews, content, relatedTools, faqs,rea
   );
 };
 export async function getServerSideProps(context) {
-  return getContentProps('YouTube-Channel-Search', context.locale, context.req);
+  return getContentProps("YouTube-Channel-Search", context.locale, context.req);
 }
-
 
 export default YouTubeChannelScraper;
