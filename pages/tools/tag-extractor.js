@@ -10,6 +10,7 @@ import {
   FaCopy,
   FaDownload,
   FaStar,
+  FaShareAlt ,
   FaTools,
   FaFacebook,
   FaLinkedin,
@@ -660,12 +661,28 @@ const TagExtractor = ({ meta, reviews, content, relatedTools, faqs,reactions }) 
         <span>Report</span>
       </button>
     </div>
-    <div>
-      <FaFacebook className="fs-3 pe-2"/>
-      <FaLinkedin className="fs-3 pe-2"/>
-      <FaTwitter className="fs-3 pe-2"/>
-      <FaInstagram className="fs-3 pe-2"/>
-    </div>
+    <div className="text-center">
+          <div className="flex justify-center items-center gap-2">
+            <FaShareAlt className="text-red-500 text-xl" />
+            
+            <FaFacebook
+              className="text-blue-600 text-xl cursor-pointer"
+              onClick={() => shareOnSocialMedia("facebook")}
+            />
+            <FaInstagram
+              className="text-pink-500 text-xl cursor-pointer"
+              onClick={() => shareOnSocialMedia("instagram")}
+            />
+            <FaTwitter
+              className="text-blue-400 text-xl cursor-pointer"
+              onClick={() => shareOnSocialMedia("twitter")}
+            />
+            <FaLinkedin
+              className="text-blue-700 text-xl cursor-pointer"
+              onClick={() => shareOnSocialMedia("linkedin")}
+            />
+          </div>
+        </div>
   </div>
 
   {showReportModal && (

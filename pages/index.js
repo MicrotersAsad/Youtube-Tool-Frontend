@@ -648,108 +648,140 @@ export default function Home(reactions ) {
               </div>
             </div>
           )}
-<div className="border max-w-4xl mx-auto rounded-xl shadow bg-white p-4">
-  <div className="keywords-input-container">
-    <div className="mb-3">
-      <label className="block text-gray-700 text-sm font-bold mb-2">
-        Enter YouTube Channel or Video URL <span className="text-red-500">*</span>
-      </label>
-      <input
-        type="text"
-        className="w-full p-2 border border-gray-300 rounded-md"
-        placeholder="e.g. www.youtube.com/channel/xxxxxx or www.youtube.com/watch?v=xxxxxxx"
-        aria-label="YouTube Video URL"
-        value={input}
-        onChange={handleInputChange}
-        required
-      />
-    </div>
-    <button
-      className="w-full p-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-      type="button"
-      onClick={generateTitles}
-      disabled={isLoading || tags.length === 0}
-    >
-      {isLoading ? 'Loading...' : 'Extract Links'}
-    </button>
-  </div>
-  
-  <div className="mt-4 text-center text-gray-500 text-sm">
-    Example: https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s
-  </div>
-
-  {/* Reaction Bar */}
-  <div className="reaction-bar shadow-sm flex items-center justify-between mt-4 p-3">
-    <div className="flex items-center space-x-2">
-      <button
-        onClick={() => handleReaction("like")}
-        className="flex items-center space-x-1"
-        style={{ color: likeButtonColor }}
-      >
-        <FaThumbsUp className="text-purple-600"/>
-        <span>{likes}</span>
-      </button>
-      
-      <button
-        onClick={() => handleReaction("unlike")}
-        className="flex items-center space-x-1"
-        style={{ color: unlikeButtonColor }}
-      >
-        <FaThumbsDown className="text-red-400"/>
-        <span>{unlikes}</span>
-      </button>
-
-      <button
-        onClick={() => setShowReportModal(true)}
-        className="flex items-center space-x-1"
-        style={{ color: reportButtonColor }}
-      >
-        <FaFlag className="text-red-500"/>
-        <span className="text-red-500">Report</span>
-      </button>
-    </div>
-    
-    <div className="flex items-center">
-      <button
-        onClick={saveChannel}
-        className="flex items-center space-x-1"
-        style={{ color: saveButtonColor }}
-      >
-        <FaBookmark className="text-purple-600"/>
-      </button>
-    </div>
-  </div>
-
-  {showReportModal && (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="fixed inset-0 bg-black opacity-50"></div>
-      <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
-        <h2 className="text-2xl font-semibold mb-4">Report This Tool</h2>
-        <textarea
-          className="w-full p-2 border border-gray-300 rounded-md"
-          placeholder="Describe your issue..."
-          value={reportText}
-          onChange={(e) => setReportText(e.target.value)}
-        />
-        <div className="mt-4 flex justify-end space-x-4">
+ <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
+          <div className="keywords-input-container">
+            <div className="tags-container flex flex-wrap gap-2 mb-4">
+              {tags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="bg-gray-200 px-2 py-1 rounded-md flex items-center"
+                >
+                  {tag}
+                  <span
+                    className="ml-2 cursor-pointer"
+                    onClick={() => setTags(tags.filter((_, i) => i !== index))}
+                  >
+                    ×
+                  </span>
+                </span>
+              ))}
+            </div>
+            <input
+              type="text"
+              placeholder={t('addKeyword')}
+              className="w-full p-2"
+              value={input}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              required
+            />
+          </div>
+          <div className="center">
+            <div className="flex flex-wrap gap-2 justify-center pt-5">
+              <button
+                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
+                onClick={generateTitles}
+                disabled={isLoading || tags.length === 0}
+                style={{ minWidth: "50px" }}
+              >
+                {isLoading ? t('generating') : t('generateTag')}
+              </button>
+            </div>
+          </div>
+          {/* Reaction Bar */}
+      <div className="reaction-bar shadow-sm flex items-center justify-between mt-4 p-3">
+        <div className="flex items-center space-x-2 ps-5">
           <button
-            className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-700"
-            onClick={() => setShowReportModal(false)}
+            onClick={() => handleReaction("like")}
+            className="flex items-center space-x-1"
+            style={{ color: likeButtonColor }}
           >
-            Cancel
+            <FaThumbsUp className="text-purple-600"/>
+            <span>{likes} |</span>
           </button>
+         
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-            onClick={() => handleReaction("report")}
+            onClick={() => handleReaction("unlike")}
+            className="flex items-center space-x-1"
+            style={{ color: unlikeButtonColor }}
           >
-            Submit Report
+            <FaThumbsDown className="text-red-400"/>
+            <span>{unlikes} |</span>
+          </button>
+
+          <button
+            onClick={() => setShowReportModal(true)}
+            className="flex items-center space-x-1"
+            style={{ color: reportButtonColor }}
+          >
+            <FaFlag className="text-red-500"/>
+            <span className="text-red-500">Report</span>
+          </button>
+        </div>
+        <div className="text-center">
+          <div className="flex justify-center items-center gap-2">
+            <FaShareAlt className="text-red-500 text-xl" />
+            
+            <FaFacebook
+              className="text-blue-600 text-xl cursor-pointer"
+              onClick={() => shareOnSocialMedia("facebook")}
+            />
+            <FaInstagram
+              className="text-pink-500 text-xl cursor-pointer"
+              onClick={() => shareOnSocialMedia("instagram")}
+            />
+            <FaTwitter
+              className="text-blue-400 text-xl cursor-pointer"
+              onClick={() => shareOnSocialMedia("twitter")}
+            />
+            <FaLinkedin
+              className="text-blue-700 text-xl cursor-pointer"
+              onClick={() => shareOnSocialMedia("linkedin")}
+            />
+          </div>
+        </div>
+        <div className="flex items-center">
+          <button
+            onClick={saveChannel}
+            className="flex items-center space-x-1"
+            style={{ color: saveButtonColor }}
+          >
+            {isSaved ? <FaBookmark  className="text-yellow-300"/> : <FaBookmark className="text-yellow-300"/>}
           </button>
         </div>
       </div>
-    </div>
-  )}
-</div>
 
+      {showReportModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black opacity-50"></div>
+          <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
+            <h2 className="text-2xl font-semibold mb-4">
+              {t("Report This Tool")}
+            </h2>
+            <textarea
+              className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+              placeholder={t("Describe your issue...")}
+              value={reportText}
+              onChange={(e) => setReportText(e.target.value)}
+            />
+            <div className="mt-4 flex justify-end space-x-4">
+              <button
+                className="btn btn-secondary text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline"
+                onClick={() => setShowReportModal(false)}
+              >
+                {t("Cancel")}
+              </button>
+              <button
+                className="btn btn-primary text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                onClick={() => handleReaction("report")}
+              >
+                {t("Submit Report")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+          </div>
         </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
