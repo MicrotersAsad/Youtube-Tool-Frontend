@@ -7,6 +7,7 @@ const UserProfile = () => {
   const { user, updateUserProfile } = useAuth();
   const [isUpdated, setIsUpdated] = useState(false);
   const [remainingDays, setRemainingDays] = useState(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
     if (user && user.paymentStatus !== 'success' && !isUpdated) {
@@ -58,6 +59,33 @@ const UserProfile = () => {
     doc.save('invoice.pdf');
   };
 
+  const handleCancelSubscription = async () => {
+    if (window.confirm('Are you sure you want to cancel your subscription? This action cannot be undone.')) {
+      setIsCancelling(true);
+      try {
+        const response = await fetch('/api/cancel-subscription', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ subscriptionId: user.subscriptionId }), // Assuming subscriptionId is available in the user object
+        });
+
+        if (response.ok) {
+          alert('Your subscription has been canceled.');
+          updateUserProfile(); // Update the user's profile to reflect the cancellation
+        } else {
+          alert('Failed to cancel subscription. Please try again.');
+        }
+      } catch (error) {
+        console.error('Failed to cancel subscription:', error);
+        alert('Failed to cancel subscription. Please try again.');
+      } finally {
+        setIsCancelling(false);
+      }
+    }
+  };
+
   if (!user) {
     return <p className="text-center text-red-500">Please log in to view your profile.</p>;
   }
@@ -88,6 +116,13 @@ const UserProfile = () => {
               className="mt-6 w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300"
             >
               Download Invoice
+            </button>
+            <button
+              onClick={handleCancelSubscription}
+              className="mt-4 w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-300"
+              disabled={isCancelling}
+            >
+              {isCancelling ? 'Cancelling...' : 'Cancel Subscription'}
             </button>
           </div>
         ) : (

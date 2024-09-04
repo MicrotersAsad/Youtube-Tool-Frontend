@@ -633,32 +633,32 @@ const TagExtractor = ({ meta, reviews, content, relatedTools, faqs,reactions }) 
     </div>
   </div>
 
-  {/* Reaction Bar */}
-  <div className="w-full flex items-center justify-between mt-4 p-3 bg-gray-100 rounded-md">
+   {/* Reaction Bar */}
+   <div className="w-full flex items-center justify-between mt-4 p-3 bg-gray-100 rounded-md">
     <div className="flex items-center space-x-4">
       <button
         onClick={() => handleReaction("like")}
         className="flex items-center space-x-1"
         style={{ color: likeButtonColor }}
       >
-        <FaThumbsUp className="text-xl " />
-        <span>{likes}</span>
+        <FaThumbsUp className="text-xl text-green-600" />
+        <span className="text-black">{likes}</span>
       </button>
       <button
         onClick={() => handleReaction("unlike")}
         className="flex items-center space-x-1"
         style={{ color: unlikeButtonColor }}
       >
-        <FaThumbsDown className="text-xl" />
-        <span>{unlikes}</span>
+        <FaThumbsDown className="text-xl text-red-400" />
+        <span className="text-black">{unlikes}</span>
       </button>
       <button
         onClick={() => setShowReportModal(true)}
         className="flex items-center space-x-1"
         style={{ color: reportButtonColor }}
       >
-        <FaFlag className="text-xl" />
-        <span>Report</span>
+        <FaFlag className="text-xl text-red-500" />
+        <span className="text-black">Report</span>
       </button>
     </div>
     <div className="text-center">

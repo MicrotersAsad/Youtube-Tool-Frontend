@@ -750,12 +750,12 @@ a {
   align-items: flex-start;
   flex-wrap: wrap;
   min-height: 100px;
-  margin: auto;
-  width: 100%;
-  max-width: 600px;
+  width: 95%;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   background-color: #fff;
   margin-top: 20px;
+  margin-left: 22px;
+ 
 }
 
 .tags-container {
@@ -803,6 +803,7 @@ a {
   .keywords-input-container {
     width: 100%;
     padding: 8px;
+    margin: 0px !important;
   }
 
   .input-box {
