@@ -17,12 +17,20 @@ import {
   FaSearch,
   FaStarHalfAlt,
   FaKey,
-  FaAngleRight,
-  FaInfo,
-  FaFile,
-  FaTools,
   FaServer,
   FaCommentDots,
+  FaUpload,
+  FaDownload,
+  FaUserShield,
+  FaComments,
+  FaChartLine,
+  FaCog,
+  FaRegChartBar,
+  FaShieldAlt,
+  FaCertificate,
+  FaProjectDiagram,
+  FaInfo,
+  FaTools,
 } from 'react-icons/fa';
 
 const Layout = ({ children }) => {
@@ -59,6 +67,8 @@ const Layout = ({ children }) => {
       router.pathname === '/dashboard/about' ||
       router.pathname === '/dashboard/privacy' ||
       router.pathname === '/dashboard/terms' ||
+      router.pathname === '/dashboard/gdpr' ||
+      router.pathname === '/dashboard/ccpa' ||
       router.pathname === '/dashboard/notice'
     ) {
       setImportantManagementOpen(true);
@@ -110,7 +120,7 @@ const Layout = ({ children }) => {
                   : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
               }`}
             >
-              <FaTachometerAlt className="mr-3 text-info" /> <span className="mx-3">Dashboard</span>
+              <FaTachometerAlt className="mr-3 text-blue-500" /> <span className="mx-3">Dashboard</span>
             </p>
           </Link>
           {user && user.role === 'admin' && (
@@ -122,7 +132,7 @@ const Layout = ({ children }) => {
                     : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
                 }`}
               >
-                <FaUsers className="mr-3 text-success" /> <span className="mx-3">Users</span>
+                <FaUserShield className="mr-3 text-green-500" /> <span className="mx-3">Users</span>
               </p>
             </Link>
           )}
@@ -136,7 +146,7 @@ const Layout = ({ children }) => {
                     : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
                 }`}
               >
-                <FaFolderOpen className="mr-3 text-primary" /> <span className="mx-3">Blogs</span>
+                <FaFolderOpen className="mr-3 text-purple-500" /> <span className="mx-3">Blogs</span>
                 <span className="ml-auto">
                   {contentManagementOpen ? <FaChevronDown /> : <FaChevronRight />}
                 </span>
@@ -151,7 +161,7 @@ const Layout = ({ children }) => {
                           : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
                       }`}
                     >
-                      <FaPlusCircle className="mr-3" /> <span className="mx-3">Add Categories</span>
+                      <FaPlusCircle className="mr-3 text-pink-500" /> <span className="mx-3">Add Categories</span>
                     </p>
                   </Link>
                   <Link href="/dashboard/blogs" passHref>
@@ -162,7 +172,7 @@ const Layout = ({ children }) => {
                           : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
                       }`}
                     >
-                      <FaPlusCircle className="mr-3" /> <span className="mx-3">Add Blog</span>
+                      <FaPlusCircle className="mr-3 text-pink-500" /> <span className="mx-3">Add Blog</span>
                     </p>
                   </Link>
                   <Link href="/dashboard/all-blogs" passHref>
@@ -173,7 +183,7 @@ const Layout = ({ children }) => {
                           : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
                       }`}
                     >
-                      <FaBlog className="mr-3" /> <span className="mx-3">All Blogs</span>
+                      <FaBlog className="mr-3 text-purple-500" /> <span className="mx-3">All Blogs</span>
                     </p>
                   </Link>
                 </div>
@@ -190,7 +200,7 @@ const Layout = ({ children }) => {
                     : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
                 }`}
               >
-                <FaKey className="mr-3 text-yellow-700" /> <span className="mx-3">API Keys</span>
+                <FaKey className="mr-3 text-yellow-500" /> <span className="mx-3">API Keys</span>
                 <span className="ml-auto">{apiManagementOpen ? <FaChevronDown /> : <FaChevronRight />}</span>
               </div>
               {apiManagementOpen && (
@@ -269,6 +279,28 @@ const Layout = ({ children }) => {
                       <FaFileAlt className="mr-3" /> <span className="mx-3">Terms</span>
                     </p>
                   </Link>
+                  <Link href="/dashboard/ccpa" passHref>
+                    <p
+                      className={`flex items-center mt-2 py-2 px-6 cursor-pointer rounded-md ${
+                        isActiveRoute('/dashboard/ccpa')
+                          ? 'bg-gray-300 text-gray-700'
+                          : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
+                      }`}
+                    >
+                      <FaCertificate className="mr-3" /> <span className="mx-3">Ccpa</span>
+                    </p>
+                  </Link>
+                  <Link href="/dashboard/gdpr" passHref>
+                    <p
+                      className={`flex items-center mt-2 py-2 px-6 cursor-pointer rounded-md ${
+                        isActiveRoute('/dashboard/gdpr')
+                          ? 'bg-gray-300 text-gray-700'
+                          : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
+                      }`}
+                    >
+                      <FaShieldAlt className="mr-3" /> <span className="mx-3">Gdpr</span>
+                    </p>
+                  </Link>
                   <Link href="/dashboard/notice" passHref>
                     <p
                       className={`flex items-center mt-2 py-2 px-6 cursor-pointer rounded-md ${
@@ -307,7 +339,7 @@ const Layout = ({ children }) => {
                           : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
                       }`}
                     >
-                      <FaFile className="mr-3" /> <span className="mx-3">Media</span>
+                      <FaUpload className="mr-3" /> <span className="mx-3">Media</span>
                     </p>
                   </Link>
                   <Link href="/dashboard/importExport" passHref>
@@ -318,7 +350,7 @@ const Layout = ({ children }) => {
                           : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
                       }`}
                     >
-                      <FaFileAlt className="mr-3" /> <span className="mx-3">Import/Export</span>
+                      <FaDownload className="mr-3" /> <span className="mx-3">Import/Export</span>
                     </p>
                   </Link>
                   <Link href="/dashboard/emailConfigForm" passHref>
@@ -342,7 +374,7 @@ const Layout = ({ children }) => {
                       : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
                   }`}
                 >
-                  <FaCommentDots className="mr-3" /> <span className="mx-3">Comment</span>
+                  <FaComments className="mr-3" /> <span className="mx-3">Comments</span>
                 </p>
               </Link>
             </div>
@@ -356,7 +388,7 @@ const Layout = ({ children }) => {
                     : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
                 }`}
               >
-                <FaFileAlt className="mr-3 text-emerald-800" /> <span className="mx-3">Tools Content</span>
+                <FaProjectDiagram className="mr-3 text-emerald-800" /> <span className="mx-3">Tools Content</span>
               </p>
             </Link>
           )}

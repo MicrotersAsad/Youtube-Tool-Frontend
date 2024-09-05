@@ -142,7 +142,7 @@ const handlePut = async (req, res) => {
 
 const handlePatch = async (req, res) => {
   try {
-    const { category, userId, action } = req.body;
+    const { category, userId, action, reportText } = req.body;
 
     if (!category || !userId || !action) {
       return res.status(400).json({ message: 'Missing required fields' });
@@ -198,6 +198,32 @@ const handlePatch = async (req, res) => {
           };
         }
         break;
+      case 'report':
+        // Check if the user has already reported this content
+        const existingReport = content.reactions?.reports?.find(report => report.reportedBy === userId);
+        if (existingReport) {
+          return res.status(400).json({ message: 'User has already reported this content.' });
+        }
+
+        if (!reportText) {
+          return res.status(400).json({ message: 'Report text is required.' });
+        }
+
+        // Add a new report to the reports array
+        updateDoc = {
+          $push: {
+            'reactions.reports': {
+              reportText,
+              reportedBy: userId,
+              reportedAt: new Date(),
+              fixed: false, // Initially, the issue is not fixed
+            },
+          },
+        };
+
+        // Mark that this user has reported in the users field
+        updateDoc.$set = { ...updateDoc.$set, [`reactions.users.${userId}`]: 'report' };
+        break;
       default:
         return res.status(400).json({ message: 'Invalid action' });
     }
@@ -217,14 +243,6 @@ const handlePatch = async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
-
-
-
-
-
-
-
-
 
 
 

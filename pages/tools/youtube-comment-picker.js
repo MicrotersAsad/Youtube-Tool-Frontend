@@ -267,6 +267,7 @@ const YouTubeCommentPicker =  ({ meta, reviews, content, relatedTools, faqs,reac
           category: "youtube-comment-picker",
           userId: user.email,
           action,
+          reportText: action === 'report' ? reportText : null, 
         }),
       });
 
@@ -278,28 +279,36 @@ const YouTubeCommentPicker =  ({ meta, reviews, content, relatedTools, faqs,reac
       const updatedData = await response.json();
       setLikes(updatedData.reactions.likes || 0);
       setUnlikes(updatedData.reactions.unlikes || 0);
-
-      if (action === "like") {
+      if (action === 'like') {
         if (hasLiked) {
-          toast.error("You have already liked this.");
+          toast.error('You have already liked this.');
         } else {
           setHasLiked(true);
           setHasUnliked(false);
+          toast.success('You liked this content.');
         }
-      } else if (action === "unlike") {
+      } else if (action === 'unlike') {
         if (hasUnliked) {
           setHasUnliked(false);
+          toast.success('You removed your dislike.');
         } else {
           setHasLiked(false);
           setHasUnliked(true);
+          toast.success('You disliked this content.');
+        }
+      } else if (action === 'report') {
+        if (hasReported) {
+          toast.error('You have already reported this.');
+        } else {
+          setHasReported(true);
+          toast.success('You have reported this content.');
         }
       }
     } catch (error) {
-      console.error("Failed to update reaction:", error);
+      console.error('Failed to update reaction:', error);
       toast.error(error.message);
     }
   };
-
   const saveChannel = () => {
     const savedChannels = JSON.parse(
       localStorage.getItem("savedChannels") || "[]"

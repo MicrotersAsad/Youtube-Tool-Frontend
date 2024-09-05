@@ -284,62 +284,61 @@ ${keywords}
 
   const handleReaction = async (action) => {
     if (!user) {
-      toast.error("Please log in to react.");
+      toast.error('Please log in to react.');
       return;
     }
 
     try {
-      if (action === "report") {
-        const response = await fetch('/api/report', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userEmail: user.email,
-            reportText,
-            toolName: "YouTube Description Generator",
-            toolUrl: window.location.href,
-          }),
-        });
+      const response = await fetch('/api/content', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          category: 'DescriptionGenerator', // Replace with appropriate category
+          userId: user.email,
+          action,
+          reportText: action === 'report' ? reportText : null, 
+        }),
+      });
 
-        if (!response.ok) throw new Error("Failed to send report");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update reaction');
+      }
 
-        toast.success("Report submitted successfully.");
-        setHasReported(true);
-        setShowReportModal(false);
-        setReportText('');
-      } else {
-        // Existing logic for handling likes/unlikes
-        const response = await fetch('/api/content', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            category: "DescriptionGenerator",
-            userId: user.email,
-            action,
-          }),
-        });
+      const updatedData = await response.json();
+      setLikes(updatedData.reactions.likes || 0);
+      setUnlikes(updatedData.reactions.unlikes || 0);
 
-        if (!response.ok) throw new Error("Failed to update reaction");
-
-        const updatedData = await response.json();
-        setLikes(updatedData.reactions.likes || 0);
-        setUnlikes(updatedData.reactions.unlikes || 0);
-
-        if (action === "like") {
-          setHasLiked(!hasLiked);
+      if (action === 'like') {
+        if (hasLiked) {
+          toast.error('You have already liked this.');
+        } else {
+          setHasLiked(true);
           setHasUnliked(false);
-        } else if (action === "unlike") {
-          setHasUnliked(!hasUnliked);
+          toast.success('You liked this content.');
+        }
+      } else if (action === 'unlike') {
+        if (hasUnliked) {
+          setHasUnliked(false);
+          toast.success('You removed your dislike.');
+        } else {
           setHasLiked(false);
+          setHasUnliked(true);
+          toast.success('You disliked this content.');
+        }
+      } else if (action === 'report') {
+        if (hasReported) {
+          toast.error('You have already reported this.');
+        } else {
+          setHasReported(true);
+          toast.success('You have reported this content.');
         }
       }
     } catch (error) {
-      console.error("Failed to update reaction or send report:", error);
-      toast.error("Failed to update reaction or send report");
+      console.error('Failed to update reaction:', error);
+      toast.error(error.message);
     }
   };
 

@@ -247,48 +247,63 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent, reactions })
     
     setIsSaved(savedChannels.some(channel => channel.toolUrl === window.location.href));
   }, [user, reactions.users]);
-
   const handleReaction = async (action) => {
     if (!user) {
-      toast.error("Please log in to react.");
+      toast.error('Please log in to react.');
       return;
     }
 
     try {
-      const response = await fetch("/api/content", {
-        method: "PATCH",
+      const response = await fetch('/api/content', {
+        method: 'PATCH',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          category: "keyword-research",
+          category: 'keyword-research', // Replace with appropriate category
           userId: user.email,
           action,
-          report: action === "report" ? reportText : undefined,
+          reportText: action === 'report' ? reportText : null, 
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to update reaction");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update reaction');
+      }
 
       const updatedData = await response.json();
       setLikes(updatedData.reactions.likes || 0);
       setUnlikes(updatedData.reactions.unlikes || 0);
 
-      if (action === "like") {
-        setHasLiked(!hasLiked); // Toggle the liked state
-        setHasUnliked(false);   // Reset dislike
-      } else if (action === "unlike") {
-        setHasUnliked(!hasUnliked); // Toggle the disliked state
-        setHasLiked(false);         // Reset like
-      } else if (action === "report") {
-        setHasReported(!hasReported); // Toggle the reported state
-        setShowReportModal(false);
-        setReportText("");
-        toast.success("Report submitted successfully.");
+      if (action === 'like') {
+        if (hasLiked) {
+          toast.error('You have already liked this.');
+        } else {
+          setHasLiked(true);
+          setHasUnliked(false);
+          toast.success('You liked this content.');
+        }
+      } else if (action === 'unlike') {
+        if (hasUnliked) {
+          setHasUnliked(false);
+          toast.success('You removed your dislike.');
+        } else {
+          setHasLiked(false);
+          setHasUnliked(true);
+          toast.success('You disliked this content.');
+        }
+      } else if (action === 'report') {
+        if (hasReported) {
+          toast.error('You have already reported this.');
+        } else {
+          setHasReported(true);
+          toast.success('You have reported this content.');
+        }
       }
     } catch (error) {
-      console.error("Failed to update reaction:", error);
-      toast.error("Failed to update reaction");
+      console.error('Failed to update reaction:', error);
+      toast.error(error.message);
     }
   };
 

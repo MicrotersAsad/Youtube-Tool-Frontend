@@ -7,7 +7,8 @@ import Footer from './Footer';
 import Navbar from './Navbar';
 import { appWithTranslation } from 'next-i18next';
 import { ContentProvider } from '../contexts/ContentContext';
-
+import CookieConsent from 'react-cookie-consent'; // Import the react-cookie-consent
+import Link from 'next/link';
 
 function MyApp({ Component, pageProps }) {
   const [showButton, setShowButton] = useState(false);
@@ -95,6 +96,7 @@ function MyApp({ Component, pageProps }) {
       <Script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></Script>
       <Script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></Script>
       <Script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></Script>
+
       <AuthProvider>
         <ContentProvider>
           <Navbar />
@@ -102,6 +104,20 @@ function MyApp({ Component, pageProps }) {
           <Footer />
         </ContentProvider>
       </AuthProvider>
+
+      <CookieConsent
+        location="bottom"
+        buttonText="I understand"
+        cookieName="mySiteCookieConsent"
+        style={{ background: "#2B373B", color: "#fff" }}
+        buttonStyle={{ color: "#4e503b", fontSize: "13px" }}
+        expires={150}
+      >
+        This website uses cookies to enhance the user experience.{" "}
+        <Link href="/privacy" style={{ color: "#fff", textDecoration: 'underline' }}>
+          Learn more
+        </Link>
+      </CookieConsent>
 
       {showButton && (
         <button
