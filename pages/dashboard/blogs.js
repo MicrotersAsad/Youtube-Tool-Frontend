@@ -3,13 +3,10 @@ import dynamic from 'next/dynamic';
 import Layout from './layout';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useAuth } from '../../contexts/AuthContext';
 import Image from 'next/image';
 import QuillWrapper from '../../components/EditorWrapper';
 
-
 function Blogs() {
-  const { user } = useAuth();
   const [quillContent, setQuillContent] = useState('');
   const [existingContents, setExistingContents] = useState([]);
   const [error, setError] = useState(null);
@@ -22,12 +19,17 @@ function Blogs() {
   const [description, setDescription] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [image, setImage] = useState(null);
-  const [imageFile, setImageFile] = useState(null); // New state for the image file
+  const [imageFile, setImageFile] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [authors, setAuthors] = useState([]);
+  const [selectedAuthor, setSelectedAuthor] = useState('');
+  const [selectedEditor, setSelectedEditor] = useState('');
+  const [selectedDeveloper, setSelectedDeveloper] = useState('');
   const [isSlugEditable, setIsSlugEditable] = useState(false);
 
   useEffect(() => {
     fetchCategories();
+    fetchAuthors();
     const savedState = JSON.parse(localStorage.getItem('blogFormState'));
     if (savedState) {
       setQuillContent(savedState.quillContent || '');
@@ -39,6 +41,7 @@ function Blogs() {
       setDescription(savedState.description || '');
       setMetaDescription(savedState.metaDescription || '');
       setImage(savedState.image || null);
+      
     }
   }, []);
 
@@ -59,9 +62,10 @@ function Blogs() {
       description,
       metaDescription,
       image,
+  
     };
     localStorage.setItem('blogFormState', JSON.stringify(formState));
-  }, [quillContent, selectedCategory, selectedLanguage, slug, title, metaTitle, description, metaDescription, image]);
+  }, [quillContent, selectedCategory, selectedLanguage, slug, title, metaTitle, description, metaDescription, image,]);
 
   const fetchCategories = async () => {
     try {
@@ -73,6 +77,19 @@ function Blogs() {
       setCategories(data);
     } catch (error) {
       console.error('Error fetching categories:', error.message);
+    }
+  };
+
+  const fetchAuthors = async () => {
+    try {
+      const response = await fetch('/api/authors');
+      if (!response.ok) {
+        throw new Error('Failed to fetch authors');
+      }
+      const data = await response.json();
+      setAuthors(data);
+    } catch (error) {
+      console.error('Error fetching authors:', error.message);
     }
   };
 
@@ -111,8 +128,7 @@ function Blogs() {
       if (imageFile) {
         formData.append('image', imageFile); // Use the image file
       }
-      formData.append('author', user.username);
-      formData.append('authorProfile', user.profileImage);
+      
       formData.append('slug', slug);
       formData.append('createdAt', new Date().toISOString());
       formData.append('isDraft', JSON.stringify(false));
@@ -147,6 +163,7 @@ function Blogs() {
 
   const handleLanguageChange = (e) => {
     setSelectedLanguage(e.target.value);
+    setSelectedCategory(''); // Reset selected category when language changes
   };
 
   const handleImageChange = (e) => {
@@ -175,9 +192,34 @@ function Blogs() {
   return (
     <Layout>
       <div className="container mx-auto p-5">
-        <h2 className="text-3xl font-semibold mb-6">Add Post - {selectedCategory ? selectedCategory : 'Select a category'}</h2>
+        <h2 className="text-3xl font-semibold mb-6">Add Post</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="col-span-2">
+          <div className="mb-6">
+              <label htmlFor="language" className="block mb-2 text-lg font-medium">Language*</label>
+              <select
+                id="language"
+                value={selectedLanguage}
+                onChange={handleLanguageChange}
+                className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
+              >
+                <option value="en">English</option>
+                <option value="fr">French</option>
+                <option value="zh-HANT">中国传统的</option>
+                <option value="zh-HANS">简体中文</option>
+                <option value="nl">Nederlands</option>
+                <option value="gu">ગુજરાતી</option>
+                <option value="hi">हिंदी</option>
+                <option value="it">Italiano</option>
+                <option value="ja">日本語</option>
+                <option value="ko">한국어</option>
+                <option value="pl">Polski</option>
+                <option value="pt">Português</option>
+                <option value="ru">Русский</option>
+                <option value="es">Español</option>
+                <option value="de">Deutsch</option>
+              </select>
+            </div>
             <div className="mb-6">
               <label htmlFor="metaTitle" className="block mb-2 text-lg font-medium">Meta Title</label>
               <input
@@ -255,36 +297,17 @@ function Blogs() {
                 className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
               >
                 <option value="" disabled>Select a category</option>
-                {categories.map((category) => (
-                  <option key={category._id} value={category.name}>{category.name}</option>
-                ))}
+                {categories
+                  .filter((category) => category.translations && category.translations[selectedLanguage])
+                  .map((category) => (
+                    <option key={category._id} value={category._id}>
+                      {category.translations[selectedLanguage].name}
+                    </option>
+                  ))}
               </select>
             </div>
-            <div className="mb-6">
-              <label htmlFor="language" className="block mb-2 text-lg font-medium">Language*</label>
-              <select
-                id="language"
-                value={selectedLanguage}
-                onChange={handleLanguageChange}
-                className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
-              >
-                <option value="en">English</option>
-                <option value="fr">French</option>
-                <option value="zh-HANT">中国传统的</option>
-                <option value="zh-HANS">简体中文</option>
-                <option value="nl">Nederlands</option>
-                <option value="gu">ગુજરાતી</option>
-                <option value="hi">हिंदी</option>
-                <option value="it">Italiano</option>
-                <option value="ja">日本語</option>
-                <option value="ko">한국어</option>
-                <option value="pl">Polski</option>
-                <option value="pt">Português</option>
-                <option value="ru">Русский</option>
-                <option value="es">Español</option>
-                <option value="de">Deutsch</option>
-              </select>
-            </div>
+           
+           
             <div className="mb-3">
               <label htmlFor="image" className="block mb-2 text-lg font-medium">Image</label>
               <input
@@ -298,7 +321,7 @@ function Blogs() {
                   <Image src={image} alt="Preview" width={100} height={100} className="rounded-lg shadow-md" />
                 </div>
               )}
-              <p className="text-gray-600 text-sm mt-1">Valid image type: jpg/jpeg/png/svg</p>
+              <p className="text-gray-600 text-sm mt-1">Valid image size: 400 * 270 px </p>
             </div>
             <button
               className="bg-blue-500 text-white p-3 rounded-lg w-full mb-4 shadow-md"

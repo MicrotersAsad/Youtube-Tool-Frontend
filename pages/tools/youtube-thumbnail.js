@@ -277,7 +277,7 @@ const YtThumbnailDw = ({
     }
 
     try {
-      const response = await fetch("/api/content", {
+      const response = await fetch("/api/reactions", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

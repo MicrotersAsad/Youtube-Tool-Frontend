@@ -71,44 +71,6 @@ function Content() {
     fetchContent();
   }, [selectedCategory, selectedLanguage]); // Fetch content and FAQs when category or language changes
 
-  // const fetchContent = async () => {
-  //   try {
-  //     const response = await fetch(`/api/content?category=${selectedCategory}&language=${selectedLanguage}`);
-  //     if (!response.ok) {
-  //       throw new Error('Failed to fetch content');
-  //     }
-  //     const data = await response.json();
-
-  //     if (data?.translations?.[selectedLanguage]) {
-  //       const contentData = data.translations[selectedLanguage].content || '';
-  //       const faqsData = data.translations[selectedLanguage].faqs || [];
-  //       const relatedToolsData = data.translations[selectedLanguage].relatedTools || [];
-  //       const metatitle = data.translations[selectedLanguage].title || '';
-  //       const metaDescription = data.translations[selectedLanguage].description || '';
-  //       const imageUrl = data.translations[selectedLanguage].image || '';
-
-  //       setQuillContent(contentData);
-  //       setExistingContent(contentData);
-  //       setTitle(metatitle);
-  //       setDescription(metaDescription);
-  //       setImage(null); // Reset the image state
-  //       setExistingImage(imageUrl); // Set the existing image URL
-  //       setFaqs(faqsData);
-  //       setRelatedTools(relatedToolsData);
-  //       setIsEditing(!!contentData); // Set editing mode based on whether content exists
-  //       setAvailableLanguages(Object.keys(data.translations));
-  //     } else {
-  //       // Clear the input fields if no content is available for the selected language
-  //       clearFields();
-  //       setAvailableLanguages(Object.keys(data.translations || {}));
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching content:', error.message);
-  //     setError(error.message);
-  //     clearFields(); // Clear fields if there's an error
-  //     setAvailableLanguages([]);
-  //   }
-  // };
   const fetchContent = async () => {
     try {
       const response = await fetch(`/api/content?category=${selectedCategory}&language=${selectedLanguage}`);
@@ -116,7 +78,7 @@ function Content() {
         throw new Error('Failed to fetch content');
       }
       const data = await response.json();
-  
+
       if (data?.translations?.[selectedLanguage]) {
         const contentData = data.translations[selectedLanguage].content || '';
         const faqsData = data.translations[selectedLanguage].faqs || [];
@@ -124,7 +86,7 @@ function Content() {
         const metatitle = data.translations[selectedLanguage].title || '';
         const metaDescription = data.translations[selectedLanguage].description || '';
         const imageUrl = data.translations[selectedLanguage].image || '';
-  
+
         setQuillContent(contentData);
         setExistingContent(contentData);
         setTitle(metatitle);
@@ -147,7 +109,7 @@ function Content() {
       setAvailableLanguages([]);
     }
   };
-  
+
   const clearFields = () => {
     setQuillContent('');
     setExistingContent('');
@@ -163,7 +125,7 @@ function Content() {
   const handleSubmit = useCallback(async () => {
     try {
       const method = isEditing ? 'PUT' : 'POST';
-      
+
       // Prepare form data
       const formData = new FormData();
       formData.append('content', quillContent);
@@ -196,6 +158,7 @@ function Content() {
       setError(error.message);
     }
   }, [quillContent, selectedCategory, selectedLanguage, isEditing, title, description, image, faqs, relatedTools, existingImage]);
+
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);

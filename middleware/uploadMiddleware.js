@@ -1,21 +1,28 @@
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(process.cwd(), 'public', 'uploads');
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
+    cb(null, './uploads/'); // Ensure this folder exists
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `${uniqueSuffix}-${file.originalname}`);
-  },
+    cb(null, new Date().toISOString().replace(/:/g, '-') + '-' + file.originalname);
+  }
 });
 
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: { fileSize: 1024 * 1024 * 5 }, // 5MB file size limit
+}).single('image'); // Ensure this matches the form field name
 
-export default upload.single('image');
+const uploadMiddleware = (req, res, next) => {
+  upload(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      return res.status(500).json({ message: 'File upload failed', error: err.message });
+    } else if (err) {
+      return res.status(500).json({ message: 'An error occurred', error: err.message });
+    }
+    next();
+  });
+};
+
+export default uploadMiddleware;
