@@ -67,15 +67,17 @@ function AllBlogs() {
     setSelectedLanguage(e.target.value);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id, language = '') => {
     if (window.confirm('Are you sure you want to delete this blog?')) {
       try {
-        const response = await fetch(`/api/blogs?id=${id}`, {
+        const response = await fetch(`/api/blogs?id=${id}&language=${language}`, {
           method: 'DELETE',
         });
+  
         if (!response.ok) {
           throw new Error('Failed to delete blog');
         }
+  
         setBlogs(blogs.filter((blog) => blog._id !== id));
         toast.success('Blog deleted successfully!');
       } catch (error) {
@@ -243,9 +245,9 @@ function AllBlogs() {
                           <FaEdit />
                         </button>
                       </Link>
-                      <button onClick={() => handleDelete(blog._id)} className="text-red-500 hover:text-red-700">
-                        <FaTrash />
-                      </button>
+                      <button onClick={() => handleDelete(blog._id, blog.language)} className="text-red-500 hover:text-red-700">
+  <FaTrash />
+</button>
                     </td>
                   </tr>
                 ))}

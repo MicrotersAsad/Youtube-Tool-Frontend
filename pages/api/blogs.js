@@ -299,8 +299,7 @@ const handleGetRequest = async (req, res, blogs, query) => {
 
 const handleDeleteRequest = async (req, res, blogs, query) => {
   try {
-    const id = query.id;
-    const language = query.language; // Assuming you pass the language in the query string
+    const { id, language } = query;
 
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid ID' });
@@ -312,8 +311,9 @@ const handleDeleteRequest = async (req, res, blogs, query) => {
       return res.status(404).json({ message: 'Blog post not found' });
     }
 
-    // Check if the language exists in the translations
-    if (blog.translations && blog.translations[language]) {
+    console.log(`Attempting to delete blog ID: ${id} and language: ${language}`);
+
+    if (language && blog.translations[language]) {
       delete blog.translations[language]; // Remove the specific language translation
 
       // If no translations remain, delete the entire blog post
@@ -321,9 +321,9 @@ const handleDeleteRequest = async (req, res, blogs, query) => {
         const result = await blogs.deleteOne({ _id: new ObjectId(id) });
 
         if (result.deletedCount === 1) {
-          res.status(200).json({ message: 'Blog post deleted successfully as no translations remain.' });
+          return res.status(200).json({ message: 'Blog post deleted successfully as no translations remain.' });
         } else {
-          res.status(500).json({ message: 'Failed to delete blog post.' });
+          return res.status(500).json({ message: 'Failed to delete blog post.' });
         }
       } else {
         // Otherwise, update the blog post with the remaining translations
@@ -333,16 +333,24 @@ const handleDeleteRequest = async (req, res, blogs, query) => {
         );
 
         if (result.modifiedCount === 1) {
-          res.status(200).json({ message: `Translation for language ${language} deleted.` });
+          return res.status(200).json({ message: `Translation for language ${language} deleted.` });
         } else {
-          res.status(500).json({ message: 'Failed to delete the translation.' });
+          return res.status(500).json({ message: 'Failed to delete the translation.' });
         }
       }
     } else {
-      return res.status(404).json({ message: `Translation for language ${language} not found.` });
+      // If no language is provided or the language translation doesn't exist, delete the whole blog
+      const result = await blogs.deleteOne({ _id: new ObjectId(id) });
+      
+      if (result.deletedCount === 1) {
+        return res.status(200).json({ message: 'Blog post deleted successfully.' });
+      } else {
+        return res.status(500).json({ message: 'Failed to delete blog post.' });
+      }
     }
   } catch (error) {
     console.error('DELETE error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };
+

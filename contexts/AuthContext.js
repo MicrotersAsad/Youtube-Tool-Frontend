@@ -55,10 +55,10 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       const response = await axios.get('/api/user', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
-      setUser(response.data); // Update the user state with the new profile data
+      setUser(response.data); // Ensure the response contains the profileImage field
     } catch (error) {
       console.error('Failed to update profile:', error);
     }
