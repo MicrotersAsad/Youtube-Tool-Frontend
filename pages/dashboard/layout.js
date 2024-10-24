@@ -225,7 +225,7 @@ const handleSearchChange = (e) => {
 
   {/* Dropdown Content with Smooth Opening and Closing Animation */}
   <div
-    className={`ml-6 mt-2 mb-3 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
+    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
       (menuOpen === "blog" ||
         isActiveRoute("/dashboard/categories") ||
         isActiveRoute("/dashboard/all-blogs") ||
@@ -276,7 +276,7 @@ const handleSearchChange = (e) => {
 
 
   {/* Pages */}
-<div className="mt-2">
+<div className="">
   <p
     className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
       isActiveRoute("/dashboard/all-pages") || isActiveRoute("/dashboard/add-page")
@@ -298,7 +298,7 @@ const handleSearchChange = (e) => {
 
   {/* Dropdown Content with Smooth Opening and Closing Animation */}
   <div
-    className={`ml-6 mt-2 mb-3 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
+    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
       (menuOpen === "pages" ||
         isActiveRoute("/dashboard/all-pages") ||
         isActiveRoute("/dashboard/add-page")) && !isCollapsed
@@ -333,7 +333,7 @@ const handleSearchChange = (e) => {
   </div>
 </div>
   {/* Content */}
-<div className="mt-2">
+<div className="">
 <p
     className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
       isActiveRoute("/dashboard/content") || isActiveRoute("/dashboard/review")
@@ -355,7 +355,7 @@ const handleSearchChange = (e) => {
 
   {/* Dropdown Content with Smooth Opening and Closing Animation */}
   <div
-    className={`ml-6 mt-2 mb-3 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
+    className={`ml-6 mt-2  mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
       (menuOpen === "tools" ||
    
         isActiveRoute("/dashboard/content")) && !isCollapsed
@@ -393,7 +393,7 @@ const handleSearchChange = (e) => {
 
 
 {/* Manage Users */}
-<div className="mt-2">
+<div className="">
   <p
     className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
    isActiveRoute("/dashboard/users")
@@ -415,7 +415,7 @@ const handleSearchChange = (e) => {
 
   {/* Dropdown Content with Smooth Opening and Closing Animation */}
   <div
-    className={`ml-6 mt-2 mb-3 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
+    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
       (menuOpen === "users" ||
        
         isActiveRoute("/dashboard/users")) && !isCollapsed
@@ -442,7 +442,7 @@ const handleSearchChange = (e) => {
 
 
 {/* API Keys Section */}
-<div className="mt-2">
+<div className="">
   <p
     className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
       isActiveRoute("/dashboard/addYtApi") || isActiveRoute("/dashboard/addopenaiKey") || isActiveRoute("/dashboard/")
@@ -464,7 +464,7 @@ const handleSearchChange = (e) => {
 
   {/* Dropdown Content with Smooth Opening and Closing Animation */}
   <div
-    className={`ml-6 mt-2 mb-3 overflow-hidden transition-all duration-700 ease-in-out origin-top ${
+    className={`ml-6 mt-2 mb-1 overflow-hidden transition-all duration-700 ease-in-out origin-top ${
       menuOpen === "apiKeys" && !isCollapsed ? 'max-h-screen opacity-100 scale-y-100' : 'max-h-0 opacity-0 scale-y-0'
     }`}
   >
@@ -500,7 +500,7 @@ const handleSearchChange = (e) => {
 
 
 {/* About Section */}
-<div className="mt-2">
+<div className="">
   <p
     className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
       isActiveRoute("/dashboard/about") || 
@@ -531,7 +531,7 @@ const handleSearchChange = (e) => {
 
   {/* Dropdown Content with Smooth Opening and Closing Animation */}
   <div
-    className={`ml-6 mt-2 mb-3 overflow-hidden transition-all duration-700 ease-in-out origin-top ${
+    className={`ml-6 mt-2 mb-1 overflow-hidden transition-all duration-700 ease-in-out origin-top ${
       menuOpen === "about" && !isCollapsed ? 'max-h-screen opacity-100 scale-y-100' : 'max-h-0 opacity-0 scale-y-0'
     }`}
   >
@@ -614,7 +614,7 @@ const handleSearchChange = (e) => {
 
 
 {/* Appearance */}
-<div className="mt-2">
+<div className="">
   <p
     className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
       isActiveRoute("/dashboard/setting") ||
@@ -646,7 +646,7 @@ const handleSearchChange = (e) => {
 
   {/* Dropdown Content with Smooth Opening and Closing Animation */}
   <div
-    className={`ml-6 mt-2 mb-3 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
+    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
       (menuOpen === "appearance" ||
         isActiveRoute("/dashboard/setting") ||
         isActiveRoute("/dashboard/report") ||
@@ -814,7 +814,7 @@ const handleSearchChange = (e) => {
       {/* Main content area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Bar */}
-        <header className="flex justify-between items-center p-4 bg-[#071251] border-b border-gray-200">
+        <header className="flex justify-between items-center p-3 bg-[#071251] border-b border-gray-200">
   {/* Sidebar Collapse Button for Desktop */}
   <div className="flex items-center space-x-4">
     <button

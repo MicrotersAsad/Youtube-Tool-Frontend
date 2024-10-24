@@ -44,7 +44,7 @@ const AddPage = () => {
           height: '1200px',
           showBlockInserter: true,
           blocks: true,
-          colors:true,
+        
           colors: [
             { name: 'Black', color: '#000000' },
             { name: 'White', color: '#FFFFFF' },
