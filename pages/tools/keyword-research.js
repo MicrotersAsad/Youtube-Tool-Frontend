@@ -421,71 +421,71 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent, reactions })
   ))}
   </Head>
   {/* JSON-LD Structured Data */}
-  <Script type="application/ld+json">
-    {JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "WebPage",
+  <Script id="webpage-keyword-research" type="application/ld+json">
+  {JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: meta?.title,
+    url: `${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/keyword-research`,
+    description: meta?.description,
+    breadcrumb: {
+      "@id": `${meta?.url}#breadcrumb`,
+    },
+    about: {
+      "@type": "Thing",
       name: meta?.title,
-      url: `${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/keyword-research`,
-      description: meta?.description,
-      breadcrumb: {
-        "@id": `${meta?.url}#breadcrumb`,
+    },
+    isPartOf: {
+      "@type": "WebSite",
+      url: meta?.url,
+    },
+  })}
+</Script>
+
+<Script id="software-application-keyword-research" type="application/ld+json">
+  {JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: meta?.title,
+    url: `${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/keyword-research`,
+    applicationCategory: "Multimedia",
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: overallRating,
+      ratingCount: reviews?.length,
+      reviewCount: reviews?.length,
+    },
+    review: reviews.map((review) => ({
+      "@type": "Review",
+      author: {
+        "@type": "Person",
+        name: review.userName,
       },
-      about: {
-        "@type": "Thing",
-        name: meta?.title,
+      datePublished: review.createdAt,
+      reviewBody: review.comment,
+      name: review.title,
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: review.rating,
       },
-      isPartOf: {
-        "@type": "WebSite",
-        url: meta?.url,
+    })),
+  })}
+</Script>
+
+<Script id="faq-keyword-research" type="application/ld+json">
+  {JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
       },
-    })}
-  </Script>
-  
-  <Script type="application/ld+json">
-    {JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      name: meta?.title,
-      url: `${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/keyword-research`,
-      applicationCategory: "Multimedia",
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: overallRating,
-        ratingCount: reviews?.length,
-        reviewCount: reviews?.length,
-      },
-      review: reviews.map((review) => ({
-        "@type": "Review",
-        author: {
-          "@type": "Person",
-          name: review.userName,
-        },
-        datePublished: review.createdAt,
-        reviewBody: review.comment,
-        name: review.title,
-        reviewRating: {
-          "@type": "Rating",
-          ratingValue: review.rating,
-        },
-      })),
-    })}
-  </Script>
-  
-  <Script type="application/ld+json">
-    {JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: faqs.map((faq) => ({
-        "@type": "Question",
-        name: faq.question,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: faq.answer,
-        },
-      })),
-    })}
-  </Script>
+    })),
+  })}
+</Script>
 
 
           <h2 className="text-3xl pt-5 text-white">{t('YouTube Keyword Research')}</h2>

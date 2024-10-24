@@ -431,75 +431,72 @@ const YtThumbnailDw = ({
               )}
   </Head>
             {/* JSON-LD Structured Data */}
-            <Script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "WebPage",
-                name: meta?.title,
-                url: `${meta?.url}${
-                  i18n.language !== "en" ? `/${i18n.language}` : ""
-                }/tools/youtube-thumbnail`,
-                description: meta?.description,
-                breadcrumb: {
-                  "@id": `${meta?.url}#breadcrumb`,
-                },
-                about: {
-                  "@type": "Thing",
-                  name: meta?.title,
-                },
-                isPartOf: {
-                  "@type": "WebSite",
-                  url: meta?.url,
-                },
-              })}
-            </Script>
+            <Script id="webpage-structured-data" type="application/ld+json">
+  {JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: meta?.title,
+    url: `${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-thumbnail`,
+    description: meta?.description,
+    breadcrumb: {
+      "@id": `${meta?.url}#breadcrumb`,
+    },
+    about: {
+      "@type": "Thing",
+      name: meta?.title,
+    },
+    isPartOf: {
+      "@type": "WebSite",
+      url: meta?.url,
+    },
+  })}
+</Script>
 
-            <Script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "SoftwareApplication",
-                name: meta?.title,
-                url: `${meta?.url}${
-                  i18n.language !== "en" ? `/${i18n.language}` : ""
-                }/tools/youtube-thumbnail`,
-                applicationCategory: "Multimedia",
-                aggregateRating: {
-                  "@type": "AggregateRating",
-                  ratingValue: overallRating,
-                  ratingCount: reviews?.length,
-                  reviewCount: reviews?.length,
-                },
-                review: reviews.map((review) => ({
-                  "@type": "Review",
-                  author: {
-                    "@type": "Person",
-                    name: review.userName,
-                  },
-                  datePublished: review.createdAt,
-                  reviewBody: review.comment,
-                  name: review.title,
-                  reviewRating: {
-                    "@type": "Rating",
-                    ratingValue: review.rating,
-                  },
-                })),
-              })}
-            </Script>
+<Script id="software-structured-data" type="application/ld+json">
+  {JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: meta?.title,
+    url: `${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-thumbnail`,
+    applicationCategory: "Multimedia",
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: overallRating,
+      ratingCount: reviews?.length,
+      reviewCount: reviews?.length,
+    },
+    review: reviews.map((review) => ({
+      "@type": "Review",
+      author: {
+        "@type": "Person",
+        name: review.userName,
+      },
+      datePublished: review.createdAt,
+      reviewBody: review.comment,
+      name: review.title,
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: review.rating,
+      },
+    })),
+  })}
+</Script>
 
-            <Script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                mainEntity: faqs.map((faq) => ({
-                  "@type": "Question",
-                  name: faq.question,
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: faq.answer,
-                  },
-                })),
-              })}
-            </Script>
+<Script id="faq-structured-data" type="application/ld+json">
+  {JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  })}
+</Script>
+
         
           <h2 className="text-3xl pt-5 text-white">
             {t("YouTube Thumbnails Downloader")}
