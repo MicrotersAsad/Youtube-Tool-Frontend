@@ -64,10 +64,16 @@ const Layout = React.memo(({ children }) => {
 
   const handleLogout = () => {
     logout();
-    router.push("/super-admin");
+    router.push("/login");
   };
 
   const getProfileImagePath = (imagePath) => {
+    // Check if the imagePath is a base64 string by matching a common base64 pattern
+    if (imagePath && imagePath.startsWith("data:image")) {
+      return imagePath;
+    }
+  
+    // Handle other cases as before
     return imagePath
       ? imagePath.startsWith("/uploads/")
         ? imagePath
@@ -76,7 +82,7 @@ const Layout = React.memo(({ children }) => {
   };
   const data = [
     // Dashboard
-    { title: 'Dashboard', link: 'dashboard/dashboard', collectionName: 'dashboard' },
+    { title: 'Dashboard', link: 'dashboard/overview', collectionName: 'dashboard' },
   
     // Notices
     { title: 'All Notices', link: '/dashboard/all-notice', collectionName: 'notice' },
@@ -130,22 +136,27 @@ const Layout = React.memo(({ children }) => {
     { title: 'Site Backup', link: '/dashboard/importExport', collectionName: 'appearance' }
   ];
   
- // Handle search input changes
-// Handle search input changes
-const handleSearchChange = (e) => {
-  const query = e.target.value;
-  setSearchQuery(query);
 
-  if (query.length > 2) {
-    // Filter allData based on the search query
-    const filteredResults = data.filter(item =>
-      item.title.toLowerCase().includes(query.toLowerCase())
-    );
-    setSearchResults(filteredResults);
-  } else {
-    setSearchResults([]);
-  }
-};
+
+  // Handle search input changes
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    if (query.length > 2) {
+      const filteredResults = data.filter(item =>
+        item.title.toLowerCase().includes(query.toLowerCase())
+      );
+      setSearchResults(filteredResults);
+    } else {
+      setSearchResults([]);
+    }
+  };
+
+
+
+ 
+
   return (
     <div className="flex h-screen overflow-hidden bg-gray-100 sidebar-test">
       {/* Background Overlay for mobile */}
@@ -199,7 +210,9 @@ const handleSearchChange = (e) => {
     {!isCollapsed && <span>Dashboard</span>}
   </Link>
 </div>
-
+{user && (user.role === "admin" || user.role === "super_admin")? (
+  <>
+ 
 {/* Blog */}
 <div className="mt-2">
   <p
@@ -798,7 +811,7 @@ const handleSearchChange = (e) => {
   </div>
 </div>
 
-
+</>): null}
         
          
         </nav>
@@ -913,50 +926,50 @@ const handleSearchChange = (e) => {
       </div>
 
       {profileDropdown && (
-        <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg py-2 z-20">
-          <div className="px-4 py-2 flex items-center">
-            {user?.profileImage ? (
-              <Image
-                src={getProfileImagePath(user?.profileImage)}
-                width={30}
-                height={30}
-                className="rounded-full border"
-                alt="Profile Image"
-                unoptimized
-              />
-            ) : (
-              <div className="w-6 h-6 rounded-full bg-[#1d1e8e] flex items-center justify-center">
-                <span className="text-gray-500 font-bold text-sm">
-                  {user?.username?.charAt(0).toUpperCase()}
-                </span>
-              </div>
-            )}
-            <div className="ml-3">
-              <p className="font-semibold text-blue-500">
-                {user?.username || "Username"}
-              </p>
-              <p className="text-gray-500 text-sm">
-                {user?.role || "Role"}
-              </p>
-            </div>
-          </div>
-          <hr />
-          <Link href="profile" passHref>
-            <button className="flex items-center w-full px-4 py-2 text-gray-800 hover:bg-gray-100">
-              <FaUser className="mr-3" />
-              Profile
-            </button>
-          </Link>
-
-          <button
-            onClick={handleLogout}
-            className="flex items-center w-full px-4 py-2 text-gray-800 hover:bg-gray-100"
-          >
-            <FaSignOutAlt className="mr-3" />
-            Sign Out
-          </button>
+  <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg py-2 z-20">
+    <div className="px-4 py-2 flex items-center">
+      {user?.profileImage ? (
+      <Image
+      src={`data:image/jpeg;base64,${user.profileImage}`}
+      alt="User profile image"
+      className="w-8 h-8 rounded-full"
+      width={32}
+      height={32}
+      priority 
+    />
+      ) : (
+        <div className="w-6 h-6 rounded-full bg-[#1d1e8e] flex items-center justify-center">
+          <span className="text-gray-500 font-bold text-sm">
+            {user?.username?.charAt(0).toUpperCase()}
+          </span>
         </div>
       )}
+      <div className="ml-3">
+        <p className="font-semibold text-blue-500">
+          {user?.username || "Username"}
+        </p>
+        <p className="text-gray-500 text-sm">
+          {user?.role || "Role"}
+        </p>
+      </div>
+    </div>
+    <hr />
+    <Link href="profile" passHref>
+      <button className="flex items-center w-full px-4 py-2 text-gray-800 hover:bg-gray-100">
+        <FaUser className="mr-3" />
+        Profile
+      </button>
+    </Link>
+
+    <button
+      onClick={handleLogout}
+      className="flex items-center w-full px-4 py-2 text-gray-800 hover:bg-gray-100"
+    >
+      <FaSignOutAlt className="mr-3" />
+      Sign Out
+    </button>
+  </div>
+)}
     </div>
   </div>
 </header>
