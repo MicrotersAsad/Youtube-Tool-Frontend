@@ -29,6 +29,7 @@
     "react/react-in-jsx-scope": "off",
      "react/no-unescaped-entities": "off",
     "@next/next/no-page-custom-font": "off",
+     "no-case-declarations": "off",
     "react/prop-types": "off",
     "no-undef": "off",
     "no-unused-vars": "off",
@@ -84,7 +85,7 @@
     "vars-on-top": "off",
     "wrap-iife": "off",
     "react/display-name": "off",
-
+  "no-extra-semi": "off",
     "yoda": "off",
     "strict": "off",
     "init-declarations": "off",
