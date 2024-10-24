@@ -12,7 +12,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import '../public/laraberg.css';
 
-
 function MyApp({ Component, pageProps }) {
   const [showButton, setShowButton] = useState(false);
   const router = useRouter();
@@ -62,7 +61,6 @@ function MyApp({ Component, pageProps }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Define pages where you don't want to show Navbar and Footer
   const hideHeaderFooter = router.pathname.includes('/dashboard');
 
   return (
@@ -76,33 +74,35 @@ function MyApp({ Component, pageProps }) {
           integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
           crossOrigin="anonymous"
         />
-        <Script
-          id="organization-schema"
-          type="application/ld+json"
-          strategy="lazyOnload"
-        >
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            "name": "YouTube Tools",
-            "url": "http://www.ytubetools.com/",
-            "logo": "https://yourwebsite.com/logo.png",
-            "contactPoint": {
-              "@type": "ContactPoint",
-              "telephone": "+880 162-519-2766",
-              "contactType": "Customer Service"
-            },
-            "sameAs": [
-              "https://www.facebook.com/yourprofile",
-              "https://www.twitter.com/yourprofile",
-              "https://www.linkedin.com/in/yourprofile"
-            ]
-          })}
-        </Script>
       </Head>
-      <Script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></Script>
-      <Script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></Script>
-      <Script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></Script>
+
+      {/* Move all <Script /> components here outside of <Head /> */}
+      <Script
+        id="organization-schema"
+        type="application/ld+json"
+        strategy="lazyOnload"
+      >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "YouTube Tools",
+          "url": "http://www.ytubetools.com/",
+          "logo": "https://yourwebsite.com/logo.png",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+880 162-519-2766",
+            "contactType": "Customer Service"
+          },
+          "sameAs": [
+            "https://www.facebook.com/yourprofile",
+            "https://www.twitter.com/yourprofile",
+            "https://www.linkedin.com/in/yourprofile"
+          ]
+        })}
+      </Script>
+      <Script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" />
+      <Script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" />
+      <Script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js" />
 
       <AuthProvider>
         <ContentProvider>

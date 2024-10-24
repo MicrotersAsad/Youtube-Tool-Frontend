@@ -448,10 +448,10 @@ const YouTubeHashtagGenerator = ({ meta, reviews, content, relatedTools, faqs,re
     }
   };
 
-  // বাটন রঙের লজিক
-  const likeButtonColor = hasLiked ? "#4CAF50" : "#ccc"; // লাইক করা থাকলে সবুজ
-  const unlikeButtonColor = hasUnliked ? "#F44336" : "#ccc"; // ডিসলাইক করা থাকলে লাল
-  const reportButtonColor = hasReported ? "#FFD700" : "#ccc"; // রিপোর্ট করা থাকলে হলুদ
+  
+  const likeButtonColor = hasLiked ? "#4CAF50" : "#ccc"; 
+  const unlikeButtonColor = hasUnliked ? "#F44336" : "#ccc"; 
+  const reportButtonColor = hasReported ? "#FFD700" : "#ccc"; 
   const saveButtonColor = isSaved ? "#FFD700" : "#ccc";
   return (
     <>
