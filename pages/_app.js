@@ -7,11 +7,15 @@ import Footer from './Footer';
 import Navbar from './Navbar';
 import { appWithTranslation } from 'next-i18next';
 import { ContentProvider } from '../contexts/ContentContext';
-import CookieConsent from 'react-cookie-consent'; // Import the react-cookie-consent
+import CookieConsent from 'react-cookie-consent';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import '../public/laraberg.css';
+
 
 function MyApp({ Component, pageProps }) {
   const [showButton, setShowButton] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const logVisit = async () => {
@@ -58,6 +62,9 @@ function MyApp({ Component, pageProps }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Define pages where you don't want to show Navbar and Footer
+  const hideHeaderFooter = router.pathname.includes('/dashboard');
+
   return (
     <>
       <Head>
@@ -99,9 +106,9 @@ function MyApp({ Component, pageProps }) {
 
       <AuthProvider>
         <ContentProvider>
-          <Navbar />
+          {!hideHeaderFooter && <Navbar />}
           <Component {...pageProps} />
-          <Footer />
+          {!hideHeaderFooter && <Footer />}
         </ContentProvider>
       </AuthProvider>
 
