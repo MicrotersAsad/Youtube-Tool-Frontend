@@ -537,72 +537,6 @@ export default function Home(reactions ) {
           <meta name="twitter:title" content={meta?.title} />
           <meta name="twitter:description" content={meta?.description} />
           <meta name="twitter:image" content={meta?.image || ""} />
-          {/* - Webpage Schema */}
-          <Script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebPage",
-              name: meta?.title,
-              url: meta?.url,
-              description: meta?.description,
-              breadcrumb: {
-                "@id": `${meta?.url}#breadcrumb`,
-              },
-              about: {
-                "@type": "Thing",
-                name: meta?.title,
-              },
-              isPartOf: {
-                "@type": "WebSite",
-                url: meta?.url,
-              },
-            })}
-          </Script>
-          {/* - Review Schema */}
-          <Script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "SoftwareApplication",
-              name: meta?.title,
-              url: meta?.url,
-              applicationCategory: "Multimedia",
-              aggregateRating: {
-                "@type": "AggregateRating",
-                ratingValue: overallRating,
-                ratingCount: reviews?.length,
-                reviewCount: reviews?.length,
-              },
-              review: reviews.map((review) => ({
-                "@type": "Review",
-                author: {
-                  "@type": "Person",
-                  name: review.userName,
-                },
-                datePublished: review.createdAt,
-                reviewBody: review.comment,
-                name: review.title,
-                reviewRating: {
-                  "@type": "Rating",
-                  ratingValue: review.rating,
-                },
-              })),
-            })}
-          </Script>
-          {/* - FAQ Schema */}
-          <Script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              mainEntity: faqs?.map((faq) => ({
-                "@type": "Question",
-                name: faq.question,
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: faq.answer,
-                },
-              })),
-            })}
-          </Script>
           <link rel="alternate" hreflang="x-default" href={meta?.url} />
           <link rel="alternate" hreflang="en" href={meta?.url} />
           {translations && Object.keys(translations).map(lang => (
@@ -615,7 +549,78 @@ export default function Home(reactions ) {
       />
     )
   ))}
-        </Head>
+          </Head>
+         
+{/* - Webpage Schema */}
+<Script id="webpage-structured-data" type="application/ld+json">
+  {JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: meta?.title,
+    url: meta?.url,
+    description: meta?.description,
+    breadcrumb: {
+      "@id": `${meta?.url}#breadcrumb`,
+    },
+    about: {
+      "@type": "Thing",
+      name: meta?.title,
+    },
+    isPartOf: {
+      "@type": "WebSite",
+      url: meta?.url,
+    },
+  })}
+</Script>
+
+{/* - Review Schema */}
+<Script id="review-structured-data" type="application/ld+json">
+  {JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: meta?.title,
+    url: meta?.url,
+    applicationCategory: "Multimedia",
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: overallRating,
+      ratingCount: reviews?.length,
+      reviewCount: reviews?.length,
+    },
+    review: reviews.map((review) => ({
+      "@type": "Review",
+      author: {
+        "@type": "Person",
+        name: review.userName,
+      },
+      datePublished: review.createdAt,
+      reviewBody: review.comment,
+      name: review.title,
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: review.rating,
+      },
+    })),
+  })}
+</Script>
+
+{/* - FAQ Schema */}
+<Script id="faq-structured-data" type="application/ld+json">
+  {JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs?.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  })}
+</Script>
+
+       
         <div className="max-w-7xl mx-auto p-4">
           <h2 className="text-3xl text-white">{t('YouTube Tag Generator')}</h2>
           <ToastContainer />
