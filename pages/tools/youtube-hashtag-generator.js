@@ -495,7 +495,7 @@ const YouTubeHashtagGenerator = ({ meta, reviews, content, relatedTools, faqs,re
       />
     )
   ))}
-  
+  </Head>
   {/* JSON-LD Structured Data */}
   <Script type="application/ld+json">
     {JSON.stringify({
@@ -562,7 +562,7 @@ const YouTubeHashtagGenerator = ({ meta, reviews, content, relatedTools, faqs,re
       })),
     })}
   </Script>
-</Head>
+
           <h2 className="text-3xl text-white">
             {t("YouTube Hashtag Generator")}
           </h2>

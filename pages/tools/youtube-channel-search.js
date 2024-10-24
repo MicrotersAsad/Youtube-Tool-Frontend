@@ -465,7 +465,7 @@ const YouTubeChannelScraper = ({
                     />
                   )
               )}
-
+   </Head>
             {/* JSON-LD Structured Data */}
             <Script type="application/ld+json">
               {JSON.stringify({
@@ -536,7 +536,7 @@ const YouTubeChannelScraper = ({
                 })),
               })}
             </Script>
-          </Head>
+       
           <h1 className="text-center text-white text-2xl font-bold mb-4">
             {t("YouTube Channel Search")}
           </h1>

@@ -20,7 +20,12 @@
   "plugins": [
     "react"
   ],
+  "ecmaFeatures": {
+  "jsx": true
+}
+,
   "rules": {
+    "react/no-unknown-property": "off",
     "react/react-in-jsx-scope": "off",
      "react/no-unescaped-entities": "off",
     "@next/next/no-page-custom-font": "off",
@@ -78,6 +83,8 @@
     "no-with": "off",
     "vars-on-top": "off",
     "wrap-iife": "off",
+    "react/display-name": "off",
+
     "yoda": "off",
     "strict": "off",
     "init-declarations": "off",

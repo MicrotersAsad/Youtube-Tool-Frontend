@@ -395,7 +395,7 @@ const TrendingVideos =  ({ meta, reviews, content, relatedTools, faqs,reactions,
       />
     )
   ))}
-  
+ </Head> 
   {/* JSON-LD Structured Data */}
   <Script type="application/ld+json">
     {JSON.stringify({
@@ -462,7 +462,7 @@ const TrendingVideos =  ({ meta, reviews, content, relatedTools, faqs,reactions,
       })),
     })}
   </Script>
-</Head>
+
           {/* Toast container for notifications */}
           <ToastContainer />
           {/* Page title */}

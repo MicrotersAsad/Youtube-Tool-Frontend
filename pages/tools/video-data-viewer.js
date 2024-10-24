@@ -408,7 +408,7 @@ const VideoDataViewer =  ({ meta, reviews, content, relatedTools, faqs,reactions
       />
     )
   ))}
-  
+ </Head> 
   {/* JSON-LD Structured Data */}
   <Script type="application/ld+json">
     {JSON.stringify({
@@ -475,7 +475,7 @@ const VideoDataViewer =  ({ meta, reviews, content, relatedTools, faqs,reactions
       })),
     })}
   </Script>
-</Head>
+
           <h2 className="text-3xl pt-5 text-white">{t("YouTube Video Data Viewer")}</h2>
           <ToastContainer />
           {modalVisible && (

@@ -396,7 +396,7 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions 
       />
     )
   ))}
-  
+  </Head>
   {/* JSON-LD Structured Data */}
   <Script type="application/ld+json">
     {JSON.stringify({
@@ -463,7 +463,7 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions 
       })),
     })}
   </Script>
-</Head>
+
 
           <ToastContainer />
           <h1 className="text-3xl font-bold text-center text-white mb-6">

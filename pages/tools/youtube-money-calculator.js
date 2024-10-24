@@ -335,7 +335,7 @@ const YouTubeMoneyCalculator =({ meta, reviews, content, relatedTools, faqs,reac
       />
     )
   ))}
-  
+  </Head>
   {/* JSON-LD Structured Data */}
   <Script type="application/ld+json">
     {JSON.stringify({
@@ -402,7 +402,7 @@ const YouTubeMoneyCalculator =({ meta, reviews, content, relatedTools, faqs,reac
       })),
     })}
   </Script>
-</Head>
+
         <div className="max-w-7xl mx-auto p-4">
        
        

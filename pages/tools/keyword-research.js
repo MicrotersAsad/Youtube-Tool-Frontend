@@ -419,7 +419,7 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent, reactions })
       />
     )
   ))}
-  
+  </Head>
   {/* JSON-LD Structured Data */}
   <Script type="application/ld+json">
     {JSON.stringify({
@@ -486,7 +486,7 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent, reactions })
       })),
     })}
   </Script>
-</Head>
+
 
           <h2 className="text-3xl pt-5 text-white">{t('YouTube Keyword Research')}</h2>
         

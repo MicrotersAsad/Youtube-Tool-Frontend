@@ -395,7 +395,7 @@ const YtEmbedCode =  ({ meta, reviews, content, relatedTools, faqs,reactions,tra
       />
     )
   ))}
-  
+  </Head>
   {/* JSON-LD Structured Data */}
   <Script type="application/ld+json">
     {JSON.stringify({
@@ -462,7 +462,7 @@ const YtEmbedCode =  ({ meta, reviews, content, relatedTools, faqs,reactions,tra
       })),
     })}
   </Script>
-</Head>
+
           <h2 className="text-3xl pt-5 text-white">
             {t("YouTube Embed Code Generator")}
           </h2>

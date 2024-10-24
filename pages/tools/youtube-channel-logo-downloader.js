@@ -437,7 +437,7 @@ const YouTubeChannelLogoDownloader =  ({ meta, reviews, content, relatedTools, f
       />
     )
   ))}
-  
+ </Head> 
   {/* JSON-LD Structured Data */}
   <Script type="application/ld+json">
     {JSON.stringify({
@@ -504,7 +504,7 @@ const YouTubeChannelLogoDownloader =  ({ meta, reviews, content, relatedTools, f
       })),
     })}
   </Script>
-</Head>
+
           <h2 className="text-3xl pt-5 text-white">
             {t('YouTube Channel Logo Download')}
           </h2>

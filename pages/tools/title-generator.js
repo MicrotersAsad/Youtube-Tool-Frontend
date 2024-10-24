@@ -549,7 +549,7 @@ const YTTitleGenerator = ({
                     />
                   )
               )}
-
+    </Head>
             {/* JSON-LD Structured Data */}
             <Script type="application/ld+json">
               {JSON.stringify({
@@ -620,7 +620,7 @@ const YTTitleGenerator = ({
                 })),
               })}
             </Script>
-          </Head>
+      
 
           <h2 className="text-3xl text-white">{t("YouTube Title Generator")}</h2>
 

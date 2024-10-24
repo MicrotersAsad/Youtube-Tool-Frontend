@@ -403,7 +403,7 @@ ${keywords}
       />
     )
   ))}
-  
+  </Head>
   {/* JSON-LD Structured Data */}
   <Script type="application/ld+json">
     {JSON.stringify({
@@ -470,7 +470,7 @@ ${keywords}
       })),
     })}
   </Script>
-</Head>
+
       <ToastContainer />
       <h1 className="text-2xl font-bold mb-4 text-center">
         {t("YouTube Description Generator")}

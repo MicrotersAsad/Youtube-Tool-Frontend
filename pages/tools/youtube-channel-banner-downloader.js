@@ -457,7 +457,7 @@ const YtChannelDw =  ({ meta, reviews, content, relatedTools, faqs,reactions,tra
       />
     )
   ))}
-  
+</Head> 
   {/* JSON-LD Structured Data */}
   <Script type="application/ld+json">
     {JSON.stringify({
@@ -524,7 +524,7 @@ const YtChannelDw =  ({ meta, reviews, content, relatedTools, faqs,reactions,tra
       })),
     })}
   </Script>
-</Head>
+
 
           <h2 className="text-3xl pt-5 text-white">
             {t('YouTube Channel Banner Download')}

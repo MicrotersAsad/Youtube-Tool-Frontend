@@ -384,7 +384,7 @@ const YouTubeCommentPicker =  ({ meta, reviews, content, relatedTools, faqs,reac
       />
     )
   ))}
-  
+  </Head>
   {/* JSON-LD Structured Data */}
   <Script type="application/ld+json">
     {JSON.stringify({
@@ -451,7 +451,7 @@ const YouTubeCommentPicker =  ({ meta, reviews, content, relatedTools, faqs,reac
       })),
     })}
   </Script>
-</Head>
+
 
           <ToastContainer />
           <div className="bg-white p-4 rounded-lg shadow-md">
