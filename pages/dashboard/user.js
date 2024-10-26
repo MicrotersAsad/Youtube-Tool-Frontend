@@ -2,8 +2,9 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 
 import Layout from './layout';
-import Users from './users';
+
 import { useAuth } from '../../contexts/AuthContext';
+import AllUsers from './all-user';
 
 
 const UsersPage = () => {
@@ -21,7 +22,7 @@ const UsersPage = () => {
 
   return (
     <Layout>
-      {user && user.role === 'admin' ? <Users /> : null}
+      {user && user.role === 'admin' ? <AllUsers /> : null}
     </Layout>
   );
 };
