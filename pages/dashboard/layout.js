@@ -409,7 +409,7 @@ const Layout = React.memo(({ children }) => {
 <div className="">
   <p
     className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-   isActiveRoute("/dashboard/users")
+      isActiveRoute("/dashboard/all-user") ||   isActiveRoute("/dashboard/active-users") ||   isActiveRoute("/dashboard/unverified-user") || isActiveRoute("/dashboard/premium-user")|| isActiveRoute("/dashboard/non-premium-user")
         ? "bg-[#4634ff] text-white"
         : menuOpen === "users"
         ? "bg-[#1d1e8e] text-white"
@@ -436,16 +436,64 @@ const Layout = React.memo(({ children }) => {
         : 'max-h-0 opacity-0 scale-y-0'
     }`}
   >
-    <Link href="/dashboard/users" passHref>
+    <Link href="/dashboard/all-user" passHref>
       <p
-        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-          isActiveRoute("/dashboard/users")
+        className={`relative flex  items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/all-user")
             ? "bg-[#1d1e8e] text-white"
             : "hover:bg-[#1d1e8e] hover:text-white"
         }`}
       >
         <FaCircle className="mr-2 text-xs" />
-        User List
+        All User
+      </p>
+    </Link>
+    <Link href="/dashboard/active-users" passHref>
+      <p
+        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/active-users")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+      >
+        <FaCircle className="mr-2 text-xs" />
+       Active User
+      </p>
+    </Link>
+    <Link href="/dashboard/unverified-user" passHref>
+      <p
+        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/unverified-user")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Unverified User
+      </p>
+    </Link>
+    <Link href="/dashboard/premium-user" passHref>
+      <p
+        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/premium-user")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Premium User
+      </p>
+    </Link>
+    <Link href="/dashboard/non-premium-user" passHref>
+      <p
+        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/non-premium-user")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Non Premium User
       </p>
     </Link>
     

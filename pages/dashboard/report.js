@@ -49,7 +49,6 @@ const ReportsDashboard = () => {
     }
   };
 
-  if (loading) return <p>Loading reports...</p>;
 
   return (
     <Layout>

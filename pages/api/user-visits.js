@@ -12,6 +12,8 @@ const getStartOfPeriod = (filter) => {
       return startOfMonth(now);
     case 'yearly':
       return startOfYear(now);
+    case 'total':
+      return null; // Indicating no date restriction for the total filter
     default:
       return startOfDay(now);
   }
@@ -27,9 +29,22 @@ export default async function handler(req, res) {
 
   try {
     const { db } = await connectToDatabase();
-    const visits = await db.collection('siteVisits').find({ timestamp: { $gte: startDate } }).toArray();
 
-    // Group visits by day and count them
+    let visits;
+    if (filter === 'total') {
+      // Fetch all visits if filter is "total"
+      visits = await db.collection('siteVisits').find({}).toArray();
+      // Return total count of all visits
+      return res.status(200).json({ totalCount: visits.length });
+    } else if (startDate) {
+      // Fetch visits based on start date for other filters
+      visits = await db.collection('siteVisits').find({ timestamp: { $gte: startDate } }).toArray();
+    } else {
+      // If no valid filter is provided, return an error
+      return res.status(400).json({ success: false, message: 'Invalid filter parameter' });
+    }
+
+    // Group visits by day and count them for other filters
     const visitCounts = visits.reduce((acc, visit) => {
       const date = visit.timestamp.toISOString().split('T')[0]; // Get date part only
       if (!acc[date]) {
@@ -47,6 +62,7 @@ export default async function handler(req, res) {
 
     res.status(200).json(visitData);
   } catch (error) {
+    console.error('Error fetching site visits:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 }

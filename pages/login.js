@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import React, { useState, useEffect } from "react";
-import { FaEnvelope, FaKey, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEnvelope, FaKey, FaEye, FaEyeSlash, FaUserCircle } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext"; // Custom hook for authentication context
 import Image from "next/image";
 import signIn from "../public/login.svg";
@@ -122,18 +122,38 @@ function LoginOrResetPassword() {
             <meta property="og:url" content='https://ytubetools.com/register'/>
            
       </Head>
-      <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-4xl">
+      <div className="min-h-screen flex flex-col md:flex-row items-stretch">
         <ToastContainer />
         {/* Illustration Section */}
-        <div className="hidden md:block md:w-1/2">
-          <Image src={signIn} alt="Illustration" className="w-4/4 h-auto" />
-        </div>
+        {/* Left Section with Text and Features */}
+      <div className="w-full md:w-1/2 bg-red-500 text-white p-8 md:p-16 flex flex-col justify-center items-start space-y-4">
+  <h1 className="text-3xl md:text-5xl text-white font-bold leading-tight">
+    Create YouTube Content Faster with Ytubetools Advanced AI Tool
+  </h1>
+  <ul className="space-y-2 md:space-y-3 text-base md:text-lg pt-4 md:pt-8">
+    <li className="list-none">✅ 2,000 free credits every month</li>
+    <li className="list-none">✅ 18+ tools available</li>
+    <li className="list-none">✅ Generate engaging titles, descriptions, and more</li>
+    <li className="list-none">✅ Super easy to use</li>
+  </ul>
+  <blockquote className="mt-6 md:mt-12 p-6 md:p-8 bg-red-500 rounded-md  max-w-full border border-red-300">
+    <p className="italic leading-relaxed">“Ytubetools has been a game-changer for me. As a startup founder, I need to create compelling YouTube content consistently, and Ytubetools helps me do it quickly and effectively. I highly recommend Ytubetools to anyone looking to improve their YouTube presence without spending a fortune.”</p>
+    <div className="mt-4 flex items-center">
+     <FaUserCircle className="w-12 h-12 me-3"/>
+      <div>
+        <p className="font-semibold">Oskar Torres Lam</p>
+        <p className="text-sm">Founder and Interior Designer, oskartorres.com</p>
+      </div>
+    </div>
+  </blockquote>
+</div>
         {/* Form Section */}
-        <div className="bg-white p-8 rounded-lg shadow-lg w-full md:w-1/2">
+        <div className="w-full md:w-1/2 bg-white p-8 md:p-16 flex flex-col justify-center items-center">
+        <div className="w-full max-w-md">
           {!isResettingPassword ? (
             <>
-              <h2 className="text-3xl font-semibold text-gray-700 mb-6 text-center">Login</h2>
-              <p className="text-center text-gray-600 mb-6">Welcome Back! Sign in to continue to YTubeTool.</p>
+              <h2 className="text-3xl font-semibold text-gray-700 mb-6 text-center">Welcome Back!</h2>
+              <p className="text-center text-gray-600 mb-6">Sign in to continue to YTubeTool.</p>
               <form onSubmit={handleSubmitLogin}>
                 <div className="mb-4">
                   <label htmlFor="email" className="block text-gray-600 mb-2">
@@ -293,6 +313,7 @@ function LoginOrResetPassword() {
               )}
             </>
           )}
+        </div>
         </div>
       </div>
     </div>

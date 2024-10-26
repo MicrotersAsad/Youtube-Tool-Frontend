@@ -52,21 +52,49 @@ const handler = async (req, res) => {
 // Multer middleware to handle file upload
 const uploadMiddleware = upload.single('image');
 
+// const handleGet = async (req, res) => {
+//   const { category, language } = req.query;
+//   const { db } = await connectToDatabase();
+
+//   if (!category || !language) {
+//     return res.status(400).json({ message: 'Category and language are required' });
+//   }
+
+//   const result = await db.collection('content').findOne({ category, [`translations.${language}`]: { $exists: true } });
+
+//   if (!result) {
+//     return res.status(404).json({ message: 'Content not found' });
+//   }
+
+//   res.status(200).json(result);
+// };
 const handleGet = async (req, res) => {
   const { category, language } = req.query;
   const { db } = await connectToDatabase();
+
+  // If no category and language provided, return count of all documents
+  if (!category && !language) {
+    try {
+      const count = await db.collection('content').countDocuments();
+      return res.status(200).json({ totalCount: count });
+    } catch (error) {
+      return res.status(500).json({ message: 'Failed to count documents', error: error.message });
+    }
+  }
 
   if (!category || !language) {
     return res.status(400).json({ message: 'Category and language are required' });
   }
 
-  const result = await db.collection('content').findOne({ category, [`translations.${language}`]: { $exists: true } });
-
-  if (!result) {
-    return res.status(404).json({ message: 'Content not found' });
+  try {
+    const result = await db.collection('content').findOne({ category, [`translations.${language}`]: { $exists: true } });
+    if (!result) {
+      return res.status(404).json({ message: 'Content not found' });
+    }
+    res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({ message: 'Failed to fetch content', error: error.message });
   }
-
-  res.status(200).json(result);
 };
 
 const handlePost = async (req, res) => {
