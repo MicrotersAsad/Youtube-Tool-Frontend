@@ -581,6 +581,12 @@ a {
 
 
 
+.chart-container {
+  position: relative; /* Ensures the child canvas is positioned relative to this */
+  width: 100%; /* Full width */
+  height: 400px!important ;/* Set a fixed height or use a percentage */
+  /* Alternatively, you can use 'auto' if you want dynamic height based on content */
+}
 
 
 /* For smaller screens */

@@ -6,7 +6,32 @@ import UserProfile from '../../components/UserProfile';
 import { FaUsers, FaUserCheck, FaEnvelope, FaCrown, FaUser, FaChevronRight } from 'react-icons/fa';
 import Link from 'next/link';
 import moment from 'moment'; // Import moment.js
-import { Line } from 'react-chartjs-2';
+import { Line, Pie } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  LineElement,
+  PointElement,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+
+// Register necessary elements and plugins for Chart.js
+ChartJS.register(
+  ArcElement,
+  LineElement,
+  PointElement,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -27,6 +52,29 @@ const Dashboard = () => {
   const [nonPremiumUsers, setNonPremiumUsers] = useState(0);
   const [emailUnverifiedUsers, setEmailUnverifiedUsers] = useState(0);
   const [mobileUnverifiedUsers, setMobileUnverifiedUsers] = useState(0);
+  const [browserStats, setBrowserStats] = useState({
+    labels: [],
+    datasets: [{
+      data: [],
+      backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FFA726', '#66BB6A'],
+    }]
+  });
+  
+  const [osStats, setOsStats] = useState({
+    labels: [],
+    datasets: [{
+      data: [],
+      backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FFA726', '#66BB6A'],
+    }]
+  });
+  
+  const [countryStats, setCountryStats] = useState({
+    labels: [],
+    datasets: [{
+      data: [],
+      backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FFA726', '#66BB6A'],
+    }]
+  });
   const [loading, setLoading] = useState(true);
   const [activeLogin, setActiveLogin] = useState(0);
   const [dateRange, setDateRange] = useState({
@@ -47,9 +95,51 @@ const Dashboard = () => {
       fetchTotalSiteViews();
       fetchActiveUsers();
       fetchBlogChartData(); // Move this here to fetch blog chart data
+      fetchLoginStats()
     }  
   }, [user, filter]);
+const fetchLoginStats = async () => {
+  try {
+    const response = await fetch('/api/get-login-stats');
+    const data = await response.json();
 
+    console.log('Fetched login stats:', data);
+
+    // Safely access the data
+    const browserData = data.browserStats || [];
+    const osData = data.osStats || [];
+    const countryData = data.countryStats || [];
+
+    setBrowserStats({
+      labels: browserData.map(item => item._id),
+      datasets: [{
+        data: browserData.map(item => item.count),
+        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FFA726', '#66BB6A'],
+      }],
+    });
+
+    setOsStats({
+      labels: osData.map(item => item._id),
+      datasets: [{
+        data: osData.map(item => item.count),
+        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FFA726', '#66BB6A'],
+      }],
+    });
+
+    setCountryStats({
+      labels: countryData.map(item => item._id),
+      datasets: [{
+        data: countryData.map(item => item.count),
+        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FFA726', '#66BB6A'],
+      }],
+    });
+
+    setLoading(false);
+  } catch (error) {
+    console.error('Error fetching login stats:', error);
+  }
+};
+  
   const fetchActiveUsers = async () => {
     try {
       const response = await fetch('/api/active-sessions');
@@ -471,6 +561,36 @@ const Dashboard = () => {
 
           <div className="mt-8">
             <h2 className="text-xl font-semibold">Total {filter.charAt(0).toUpperCase() + filter.slice(1)} Site Views: {siteViews}</h2>
+          </div>
+         
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 chart-container">
+            <div className="p-6 border border-teal-500 rounded-lg bg-white">
+              <h2 className="text-lg font-semibold text-black mb-4">Login By Browser</h2>
+              {!loading && (
+                <Pie
+                  data={browserStats}
+                  options={{ responsive: true, maintainAspectRatio: true }}
+                />
+              )}
+            </div>
+            <div className="p-6 border border-teal-500 rounded-lg bg-white">
+              <h2 className="text-lg font-semibold text-black mb-4">Login By OS</h2>
+              {!loading && (
+                <Pie
+                  data={osStats}
+                  options={{ responsive: true, maintainAspectRatio: true }}
+                />
+              )}
+            </div>
+            <div className="p-6 border border-teal-500 rounded-lg bg-white">
+              <h2 className="text-lg font-semibold text-black mb-4">Login By Country</h2>
+              {!loading && (
+                <Pie
+                  data={countryStats}
+                  options={{ responsive: true, maintainAspectRatio: true }}
+                />
+              )}
+            </div>
           </div>
         </>
       )}
