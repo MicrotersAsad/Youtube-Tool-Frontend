@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useAuth } from "../../contexts/AuthContext";
+import logo from "../../public/yt icon.png"
 import {
   FaTachometerAlt,
   FaBell,
@@ -32,6 +33,7 @@ import {
 import { FiChevronDown,FiChevronUp } from 'react-icons/fi';
 
 import Image from "next/image";
+
 
 
 const Layout = React.memo(({ children }) => {
@@ -179,19 +181,16 @@ const Layout = React.memo(({ children }) => {
   <div className="sticky top-0 bg-[#071251] z-50 p-4">
     {/* Logo */}
     <div className="flex items-center text-white justify-center mt-8">
-      {/* <Image
-        src=""
-        width={isCollapsed ? 40 : 80}
+    <Link href="dashboard">
+    <Image
+        src={logo}
+        width={isCollapsed ? 40 : 200}
         height={isCollapsed ? 40 : 80}
         alt="Logo"
-      /> */}
+      /></Link>
     </div>
     {/* Heading - only show when sidebar is not collapsed */}
-    {!isCollapsed && (
-      <h6 className="font-bold text-center text-white mt-4">
-        Ytubetools
-      </h6>
-    )}
+   
   </div>
   <div className="flex-1 overflow-y-auto custom-scrollbar">
     <nav className="mt-4 text-white pb-4">
