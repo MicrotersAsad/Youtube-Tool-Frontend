@@ -3,7 +3,7 @@ import Layout from './layout';
 import { useAuth } from '../../contexts/AuthContext';
 import ChartComponent from './ChartComponent';
 import UserProfile from '../../components/UserProfile';
-import { FaUsers, FaUserCheck, FaEnvelope, FaCrown, FaUser, FaChevronRight } from 'react-icons/fa';
+import { FaUsers, FaUserCheck, FaEnvelope, FaCrown, FaUser,FaUserAlt ,FaFileAlt ,FaTools ,FaStar ,FaSitemap ,FaComment ,FaChartLine ,FaSignInAlt , FaChevronRight } from 'react-icons/fa';
 import Link from 'next/link';
 import moment from 'moment'; // Import moment.js
 import { Line, Pie } from 'react-chartjs-2';
@@ -349,186 +349,187 @@ const fetchLoginStats = async () => {
         <>
           {/* User Statistics Section */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
-            <Link href="all-user">
-              <div className="flex items-center border rounded-lg border-purple-300 bg-purple-100 shadow-md hover:shadow-lg transition-all p-4">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-purple-200 rounded-md">
-                    <FaUsers className="text-purple-500" />
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Total Users</p>
-                    <h3 className="text-2xl font-bold">{totalUsers}</h3>
-                  </div>
-                </div>
-                <FaChevronRight className="text-gray-500 ml-auto" />
-              </div>
-            </Link>
+  <Link href="all-user">
+    <div className="flex items-center border rounded-lg border-purple-300 bg-purple-100 shadow-md hover:shadow-lg transition-all p-4">
+      <div className="flex items-center space-x-4">
+        <div className="p-3 bg-purple-200 rounded-md">
+          <FaUsers className="text-purple-500" />
+        </div>
+        <div>
+          <p className="text-gray-600">Total Users</p>
+          <h3 className="text-2xl font-bold">{totalUsers}</h3>
+        </div>
+      </div>
+      <FaChevronRight className="text-gray-500 ml-auto" />
+    </div>
+  </Link>
 
-            <Link href="active-users">
-              <div className="flex items-center border rounded-lg border-green-300 bg-green-100 shadow-md hover:shadow-lg transition-all p-4">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-green-200 rounded-md">
-                    <FaUserCheck className="text-green-500" />
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Email Verified Users</p>
-                    <h3 className="text-2xl font-bold">{activeUsers}</h3>
-                  </div>
-                </div>
-                <FaChevronRight className="text-gray-500 ml-auto" />
-              </div>
-            </Link>
+  <Link href="active-users">
+    <div className="flex items-center border rounded-lg border-green-300 bg-green-100 shadow-md hover:shadow-lg transition-all p-4">
+      <div className="flex items-center space-x-4">
+        <div className="p-3 bg-green-200 rounded-md">
+          <FaUserCheck className="text-green-500" />
+        </div>
+        <div>
+          <p className="text-gray-600">Email Verified Users</p>
+          <h3 className="text-2xl font-bold">{activeUsers}</h3>
+        </div>
+      </div>
+      <FaChevronRight className="text-gray-500 ml-auto" />
+    </div>
+  </Link>
 
-            <Link href="unverified-user">
-              <div className="flex items-center border rounded-lg border-red-300 bg-red-100 shadow-md hover:shadow-lg transition-all p-4">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-red-200 rounded-md">
-                    <FaEnvelope className="text-red-500" />
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Email Unverified Users</p>
-                    <h3 className="text-2xl font-bold">{emailUnverifiedUsers}</h3>
-                  </div>
-                </div>
-                <FaChevronRight className="text-gray-500 ml-auto" />
-              </div>
-            </Link>
+  <Link href="unverified-user">
+    <div className="flex items-center border rounded-lg border-red-300 bg-red-100 shadow-md hover:shadow-lg transition-all p-4">
+      <div className="flex items-center space-x-4">
+        <div className="p-3 bg-red-200 rounded-md">
+          <FaEnvelope className="text-red-500" />
+        </div>
+        <div>
+          <p className="text-gray-600">Email Unverified Users</p>
+          <h3 className="text-2xl font-bold">{emailUnverifiedUsers}</h3>
+        </div>
+      </div>
+      <FaChevronRight className="text-gray-500 ml-auto" />
+    </div>
+  </Link>
 
-            <Link href="premium-user">
-              <div className="flex items-center border rounded-lg border-yellow-300 bg-yellow-100 shadow-md hover:shadow-lg transition-all p-4">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-yellow-200 rounded-md">
-                    <FaCrown className="text-yellow-500" />
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Premium Users</p>
-                    <h3 className="text-2xl font-bold">{premiumUsers}</h3>
-                  </div>
-                </div>
-                <FaChevronRight className="text-gray-500 ml-auto" />
-              </div>
-            </Link>
+  <Link href="premium-user">
+    <div className="flex items-center border rounded-lg border-yellow-300 bg-yellow-100 shadow-md hover:shadow-lg transition-all p-4">
+      <div className="flex items-center space-x-4">
+        <div className="p-3 bg-yellow-200 rounded-md">
+          <FaCrown className="text-yellow-500" />
+        </div>
+        <div>
+          <p className="text-gray-600">Premium Users</p>
+          <h3 className="text-2xl font-bold">{premiumUsers}</h3>
+        </div>
+      </div>
+      <FaChevronRight className="text-gray-500 ml-auto" />
+    </div>
+  </Link>
 
-            <Link href="non-premium-user">
-              <div className="flex items-center border rounded-lg border-gray-300 bg-gray-100 shadow-md hover:shadow-lg transition-all p-4">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-gray-200 rounded-md">
-                    <FaUser className="text-gray-500" />
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Non-Premium Users</p>
-                    <h3 className="text-2xl font-bold">{nonPremiumUsers}</h3>
-                  </div>
-                </div>
-                <FaChevronRight className="text-gray-500 ml-auto" />
-              </div>
-            </Link>
+  <Link href="non-premium-user">
+    <div className="flex items-center border rounded-lg bg-white shadow-md hover:shadow-lg transition-all p-4">
+      <div className="flex items-center space-x-4">
+        <div className="p-3 bg-gray-200 rounded-md">
+          <FaUserAlt className="text-gray-500" />
+        </div>
+        <div>
+          <p className="text-gray-600">Non-Premium Users</p>
+          <h3 className="text-2xl font-bold">{nonPremiumUsers}</h3>
+        </div>
+      </div>
+      <FaChevronRight className="text-gray-500 ml-auto" />
+    </div>
+  </Link>
 
-            <Link href="all-blog">
-              <div className="flex items-center border rounded-lg border-gray-300 bg-gray-100 shadow-md hover:shadow-lg transition-all p-4">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-gray-200 rounded-md">
-                    <FaUser className="text-gray-500" />
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Total Blogs</p>
-                    <h3 className="text-2xl font-bold">{blogs.length}</h3>
-                  </div>
-                </div>
-                <FaChevronRight className="text-gray-500 ml-auto" />
-              </div>
-            </Link>
+  <Link href="all-blog">
+    <div className="flex items-center border rounded-lg bg-white shadow-md hover:shadow-lg transition-all p-4">
+      <div className="flex items-center space-x-4">
+        <div className="p-3 bg-gray-200 rounded-md">
+          <FaFileAlt className="text-gray-500" />
+        </div>
+        <div>
+          <p className="text-gray-600">Total Blogs</p>
+          <h3 className="text-2xl font-bold">{blogs.length}</h3>
+        </div>
+      </div>
+      <FaChevronRight className="text-gray-500 ml-auto" />
+    </div>
+  </Link>
 
-            <Link href="content">
-              <div className="flex items-center border rounded-lg border-gray-300 bg-gray-100 shadow-md hover:shadow-lg transition-all p-4">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-gray-200 rounded-md">
-                    <FaUser className="text-gray-500" />
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Total Tools</p>
-                    <h3 className="text-2xl font-bold">{tools.totalCount}</h3>
-                  </div>
-                </div>
-                <FaChevronRight className="text-gray-500 ml-auto" />
-              </div>
-            </Link>
+  <Link href="content">
+    <div className="flex items-center border rounded-lg bg-white shadow-md hover:shadow-lg transition-all p-4">
+      <div className="flex items-center space-x-4">
+        <div className="p-3 bg-gray-200 rounded-md">
+          <FaTools className="text-gray-500" />
+        </div>
+        <div>
+          <p className="text-gray-600">Total Tools</p>
+          <h3 className="text-2xl font-bold">{tools.totalCount}</h3>
+        </div>
+      </div>
+      <FaChevronRight className="text-gray-500 ml-auto" />
+    </div>
+  </Link>
 
-            <Link href="content">
-              <div className="flex items-center border rounded-lg border-gray-300 bg-gray-100 shadow-md hover:shadow-lg transition-all p-4">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-gray-200 rounded-md">
-                    <FaUser className="text-gray-500" />
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Total Reviews</p>
-                    <h3 className="text-2xl font-bold">{reviews.length}</h3>
-                  </div>
-                </div>
-                <FaChevronRight className="text-gray-500 ml-auto" />
-              </div>
-            </Link>
+  <Link href="content">
+    <div className="flex items-center border rounded-lg bg-white shadow-md hover:shadow-lg transition-all p-4">
+      <div className="flex items-center space-x-4">
+        <div className="p-3 bg-gray-200 rounded-md">
+          <FaStar className="text-gray-500" />
+        </div>
+        <div>
+          <p className="text-gray-600">Total Reviews</p>
+          <h3 className="text-2xl font-bold">{reviews.length}</h3>
+        </div>
+      </div>
+      <FaChevronRight className="text-gray-500 ml-auto" />
+    </div>
+  </Link>
 
-            <Link href="all-pages">
-              <div className="flex items-center border rounded-lg border-gray-300 bg-gray-100 shadow-md hover:shadow-lg transition-all p-4">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-gray-200 rounded-md">
-                    <FaUser className="text-gray-500" />
-                  </div>
-                  <div>
-                    <p className="text-gray-600">All Pages</p>
-                    <h3 className="text-2xl font-bold">{pages.length}</h3>
-                  </div>
-                </div>
-                <FaChevronRight className="text-gray-500 ml-auto" />
-              </div>
-            </Link>
+  <Link href="all-pages">
+    <div className="flex items-center border rounded-lg bg-white shadow-md hover:shadow-lg transition-all p-4">
+      <div className="flex items-center space-x-4">
+        <div className="p-3 bg-gray-200 rounded-md">
+          <FaSitemap className="text-gray-500" />
+        </div>
+        <div>
+          <p className="text-gray-600">All Pages</p>
+          <h3 className="text-2xl font-bold">{pages.length}</h3>
+        </div>
+      </div>
+      <FaChevronRight className="text-gray-500 ml-auto" />
+    </div>
+  </Link>
 
-            <Link href="comment">
-              <div className="flex items-center border rounded-lg border-gray-300 bg-gray-100 shadow-md hover:shadow-lg transition-all p-4">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-gray-200 rounded-md">
-                    <FaUser className="text-gray-500" />
-                  </div>
-                  <div>
-                    <p className="text-gray-600">All Comments</p>
-                    <h3 className="text-2xl font-bold">{comments.length}</h3>
-                  </div>
-                </div>
-                <FaChevronRight className="text-gray-500 ml-auto" />
-              </div>
-            </Link>
+  <Link href="comment">
+    <div className="flex items-center border rounded-lg bg-white shadow-md hover:shadow-lg transition-all p-4">
+      <div className="flex items-center space-x-4">
+        <div className="p-3 bg-gray-200 rounded-md">
+          <FaComment className="text-gray-500" />
+        </div>
+        <div>
+          <p className="text-gray-600">All Comments</p>
+          <h3 className="text-2xl font-bold">{comments.length}</h3>
+        </div>
+      </div>
+      <FaChevronRight className="text-gray-500 ml-auto" />
+    </div>
+  </Link>
 
-            <Link href="comment">
-              <div className="flex items-center border rounded-lg border-gray-300 bg-gray-100 shadow-md hover:shadow-lg transition-all p-4">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-gray-200 rounded-md">
-                    <FaUser className="text-gray-500" />
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Total Visits</p>
-                    <h3 className="text-2xl font-bold">{siteViews}</h3>
-                  </div>
-                </div>
-                <FaChevronRight className="text-gray-500 ml-auto" />
-              </div>
-            </Link>
+  <Link href="comment">
+    <div className="flex items-center border rounded-lg bg-white shadow-md hover:shadow-lg transition-all p-4">
+      <div className="flex items-center space-x-4">
+        <div className="p-3 bg-gray-200 rounded-md">
+          <FaChartLine className="text-gray-500" />
+        </div>
+        <div>
+          <p className="text-gray-600">Total Visits</p>
+          <h3 className="text-2xl font-bold">{siteViews}</h3>
+        </div>
+      </div>
+      <FaChevronRight className="text-gray-500 ml-auto" />
+    </div>
+  </Link>
 
-            <Link href="comment">
-              <div className="flex items-center border rounded-lg border-blue-300 bg-blue-100 shadow-md hover:shadow-lg transition-all p-4">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-blue-200 rounded-md">
-                    <FaUser className="text-blue-500" />
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Total Logins</p>
-                    <h3 className="text-2xl font-bold">{activeLogin}</h3>
-                  </div>
-                </div>
-                <FaChevronRight className="text-gray-500 ml-auto" />
-              </div>
-            </Link>
-          </div>
+  <Link href="comment">
+    <div className="flex items-center border rounded-lg bg-white shadow-md hover:shadow-lg transition-all p-4">
+      <div className="flex items-center space-x-4">
+        <div className="p-3 bg-blue-200 rounded-md">
+          <FaSignInAlt className="text-blue-500" />
+        </div>
+        <div>
+          <p className="text-gray-600">Total Logins</p>
+          <h3 className="text-2xl font-bold">{activeLogin}</h3>
+        </div>
+      </div>
+      <FaChevronRight className="text-gray-500 ml-auto" />
+    </div>
+  </Link>
+</div>
+
 
           {/* Filter and Chart Section */}
          

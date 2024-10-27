@@ -279,7 +279,7 @@
 // export default Register;
 
 import React, { useState, useEffect } from "react";
-import { FaEnvelope, FaEye, FaEyeSlash, FaImage, FaKey, FaUser, FaUserAlt, FaUserCircle } from "react-icons/fa";
+import { FaArrowCircleRight, FaEnvelope, FaEye, FaEyeSlash, FaImage, FaKey, FaUser, FaUserAlt, FaUserCircle } from "react-icons/fa";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { toast, ToastContainer } from "react-toastify";
@@ -419,10 +419,10 @@ function Register() {
     Create YouTube Content Faster with Ytubetools Advanced AI Tool
   </h1>
   <ul className="space-y-2 md:space-y-3 text-base md:text-lg pt-4 md:pt-8">
-    <li className="list-none">✅ 2,000 free credits every month</li>
-    <li className="list-none">✅ 18+ tools available</li>
-    <li className="list-none">✅ Generate engaging titles, descriptions, and more</li>
-    <li className="list-none">✅ Super easy to use</li>
+    <li className="list-none"><FaArrowCircleRight/> 2,000 free credits every month</li>
+    <li className="list-none"><FaArrowCircleRight/> 18+ tools available</li>
+    <li className="list-none"><FaArrowCircleRight/> Generate engaging titles, descriptions, and more</li>
+    <li className="list-none"><FaArrowCircleRight/> Super easy to use</li>
   </ul>
   <blockquote className="mt-6 md:mt-12 p-6 md:p-8 bg-red-500 rounded-md  max-w-full border border-red-300">
     <p className="italic leading-relaxed">“Ytubetools has been a game-changer for me. As a startup founder, I need to create compelling YouTube content consistently, and Ytubetools helps me do it quickly and effectively. I highly recommend Ytubetools to anyone looking to improve their YouTube presence without spending a fortune.”</p>
@@ -536,6 +536,7 @@ function Register() {
                 </button>
               </div>
               <div className="text-center">
+                <p className="text-gray-600 text-sm">By clicking Register Yor agree with the  <Link href="/terms" className="text-red-500">Terms</Link> and <Link href="/privacy" className="text-red-500">Privacy</Link></p>
                 <p className="text-gray-600">Already have an account? <Link href="/login" className="text-red-500">Login</Link></p>
               </div>
               {error && <div className="text-red-600 text-center mt-3">{error}</div>}

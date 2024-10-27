@@ -24,7 +24,9 @@ import {
   FaWrench,
   FaArrowUp,
   FaKey,
-  FaInfoCircle
+  FaInfoCircle,
+  FaSubscript,
+  FaFirstOrderAlt
 
 } from "react-icons/fa";
 import { FiChevronDown,FiChevronUp } from 'react-icons/fi';
@@ -409,7 +411,7 @@ const Layout = React.memo(({ children }) => {
 <div className="">
   <p
     className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-      isActiveRoute("/dashboard/all-user") ||   isActiveRoute("/dashboard/active-users") ||   isActiveRoute("/dashboard/unverified-user") || isActiveRoute("/dashboard/premium-user")|| isActiveRoute("/dashboard/non-premium-user")
+      isActiveRoute("/dashboard/all-user") ||   isActiveRoute("/dashboard/active-users") || isActiveRoute("/dashboard/ban-user")|| isActiveRoute("/dashboard/user-logs")  ||  isActiveRoute("/dashboard/unverified-user") || isActiveRoute("/dashboard/premium-user")|| isActiveRoute("/dashboard/non-premium-user")
         ? "bg-[#4634ff] text-white"
         : menuOpen === "users"
         ? "bg-[#1d1e8e] text-white"
@@ -496,6 +498,114 @@ const Layout = React.memo(({ children }) => {
         Non Premium User
       </p>
     </Link>
+    <Link href="/dashboard/ban-user" passHref>
+      <p
+        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/ban-user")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Ban User
+      </p>
+    </Link>
+    <Link href="/dashboard/user-log" passHref>
+      <p
+        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/user-log")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Login History
+      </p>
+    </Link>
+    
+  </div>
+</div>
+
+{/* Manage Subscription */}
+<div className="">
+  <p
+    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
+      isActiveRoute("/dashboard/all-subscription") ||   isActiveRoute("/dashboard/active-subscription") || isActiveRoute("/dashboard/expired-subscription")|| isActiveRoute("/dashboard/user-logs")  ||  isActiveRoute("/dashboard/unverified-user") || isActiveRoute("/dashboard/premium-user")|| isActiveRoute("/dashboard/non-premium-user")
+        ? "bg-[#4634ff] text-white"
+        : menuOpen === "users"
+        ? "bg-[#1d1e8e] text-white"
+        : "hover:bg-[#1d1e8e] hover:text-white"
+    }`}
+    onClick={() => toggleMenu("all-subscription")}
+  >
+    <FaFirstOrderAlt className="mr-3 text-white" />
+    {!isCollapsed && <span>Manage Subscription</span>}
+    {!isCollapsed && (
+      <span className="ml-auto">
+        {menuOpen === "all-subscription" ? <FiChevronUp  className="w-6 h-6" /> : <FiChevronDown className="w-6 h-6" />}
+      </span>
+    )}
+  </p>
+
+  {/* Dropdown Content with Smooth Opening and Closing Animation */}
+  <div
+    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
+      (menuOpen === "all-subscription" ||
+       
+        isActiveRoute("/dashboard/all-subscription")) && !isCollapsed
+        ? 'max-h-screen opacity-100 scale-y-100'
+        : 'max-h-0 opacity-0 scale-y-0'
+    }`}
+  >
+    <Link href="/dashboard/all-subscription" passHref>
+      <p
+        className={`relative flex  items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/all-subscription")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+      >
+        <FaCircle className="mr-2 text-xs" />
+        All Subscription
+      </p>
+    </Link>
+    <Link href="/dashboard/active-subscription" passHref>
+      <p
+        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/active-subscription")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+      >
+        <FaCircle className="mr-2 text-xs" />
+       Active Subscription
+      </p>
+    </Link>
+    <Link href="/dashboard/expired-subscription" passHref>
+      <p
+        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/expired-subscription")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Expired Subscription
+      </p>
+    </Link>
+    <Link href="/dashboard/cancel-subscription" passHref>
+      <p
+        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/cancel-subscription")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Cancel Subscription
+      </p>
+    </Link>
+
     
   </div>
 </div>

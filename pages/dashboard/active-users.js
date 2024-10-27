@@ -3,25 +3,31 @@ import Layout from './layout';
 import { ClipLoader } from 'react-spinners';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FaEnvelope, FaTrashAlt, FaTimes } from 'react-icons/fa';
+import { FaEnvelope, FaTrashAlt, FaTimes, FaSearch } from 'react-icons/fa';
 
 const Users = () => {
-  const [users, setUsers] = useState([]); // Ensure users is initialized as an empty array
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
-  const [selectedUsers, setSelectedUsers] = useState([]); // Add this line
+  const [selectedUsers, setSelectedUsers] = useState([]);
   const [paymentInfo, setPaymentInfo] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [emailSubject, setEmailSubject] = useState('');
   const [emailMessage, setEmailMessage] = useState('');
   const [showEmailModal, setShowEmailModal] = useState(false);
-  const [sendingAll, setSendingAll] = useState(false); // To differentiate between single and multiple email sends
-  const [sendingEmail, setSendingEmail] = useState(false); // To track email sending status
+  const [sendingAll, setSendingAll] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    handleSearch(searchTerm);
+  }, [searchTerm, users]);
 
   const fetchUsers = async () => {
     try {
@@ -40,13 +46,13 @@ const Users = () => {
       }
   
       const result = await response.json();
-      
       if (result.success && Array.isArray(result.data)) {
-        // Filter out only verified users
         const verifiedUsers = result.data.filter(user => user.verified);
         setUsers(verifiedUsers);
+        setFilteredUsers(verifiedUsers);
       } else {
         setUsers([]);
+        setFilteredUsers([]);
       }
       setLoading(false);
     } catch (error) {
@@ -54,7 +60,23 @@ const Users = () => {
       setLoading(false);
     }
   };
-  
+
+  const handleSearch = (term) => {
+    if (term.trim() === '') {
+      setFilteredUsers(users);
+    } else {
+      const filtered = users.filter(
+        (user) =>
+          user.email.toLowerCase().includes(term.toLowerCase()) ||
+          (user.paymentStatus && user.paymentStatus.toLowerCase().includes(term.toLowerCase()))
+      );
+      setFilteredUsers(filtered);
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
@@ -73,6 +95,7 @@ const Users = () => {
         }
 
         setUsers(users.filter((user) => user._id !== id));
+        setFilteredUsers(filteredUsers.filter((user) => user._id !== id));
         toast.success('User deleted successfully!');
       } catch (error) {
         toast.error('Failed to delete user');
@@ -94,7 +117,7 @@ const Users = () => {
       return;
     }
 
-    setSendingEmail(true); // Start loading
+    setSendingEmail(true);
     try {
       const response = await fetch('/api/send-email', {
         method: 'POST',
@@ -118,7 +141,7 @@ const Users = () => {
     } catch (error) {
       toast.error('Failed to send email');
     } finally {
-      setSendingEmail(false); // End loading
+      setSendingEmail(false);
     }
   };
 
@@ -142,7 +165,7 @@ const Users = () => {
 
   const handleSelectAllUsers = (e) => {
     if (e.target.checked) {
-      setSelectedUsers(users.map((user) => user.email));
+      setSelectedUsers(filteredUsers.map((user) => user.email));
     } else {
       setSelectedUsers([]);
     }
@@ -164,6 +187,21 @@ const Users = () => {
         <ToastContainer />
         <div className="bg-white p-4 md:p-8 rounded-lg shadow-lg">
           <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4 md:mb-6 text-center">All Users</h2>
+
+          {/* Search Bar */}
+          <div className="flex justify-end mb-4">
+            <div className="relative">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={handleSearchChange}
+                placeholder="Search by email or payment status..."
+                className="py-2 pl-10 pr-4 w-72 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+              <FaSearch className="absolute left-3 top-2.5 text-gray-500" />
+            </div>
+          </div>
+
           {error && <div className="text-red-500 mb-4">{error}</div>}
           {loading ? (
             <div className="flex justify-center items-center h-64">
@@ -175,7 +213,7 @@ const Users = () => {
                 <thead>
                   <tr className="bg-gray-200">
                     <th className="py-2 px-4 border-b">
-                      <input type="checkbox" onChange={handleSelectAllUsers} checked={selectedUsers.length === users.length} />
+                      <input type="checkbox" onChange={handleSelectAllUsers} checked={selectedUsers.length === filteredUsers.length} />
                     </th>
                     <th className="py-2 px-4 border-b">Email</th>
                     <th className="py-2 px-4 border-b">Profile Image</th>
@@ -186,7 +224,7 @@ const Users = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user) => (
+                  {filteredUsers.map((user) => (
                     <tr key={user._id} className="hover:bg-gray-100">
                       <td className="py-2 px-4 border-b">
                         <input type="checkbox" onChange={() => handleSelectUser(user.email)} checked={selectedUsers.includes(user.email)} />
@@ -217,14 +255,13 @@ const Users = () => {
                               className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-200"
                               onClick={() => handleDelete(user._id)}
                             >
-                              <FaTrashAlt/>
+                              <FaTrashAlt />
                             </button>
-                           
                             <button
                               className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-200 ml-2"
                               onClick={() => openEmailModal(user)}
                             >
-                             <FaEnvelope/>
+                              <FaEnvelope />
                             </button>
                           </>
                         )}
@@ -256,7 +293,7 @@ const Users = () => {
               <FaTimes size={24} />
             </button>
             <h2 className="text-xl font-semibold mb-4">Send Email</h2>
-          <label>Your Subject</label>
+            <label>Your Subject</label>
             <input
               type="text"
               value={emailSubject}
@@ -281,8 +318,8 @@ const Users = () => {
               </button>
               <button
                 className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-200"
-                onClick={() => handleSendEmail(sendingAll ? selectedUsers : [selectedUser])} // Send to all selected users or single user based on the context
-                disabled={sendingEmail} // Disable the button when sending email
+                onClick={() => handleSendEmail(sendingAll ? selectedUsers : [selectedUser])}
+                disabled={sendingEmail}
               >
                 {sendingEmail ? <ClipLoader size={20} color={"#fff"} /> : 'Send'}
               </button>

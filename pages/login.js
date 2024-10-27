@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import React, { useState, useEffect } from "react";
-import { FaEnvelope, FaKey, FaEye, FaEyeSlash, FaUserCircle } from "react-icons/fa";
+import { FaEnvelope, FaKey, FaEye, FaEyeSlash, FaUserCircle, FaArrowCircleRight } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext"; // Custom hook for authentication context
 import Image from "next/image";
 import signIn from "../public/login.svg";
@@ -131,11 +131,12 @@ function LoginOrResetPassword() {
     Create YouTube Content Faster with Ytubetools Advanced AI Tool
   </h1>
   <ul className="space-y-2 md:space-y-3 text-base md:text-lg pt-4 md:pt-8">
-    <li className="list-none">✅ 2,000 free credits every month</li>
-    <li className="list-none">✅ 18+ tools available</li>
-    <li className="list-none">✅ Generate engaging titles, descriptions, and more</li>
-    <li className="list-none">✅ Super easy to use</li>
+  <li className="list-none"><FaArrowCircleRight/> 2,000 free credits every month</li>
+    <li className="list-none"><FaArrowCircleRight/> 18+ tools available</li>
+    <li className="list-none"><FaArrowCircleRight/> Generate engaging titles, descriptions, and more</li>
+    <li className="list-none"><FaArrowCircleRight/> Super easy to use</li>
   </ul>
+
   <blockquote className="mt-6 md:mt-12 p-6 md:p-8 bg-red-500 rounded-md  max-w-full border border-red-300">
     <p className="italic leading-relaxed">“Ytubetools has been a game-changer for me. As a startup founder, I need to create compelling YouTube content consistently, and Ytubetools helps me do it quickly and effectively. I highly recommend Ytubetools to anyone looking to improve their YouTube presence without spending a fortune.”</p>
     <div className="mt-4 flex items-center">
