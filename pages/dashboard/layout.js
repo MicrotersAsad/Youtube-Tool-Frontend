@@ -193,7 +193,7 @@ const Layout = React.memo(({ children }) => {
    
   </div>
   <div className="flex-1 overflow-y-auto custom-scrollbar">
-    <nav className="mt-4 text-white pb-4">
+    <nav className=" text-white pb-4">
 
 {/* Dashboard */}
 <div className="mt-2">
