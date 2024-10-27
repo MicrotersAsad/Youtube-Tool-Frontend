@@ -77,19 +77,19 @@ const AllOrder = () => {
               <table className="min-w-full bg-white rounded-lg overflow-hidden">
                 <thead className="bg-blue-400 text-black">
                   <tr>
-                    <th className="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider">
+                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
                       Username
                     </th>
-                    <th className="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider">
+                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
                       Email
                     </th>
-                    <th className="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider">
+                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
                       Payment Status
                     </th>
-                    <th className="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider">
+                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
                       Subscription Valid
                     </th>
-                    <th className="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider">
+                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
                       Details
                     </th>
                   </tr>
@@ -101,19 +101,19 @@ const AllOrder = () => {
                         key={user._id}
                         className="bg-white border-b transition duration-300 ease-in-out hover:bg-gray-100"
                       >
-                        <td className="py-4 px-6 whitespace-nowrap text-gray-800 font-medium">
+                        <td className=" whitespace-nowrap text-gray-800 font-medium">
                           {user.username}
                         </td>
-                        <td className="py-4 px-6 text-gray-600">
+                        <td className=" text-gray-600">
                           {user.email}
                         </td>
-                        <td className="py-4 px-6 text-green-500 font-semibold">
+                        <td className=" text-green-500 font-semibold">
                           {user.paymentStatus}
                         </td>
-                        <td className="py-4 px-6 text-blue-500">
+                        <td className=" text-blue-500">
                           {new Date(user.subscriptionValidUntil).toLocaleDateString()}
                         </td>
-                        <td className="py-4 px-6">
+                        <td className="">
                           <button
                             className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"
                             onClick={() => openOrderDetails(user)}

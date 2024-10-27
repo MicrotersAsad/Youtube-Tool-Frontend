@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from './layout';
-import { FaTimes, FaDownload } from 'react-icons/fa';
+import { FaTimes, FaDownload, FaSearch } from 'react-icons/fa';
 import dynamic from 'next/dynamic';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
@@ -8,11 +8,15 @@ import 'react-loading-skeleton/dist/skeleton.css';
 // Dynamically import html2pdf to prevent SSR issues
 const html2pdf = typeof window !== "undefined" ? require('html2pdf.js') : null;
 
+const ITEMS_PER_PAGE = 10;
+
 const ActiveSubscription = () => {
   const [orders, setOrders] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const modalRef = useRef(null);
 
   useEffect(() => {
@@ -74,6 +78,26 @@ const ActiveSubscription = () => {
     }
   };
 
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1); // Reset to first page on new search
+  };
+
+  const getFilteredOrders = () => {
+    if (!searchQuery) return orders;
+    return orders.filter(order =>
+      order.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.email.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  };
+
+  const paginatedOrders = getFilteredOrders().slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const totalPages = Math.ceil(getFilteredOrders().length / ITEMS_PER_PAGE);
+
   return (
     <Layout>
       <div className="min-h-screen bg-gray-100 p-4 md:p-8">
@@ -88,6 +112,19 @@ const ActiveSubscription = () => {
             </div>
           )}
 
+          <div className="mb-6 flex justify-between items-center">
+            <div className="relative w-64">
+              <FaSearch className="absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-500" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                className="w-full pl-10 py-2 rounded-lg bg-gray-200 border border-gray-300 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-300 ease-in-out"
+                placeholder="Search by username or email..."
+              />
+            </div>
+          </div>
+
           {loading ? (
             <div className="text-center py-10">
               <Skeleton height={30} count={5} className="mb-2" />
@@ -97,43 +134,43 @@ const ActiveSubscription = () => {
               <table className="min-w-full bg-white rounded-lg overflow-hidden">
                 <thead className="bg-blue-400 text-black">
                   <tr>
-                    <th className="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider">
+                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
                       Username
                     </th>
-                    <th className="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider">
+                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
                       Email
                     </th>
-                    <th className="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider">
+                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
                       Payment Status
                     </th>
-                    <th className="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider">
+                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
                       Subscription Valid
                     </th>
-                    <th className="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider">
+                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
                       Details
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.length > 0 ? (
-                    orders.map((user) => (
+                  {paginatedOrders.length > 0 ? (
+                    paginatedOrders.map((user) => (
                       <tr
                         key={user._id}
                         className="bg-white border-b transition duration-300 ease-in-out hover:bg-gray-100"
                       >
-                        <td className="py-4 px-6 whitespace-nowrap text-gray-800 font-medium">
+                        <td className=" whitespace-nowrap text-gray-800 font-medium">
                           {user.username}
                         </td>
-                        <td className="py-4 px-6 text-gray-600">
+                        <td className=" text-gray-600">
                           {user.email}
                         </td>
-                        <td className="py-4 px-6 text-green-500 font-semibold">
+                        <td className=" text-green-500 font-semibold">
                           {user.paymentStatus}
                         </td>
-                        <td className="py-4 px-6 text-blue-500">
+                        <td className=" text-blue-500">
                           {new Date(user.subscriptionValidUntil).toLocaleDateString()}
                         </td>
-                        <td className="py-4 px-6">
+                        <td className="">
                           <button
                             className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"
                             onClick={() => openOrderDetails(user)}
@@ -152,6 +189,29 @@ const ActiveSubscription = () => {
                   )}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-6">
+              <button
+                className="bg-gray-300 px-4 py-2 rounded-l-md disabled:opacity-50"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+              <span className="px-4 py-2 bg-white border-t border-b">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                className="bg-gray-300 px-4 py-2 rounded-r-md disabled:opacity-50"
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </button>
             </div>
           )}
         </div>
