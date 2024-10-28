@@ -3,8 +3,10 @@ import Layout from './layout';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 
-const ClosedTicketsPage = () => {
+const OpenTicketsPage = () => {
   const { user } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,18 +14,18 @@ const ClosedTicketsPage = () => {
 
   useEffect(() => {
     if (user && user.id) {
-      fetchClosedTickets();
+      fetchOpenTickets();
     }
   }, [user]);
 
-  const fetchClosedTickets = async () => {
+  const fetchOpenTickets = async () => {
     try {
       const response = await fetch('/api/tickets/create');
       const result = await response.json();
 
       if (result.success) {
-        const closedTickets = result.tickets.filter(ticket => ticket.status === 'open');
-        setTickets(closedTickets);
+        const openTickets = result.tickets.filter(ticket => ticket.status === 'open');
+        setTickets(openTickets);
       } else {
         console.error('Failed to fetch tickets:', result.message);
       }
@@ -51,7 +53,7 @@ const ClosedTicketsPage = () => {
   return (
     <Layout>
       <div className="container">
-        <h1 className="heading">Closed Tickets</h1>
+        <h1 className="heading">Open Tickets</h1>
         <input
           type="text"
           placeholder="Search tickets..."
@@ -60,7 +62,7 @@ const ClosedTicketsPage = () => {
           onChange={handleSearchChange}
         />
         {loading ? (
-          <p className="loading-text">Loading tickets...</p>
+          <Skeleton count={5} height={40} className="skeleton-row" />
         ) : filteredTickets.length > 0 ? (
           <table className="tickets-table">
             <thead>
@@ -83,7 +85,7 @@ const ClosedTicketsPage = () => {
                       </span>
                     </Link>
                   </td>
-                  <td className="table-cell">{ticket.submittedBy || 'Anonymous'}</td>
+                  <td className="table-cell">{ticket.userName || 'Anonymous'}</td>
                   <td className="table-cell">
                     <span className={`status-label closed`}>
                       {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
@@ -110,7 +112,10 @@ const ClosedTicketsPage = () => {
       </div>
 
       <style jsx global>{`
-      
+        .container {
+          padding: 20px;
+          background-color: #f9f9f9;
+        }
         .heading {
           font-size: 2rem;
           font-weight: bold;
@@ -196,9 +201,13 @@ const ClosedTicketsPage = () => {
         .details-button:hover {
           background-color: #0056b3;
         }
+        .skeleton-row {
+          margin-bottom: 10px;
+          border-radius: 4px;
+        }
       `}</style>
     </Layout>
   );
 };
 
-export default ClosedTicketsPage;
+export default OpenTicketsPage;

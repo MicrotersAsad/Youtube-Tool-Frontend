@@ -2,12 +2,14 @@ import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import TicketDetails from '../../../components/TicketDetails';
 import Layout from '../layout';
+import { useAuth } from '../../../contexts/AuthContext';
 
 /**
  * Page to show the details of a single support ticket.
  */
 const TicketDetailsPage = () => {
   const router = useRouter();
+  const {user}=useAuth()
   const { ticketId } = router.query;
   const [ticket, setTicket] = useState(null);
   const [usersMap, setUsersMap] = useState({}); // Map of userId to userName
@@ -24,7 +26,6 @@ const TicketDetailsPage = () => {
       const result = await response.json();
       if (result.success) {
         const fetchedTicket = result.ticket;
-        await fetchUserDetails(fetchedTicket.comments); // Fetch user details for comments
         setTicket(fetchedTicket);
       } else {
         alert('Failed to fetch ticket details');
@@ -34,25 +35,6 @@ const TicketDetailsPage = () => {
     }
   };
 
-  const fetchUserDetails = async (comments) => {
-    // Extract unique userIds from comments
-    const userIds = [...new Set(comments.map(comment => comment.userId).filter(id => id))];
-
-    // Fetch user details for each userId and map them
-    const userMap = {};
-    try {
-      for (let userId of userIds) {
-        const response = await fetch(`/api/users/${userId}`); // Assume there's an API endpoint for users
-        const result = await response.json();
-        if (result.success && result.user) {
-          userMap[userId] = result.user.name; // Store user name in map
-        }
-      }
-      setUsersMap(userMap); // Update the map state
-    } catch (error) {
-      console.error('Error fetching user details:', error);
-    }
-  };
 
   const handleCommentSubmit = async (comment) => {
     try {
@@ -61,7 +43,11 @@ const TicketDetailsPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ comment }),
+        body: JSON.stringify({
+          comment,
+          userId: user.id, // Pass the user's ID from the authenticated context
+          userName: user.username, // Pass the user's ID from the authenticated context
+        }),
       });
 
       const result = await response.json();

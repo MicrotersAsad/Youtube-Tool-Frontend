@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const TicketDetails = ({ ticket, onCommentSubmit, onUpdateStatus,onDeleteComment,usersMap   }) => {
+const TicketDetails = ({ ticket, onCommentSubmit, onUpdateStatus,onDeleteComment   }) => {
   const [newComment, setNewComment] = useState('');
 
   const handleCommentSubmit = (e) => {
@@ -43,7 +43,7 @@ const TicketDetails = ({ ticket, onCommentSubmit, onUpdateStatus,onDeleteComment
         {ticket.comments.map((comment, index) => (
           <div key={index} className="comment-box">
             <div className="comment-header">
-            <span className="font-bold">{usersMap[comment.userId] || 'Anonymous'}</span>
+            <span className="font-bold">{comment.userName}</span>
               <span className="comment-timestamp">
                 Posted on{' '}
                 {new Date(comment.createdAt).toLocaleDateString('en-US', {

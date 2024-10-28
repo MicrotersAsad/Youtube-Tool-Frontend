@@ -62,7 +62,7 @@ const TicketList = ({ tickets }) => {
                     </Link>
                   </td>
                   <td className="py-2 px-4 font-medium text-gray-700">
-                    {ticket.submittedBy || 'Anonymous'}
+                    {ticket.userName || 'Anonymous'}
                   </td>
                   <td className="py-2 px-4">
                     <span

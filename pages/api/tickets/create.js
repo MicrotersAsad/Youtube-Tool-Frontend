@@ -10,11 +10,12 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     // Create a new ticket
     try {
-      const { userId, subject, description, attachments, priority } = req.body;
+      const { userId,userName, subject, description, attachments, priority } = req.body;
 
       const newTicket = {
         ticketId: generateUniqueId(),
         userId,
+        userName,
         subject,
         description,
         attachments: attachments || [],
@@ -45,6 +46,8 @@ export default async function handler(req, res) {
       if (userId) {
         query.userId = userId;
       }
+      // Filter by user ID if provided
+    
 
       // Fetch the ticket or tickets
       const tickets = await db.collection('tickets').find(query).toArray();
@@ -58,9 +61,40 @@ export default async function handler(req, res) {
       console.error('Failed to fetch ticket(s):', error);
       res.status(500).json({ success: false, message: 'Failed to fetch ticket(s)' });
     }
+  } else if (req.method === 'PATCH') {
+    // Update ticket's status or add a comment
+    try {
+      const { ticketId } = req.query;
+      const { status, comment } = req.body;
+
+      let updateFields = {};
+
+      if (status) {
+        updateFields.status = status;
+      }
+
+      if (comment) {
+        updateFields.status = 'pending'; // Set status to "pending" when a new comment is added
+        updateFields.$push = { comments: { ...comment, createdAt: new Date() } };
+      }
+
+      const result = await db.collection('tickets').updateOne(
+        { ticketId: ticketId },
+        { $set: updateFields, ...(comment && { $push: { comments: { ...comment, createdAt: new Date() } } }) }
+      );
+
+      if (result.modifiedCount === 0) {
+        return res.status(404).json({ success: false, message: 'Failed to update ticket' });
+      }
+
+      res.status(200).json({ success: true, message: 'Ticket updated successfully' });
+    } catch (error) {
+      console.error('Failed to update ticket:', error);
+      res.status(500).json({ success: false, message: 'Failed to update ticket' });
+    }
   } else {
     // Handle unsupported methods
-    res.setHeader('Allow', ['POST', 'GET']);
+    res.setHeader('Allow', ['POST', 'GET', 'PATCH']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

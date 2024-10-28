@@ -27,6 +27,7 @@ console.log(user);
         body: JSON.stringify({
           ...ticketData,
           userId: user.id, // Pass the user's ID from the authenticated context
+          userName: user.username, // Pass the user's ID from the authenticated context
         }),
       });
 

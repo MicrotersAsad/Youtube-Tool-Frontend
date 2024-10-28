@@ -43,8 +43,55 @@ const Layout = React.memo(({ children }) => {
   const [searchQuery, setSearchQuery] = useState(""); // Search query state
   const [searchResults, setSearchResults] = useState([]); // Search results state
   const { user, logout } = useAuth();
-  const router = useRouter();
+  const [pendingCount, setPendingCount] = useState([]);
+  const [openCount, setOpenCount] = useState([]);
+  const [loading, setLoading ] = useState(false);
 
+  const router = useRouter();
+  useEffect(() => {
+    fetchPendingTickets(); // Fetch pending tickets when the component mounts or updates
+    fetchOpenTickets();
+  }, []);
+  
+  const fetchPendingTickets = async () => {
+    try {
+      const response = await fetch('/api/tickets/create');
+      const result = await response.json();
+  
+      if (result.success) {
+        const pendingTickets = result.tickets.filter((ticket) => ticket.status === 'pending');
+        console.log(pendingTickets);
+      
+        setPendingCount(pendingTickets); // Set the count of pending tickets
+      } else {
+        console.error('Failed to fetch tickets:', result.message);
+      }
+    } catch (error) {
+      console.error('Error fetching tickets:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const fetchOpenTickets = async () => {
+    try {
+      const response = await fetch('/api/tickets/create');
+      const result = await response.json();
+  
+      if (result.success) {
+        const openTickets = result.tickets.filter((ticket) => ticket.status === 'open');
+     
+      
+        setOpenCount(openTickets); // Set the count of pending tickets
+      } else {
+        console.error('Failed to fetch tickets:', result.message);
+      }
+    } catch (error) {
+      console.error('Error fetching tickets:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   useEffect(() => {
     const savedMenu = localStorage.getItem("activeMenu");
     if (savedMenu) setMenuOpen(savedMenu);
@@ -819,20 +866,21 @@ const Layout = React.memo(({ children }) => {
       {user.role === "admin" && (
         <>
           <Link href="/dashboard/pending-tickets" passHref>
-            <p
-              className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                isActiveRoute("/dashboard/pending-tickets")
-                  ? "bg-[#1d1e8e] text-white"
-                  : "hover:bg-[#1d1e8e] hover:text-white"
-              }`}
-            >
-              <FaCircle className="mr-2 text-xs" />
-              Pending Ticket
-              <span className="ml-auto bg-blue-600 text-white text-xs rounded-full px-2 py-1">
-                5
-              </span>
-            </p>
-          </Link>
+  <p
+    className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+      isActiveRoute("/dashboard/pending-tickets")
+        ? "bg-[#1d1e8e] text-white"
+        : "hover:bg-[#1d1e8e] hover:text-white"
+    }`}
+  >
+    <FaCircle className="mr-2 text-xs" />
+    Pending Ticket
+    <span className="ml-auto bg-blue-600 text-white text-xs rounded-full px-2 py-1">
+      {pendingCount.length}
+    </span>
+  </p>
+</Link>
+
           <Link href="/dashboard/closed-tickets" passHref>
             <p
               className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
@@ -855,6 +903,9 @@ const Layout = React.memo(({ children }) => {
             >
               <FaCircle className="mr-2 text-xs" />
               Open Ticket
+              <span className="ml-auto bg-blue-600 text-white text-xs rounded-full px-2 py-1">
+      {openCount.length}
+    </span>
             </p>
           </Link>
           <Link href="/dashboard/all-tickets" passHref>
