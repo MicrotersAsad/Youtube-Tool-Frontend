@@ -755,7 +755,7 @@ const Layout = React.memo(({ children }) => {
         isActiveRoute("/dashboard/my-tickets") ||
         isActiveRoute("/dashboard/pending-tickets") ||
         isActiveRoute("/dashboard/closed-tickets") ||
-        isActiveRoute("/dashboard/answered-tickets") ||
+        isActiveRoute("/dashboard/open-tickets") ||
         isActiveRoute("/dashboard/all-tickets") ||
         isActiveRoute("/dashboard/")
           ? "bg-[#4634ff] text-white"
@@ -835,7 +835,7 @@ const Layout = React.memo(({ children }) => {
           </Link>
           <Link href="/dashboard/closed-tickets" passHref>
             <p
-              className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+              className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
                 isActiveRoute("/dashboard/closed-tickets")
                   ? "bg-[#1d1e8e] text-white"
                   : "hover:bg-[#1d1e8e] hover:text-white"
@@ -845,21 +845,21 @@ const Layout = React.memo(({ children }) => {
               Closed Ticket
             </p>
           </Link>
-          <Link href="/dashboard/answered-tickets" passHref>
+          <Link href="/dashboard/open-tickets" passHref>
             <p
-              className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                isActiveRoute("/dashboard/answered-tickets")
+              className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                isActiveRoute("/dashboard/open-tickets")
                   ? "bg-[#1d1e8e] text-white"
                   : "hover:bg-[#1d1e8e] hover:text-white"
               }`}
             >
               <FaCircle className="mr-2 text-xs" />
-              Answered Ticket
+              Open Ticket
             </p>
           </Link>
           <Link href="/dashboard/all-tickets" passHref>
             <p
-              className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+              className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
                 isActiveRoute("/dashboard/all-tickets")
                   ? "bg-[#1d1e8e] text-white"
                   : "hover:bg-[#1d1e8e] hover:text-white"
