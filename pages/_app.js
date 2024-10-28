@@ -14,19 +14,34 @@ import '../public/laraberg.css';
 
 function MyApp({ Component, pageProps }) {
   const [showButton, setShowButton] = useState(false);
+  const [isMaintenance, setIsMaintenance] = useState(false);
+  const [maintenanceData, setMaintenanceData] = useState(null);
   const router = useRouter();
 
+  // Check maintenance mode status when app loads
   useEffect(() => {
-    const logVisit = async () => {
+    const checkMaintenanceMode = async () => {
       try {
-        await fetch('/api/log-visit', {
-          method: 'POST',
-        });
+        const response = await fetch('/api/maintenance');
+        const data = await response.json();
+        // Check if the status is 'enabled'
+        if (data.status === 'enabled') {
+          setIsMaintenance(true);
+          setMaintenanceData({
+            title: 'Maintenance Mode',
+            description: data.description || 'The site is currently down for scheduled maintenance. Please check back later.',
+            image: data.imageUrl || '/path-to-maintenance-image.png',
+          });
+        }
       } catch (error) {
-        console.error('Error logging site visit:', error);
+        console.error('Error fetching maintenance status:', error);
       }
     };
 
+    checkMaintenanceMode();
+  }, []);
+
+  useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 300) {
         setShowButton(true);
@@ -36,9 +51,7 @@ function MyApp({ Component, pageProps }) {
     };
 
     const throttledHandleScroll = throttle(handleScroll, 200);
-
     window.addEventListener('scroll', throttledHandleScroll);
-    logVisit();
 
     return () => {
       window.removeEventListener('scroll', throttledHandleScroll);
@@ -63,6 +76,21 @@ function MyApp({ Component, pageProps }) {
 
   const hideHeaderFooter = router.pathname.includes('/dashboard');
 
+  if (isMaintenance && !router.pathname.startsWith('/dashboard')) {
+    return (
+      <>
+        <Head>
+          <title>{maintenanceData?.title || 'Maintenance'}</title>
+        </Head>
+        <div className="min-h-screen flex flex-col justify-center items-center">
+          <h1 className="text-4xl font-semibold mb-6">{maintenanceData?.title}</h1>
+          <img src={maintenanceData?.image} alt="Maintenance" className="mb-6" style={{ width: '400px' }} />
+          <p className="text-lg" dangerouslySetInnerHTML={{ __html: maintenanceData?.description }}></p>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <Head>
@@ -76,7 +104,6 @@ function MyApp({ Component, pageProps }) {
         />
       </Head>
 
-      {/* Move all <Script /> components here outside of <Head /> */}
       <Script
         id="organization-schema"
         type="application/ld+json"
@@ -100,9 +127,6 @@ function MyApp({ Component, pageProps }) {
           ]
         })}
       </Script>
-      <Script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" />
-      <Script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" />
-      <Script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js" />
 
       <AuthProvider>
         <ContentProvider>
