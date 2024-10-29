@@ -1,20 +1,17 @@
 // replaceShortcodes.js
 
 import React from 'react';
-import YTTitleGenerator from './tools/title-generator';
 
-// এই ফাংশন শর্টকোড খুঁজে বের করে JSX রিটার্ন করে
+import Test from './tools/test';
+
+// শর্টকোড খুঁজে বের করে JSX রিটার্ন করার ফাংশন
 export function replaceShortcodes(content) {
-  console.log("Original Content:", content); // লগে মূল কনটেন্ট দেখানো
-
-  // যদি কনটেন্টে [YTTitleGenerator] পাওয়া যায়, সেটাকে কম্পোনেন্টে রূপান্তর করা
-  const splitContent = content.split('[YTTitleGenerator]');
-  console.log("Split Content:", splitContent); // লগে বিভক্ত কনটেন্ট দেখানো
-
-  return splitContent.map((part, index) => (
+  return content.split('[YTTitleGenerator]').map((part, index) => (
     <React.Fragment key={index}>
+      {/* HTML কন্টেন্ট হিসেবে রেন্ডার করার জন্য */}
       <div dangerouslySetInnerHTML={{ __html: part }} />
-      {index !== splitContent.length - 1 && <YTTitleGenerator />}
+      {/* যদি `[YTTitleGenerator]` পাওয়া যায়, তবে YTTitleGenerator কম্পোনেন্ট রেন্ডার করা */}
+      {index !== content.split('[YTTitleGenerator]').length - 1 && <Test />}
     </React.Fragment>
   ));
 }
