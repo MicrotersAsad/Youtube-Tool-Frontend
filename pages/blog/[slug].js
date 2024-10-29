@@ -1,5 +1,4 @@
 // BlogPost.jsx
-
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
@@ -10,13 +9,16 @@ import Breadcrumb from '../Breadcrumb';
 import Comments from '../../components/Comments';
 import { useToc } from '../../hook/useToc';
 import TableOfContents from '../../components/TableOfContents';
-import { replaceShortcodes } from '../../components/replaceShortcodes'; // শর্টকোড ফাংশন ইম্পোর্ট
+import { replaceShortcodes } from '../../components/replaceShortcodes'; // Import shortcode function
 
-const BlogPost = ({ initialBlog }) => {
+const BlogPost = ({ initialBlog, initialShortcodes }) => {
+  console.log(initialShortcodes);
+  
   const router = useRouter();
   const { slug } = router.query;
   const { locale } = router;
   const [blog, setBlog] = useState(initialBlog);
+  const [shortcodes, setShortcodes] = useState(initialShortcodes);
   const [loading, setLoading] = useState(!initialBlog);
 
   useEffect(() => {
@@ -24,18 +26,11 @@ const BlogPost = ({ initialBlog }) => {
       const fetchData = async () => {
         try {
           const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/blogs`;
-          console.log('Fetching data from API:', apiUrl);
           const { data } = await axios.get(apiUrl);
-          const blogs = data;
+          const fetchedBlog = data.find((item) => item.slug === slug);
 
-          // স্লাগের সাথে মিলে যাওয়ার জন্য ডেটা ফিল্টার করা হচ্ছে
-          const blog = blogs.find(blog =>
-            blog.slug === slug // সরাসরি স্লাগ ফিল্টার করা হচ্ছে
-          );
-
-          if (blog) {
-            console.log('Blog found:', blog);
-            setBlog(blog);
+          if (fetchedBlog) {
+            setBlog(fetchedBlog);
           } else {
             console.warn('No blog found with slug:', slug);
           }
@@ -50,15 +45,27 @@ const BlogPost = ({ initialBlog }) => {
     }
   }, [slug, initialBlog]);
 
-  // চেক করে দেখুন যে ব্লগ সঠিকভাবে লোড হয়েছে কি না
-  console.log('Loaded blog:', blog);
+  // Fetch shortcodes dynamically if not provided initially
+  useEffect(() => {
+    if (!initialShortcodes) {
+      const fetchShortcodes = async () => {
+        try {
+          const { data } = await axios.get('/api/shortcodes-tools');
+          setShortcodes(data);
+        } catch (error) {
+          console.error('Error fetching shortcodes:', error.message);
+        }
+      };
+
+      fetchShortcodes();
+    }
+  }, [initialShortcodes]);
 
   const content = blog?.content || '';
   const [toc, updatedContent] = useToc(content);
 
-  // কনটেন্টের মধ্যে শর্টকোড প্রতিস্থাপন করা
-  const contentWithShortcodes = replaceShortcodes(updatedContent);
-  console.log('Content with shortcodes:', contentWithShortcodes);
+  // Replace shortcodes in the content with the dynamic components
+  const contentWithShortcodes = replaceShortcodes(updatedContent, shortcodes);
 
   if (loading) {
     return (
@@ -87,12 +94,10 @@ const BlogPost = ({ initialBlog }) => {
               <div className="p-6 bg-white border-b border-gray-200">
                 <h1 className="text-3xl font-bold mb-4">{blog.title}</h1>
 
-                {/* এখানে শর্টকোড প্রসেস করা কনটেন্ট রেন্ডার করা */}
-                <div className="my-4">
-                  {contentWithShortcodes}
-                </div>
+                {/* Render processed content with shortcodes */}
+                <div className="my-4">{contentWithShortcodes}</div>
 
-                {/* অন্যান্য কন্টেন্ট */}
+                {/* Additional content */}
               </div>
             </div>
             <Comments slug={slug} />
@@ -110,32 +115,26 @@ export async function getServerSideProps({ locale, params, req }) {
     const host = req.headers.host || 'localhost:3000';
     const apiUrl = `${protocol}://${host}/api/blogs`;
 
-    console.log('Fetching blogs with slug:', slug, 'from URL:', apiUrl);
-    const { data } = await axios.get(apiUrl);
-    const blogs = data;
-
-    // স্লাগ অনুযায়ী ব্লগ খুঁজে বের করা হচ্ছে
-    const blog = blogs.find(blog =>
-      blog.slug === slug // সরাসরি স্লাগ ফিল্টার করা
-    );
+    const { data: blogs } = await axios.get(apiUrl);
+    const blog = blogs.find((item) => item.slug === slug);
 
     if (!blog) {
-      console.warn('Blog not found for slug:', slug);
       return {
         notFound: true,
       };
     }
 
-    console.log('Blog found:', blog);
+    // Fetch shortcodes on server-side
+    const { data: shortcodes } = await axios.get(`${protocol}://${host}/api/shortcodes-tools`);
 
     return {
       props: {
         initialBlog: blog,
+        initialShortcodes: shortcodes,
         ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
       },
     };
   } catch (error) {
-    console.error('Error fetching blogs:', error.message);
     return {
       notFound: true,
     };
