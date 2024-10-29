@@ -28,17 +28,17 @@ import Image from "next/image";
 import { i18n, useTranslation } from "next-i18next";
 import dynamic from "next/dynamic";
 import Script from "next/script";
+import StarRating from "./StarRating"
 
-const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
 const YTTitleGenerator = ({
   meta,
   faqs,
-  reviews,
+  reviews = [], // Default to an empty array here
   relatedTools,
   content,
   translations,
-  reactions: initialReactions,
+  reactions: initialReactions = { likes: 0, unlikes: 0, users: {} }, 
 }) => {
   const { t } = useTranslation("titlegenerator");
   const { user, updateUserProfile } = useAuth();
@@ -63,15 +63,22 @@ const YTTitleGenerator = ({
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
-  const [likes, setLikes] = useState(initialReactions.likes || 0);
-  const [unlikes, setUnlikes] = useState(initialReactions.unlikes || 0);
+  const [likes, setLikes] = useState(initialReactions?.likes || 0);
+  const [unlikes, setUnlikes] = useState(initialReactions?.unlikes || 0);
+  
   const [hasLiked, setHasLiked] = useState(false);
   const [hasUnliked, setHasUnliked] = useState(false);
   const [hasReported, setHasReported] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportText, setReportText] = useState("");
   const [isSaved, setIsSaved] = useState(false);
-
+  useEffect(() => {
+    // Ensure initialReactions has a default value
+    if (initialReactions) {
+      setLikes(initialReactions.likes || 0);
+      setUnlikes(initialReactions.unlikes || 0);
+    }
+  }, [initialReactions]);
   const closeModal = () => {
     setModalVisible(false);
   };
@@ -367,9 +374,12 @@ const YTTitleGenerator = ({
     return totalReviews ? (ratingCount / totalReviews) * 100 : 0;
   };
 
-  const overallRating = (
-    reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
-  ).toFixed(1);
+ // Calculate the overall rating based on reviews
+const overallRating = reviews.length
+? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
+: 0;
+
+
 
   const handleShowMoreReviews = () => {
     setShowAllReviews(true);

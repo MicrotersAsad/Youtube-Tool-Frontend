@@ -1,34 +1,16 @@
+// BlogPost.jsx
+
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { ClipLoader } from 'react-spinners';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import Image from 'next/image';
 import Breadcrumb from '../Breadcrumb';
 import Comments from '../../components/Comments';
 import { useToc } from '../../hook/useToc';
 import TableOfContents from '../../components/TableOfContents';
-import ReactDOMServer from 'react-dom/server';
-import {
-  FacebookShareButton,
-  TwitterShareButton,
-  LinkedinShareButton,
-  FacebookIcon,
-  TwitterIcon,
-  LinkedinIcon
-} from 'react-share';
-
-// Helper function to insert TOC before the first heading
-const insertTocBeforeFirstHeading = (content, tocHtml) => {
-  const firstHeadingIndex = content.search(/<h[1-6][^>]*>/);
-  if (firstHeadingIndex === -1) return content;
-
-  const beforeFirstHeading = content.slice(0, firstHeadingIndex);
-  const afterFirstHeading = content.slice(firstHeadingIndex);
-
-  return `${beforeFirstHeading}${tocHtml}${afterFirstHeading}`;
-};
+import { replaceShortcodes } from '../replaceShortcodes'; // শর্টকোড ফাংশন ইম্পোর্ট
 
 const BlogPost = ({ initialBlog }) => {
   const router = useRouter();
@@ -36,25 +18,27 @@ const BlogPost = ({ initialBlog }) => {
   const { locale } = router;
   const [blog, setBlog] = useState(initialBlog);
   const [loading, setLoading] = useState(!initialBlog);
-  const [schemaData, setSchemaData] = useState(null);
-  const [breadcrumbSchema, setBreadcrumbSchema] = useState(null);
 
   useEffect(() => {
     if (!initialBlog && slug) {
       const fetchData = async () => {
         try {
           const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/blogs`;
+          console.log('Fetching data from API:', apiUrl);
           const { data } = await axios.get(apiUrl);
           const blogs = data;
 
+          // স্লাগের সাথে মিলে যাওয়ার জন্য ডেটা ফিল্টার করা হচ্ছে
           const blog = blogs.find(blog =>
-            Object.values(blog.translations).some(translation => translation.slug === slug)
+            blog.slug === slug // সরাসরি স্লাগ ফিল্টার করা হচ্ছে
           );
 
           if (blog) {
+            console.log('Blog found:', blog);
             setBlog(blog);
+          } else {
+            console.warn('No blog found with slug:', slug);
           }
-
         } catch (error) {
           console.error('Error fetching blogs:', error.message);
         } finally {
@@ -66,73 +50,15 @@ const BlogPost = ({ initialBlog }) => {
     }
   }, [slug, initialBlog]);
 
-  const content = blog?.translations ? blog.translations[locale]?.content : '';
+  // চেক করে দেখুন যে ব্লগ সঠিকভাবে লোড হয়েছে কি না
+  console.log('Loaded blog:', blog);
+
+  const content = blog?.content || '';
   const [toc, updatedContent] = useToc(content);
-  const tocHtml = toc ? ReactDOMServer.renderToStaticMarkup(<TableOfContents headings={toc} />) : '';
-  const contentWithToc = insertTocBeforeFirstHeading(updatedContent, tocHtml);
 
-  useEffect(() => {
-    if (blog && blog.translations) {
-      const content = blog.translations[locale];
-      if (content) {
-        const schemaData = {
-          "@context": "https://schema.org",
-          "@type": "Article",
-          "headline": content.title,
-          "image": [
-            content.image || "https://example.com/photos/1x1/photo.jpg",
-          ],
-          "datePublished": blog.createdAt,
-          "dateModified": blog.updatedAt || blog.createdAt,
-          "author": {
-            "@type": "Person",
-            "name": blog.author
-          },
-          "publisher": {
-            "@type": "Organization",
-            "name": "ytubetools",
-            "logo": {
-              "@type": "ImageObject",
-              "url": "https://example.com/logo.jpg"
-            }
-          },
-          "description": content.description,
-          "mainEntityOfPage": {
-            "@type": "WebPage",
-            "@id": `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog/${slug}`
-          }
-        };
-
-        const breadcrumbSchema = {
-          "@context": "https://schema.org",
-          "@type": "BreadcrumbList",
-          "itemListElement": [
-            {
-              "@type": "ListItem",
-              "position": 1,
-              "name": "Home",
-              "item": "https://www.ytubetools.com/"
-            },
-            {
-              "@type": "ListItem",
-              "position": 2,
-              "name": "Blog",
-              "item": `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog`
-            },
-            {
-              "@type": "ListItem",
-              "position": 3,
-              "name": content.title,
-              "item": `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog/${slug}`
-            }
-          ]
-        };
-
-        setSchemaData(schemaData);
-        setBreadcrumbSchema(breadcrumbSchema);
-      }
-    }
-  }, [blog, locale, slug]);
+  // কনটেন্টের মধ্যে শর্টকোড প্রতিস্থাপন করা
+  const contentWithShortcodes = replaceShortcodes(updatedContent);
+  console.log('Content with shortcodes:', contentWithShortcodes);
 
   if (loading) {
     return (
@@ -146,78 +72,30 @@ const BlogPost = ({ initialBlog }) => {
     return <p className="text-red-500">No content available for this language.</p>;
   }
 
-  const postContent = blog.translations ? blog.translations[locale] : null;
-
-  if (!postContent) {
-    return <p className="text-red-500">No content available for this language.</p>;
-  }
-
-  const shareUrl = `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog/${slug}`;
-  const title = postContent.title;
-
   return (
     <div className="relative">
       <Head>
-        <title>{postContent.title} | ytubetools</title>
-        <meta name="description" content={postContent.description} />
-        <meta name="keywords" content={`SEO, Blog, ytubetools, ${postContent.title}`} />
-        <meta name="author" content={blog.author} />
-        <meta property="og:title" content={postContent.title} />
-        <meta property="og:description" content={postContent.description} />
-        <meta property="og:image" content={postContent.image || "https://example.com/photos/1x1/photo.jpg"} />
-        <meta property="og:url" content={`https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog/${slug}`} />
-        <meta property="og:type" content="article" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={postContent.title} />
-        <meta name="twitter:description" content={postContent.description} />
-        <meta name="twitter:image" content={postContent.image || "https://example.com/photos/1x1/photo.jpg"} />
-        <meta name="twitter:site" content="@ytubetools" />
-
-        {schemaData && (
-          <script type="application/ld+json">
-            {JSON.stringify(schemaData)}
-          </script>
-        )}
-        {breadcrumbSchema && (
-          <script type="application/ld+json">
-            {JSON.stringify(breadcrumbSchema)}
-          </script>
-        )}
-        {typeof window !== 'undefined' && blog.translations && Object.keys(blog.translations).map(lang => (
-          <link
-            key={lang}
-            rel="alternate"
-            href={`https://${window.location.host}/blog/${blog.translations[lang].slug}`}
-            hrefLang={lang}
-          />
-        ))}
+        {/* Head meta tags */}
+        <title>{blog.title} | ytubetools</title>
+        <meta name="description" content={blog.description} />
       </Head>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
         <div className="flex flex-col lg:flex-row">
           <div className="flex-grow order-1 lg:order-2">
-            <Breadcrumb blogTitle={postContent.title} />
+            <Breadcrumb blogTitle={blog.title} />
             <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-8">
               <div className="p-6 bg-white border-b border-gray-200">
-                <h1 className="text-3xl font-bold mb-4">{postContent.title}</h1>
-            
-                <div className="my-4" dangerouslySetInnerHTML={{ __html: contentWithToc }} />
-                <div className="my-8">
-                  <h3 className="text-lg font-bold mb-4">Share this post</h3>
-                  <div className="flex space-x-4">
-                    <FacebookShareButton url={shareUrl} quote={title}>
-                      <FacebookIcon size={32} round />
-                    </FacebookShareButton>
-                    <TwitterShareButton url={shareUrl} title={title}>
-                      <TwitterIcon size={32} round />
-                    </TwitterShareButton>
-                    <LinkedinShareButton url={shareUrl} title={title}>
-                      <LinkedinIcon size={32} round />
-                    </LinkedinShareButton>
-                  </div>
+                <h1 className="text-3xl font-bold mb-4">{blog.title}</h1>
+
+                {/* এখানে শর্টকোড প্রসেস করা কনটেন্ট রেন্ডার করা */}
+                <div className="my-4">
+                  {contentWithShortcodes}
                 </div>
+
+                {/* অন্যান্য কন্টেন্ট */}
               </div>
             </div>
-            <Comments slug={slug} /> {/* Add Comments component here */}
+            <Comments slug={slug} />
           </div>
         </div>
       </div>
@@ -232,18 +110,23 @@ export async function getServerSideProps({ locale, params, req }) {
     const host = req.headers.host || 'localhost:3000';
     const apiUrl = `${protocol}://${host}/api/blogs`;
 
+    console.log('Fetching blogs with slug:', slug, 'from URL:', apiUrl);
     const { data } = await axios.get(apiUrl);
     const blogs = data;
 
+    // স্লাগ অনুযায়ী ব্লগ খুঁজে বের করা হচ্ছে
     const blog = blogs.find(blog =>
-      Object.values(blog.translations).some(translation => translation.slug === slug)
+      blog.slug === slug // সরাসরি স্লাগ ফিল্টার করা
     );
 
     if (!blog) {
+      console.warn('Blog not found for slug:', slug);
       return {
         notFound: true,
       };
     }
+
+    console.log('Blog found:', blog);
 
     return {
       props: {
