@@ -10,7 +10,7 @@ import Breadcrumb from '../Breadcrumb';
 import Comments from '../../components/Comments';
 import { useToc } from '../../hook/useToc';
 import TableOfContents from '../../components/TableOfContents';
-import { replaceShortcodes } from '../replaceShortcodes'; // শর্টকোড ফাংশন ইম্পোর্ট
+import { replaceShortcodes } from '../../components/replaceShortcodes'; // শর্টকোড ফাংশন ইম্পোর্ট
 
 const BlogPost = ({ initialBlog }) => {
   const router = useRouter();

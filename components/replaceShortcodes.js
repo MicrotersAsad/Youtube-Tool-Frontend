@@ -1,7 +1,7 @@
 // replaceShortcodes.js
 
 import React from 'react';
-import Test from './tools/name-generator';
+import Test from '../pages/tools/name-generator';
 
 // শর্টকোড খুঁজে বের করে JSX রিটার্ন করার ফাংশন
 export function replaceShortcodes(content) {
