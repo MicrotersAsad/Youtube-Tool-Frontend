@@ -15,10 +15,6 @@ const BlogSection = ({ initialBlogs }) => {
   const [blogsData, setBlogsData] = useState(initialBlogs);
   const blogsPerPage = 9;
 
-  const filteredBlogs = blogsData.filter(blog => blog.translations[i18n.language]);
-  const currentBlogs = filteredBlogs.slice((currentPage - 1) * blogsPerPage, currentPage * blogsPerPage);
-  const totalPages = Math.ceil(filteredBlogs.length / blogsPerPage);
-
   const fetchBlogs = useCallback(async () => {
     setLoading(true);
     try {
@@ -44,10 +40,14 @@ const BlogSection = ({ initialBlogs }) => {
     return category ? category.split(',') : [];
   };
 
-  const getTranslatedContent = (blog) => {
-    const lang = i18n.language || blog.defaultLanguage;
-    return blog.translations[lang] || blog.translations[blog.defaultLanguage];
-  };
+  const filteredBlogs = blogsData.filter(blog => {
+    // Filter based on the current language or default language ('en')
+    const currentLanguage = i18n?.language || 'en';
+    return blog.language === currentLanguage;
+  });
+
+  const currentBlogs = filteredBlogs.slice((currentPage - 1) * blogsPerPage, currentPage * blogsPerPage);
+  const totalPages = Math.ceil(filteredBlogs.length / blogsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -80,74 +80,71 @@ const BlogSection = ({ initialBlogs }) => {
       </Head>
 
       <div className="container mx-auto px-4 p-5">
+        {/* Main Blog Post */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mt-8">
           <div>
-            {currentBlogs.slice(0, 1).map((blog, index) => {
-              const content = getTranslatedContent(blog);
-              return (
-                <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
-                  {content.image && (
-                    <Image
-                      src={content.image}
-                      alt={content.title}
-                      width={600}
-                      height={400}
-                      layout="responsive"
-                      className="object-cover rounded-lg"
-                    />
-                  )}
-                  <div className="p-6">
-                    <h3 className="text-3xl font-semibold mb-2">
-                      <Link href={`/blog/${content.slug}`} passHref>
-                        <span className="text-blue-500 hover:underline">{content.title}</span>
-                      </Link>
-                    </h3>
-                    <p className="text-gray-600 mb-4">{content.description}</p>
-                    <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
-                    <div className="mt-2">
-                      {parseCategories(blog.category).map((category, i) => (
-                        <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
-                      ))}
-                    </div>
+            {currentBlogs.slice(0, 1).map((blog, index) => (
+              <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
+                {blog.image && (
+                  <Image
+                    src={blog.image}
+                    alt={blog.title}
+                    width={600}
+                    height={400}
+                    layout="responsive"
+                    className="object-cover rounded-lg"
+                  />
+                )}
+                <div className="p-6">
+                  <h3 className="text-3xl font-semibold mb-2">
+                    <Link href={`/blog/${blog.slug}`} passHref>
+                      <span className="text-blue-500 hover:underline">{blog.title}</span>
+                    </Link>
+                  </h3>
+                  <p className="text-gray-600 mb-4" dangerouslySetInnerHTML={{ __html: blog.content }}></p>
+                  <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
+                  <div className="mt-2">
+                    {parseCategories(blog.category).map((category, i) => (
+                      <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
+                    ))}
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
+          {/* Additional Blog Posts */}
           <div className="space-y-4">
-            {currentBlogs.slice(1, 4).map((blog, index) => {
-              const content = getTranslatedContent(blog);
-              return (
-                <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden flex flex-col md:flex-row">
-                  {content.image && (
-                    <Image
-                      src={content.image}
-                      alt={content.title}
-                      width={280}
-                      height={100}
-                      layout="responsive"
-                      className="object-cover rounded-lg blog-img"
-                    />
-                  )}
-                  <div className="p-4">
-                    <h4 className="text-lg font-semibold">
-                      <Link href={`/blog/${content.slug}`} passHref>
-                        <span className="text-blue-500 hover:underline">{content.title}</span>
-                      </Link>
-                    </h4>
-                    <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
-                    <div className="mt-2">
-                      {parseCategories(blog.category).map((category, i) => (
-                        <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
-                      ))}
-                    </div>
+            {currentBlogs.slice(1, 4).map((blog, index) => (
+              <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden flex flex-col md:flex-row">
+                {blog.image && (
+                  <Image
+                    src={blog.image}
+                    alt={blog.title}
+                    width={280}
+                    height={100}
+                    layout="responsive"
+                    className="object-cover rounded-lg blog-img"
+                  />
+                )}
+                <div className="p-4">
+                  <h4 className="text-lg font-semibold">
+                    <Link href={`/blog/${blog.slug}`} passHref>
+                      <span className="text-blue-500 hover:underline">{blog.title}</span>
+                    </Link>
+                  </h4>
+                  <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
+                  <div className="mt-2">
+                    {parseCategories(blog.category).map((category, i) => (
+                      <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
+                    ))}
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </div>
 
+        {/* Newsletter Subscription */}
         <div className="bg-red-500 text-white p-10 rounded-lg relative w-full text-center mt-5 mb-5">
           <div className="mt-10">
             <h2 className="text-2xl text-white font-bold mb-2">SUBSCRIBE TO OUR NEWSLETTER</h2>
@@ -163,42 +160,41 @@ const BlogSection = ({ initialBlogs }) => {
           </div>
         </div>
 
+        {/* Additional Blog Posts */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-          {currentBlogs.slice(4).map((blog, index) => {
-            const content = getTranslatedContent(blog);
-            return (
-              <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
-                {content.image && (
-                  <Image
-                    src={content.image}
-                    alt={content.title}
-                    width={600}
-                    height={400}
-                    layout="responsive"
-                    className="object-cover rounded-lg"
-                  />
-                )}
-                <div className="p-4">
-                  <h4 className="text-lg font-semibold">
-                    <Link href={`/blog/${content.slug}`} passHref>
-                      <span className="text-blue-500 hover:underline">{content.title}</span>
-                    </Link>
-                  </h4>
-                  <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
-                  <div className="mt-2">
-                    {parseCategories(blog.category).map((category, i) => (
-                      <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
-                    ))}
-                  </div>
-                  <Link href={`/blog/${content.slug}`} passHref>
-                    <span className="text-red-500 hover:underline mt-3"><span>Read More <FaArrowRight/></span></span>
+          {currentBlogs.slice(4).map((blog, index) => (
+            <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden">
+              {blog.image && (
+                <Image
+                  src={blog.image}
+                  alt={blog.title}
+                  width={600}
+                  height={400}
+                  layout="responsive"
+                  className="object-cover rounded-lg"
+                />
+              )}
+              <div className="p-4">
+                <h4 className="text-lg font-semibold">
+                  <Link href={`/blog/${blog.slug}`} passHref>
+                    <span className="text-blue-500 hover:underline">{blog.title}</span>
                   </Link>
+                </h4>
+                <p className="text-gray-500 text-sm">By {blog.author} · {new Date(blog.createdAt).toLocaleDateString()}</p>
+                <div className="mt-2">
+                  {parseCategories(blog.category).map((category, i) => (
+                    <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">{category}</span>
+                  ))}
                 </div>
+                <Link href={`/blog/${blog.slug}`} passHref>
+                  <span className="text-red-500 hover:underline mt-3"><span>Read More <FaArrowRight /></span></span>
+                </Link>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
 
+        {/* Pagination */}
         <div className="flex justify-center mt-8">
           <nav className="block">
             <ul className="flex pl-0 rounded list-none flex-wrap">

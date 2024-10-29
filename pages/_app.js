@@ -1,16 +1,17 @@
+import { appWithTranslation } from 'next-i18next';
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Script from 'next/script';
 import '../styles/globals.css';
 import { AuthProvider } from '../contexts/AuthContext';
-import Footer from './Footer';
-import Navbar from './Navbar';
-import { appWithTranslation } from 'next-i18next';
+import Footer from './Footer'; // Adjust your path based on file structure
+import Navbar from './Navbar'; 
 import { ContentProvider } from '../contexts/ContentContext';
 import CookieConsent from 'react-cookie-consent';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import '../public/laraberg.css';
+import nextI18NextConfig from '../next-i18next.config'; // Import i18n config
 
 function MyApp({ Component, pageProps }) {
   const [showButton, setShowButton] = useState(false);
@@ -18,13 +19,11 @@ function MyApp({ Component, pageProps }) {
   const [maintenanceData, setMaintenanceData] = useState(null);
   const router = useRouter();
 
-  // Check maintenance mode status when app loads
   useEffect(() => {
     const checkMaintenanceMode = async () => {
       try {
         const response = await fetch('/api/maintenance');
         const data = await response.json();
-        // Check if the status is 'enabled'
         if (data.status === 'enabled') {
           setIsMaintenance(true);
           setMaintenanceData({
@@ -37,19 +36,13 @@ function MyApp({ Component, pageProps }) {
         console.error('Error fetching maintenance status:', error);
       }
     };
-
     checkMaintenanceMode();
   }, []);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 300) {
-        setShowButton(true);
-      } else {
-        setShowButton(false);
-      }
+      setShowButton(window.scrollY > 300);
     };
-
     const throttledHandleScroll = throttle(handleScroll, 200);
     window.addEventListener('scroll', throttledHandleScroll);
 
@@ -63,8 +56,8 @@ function MyApp({ Component, pageProps }) {
     return () => {
       if (!timeout) {
         timeout = setTimeout(() => {
-          timeout = null;
           func();
+          timeout = null;
         }, delay);
       }
     };
@@ -178,4 +171,4 @@ function MyApp({ Component, pageProps }) {
   );
 }
 
-export default appWithTranslation(MyApp);
+export default appWithTranslation(MyApp, nextI18NextConfig);

@@ -33,8 +33,9 @@ export default async function handler(req, res) {
       try {
         const { defaultLanguage, translations } = body;
 
-        if (!defaultLanguage || !translations || !translations[defaultLanguage]) {
-          throw new Error('Default language and translations are required');
+        // Check if defaultLanguage and translations exist and are correctly structured
+        if (!defaultLanguage || !translations || typeof translations !== 'object' || !translations[defaultLanguage]) {
+          throw new Error('Default language and a valid translations object are required');
         }
 
         // Create the new category object
@@ -45,7 +46,15 @@ export default async function handler(req, res) {
 
         // Insert the new category into the database
         const result = await categoriesCollection.insertOne(newCategory);
-        res.status(201).json(result.ops[0]);
+
+        // Confirm result contains the inserted category's ID
+        if (!result.insertedId) {
+          throw new Error('Failed to insert the category');
+        }
+
+        // Fetch and return the newly created category by its ID
+        const createdCategory = await categoriesCollection.findOne({ _id: result.insertedId });
+        res.status(201).json(createdCategory);
       } catch (error) {
         console.error("POST Error:", error);
         res.status(400).json({ success: false, error: error.message });
@@ -56,7 +65,7 @@ export default async function handler(req, res) {
       try {
         const { defaultLanguage, translations } = body;
 
-        if (!defaultLanguage || !translations || !translations[defaultLanguage]) {
+        if (!defaultLanguage || !translations || typeof translations !== 'object' || !translations[defaultLanguage]) {
           throw new Error('Default language and translations are required');
         }
 
@@ -111,7 +120,7 @@ export default async function handler(req, res) {
             res.status(200).json({ success: true, message: `Translation for language ${lang} deleted.` });
           }
         } else {
-          throw new Error(`Translation for language ${lang} not found.`);
+          throw new Error(`Translation for language ${lang} not found or undefined.`);
         }
       } catch (error) {
         console.error("DELETE Error:", error);
