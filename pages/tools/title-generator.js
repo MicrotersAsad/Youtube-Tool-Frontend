@@ -629,7 +629,7 @@ const overallRating = reviews.length
 
       
 
-          <h2 className="text-3xl text-white">{t("YouTube Title Generator")}</h2>
+          <h2 className="text-3xl text-white">{("YouTube Title Generator")}</h2>
 
           {modalVisible && (
             <div
