@@ -21,8 +21,6 @@ const availableLanguages = [
   { code: 'de', name: 'Deutsch' },
 ];
 
-
-
 function createSlug(title) {
   return title
     .toLowerCase()
@@ -64,6 +62,7 @@ function Categories() {
 
   const handleSaveCategory = async () => {
     const { name, slug, description } = categoryData;
+
     const updatedTranslations = {
       ...editingCategory?.translations,
       [selectedLanguage]: { name, slug, description }
@@ -87,7 +86,7 @@ function Categories() {
       setCategoryData({ name: '', slug: '', description: '' });
       setEditingCategory(null);
       toast.success(`Category ${editingCategory ? 'updated' : 'added'} successfully!`);
-      await fetchCategories(); // Reload categories after saving
+      fetchCategories(); // Reload categories after saving
     } else {
       const errorData = await response.json();
       console.error(`Error ${editingCategory ? 'updating' : 'adding'} category:`, errorData.error);
@@ -107,7 +106,8 @@ function Categories() {
         throw new Error(errorData.error);
       }
 
-      await fetchCategories(); // Update the category list after deletion
+      // Update the category list by fetching it again after deletion
+      fetchCategories();
       toast.success(`Category in ${selectedLanguage.toUpperCase()} deleted successfully!`);
     } catch (error) {
       console.error('Error deleting category:', error.message);
@@ -119,7 +119,9 @@ function Categories() {
   const handleLanguageChange = (e) => {
     setSelectedLanguage(e.target.value);
     if (editingCategory) {
-      const translation = editingCategory.translations?.[e.target.value] || {};
+      const translation = editingCategory.translations && editingCategory.translations[e.target.value] 
+        ? editingCategory.translations[e.target.value]
+        : {};
       setCategoryData({
         name: translation.name || '',
         slug: translation.slug || createSlug(translation.name || ''),
@@ -140,7 +142,9 @@ function Categories() {
   };
 
   const handleEdit = (category) => {
-    const translation = category.translations?.[selectedLanguage] || {};
+    const translation = category.translations && category.translations[selectedLanguage] 
+      ? category.translations[selectedLanguage] 
+      : {};
     setCategoryData({
       name: translation.name || '',
       slug: translation.slug || createSlug(translation.name || ''),
@@ -159,6 +163,7 @@ function Categories() {
       <div className="container mx-auto p-5">
         <h2 className="text-2xl font-bold mb-5">Categories</h2>
 
+        {/* Add/Edit Category Form */}
         <div className="border p-4 rounded-lg shadow-md mb-5">
           <h3 className="text-xl font-semibold mb-3">{editingCategory ? 'Edit Category' : 'Add New Category'}</h3>
           <div className="mb-4">
@@ -175,6 +180,7 @@ function Categories() {
               ))}
             </select>
           </div>
+          {/* Name Input */}
 
           <div className="mb-4">
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">Category Name</label>
@@ -188,6 +194,7 @@ function Categories() {
             />
           </div>
 
+          {/* Slug Input */}
           <div className="mb-4">
             <label htmlFor="slug" className="block text-sm font-medium text-gray-700">Slug</label>
             <input
@@ -200,6 +207,7 @@ function Categories() {
             />
           </div>
 
+          {/* Description Input */}
           <div className="mb-4">
             <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
             <textarea
@@ -210,6 +218,9 @@ function Categories() {
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             />
           </div>
+
+          {/* Language Selector */}
+        
 
           <div className="flex justify-end">
             {editingCategory && (
@@ -229,6 +240,7 @@ function Categories() {
           </div>
         </div>
 
+        {/* Categories List Table */}
         <h3 className="text-xl font-semibold mb-3">Categories List</h3>
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -251,55 +263,47 @@ function Categories() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {categories.length > 0 ? (
-              categories.map((category) => {
-                const translation = category.translations?.[selectedLanguage] || {};
-                return (
-                  <tr key={`${category._id}-${selectedLanguage}`}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      <select
-                        value={selectedLanguage}
-                        onChange={handleLanguageChange}
-                        className="w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                      >
-                        {availableLanguages.map(lang => (
-                          <option key={lang.code} value={lang.code}>{lang.name}</option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {translation.name || 'N/A'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {translation.slug || 'N/A'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {translation.description || 'N/A'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <button
-                        onClick={() => handleEdit(category)}
-                        className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded mr-2"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteCategory(category._id)}
-                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan="5" className="text-center py-4">
-                  No categories available.
-                </td>
-              </tr>
-            )}
+            {categories.map((category) => {
+              const translation = category.translations[selectedLanguage] || {};
+              return (
+                <tr key={`${category._id}-${selectedLanguage}`}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <select
+                      value={selectedLanguage}
+                      onChange={handleLanguageChange}
+                      className="w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    >
+                      {availableLanguages.map(lang => (
+                        <option key={lang.code} value={lang.code}>{lang.name}</option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {translation.name || 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {translation.slug || 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {translation.description || 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <button
+                      onClick={() => handleEdit(category)}
+                      className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded mr-2"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCategory(category._id)}
+                      className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 

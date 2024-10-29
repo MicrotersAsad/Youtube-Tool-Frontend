@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Layout from './layout';
 import { FaCopy } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
 const CreateShortCode = () => {
   const [selectedTool, setSelectedTool] = useState('');
@@ -20,7 +21,7 @@ const CreateShortCode = () => {
       setShortcodes(response.data);
     } catch (error) {
       console.error('Error fetching shortcodes:', error);
-      alert('Failed to fetch shortcodes. Please try again.');
+      toast.error('Failed to fetch shortcodes. Please try again.');
     }
   };
 
@@ -37,16 +38,16 @@ const CreateShortCode = () => {
         componentName: selectedTool,
       });
 
-      alert('Shortcode saved successfully!');
+      toast.success('Shortcode saved successfully!');
       setSelectedTool('');
       setShortcode('');
       fetchShortcodes(); // Refresh the shortcode list after adding
     } catch (error) {
       console.error('Error saving shortcode:', error);
       if (error.response && error.response.status === 400) {
-        alert(error.response.data.message);
+        toast.success(error.response.data.message);
       } else {
-        alert('An error occurred while saving the shortcode. Please try again.');
+        toast.error('An error occurred while saving the shortcode. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -56,10 +57,10 @@ const CreateShortCode = () => {
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text).then(
       () => {
-        alert('Shortcode copied to clipboard!');
+        toast.success('Shortcode copied to clipboard!');
       },
       (err) => {
-        alert('Failed to copy shortcode. Please try again.');
+        toast.error('Failed to copy shortcode. Please try again.');
       }
     );
   };
@@ -81,6 +82,7 @@ const CreateShortCode = () => {
           >
             <option value="">Select a tool</option>
             <option value="name-generator">YouTube Name Generator</option>
+            <option value="youtube-title-and-description-extractor">YouTube title  Generator</option>
             {/* Add more tools as needed */}
           </select>
         </div>

@@ -186,13 +186,13 @@ const Test = () => {
     document.body.removeChild(element);
   };
     return (
-        <div className="bg-box">
-            <div>
+        <div>
+            {/* <div>
         
           <Image className="shape2" src={cloud} alt="cloud" />
           <Image className="shape3" src={cloud2} alt="cloud2" />
           
-        </div>
+        </div> */}
             <ToastContainer/>
                <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
                <h2 className="text-3xl text-black p-4">{("YouTube Name Generator")}</h2>

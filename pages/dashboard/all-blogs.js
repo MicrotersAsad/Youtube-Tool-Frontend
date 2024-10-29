@@ -1,3 +1,4 @@
+// pages/dashboard/all-blogs.js
 import React, { useState, useEffect } from 'react';
 import Layout from './layout';
 import Link from 'next/link';
@@ -43,18 +44,48 @@ function AllBlogs() {
   const fetchBlogs = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/blogs');
-      if (!response.ok) {
+      const blogsResponse = await fetch('/api/blogs');
+      if (!blogsResponse.ok) {
         throw new Error('Failed to fetch blogs');
       }
-      const data = await response.json();
-      setBlogs(data);
+      const blogsData = await blogsResponse.json();
+  
+      // Fetch categories separately
+      const categoriesResponse = await fetch('/api/categories');
+      if (!categoriesResponse.ok) {
+        throw new Error('Failed to fetch categories');
+      }
+      const categoriesData = await categoriesResponse.json();
+  
+      // Create a category mapping based on ID
+      const categoryMap = {};
+      categoriesData.forEach(category => {
+        categoryMap[category._id] = category.name;
+      });
+  
+      // Assign category names to each blog based on category IDs
+      const blogsWithCategories = blogsData.map(blog => {
+        const translations = blog.translations || {};
+        const updatedTranslations = Object.entries(translations).reduce((acc, [language, translation]) => {
+          // Update the category field to use the category name(s)
+          const categoryArray = getCategoriesArray(translation.category);
+          const categoryNames = categoryArray.map(catId => categoryMap[catId] || catId); // Fallback to ID if not found
+          acc[language] = {
+            ...translation,
+            category: categoryNames.join(', ')
+          };
+          return acc;
+        }, {});
+        return { ...blog, translations: updatedTranslations };
+      });
+  
+      setBlogs(blogsWithCategories);
     } catch (error) {
       console.error('Error fetching blogs:', error.message);
     }
     setLoading(false);
   };
-
+  
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
   };
@@ -67,17 +98,15 @@ function AllBlogs() {
     setSelectedLanguage(e.target.value);
   };
 
-  const handleDelete = async (id, language = '') => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this blog?')) {
       try {
-        const response = await fetch(`/api/blogs?id=${id}&language=${language}`, {
+        const response = await fetch(`/api/blogs?id=${id}`, {
           method: 'DELETE',
         });
-  
         if (!response.ok) {
           throw new Error('Failed to delete blog');
         }
-  
         setBlogs(blogs.filter((blog) => blog._id !== id));
         toast.success('Blog deleted successfully!');
       } catch (error) {
@@ -86,7 +115,7 @@ function AllBlogs() {
       }
     }
   };
-
+  
   const getCategoriesArray = (categories) => {
     if (!categories) return [];
     if (Array.isArray(categories)) {
@@ -245,9 +274,9 @@ function AllBlogs() {
                           <FaEdit />
                         </button>
                       </Link>
-                      <button onClick={() => handleDelete(blog._id, blog.language)} className="text-red-500 hover:text-red-700">
-  <FaTrash />
-</button>
+                      <button onClick={() => handleDelete(blog._id)} className="text-red-500 hover:text-red-700">
+                        <FaTrash />
+                      </button>
                     </td>
                   </tr>
                 ))}

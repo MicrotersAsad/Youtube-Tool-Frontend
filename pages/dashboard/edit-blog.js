@@ -102,7 +102,9 @@ function EditBlog() {
         setMetaDescription(translation.metaDescription || '');
         setDescription(translation.description || '');
         setInitialImage(translation.image || '');
-
+        setSelectedAuthor(data.author || '');
+        setSelectedEditor(data.editor || '');
+        setSelectedDeveloper(data.developer || '');
       } else {
         // Handle the case where translation for the selected language does not exist
         setQuillContent('');
@@ -112,7 +114,9 @@ function EditBlog() {
         setMetaTitle('');
         setMetaDescription('');
         setDescription('');
-        
+        setSelectedAuthor('');
+        setSelectedEditor('');
+        setSelectedDeveloper('');
       }
       setIsDraft(data.isDraft || false);
     } catch (error) {
@@ -138,6 +142,9 @@ function EditBlog() {
         formData.append('image', initialImage);
       }
       formData.append('category', selectedCategory); // Save category ID
+      formData.append('author', selectedAuthor); // Set selected author
+      formData.append('editor', selectedEditor); // Set selected editor
+      formData.append('developer', selectedDeveloper); // Set selected developer
       formData.append('createdAt', new Date().toISOString());
       formData.append('isDraft', JSON.stringify(isDraft));
       formData.append('language', language); // Append language
@@ -159,7 +166,7 @@ function EditBlog() {
       console.error('Error updating content:', error.message);
       setError(error.message);
     }
-  }, [quillContent, selectedCategory, metaTitle, metaDescription, description, title, slug, image, initialImage, isDraft, id, router, language]);
+  }, [quillContent, selectedCategory, metaTitle, metaDescription, description, title, slug, image, initialImage, isDraft, id, router, language, selectedAuthor, selectedEditor, selectedDeveloper]);
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
@@ -324,9 +331,54 @@ function EditBlog() {
             />
             <p className="text-gray-600 text-sm mt-1">Description max 200 characters</p>
           </div>
-       
-       
-        
+          <div className="mb-3">
+            <label htmlFor="author" className="block mb-2 text-lg font-medium">Author*</label>
+            <select
+              id="author"
+              value={selectedAuthor}
+              onChange={handleAuthorChange}
+              className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
+            >
+              <option value="" disabled>Select an author</option>
+              {authors
+                .filter((author) => author.role === 'Author')
+                .map((author) => (
+                  <option key={author._id} value={author.name}>{author.name}</option>
+                ))}
+            </select>
+          </div>
+          <div className="mb-3">
+            <label htmlFor="editor" className="block mb-2 text-lg font-medium">Editor*</label>
+            <select
+              id="editor"
+              value={selectedEditor}
+              onChange={handleEditorChange}
+              className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
+            >
+              <option value="" disabled>Select an editor</option>
+              {authors
+                .filter((author) => author.role === 'Editor')
+                .map((author) => (
+                  <option key={author._id} value={author.name}>{author.name}</option>
+                ))}
+            </select>
+          </div>
+          <div className="mb-3">
+            <label htmlFor="developer" className="block mb-2 text-lg font-medium">Developer*</label>
+            <select
+              id="developer"
+              value={selectedDeveloper}
+              onChange={handleDeveloperChange}
+              className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
+            >
+              <option value="" disabled>Select a developer</option>
+              {authors
+                .filter((author) => author.role === 'Developer')
+                .map((author) => (
+                  <option key={author._id} value={author.name}>{author.name}</option>
+                ))}
+            </select>
+          </div>
           <div className="mb-3">
             <label htmlFor="image" className="block mb-2 text-lg font-medium">Image</label>
             <input

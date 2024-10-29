@@ -41,7 +41,9 @@ function Blogs() {
       setDescription(savedState.description || '');
       setMetaDescription(savedState.metaDescription || '');
       setImage(savedState.image || null);
-      
+      setSelectedAuthor(savedState.selectedAuthor || '');
+      setSelectedEditor(savedState.selectedEditor || '');
+      setSelectedDeveloper(savedState.selectedDeveloper || '');
     }
   }, []);
 
@@ -62,10 +64,12 @@ function Blogs() {
       description,
       metaDescription,
       image,
-  
+      selectedAuthor,
+      selectedEditor,
+      selectedDeveloper
     };
     localStorage.setItem('blogFormState', JSON.stringify(formState));
-  }, [quillContent, selectedCategory, selectedLanguage, slug, title, metaTitle, description, metaDescription, image,]);
+  }, [quillContent, selectedCategory, selectedLanguage, slug, title, metaTitle, description, metaDescription, image, selectedAuthor, selectedEditor, selectedDeveloper]);
 
   const fetchCategories = async () => {
     try {
@@ -109,7 +113,7 @@ function Blogs() {
   };
 
   const handleSubmit = async () => {
-    if (!title || !quillContent || !metaDescription || !metaTitle || !description || !selectedCategory || !selectedLanguage) {
+    if (!title || !quillContent || !metaDescription || !metaTitle || !description || !selectedCategory || !selectedLanguage || !selectedAuthor || !selectedEditor || !selectedDeveloper) {
       setError('Please fill in all the fields.');
       return;
     }
@@ -128,7 +132,9 @@ function Blogs() {
       if (imageFile) {
         formData.append('image', imageFile); // Use the image file
       }
-      
+      formData.append('author', selectedAuthor); // Use the selected author
+      formData.append('editor', selectedEditor); // Use the selected editor
+      formData.append('developer', selectedDeveloper); // Use the selected developer
       formData.append('slug', slug);
       formData.append('createdAt', new Date().toISOString());
       formData.append('isDraft', JSON.stringify(false));
@@ -192,7 +198,7 @@ function Blogs() {
   return (
     <Layout>
       <div className="container mx-auto p-5">
-        <h2 className="text-3xl font-semibold mb-6">Add Post</h2>
+        <h2 className="text-3xl font-semibold mb-6">Add Post - {selectedCategory ? selectedCategory : 'Select a category'}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="col-span-2">
           <div className="mb-6">
@@ -307,7 +313,54 @@ function Blogs() {
               </select>
             </div>
            
-           
+            <div className="mb-6">
+              <label htmlFor="author" className="block mb-2 text-lg font-medium">Author*</label>
+              <select
+                id="author"
+                value={selectedAuthor}
+                onChange={(e) => setSelectedAuthor(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
+              >
+                <option value="" disabled>Select an author</option>
+                {authors
+                  .filter((author) => author.role === 'Author')
+                  .map((author) => (
+                    <option key={author._id} value={author.name}>{author.name}</option>
+                  ))}
+              </select>
+            </div>
+            <div className="mb-6">
+              <label htmlFor="editor" className="block mb-2 text-lg font-medium">Editor*</label>
+              <select
+                id="editor"
+                value={selectedEditor}
+                onChange={(e) => setSelectedEditor(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
+              >
+                <option value="" disabled>Select an editor</option>
+                {authors
+                  .filter((author) => author.role === 'Editor')
+                  .map((author) => (
+                    <option key={author._id} value={author.name}>{author.name}</option>
+                  ))}
+              </select>
+            </div>
+            <div className="mb-6">
+              <label htmlFor="developer" className="block mb-2 text-lg font-medium">Developer*</label>
+              <select
+                id="developer"
+                value={selectedDeveloper}
+                onChange={(e) => setSelectedDeveloper(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
+              >
+                <option value="" disabled>Select a developer</option>
+                {authors
+                  .filter((author) => author.role === 'Developer')
+                  .map((author) => (
+                    <option key={author._id} value={author.name}>{author.name}</option>
+                  ))}
+              </select>
+            </div>
             <div className="mb-3">
               <label htmlFor="image" className="block mb-2 text-lg font-medium">Image</label>
               <input
