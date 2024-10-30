@@ -1,7 +1,7 @@
-// replaceShortcodes.js
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
-// Dynamically import the component based on the component name
+// ডাইনামিক কম্পোনেন্ট লোডিংয়ের জন্য একটি ফাংশন
 const loadComponent = async (componentName) => {
   try {
     const componentModule = await import(`../pages/tools/${componentName}`);
@@ -12,9 +12,11 @@ const loadComponent = async (componentName) => {
   }
 };
 
+// শর্টকোড খুঁজে বের করে JSX রিটার্ন করার ফাংশন
 export function replaceShortcodes(content, shortcodes) {
   const [components, setComponents] = useState({});
 
+  // ডাটাবেস থেকে শর্টকোডের কম্পোনেন্ট লোড করা
   useEffect(() => {
     const loadAllComponents = async () => {
       const componentMap = {};
@@ -30,31 +32,30 @@ export function replaceShortcodes(content, shortcodes) {
     loadAllComponents();
   }, [shortcodes]);
 
-  // Check if the content is not a string, convert to a string, or handle it gracefully
-  if (typeof content !== 'string') {
-    console.warn("The content passed to replaceShortcodes is not a string.");
-    return content;
-  }
+  // কন্টেন্টকে ডাইনামিকভাবে প্রসেস করা
+  if (!content || typeof content !== 'string') return null;
 
-  let processedContent = content; // It's confirmed to be a string at this point
+  let processedContent = content;
 
-  // Replace each shortcode with a corresponding component or JSX element
+  // প্রতিটি শর্টকোড প্রসেস করা
   for (const shortcode of shortcodes) {
     const regex = new RegExp(`\\[${shortcode.shortcode}\\]`, 'g');
 
-    // Ensure that processedContent is a string for the split operation
-    if (typeof processedContent !== 'string') {
-      console.error("Processed content is not a string before attempting to split.");
-      continue; // Skip further processing for this shortcode
-    }
+    // Ensure processedContent is a string before applying split()
+    if (typeof processedContent !== 'string') continue;
 
     processedContent = processedContent.split(regex).map((part, index, arr) => (
       <React.Fragment key={`${shortcode.shortcode}-${index}`}>
-        <div dangerouslySetInnerHTML={{ __html: part }} /> {/* Render HTML parts */}
-        {index !== arr.length - 1 && components[shortcode.shortcode] && React.createElement(components[shortcode.shortcode])}
+        {/* Render each part as HTML content */}
+        <div dangerouslySetInnerHTML={{ __html: part }} />
+        {/* Render corresponding component if not the last part */}
+        {index !== arr.length - 1 &&
+          components[shortcode.shortcode] &&
+          React.createElement(components[shortcode.shortcode])}
       </React.Fragment>
     ));
   }
 
-  return processedContent;
+  // Wrap the processed content into a React Fragment to render it all together
+  return <>{processedContent}</>;
 }

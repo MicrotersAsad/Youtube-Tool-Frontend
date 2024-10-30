@@ -16,6 +16,9 @@ import { useTranslation } from 'react-i18next';
 import { replaceShortcodes } from '../../components/replaceShortcodes'; // Import shortcode function
 
 const getTitle = (translation) => translation.title || translation.Title || '';
+const getDescription = (translation) => translation.description || translation.description || '';
+const getMetaTitle = (translation) => translation.metaTitle || translation.metaTitle || '';
+const getMetaDescription = (translation) => translation.metaDescription || translation.metaDescription || '';
 const getContent = (translation) => translation.content || translation.Content || '';
 
 const insertTocBeforeFirstHeading = (content, tocHtml) => {
@@ -26,7 +29,7 @@ const insertTocBeforeFirstHeading = (content, tocHtml) => {
   return `${beforeFirstHeading}${tocHtml}${afterFirstHeading}`;
 };
 
-const BlogPost = ({ initialBlog, authorData, relatedBlogs }) => {
+const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) => {
   const { t } = useTranslation('blog');
   const router = useRouter();
   const { slug } = router.query;
@@ -34,7 +37,8 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs }) => {
   const [blog, setBlog] = useState(initialBlog);
   const [author, setAuthor] = useState(authorData?.author);
   const [loading, setLoading] = useState(!initialBlog);
-  const [shortcodes, setShortcodes] = useState([]);
+  const [shortcodes, setShortcodes] = useState(initialShortcodes || []);
+console.log(initialBlog);
 
   useEffect(() => {
     if (!initialBlog && slug) {
@@ -66,18 +70,6 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs }) => {
     }
   }, [slug, initialBlog]);
 
-  useEffect(() => {
-    const fetchShortcodes = async () => {
-      try {
-        const { data } = await axios.get('/api/shortcodes-tools');
-        setShortcodes(data);
-      } catch (error) {
-        console.error('Error fetching shortcodes:', error.message);
-      }
-    };
-    fetchShortcodes();
-  }, []);
-
   const translation = blog?.translations ? blog.translations[locale] || {} : {};
   const content = getContent(translation);
   const [toc, updatedContent] = useToc(content);
@@ -85,6 +77,7 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs }) => {
   const tocHtml = toc ? ReactDOMServer.renderToStaticMarkup(<TableOfContents headings={toc} />) : '';
   const contentWithToc = insertTocBeforeFirstHeading(updatedContent, tocHtml);
 
+  // Replace shortcodes in the updated content dynamically
   const contentWithShortcodes = replaceShortcodes(contentWithToc, shortcodes);
 
   const categoryName = translation.category || 'Blog';
@@ -104,26 +97,72 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs }) => {
   return (
     <div className="relative">
       <Head>
-        <title>{getTitle(translation)} | ytubetools</title>
-        <meta name="description" content={translation.description || ''} />
+        <title>{getMetaTitle(translation)} | ytubetools</title>
+        <meta name="description" content={getMetaDescription(translation) || ''} />
       </Head>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
         <div className="flex flex-col lg:flex-row">
           <div className="flex-grow order-1 lg:order-2">
-            <Breadcrumb categoryName={categoryName} blogTitle={getTitle(translation)} />
-            <h1 className="md:text-5xl font-bold mb-4">{getTitle(translation)}</h1>
-            <AuthorInfo data={authorData} />
-            <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-8">
-              <div className="p-6 bg-white border-b border-gray-200">
+            
+            <h1 className="md:text-5xl text-xl font-bold mb-4">{getTitle(translation)}</h1>
+            <p>{getDescription(translation)}</p>
+          
+            <div className=" overflow-hidden  sm:rounded-lg mb-8">
+              <div className="border-b border-gray-200">
                 {/* Render processed content with shortcodes */}
-                <div className="my-4">{contentWithShortcodes}</div>
+                <div className="my-4 result-content">{contentWithShortcodes}</div>
                 {/* Additional sections like comments */}
                 <Comments slug={slug} />
               </div>
             </div>
           </div>
         </div>
+        <style jsx global>{`
+                .result-content h2{
+                padding-top: 12px;
+            
+                }
+                .result-content p{
+                padding-top: 12px;
+                padding-bottom: 12px;
+                }
+              .result-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 1rem;
+  text-align: left;
+  overflow-x: auto; /* Enable horizontal scrolling */
+  display: block; /* Make the table a block element */
+  white-space: nowrap; /* Prevent cells from breaking to the next line */
+}
+
+.result-content table th,
+.result-content table td {
+  border: 1px solid #ddd;
+  padding: 12px 15px;
+}
+
+.result-content table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+.result-content table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.result-content table tr:hover {
+  background-color: #f1f1f1;
+}
+
+.result-content table td {
+  word-wrap: break-word;
+  max-width: 300px;
+}
+
+            `}</style>
       </div>
     </div>
   );
@@ -181,6 +220,10 @@ export async function getServerSideProps({ locale, params, req }) {
         )
     ).slice(0, 3);
 
+    // Fetch shortcodes dynamically on the server side
+    const shortcodesResponse = await axios.get(`${protocol}://${host}/api/shortcodes-tools`);
+    const initialShortcodes = shortcodesResponse.data;
+
     return {
       props: {
         initialBlog: blog,
@@ -190,6 +233,7 @@ export async function getServerSideProps({ locale, params, req }) {
           developer: developer || null,
         },
         relatedBlogs: categoryBlogs,
+        initialShortcodes,
         ...(await serverSideTranslations(locale, ['blog', 'navbar', 'footer'])),
       },
     };
