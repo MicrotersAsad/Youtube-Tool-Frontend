@@ -447,6 +447,87 @@ const Layout = React.memo(({ children }) => {
             ) : null}
             {user && (user.role === "admin" || user.role === "super_admin") ? (
               <>
+                {/* Blog */}
+                <div className="mt-2">
+                  <p
+                    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
+                      isActiveRoute("/dashboard/categories") ||
+                      isActiveRoute("/dashboard/all-article") ||
+                      isActiveRoute("/dashboard/article")
+                        ? "bg-[#4634ff] text-white"
+                        : menuOpen === "blog"
+                        ? "bg-[#1d1e8e] text-white"
+                        : "hover:bg-[#1d1e8e] hover:text-white"
+                    }`}
+                    onClick={() => toggleMenu("article")}
+                  >
+                    <FaBlog className="mr-3 text-white" />
+                    {!isCollapsed && <span>Youtube Article</span>}
+                    {!isCollapsed && (
+                      <span className="ml-auto">
+                        {menuOpen === "article" ? (
+                          <FiChevronUp className="w-6 h-6" />
+                        ) : (
+                          <FiChevronDown className="w-6 h-6" />
+                        )}
+                      </span>
+                    )}
+                  </p>
+
+                  {/* Dropdown Content with Smooth Opening and Closing Animation */}
+                  <div
+                    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
+                      (menuOpen === "article" ||
+                        isActiveRoute("/dashboard/categories") ||
+                        isActiveRoute("/dashboard/all-article") ||
+                        isActiveRoute("/dashboard/article")) &&
+                      !isCollapsed
+                        ? "max-h-screen opacity-100 scale-y-100"
+                        : "max-h-0 opacity-0 scale-y-0"
+                    }`}
+                  >
+                    <Link href="/dashboard/categories" passHref>
+                      <p
+                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                          isActiveRoute("/dashboard/categories")
+                            ? "bg-[#1d1e8e] text-white"
+                            : "hover:bg-[#1d1e8e] hover:text-white"
+                        }`}
+                      >
+                        <FaCircle className="mr-2 text-xs" />
+                        Categories
+                      </p>
+                    </Link>
+                    <Link href="/dashboard/all-article" passHref>
+                      <p
+                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                          isActiveRoute("/dashboard/all-article")
+                            ? "bg-[#1d1e8e] text-white"
+                            : "hover:bg-[#1d1e8e] hover:text-white"
+                        }`}
+                      >
+                        <FaCircle className="mr-2 text-xs" />
+                        All Article
+                      </p>
+                    </Link>
+                    <Link href="/dashboard/article" passHref>
+                      <p
+                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                          isActiveRoute("/dashboard/article")
+                            ? "bg-[#1d1e8e] text-white"
+                            : "hover:bg-[#1d1e8e] hover:text-white"
+                        }`}
+                      >
+                        <FaCircle className="mr-2 text-xs" />
+                        Add Article
+                      </p>
+                    </Link>
+                  </div>
+                </div>
+              </>
+            ) : null}
+            {user && (user.role === "admin" || user.role === "super_admin") ? (
+              <>
                 {/* Pages */}
                 <div className="">
                   <p
