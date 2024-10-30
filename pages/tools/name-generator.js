@@ -1,8 +1,9 @@
 import { useRouter } from 'next/router';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { FaCopy, FaDownload, FaFacebook, FaInstagram, FaTwitter, FaLinkedin } from 'react-icons/fa';
 import { toast, ToastContainer } from 'react-toastify';
+import { useTranslation } from 'react-i18next'; // Import useTranslation
 
 const Test = () => {
   const [tags, setTags] = useState([]);
@@ -11,22 +12,26 @@ const Test = () => {
   const [generatedTitles, setGeneratedTitles] = useState([]);
   const { user, updateUserProfile } = useAuth();
   const [selectAll, setSelectAll] = useState(false);
-  const [generateCount, setGenerateCount] = useState(
-    parseInt(localStorage.getItem("generateCount") || "3")
-  );
-
+  const [generateCount, setGenerateCount] = useState(3); // Default value
+  const { t } = useTranslation(); // Add translation hook
   const router = useRouter();
+
+  // Use useEffect to access localStorage in the browser
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedCount = parseInt(localStorage.getItem("generateCount") || "3");
+      setGenerateCount(savedCount);
+    }
+  }, []);
 
   const generateTitles = async () => {
     if (!user) {
-      toast.error("Please sign in to use this tool.");
+      toast.error(t("Please sign in to use this tool."));
       return;
     }
 
     if (user.paymentStatus !== "success" && user.role !== "admin" && generateCount <= 0) {
-      toast.error(
-        `You are not upgraded. You can generate titles ${generateCount} more times. Upgrade`
-      );
+      toast.error(t(`You are not upgraded. You can generate titles ${generateCount} more times. Upgrade`));
       return;
     }
 
@@ -83,7 +88,7 @@ const Test = () => {
       if (user.paymentStatus !== "success") {
         const newCount = generateCount - 1;
         setGenerateCount(newCount);
-        localStorage.setItem("generateCount", newCount);
+        localStorage.setItem("generateCount", newCount.toString());
       }
     } catch (error) {
       toast.error(`Error: ${error.message}`);
@@ -180,7 +185,6 @@ const Test = () => {
   };
 
   const shareOnSocialMedia = (platform) => {
-    // Implement sharing logic here based on platform
     const url = window.location.href;
     let shareUrl;
 
@@ -203,6 +207,7 @@ const Test = () => {
 
     window.open(shareUrl, "_blank");
   };
+
 
   return (
     <div>
