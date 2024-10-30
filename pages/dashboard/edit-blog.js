@@ -127,12 +127,13 @@ function EditBlog() {
 
   const handleSave = useCallback(async () => {
     try {
-      const method = 'PUT';
+      console.log('Selected Category ID being sent:', selectedCategory); // Debugging
+      if (!selectedCategory || selectedCategory.length !== 24) throw new Error('Invalid category ID format');
 
       const formData = new FormData();
       formData.append('content', quillContent);
       formData.append('title', title);
-      formData.append('slug', slug);  // Use the slug from state
+      formData.append('slug', slug);
       formData.append('metaTitle', metaTitle);
       formData.append('metaDescription', metaDescription);
       formData.append('description', description);
@@ -141,16 +142,15 @@ function EditBlog() {
       } else if (initialImage) {
         formData.append('image', initialImage);
       }
-      formData.append('category', selectedCategory); // Save category ID
-      formData.append('author', selectedAuthor); // Set selected author
-      formData.append('editor', selectedEditor); // Set selected editor
-      formData.append('developer', selectedDeveloper); // Set selected developer
-      formData.append('createdAt', new Date().toISOString());
+      formData.append('category', selectedCategory);
+      formData.append('author', selectedAuthor);
+      formData.append('editor', selectedEditor);
+      formData.append('developer', selectedDeveloper);
       formData.append('isDraft', JSON.stringify(isDraft));
-      formData.append('language', language); // Append language
+      formData.append('language', language);
 
       const response = await fetch(`/api/blogs?id=${id}`, {
-        method,
+        method: 'PUT',
         body: formData,
       });
 
@@ -161,7 +161,7 @@ function EditBlog() {
 
       setError(null);
       toast.success('Content updated successfully!');
-      router.push('/dashboard/all-blogs'); // Redirect to all blogs page
+      router.push('/dashboard/all-blogs');
     } catch (error) {
       console.error('Error updating content:', error.message);
       setError(error.message);
@@ -173,8 +173,12 @@ function EditBlog() {
   }, []);
 
   const handleCategoryChange = (e) => {
-    setSelectedCategory(e.target.value);
+    const selectedId = e.target.value;
+    console.log('Selected Category ID:', selectedId); // Debugging line
+    setSelectedCategory(selectedId);
   };
+  
+  
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -255,20 +259,21 @@ function EditBlog() {
           <div className="mb-3">
             <label htmlFor="category" className="block mb-2 text-lg font-medium">Categories*</label>
             <select
-              id="category"
-              value={selectedCategory || ''}
-              onChange={handleCategoryChange}
-              className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
-            >
-              <option value="" disabled>Select a category</option>
-              {categories
-                .filter((category) => category.translations && category.translations[language])
-                .map((category) => (
-                  <option key={category._id} value={category._id}>
-                    {category.translations[language].name || category.translations['en'].name}
-                  </option>
-                ))}
-            </select>
+  id="category"
+  value={selectedCategory || ''}
+  onChange={handleCategoryChange}
+  className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
+>
+  <option value="" disabled>Select a category</option>
+  {categories
+    .filter((category) => category.translations && category.translations[language])
+    .map((category) => (
+      <option key={category._id} value={category._id}>
+        {category.translations[language].name || category.translations['en'].name}
+      </option>
+    ))}
+</select>
+
           </div>
           <div className="mb-3">
             <label htmlFor="metaDescription" className="block mb-2 text-lg font-medium">Meta Description</label>

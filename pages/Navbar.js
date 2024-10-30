@@ -225,7 +225,7 @@ function Navbar() {
                           <span className="sr-only">Open user menu</span>
                           {user.profileImage ? (
                             <Image
-                              src={`data:image/jpeg;base64,${user.profileImage}`}
+                              src={`${user.profileImage}`}
                               alt="User profile image"
                               className="w-8 h-8 rounded-full"
                               width={32}

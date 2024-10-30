@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import {
   FaShareAlt,
-  FaThumbsUp, 
-  FaThumbsDown ,
-  FaFlag ,
-  FaBookmark ,
+  FaThumbsUp,
+  FaThumbsDown,
+  FaFlag,
+  FaBookmark,
   FaFacebook,
   FaLinkedin,
   FaInstagram,
@@ -21,7 +20,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { format } from "date-fns";
 import Image from "next/image";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 import { i18n } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
@@ -32,13 +31,18 @@ import cloud from "../public/shape/cloud.png";
 import cloud2 from "../public/shape/cloud2.png";
 import Script from "next/script";
 const StarRating = dynamic(() => import("./tools/StarRating"), { ssr: false });
-
-export default function Home(reactions ) {
+export default function Home({
+  initialMeta,
+  reactions,
+  content,
+  faqList,
+  tools,
+}) {
   const { user, updateUserProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   const [tags, setTags] = useState([]);
   const [input, setInput] = useState("");
   const [generatedTitles, setGeneratedTitles] = useState([]);
@@ -48,11 +52,11 @@ export default function Home(reactions ) {
   const [isUpdated, setIsUpdated] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [meta, setMeta] = useState();
+  const [meta, setMeta] = useState(initialMeta);
+  const [existingContent, setExistingContent] = useState(content);
   const [translations, setTranslations] = useState([]);
-  const [existingContent, setExistingContent] = useState('');
-  const [relatedTools, setRelatedTools] = useState([]);
-  const [faqs, setFaqs] = useState([]);
+  const [relatedTools, setRelatedTools] = useState(tools);
+  const [faqs, setFaqs] = useState(faqList);
   const [likes, setLikes] = useState(reactions.likes || 0);
   const [unlikes, setUnlikes] = useState(reactions.unlikes || 0);
   const [hasLiked, setHasLiked] = useState(false);
@@ -79,35 +83,27 @@ export default function Home(reactions ) {
   const closeModal = () => setModalVisible(false);
 
   useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const language = i18n.language || "en";
-        const response = await fetch(`/api/content?category=tagGenerator&language=${language}`);
-        if (!response.ok) throw new Error("Failed to fetch content");
-        const data = await response.json();
-        setTranslations(data.translations);
+    if (typeof window !== 'undefined') {
+      const fetchContent = async () => {
+        try {
+          const language = i18n.language || "en";
+          const response = await fetch(`/api/content?category=tagGenerator&language=${language}`);
+          if (!response.ok) throw new Error("Failed to fetch content");
   
-        setExistingContent(data.translations[language]?.content || '');
-        setLikes(data.reactions.likes || 0);
-        setUnlikes(data.reactions.unlikes || 0);
-        
-        
-        setMeta({
-          title: data.translations[language]?.title || '',
-          description: data.translations[language]?.description || '',
-          image: data.translations[language]?.image || '',
-          url: `${window.location.protocol}//${window.location.host}`,
-        });
-        setFaqs(data.translations[language]?.faqs || []);
-        setRelatedTools(data.translations[language]?.relatedTools || []);
-      } catch (error) {
-        console.error("Error fetching content:", error);
-      }
-    };
-
-    fetchContent();
-    fetchReviews();
+          const data = await response.json();
+          setTranslations(data.translations);
+          setLikes(data.reactions.likes || 0);
+          setUnlikes(data.reactions.unlikes || 0);
+        } catch (error) {
+          console.error("Error fetching content:", error);
+        }
+      };
+  
+      fetchContent();
+      fetchReviews(); // Call client-side fetching only in useEffect
+    }
   }, [i18n.language]);
+  
 
   useEffect(() => {
     if (user && !user.name) {
@@ -204,8 +200,8 @@ export default function Home(reactions ) {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(
-      () => toast.success(t('copied', { text })),
-      (err) => toast.error(t('failedToCopy'))
+      () => toast.success(t("copied", { text })),
+      (err) => toast.error(t("failedToCopy"))
     );
   };
 
@@ -233,7 +229,7 @@ export default function Home(reactions ) {
 
   const generateTitles = async () => {
     if (!user) {
-      toast.error(t('loginToGenerateTags'));
+      toast.error(t("loginToGenerateTags"));
       return;
     }
 
@@ -242,7 +238,7 @@ export default function Home(reactions ) {
       user.role !== "admin" &&
       generateCount <= 0
     ) {
-      toast.error(t('upgradeForUnlimited'));
+      toast.error(t("upgradeForUnlimited"));
       return;
     }
 
@@ -273,7 +269,7 @@ export default function Home(reactions ) {
                 messages: [
                   {
                     role: "system",
-                    content: t('generateTagsPrompt', { tags: tags.join(", ") }),
+                    content: t("generateTagsPrompt", { tags: tags.join(", ") }),
                   },
                   { role: "user", content: tags.join(", ") },
                 ],
@@ -335,7 +331,7 @@ export default function Home(reactions ) {
     }
 
     if (!newReview.rating || !newReview.comment) {
-      toast.error(t('allFieldsRequired'));
+      toast.error(t("allFieldsRequired"));
       return;
     }
 
@@ -355,7 +351,7 @@ export default function Home(reactions ) {
 
       if (!response.ok) throw new Error("Failed to submit review");
 
-      toast.success(t('reviewSubmitted'));
+      toast.success(t("reviewSubmitted"));
       setNewReview({
         name: "",
         rating: 0,
@@ -367,7 +363,7 @@ export default function Home(reactions ) {
       fetchReviews();
     } catch (error) {
       console.error("Failed to submit review:", error);
-      toast.error(t('reviewSubmitFailed'));
+      toast.error(t("reviewSubmitFailed"));
     }
   };
 
@@ -404,101 +400,105 @@ export default function Home(reactions ) {
       } else if (userAction === "report") {
         setHasReported(true);
       }
-  
+
       // Check if data is already saved using the current URL
-      const savedChannels = JSON.parse(localStorage.getItem('savedChannels') || '[]');
-      const isChannelSaved = savedChannels.some(channel => channel.toolUrl === window.location.href);
+      const savedChannels = JSON.parse(
+        localStorage.getItem("savedChannels") || "[]"
+      );
+      const isChannelSaved = savedChannels.some(
+        (channel) => channel.toolUrl === window.location.href
+      );
       setIsSaved(isChannelSaved);
     }
   }, [user, reactions.users]);
-  
 
   const handleReaction = async (action) => {
     if (!user) {
-      toast.error('Please log in to react.');
+      toast.error("Please log in to react.");
       return;
     }
 
     try {
-      const response = await fetch('/api/reactions', {
-        method: 'PATCH',
+      const response = await fetch("/api/reactions", {
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          category: 'tagGenerator', // Replace with appropriate category
+          category: "tagGenerator", // Replace with appropriate category
           userId: user.email,
           action,
-          reportText: action === 'report' ? reportText : null, 
+          reportText: action === "report" ? reportText : null,
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update reaction');
+        throw new Error(errorData.message || "Failed to update reaction");
       }
 
       const updatedData = await response.json();
       setLikes(updatedData.reactions.likes || 0);
       setUnlikes(updatedData.reactions.unlikes || 0);
 
-      if (action === 'like') {
+      if (action === "like") {
         if (hasLiked) {
-          toast.error('You have already liked this.');
+          toast.error("You have already liked this.");
         } else {
           setHasLiked(true);
           setHasUnliked(false);
-          toast.success('You liked this content.');
+          toast.success("You liked this content.");
         }
-      } else if (action === 'unlike') {
+      } else if (action === "unlike") {
         if (hasUnliked) {
           setHasUnliked(false);
-          toast.success('You removed your dislike.');
+          toast.success("You removed your dislike.");
         } else {
           setHasLiked(false);
           setHasUnliked(true);
-          toast.success('You disliked this content.');
+          toast.success("You disliked this content.");
         }
-      } else if (action === 'report') {
+      } else if (action === "report") {
         if (hasReported) {
-          toast.error('You have already reported this.');
+          toast.error("You have already reported this.");
         } else {
           setHasReported(true);
-          toast.success('You have reported this content.');
+          toast.success("You have reported this content.");
         }
       }
     } catch (error) {
-      console.error('Failed to update reaction:', error);
+      console.error("Failed to update reaction:", error);
       toast.error(error.message);
     }
   };
-  
-  
-  
+
   const saveChannel = () => {
-    const savedChannels = JSON.parse(localStorage.getItem('savedChannels') || '[]');
+    const savedChannels = JSON.parse(
+      localStorage.getItem("savedChannels") || "[]"
+    );
     const currentTool = {
       toolName: "YouTube Tag Generator", // Name of the current tool
       toolUrl: window.location.href, // Current URL of the tool
     };
-  
-    const existingChannelIndex = savedChannels.findIndex(channel => channel.toolUrl === currentTool.toolUrl);
-  
+
+    const existingChannelIndex = savedChannels.findIndex(
+      (channel) => channel.toolUrl === currentTool.toolUrl
+    );
+
     if (existingChannelIndex === -1) {
       // If the tool is not already saved, save it
       savedChannels.push(currentTool);
-      localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
+      localStorage.setItem("savedChannels", JSON.stringify(savedChannels));
       setIsSaved(true);
       toast.success("Tool saved successfully!");
     } else {
       // If the tool is already saved, remove it
       savedChannels.splice(existingChannelIndex, 1);
-      localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
+      localStorage.setItem("savedChannels", JSON.stringify(savedChannels));
       setIsSaved(false);
       toast.success("Tool removed from saved list.");
     }
   };
-  
 
   // বাটন রঙের লজিক
   const likeButtonColor = hasLiked ? "#4CAF50" : "#ccc"; // লাইক করা থাকলে সবুজ
@@ -527,102 +527,118 @@ export default function Home(reactions ) {
           />
           <title>{meta?.title}</title>
           <meta name="description" content={meta?.description} />
-          <meta property="og:url"content={`${meta?.url}/${i18n.language !== 'en' ? i18n.language : ''}`} />
+          <meta
+            property="og:url"
+            content={`${meta?.url}/${
+              i18n.language !== "en" ? i18n.language : ""
+            }`}
+          />
           <meta property="og:title" content={meta?.title} />
           <meta property="og:description" content={meta?.description} />
           <meta property="og:image" content={meta?.image || ""} />
           <meta name="twitter:card" content={meta?.image || ""} />
-          <meta property="twitter:domain" content={`${meta?.url}/${i18n.language !== 'en' ? i18n.language : ''}`} />
-          <meta property="twitter:url" ccontent={`${meta?.url}/${i18n.language !== 'en' ? i18n.language : ''}`} />
+          <meta
+            property="twitter:domain"
+            content={`${meta?.url}/${
+              i18n.language !== "en" ? i18n.language : ""
+            }`}
+          />
+          <meta
+            property="twitter:url"
+            ccontent={`${meta?.url}/${
+              i18n.language !== "en" ? i18n.language : ""
+            }`}
+          />
           <meta name="twitter:title" content={meta?.title} />
           <meta name="twitter:description" content={meta?.description} />
           <meta name="twitter:image" content={meta?.image || ""} />
           <link rel="alternate" hreflang="x-default" href={meta?.url} />
           <link rel="alternate" hreflang="en" href={meta?.url} />
-          {translations && Object.keys(translations).map(lang => (
-    lang !== 'en' && (
-      <link
-        key={lang}
-        rel="alternate"
-        hrefLang={lang} 
-        href={`${meta?.url}/${lang}`}
-      />
-    )
-  ))}
-          </Head>
-         
-{/* - Webpage Schema */}
-<Script id="webpage-structured-data" type="application/ld+json">
-  {JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    name: meta?.title,
-    url: meta?.url,
-    description: meta?.description,
-    breadcrumb: {
-      "@id": `${meta?.url}#breadcrumb`,
-    },
-    about: {
-      "@type": "Thing",
-      name: meta?.title,
-    },
-    isPartOf: {
-      "@type": "WebSite",
-      url: meta?.url,
-    },
-  })}
-</Script>
+          {translations &&
+            Object.keys(translations).map(
+              (lang) =>
+                lang !== "en" && (
+                  <link
+                    key={lang}
+                    rel="alternate"
+                    hrefLang={lang}
+                    href={`${meta?.url}/${lang}`}
+                  />
+                )
+            )}
+        </Head>
 
-{/* - Review Schema */}
-<Script id="review-structured-data" type="application/ld+json">
-  {JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: meta?.title,
-    url: meta?.url,
-    applicationCategory: "Multimedia",
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: overallRating,
-      ratingCount: reviews?.length,
-      reviewCount: reviews?.length,
-    },
-    review: reviews.map((review) => ({
-      "@type": "Review",
-      author: {
-        "@type": "Person",
-        name: review.userName,
-      },
-      datePublished: review.createdAt,
-      reviewBody: review.comment,
-      name: review.title,
-      reviewRating: {
-        "@type": "Rating",
-        ratingValue: review.rating,
-      },
-    })),
-  })}
-</Script>
+        {/* - Webpage Schema */}
+        <Script id="webpage-structured-data" type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            name: meta?.title,
+            url: meta?.url,
+            description: meta?.description,
+            breadcrumb: {
+              "@id": `${meta?.url}#breadcrumb`,
+            },
+            about: {
+              "@type": "Thing",
+              name: meta?.title,
+            },
+            isPartOf: {
+              "@type": "WebSite",
+              url: meta?.url,
+            },
+          })}
+        </Script>
 
-{/* - FAQ Schema */}
-<Script id="faq-structured-data" type="application/ld+json">
-  {JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faqs?.map((faq) => ({
-      "@type": "Question",
-      name: faq.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: faq.answer,
-      },
-    })),
-  })}
-</Script>
+        {/* - Review Schema */}
+        <Script id="review-structured-data" type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: meta?.title,
+            url: meta?.url,
+            applicationCategory: "Multimedia",
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: overallRating,
+              ratingCount: reviews?.length,
+              reviewCount: reviews?.length,
+            },
+            review: reviews.map((review) => ({
+              "@type": "Review",
+              author: {
+                "@type": "Person",
+                name: review.userName,
+              },
+              datePublished: review.createdAt,
+              reviewBody: review.comment,
+              name: review.title,
+              reviewRating: {
+                "@type": "Rating",
+                ratingValue: review.rating,
+              },
+            })),
+          })}
+        </Script>
 
-       
+        {/* - FAQ Schema */}
+        <Script id="faq-structured-data" type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs?.map((faq) => ({
+              "@type": "Question",
+              name: faq.question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: faq.answer,
+              },
+            })),
+          })}
+        </Script>
+
         <div className="max-w-7xl mx-auto p-4">
-          <h2 className="text-3xl text-white">{t('YouTube Tag Generator')}</h2>
+          <h2 className="text-3xl text-white">{t("YouTube Tag Generator")}</h2>
           <ToastContainer />
           {modalVisible && (
             <div
@@ -641,18 +657,18 @@ export default function Home(reactions ) {
                   <div className="mt-4">
                     {!user ? (
                       <p className="text-center p-3 alert-warning">
-                        {t('loginToGenerateTags')}
+                        {t("loginToGenerateTags")}
                       </p>
                     ) : user.paymentStatus === "success" ||
                       user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
-                        {t('generateUnlimitedTags')}
+                        {t("generateUnlimitedTags")}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
-                        {t('notUpgraded')} {5 - generateCount} {t('moreTimes')}.{" "}
+                        {t("notUpgraded")} {5 - generateCount} {t("moreTimes")}.{" "}
                         <Link className="btn btn-warning ms-3" href="/pricing">
-                          {t('upgrade')}
+                          {t("upgrade")}
                         </Link>
                       </p>
                     )}
@@ -664,160 +680,159 @@ export default function Home(reactions ) {
               </div>
             </div>
           )}
- <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
-          <div className="keywords-input-container">
-            <div className="tags-container flex flex-wrap gap-2 mb-4">
-              {tags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="bg-gray-200 px-2 py-1 rounded-md flex items-center"
-                >
-                  {tag}
+          <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
+            <div className="keywords-input-container">
+              <div className="tags-container flex flex-wrap gap-2 mb-4">
+                {tags.map((tag, index) => (
                   <span
-                    className="ml-2 cursor-pointer"
-                    onClick={() => setTags(tags.filter((_, i) => i !== index))}
+                    key={index}
+                    className="bg-gray-200 px-2 py-1 rounded-md flex items-center"
                   >
-                    ×
+                    {tag}
+                    <span
+                      className="ml-2 cursor-pointer"
+                      onClick={() =>
+                        setTags(tags.filter((_, i) => i !== index))
+                      }
+                    >
+                      ×
+                    </span>
                   </span>
-                </span>
-              ))}
+                ))}
+              </div>
+              <input
+                type="text"
+                placeholder={t("addKeyword")}
+                className="w-full p-2"
+                value={input}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                required
+              />
             </div>
-            <input
-              type="text"
-              placeholder={t('addKeyword')}
-              className="w-full p-2"
-              value={input}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-              required
-            />
-          </div>
-           <div className="flex items-center mt-4 md:mt-0 ps-6 pe-6">
-         
+            <div className="flex items-center mt-4 md:mt-0 ps-6 pe-6">
+              <button
+                className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-500"
+                type="button"
+                id="button-addon2"
+                onClick={generateTitles}
+                disabled={isLoading || tags.length === 0}
+              >
+                <span className="animate-spin mr-2">
+                  <svg
+                    aria-hidden="true"
+                    className="h-5 w-5"
+                    viewBox="0 0 512 512"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="white"
+                  >
+                    <path d="M487.4 315.7l-42.6-24.6c4.3-23.2 4.3-47 0-70.2l42.6-24.6c4.9-2.8 7.1-8.6 5.5-14-11.1-35.6-30-67.8-54.7-94.6-3.8-4.1-10-5.1-14.8-2.3L380.8 110c-17.9-15.4-38.5-27.3-60.8-35.1V25.8c0-5.6-3.9-10.5-9.4-11.7-36.7-8.2-74.3-7.8-109.2 0-5.5 1.2-9.4 6.1-9.4 11.7V75c-22.2 7.9-42.8 19.8-60.8 35.1L88.7 85.5c-4.9-2.8-11-1.9-14.8 2.3-24.7 26.7-43.6 58.9-54.7 94.6-1.7 5.4.6 11.2 5.5 14L67.3 221c-4.3 23.2-4.3 47 0 70.2l-42.6 24.6c-4.9 2.8-7.1 8.6-5.5 14 11.1 35.6 30 67.8 54.7 94.6 3.8 4.1 10 5.1 14.8 2.3l42.6-24.6c17.9 15.4 38.5 27.3 60.8 35.1v49.2c0 5.6 3.9 10.5 9.4 11.7 36.7 8.2 74.3 7.8 109.2 0 5.5-1.2 9.4-6.1 9.4-11.7v-49.2c22.2-7.9 42.8-19.8 60.8-35.1l42.6 24.6c4.9 2.8 11 1.9 14.8-2.3 24.7-26.7 43.6-58.9 54.7-94.6 1.5-5.5-.7-11.3-5.6-14.1zM256 336c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z"></path>
+                  </svg>
+                </span>
+                {isLoading ? "Loading..." : "Generate Tag"}
+              </button>
 
-<button
-  className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-500"
-  type="button"
-  id="button-addon2"
-  onClick={generateTitles}
-  disabled={isLoading || tags.length === 0}
->
-  <span className="animate-spin mr-2">
-    <svg
-      aria-hidden="true"
-      className="h-5 w-5"
-      viewBox="0 0 512 512"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="white"
-    >
-      <path d="M487.4 315.7l-42.6-24.6c4.3-23.2 4.3-47 0-70.2l42.6-24.6c4.9-2.8 7.1-8.6 5.5-14-11.1-35.6-30-67.8-54.7-94.6-3.8-4.1-10-5.1-14.8-2.3L380.8 110c-17.9-15.4-38.5-27.3-60.8-35.1V25.8c0-5.6-3.9-10.5-9.4-11.7-36.7-8.2-74.3-7.8-109.2 0-5.5 1.2-9.4 6.1-9.4 11.7V75c-22.2 7.9-42.8 19.8-60.8 35.1L88.7 85.5c-4.9-2.8-11-1.9-14.8 2.3-24.7 26.7-43.6 58.9-54.7 94.6-1.7 5.4.6 11.2 5.5 14L67.3 221c-4.3 23.2-4.3 47 0 70.2l-42.6 24.6c-4.9 2.8-7.1 8.6-5.5 14 11.1 35.6 30 67.8 54.7 94.6 3.8 4.1 10 5.1 14.8 2.3l42.6-24.6c17.9 15.4 38.5 27.3 60.8 35.1v49.2c0 5.6 3.9 10.5 9.4 11.7 36.7 8.2 74.3 7.8 109.2 0 5.5-1.2 9.4-6.1 9.4-11.7v-49.2c22.2-7.9 42.8-19.8 60.8-35.1l42.6 24.6c4.9 2.8 11 1.9 14.8-2.3 24.7-26.7 43.6-58.9 54.7-94.6 1.5-5.5-.7-11.3-5.6-14.1zM256 336c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z"></path>
-    </svg>
-  </span>
-  {isLoading ? "Loading..." : "Generate Tag"}
-</button>
+              <div className="ms-auto">
+                <button
+                  className="flex items-center justify-center"
+                  onClick={saveChannel}
+                  style={{ color: saveButtonColor }}
+                >
+                  <FaBookmark
+                    className={`text-lg ${
+                      isSaved ? "text-purple-600" : "text-red-500"
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
 
+            {/* Reaction Bar */}
+            <div className="w-full flex items-center justify-between mt-4 p-3 bg-gray-100 rounded-md">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => handleReaction("like")}
+                  className="flex items-center space-x-1"
+                  style={{ color: likeButtonColor }}
+                >
+                  <FaThumbsUp className="text-xl text-green-600" />
+                  <span className="text-black">{likes}</span>
+                </button>
+                <button
+                  onClick={() => handleReaction("unlike")}
+                  className="flex items-center space-x-1"
+                  style={{ color: unlikeButtonColor }}
+                >
+                  <FaThumbsDown className="text-xl text-red-400" />
+                  <span className="text-black">{unlikes}</span>
+                </button>
+                <button
+                  onClick={() => setShowReportModal(true)}
+                  className="flex items-center space-x-1"
+                  style={{ color: reportButtonColor }}
+                >
+                  <FaFlag className="text-xl text-red-500" />
+                  <span className="text-black">Report</span>
+                </button>
+              </div>
+              <div className="text-center">
+                <div className="flex justify-center items-center gap-2">
+                  <FaShareAlt className="text-red-500 text-xl" />
 
+                  <FaFacebook
+                    className="text-blue-600 text-xl cursor-pointer"
+                    onClick={() => shareOnSocialMedia("facebook")}
+                  />
+                  <FaInstagram
+                    className="text-pink-500 text-xl cursor-pointer"
+                    onClick={() => shareOnSocialMedia("instagram")}
+                  />
+                  <FaTwitter
+                    className="text-blue-400 text-xl cursor-pointer"
+                    onClick={() => shareOnSocialMedia("twitter")}
+                  />
+                  <FaLinkedin
+                    className="text-blue-700 text-xl cursor-pointer"
+                    onClick={() => shareOnSocialMedia("linkedin")}
+                  />
+                </div>
+              </div>
+            </div>
 
-
-      
-      <div className="ms-auto">
-      <button
-        className="flex items-center justify-center"
-        onClick={saveChannel}
-        style={{ color: saveButtonColor }}
-      >
-        <FaBookmark className={`text-lg ${isSaved ? 'text-purple-600' : 'text-red-500'}`} />
-      </button>
-      </div>
-    </div>
-         
-     {/* Reaction Bar */}
-  <div className="w-full flex items-center justify-between mt-4 p-3 bg-gray-100 rounded-md">
-    <div className="flex items-center space-x-4">
-      <button
-        onClick={() => handleReaction("like")}
-        className="flex items-center space-x-1"
-        style={{ color: likeButtonColor }}
-      >
-        <FaThumbsUp className="text-xl text-green-600" />
-        <span className="text-black">{likes}</span>
-      </button>
-      <button
-        onClick={() => handleReaction("unlike")}
-        className="flex items-center space-x-1"
-        style={{ color: unlikeButtonColor }}
-      >
-        <FaThumbsDown className="text-xl text-red-400" />
-        <span className="text-black">{unlikes}</span>
-      </button>
-      <button
-        onClick={() => setShowReportModal(true)}
-        className="flex items-center space-x-1"
-        style={{ color: reportButtonColor }}
-      >
-        <FaFlag className="text-xl text-red-500" />
-        <span className="text-black">Report</span>
-      </button>
-    </div>
-    <div className="text-center">
-          <div className="flex justify-center items-center gap-2">
-            <FaShareAlt className="text-red-500 text-xl" />
-            
-            <FaFacebook
-              className="text-blue-600 text-xl cursor-pointer"
-              onClick={() => shareOnSocialMedia("facebook")}
-            />
-            <FaInstagram
-              className="text-pink-500 text-xl cursor-pointer"
-              onClick={() => shareOnSocialMedia("instagram")}
-            />
-            <FaTwitter
-              className="text-blue-400 text-xl cursor-pointer"
-              onClick={() => shareOnSocialMedia("twitter")}
-            />
-            <FaLinkedin
-              className="text-blue-700 text-xl cursor-pointer"
-              onClick={() => shareOnSocialMedia("linkedin")}
-            />
-          </div>
-        </div>
-  </div>
-
-  {showReportModal && (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="fixed inset-0 bg-black opacity-50"></div>
-      <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
-        <h2 className="text-2xl font-semibold mb-4">
-          Report This Tool
-        </h2>
-        <textarea
-          className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-          placeholder="Describe your issue..."
-          value={reportText}
-          onChange={(e) => setReportText(e.target.value)}
-        />
-        <div className="mt-4 flex justify-end space-x-4">
-          <button
-            className="btn btn-secondary text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline"
-            onClick={() => setShowReportModal(false)}
-          >
-            Cancel
-          </button>
-          <button
-            className="btn btn-primary text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
-            onClick={() => handleReaction("report")}
-          >
-            Submit Report
-          </button>
-        </div>
-      </div>
-    </div>
-  )}
+            {showReportModal && (
+              <div className="fixed inset-0 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black opacity-50"></div>
+                <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
+                  <h2 className="text-2xl font-semibold mb-4">
+                    Report This Tool
+                  </h2>
+                  <textarea
+                    className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                    placeholder="Describe your issue..."
+                    value={reportText}
+                    onChange={(e) => setReportText(e.target.value)}
+                  />
+                  <div className="mt-4 flex justify-end space-x-4">
+                    <button
+                      className="btn btn-secondary text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline"
+                      onClick={() => setShowReportModal(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="btn btn-primary text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                      onClick={() => handleReaction("report")}
+                    >
+                      Submit Report
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
-      
         <div className="text-center my-4">
           {generatedTitles.length > 0 && (
             <div className="inline-block p-2 rounded-md bg-gray-200">
@@ -827,7 +842,7 @@ export default function Home(reactions ) {
                 onChange={handleSelectAll}
                 className="mr-2"
               />
-              <span>{t('selectAll')}</span>
+              <span>{t("selectAll")}</span>
             </div>
           )}
         </div>
@@ -876,61 +891,63 @@ export default function Home(reactions ) {
         </div>
 
         <div className="accordion">
-            <h2 className="faq-title">{t('frequentlyAskedQuestions')}</h2>
-            <p className="faq-subtitle">
-              {t('answeredAllFAQs')}
-            </p>
-            <div className="faq-grid">
-              {faqs?.map((faq, index) => (
-                <div key={index} className="faq-item">
-                  <span id={`accordion-${index}`} className="target-fix"></span>
-                  <a
-                    href={`#accordion-${index}`}
-                    id={`open-accordion-${index}`}
-                    className="accordion-header"
-                    onClick={() => toggleFAQ(index)}
-                  >
-                    {faq.question}
-                  </a>
-                  <a
-                    href={`#accordion-${index}`}
-                    id={`close-accordion-${index}`}
-                    className="accordion-header"
-                    onClick={() => toggleFAQ(index)}
-                  >
-                    {faq.question}
-                  </a>
-                  <div
-                    className={`accordion-content ${
-                      openIndex === index ? "open" : ""
-                    }`}
-                  >
-                    <p>{faq.answer}</p>
-                  </div>
+          <h2 className="faq-title">{t("frequentlyAskedQuestions")}</h2>
+          <p className="faq-subtitle">{t("answeredAllFAQs")}</p>
+          <div className="faq-grid">
+            {faqs?.map((faq, index) => (
+              <div key={index} className="faq-item">
+                <span id={`accordion-${index}`} className="target-fix"></span>
+                <a
+                  href={`#accordion-${index}`}
+                  id={`open-accordion-${index}`}
+                  className="accordion-header"
+                  onClick={() => toggleFAQ(index)}
+                >
+                  {faq.question}
+                </a>
+                <a
+                  href={`#accordion-${index}`}
+                  id={`close-accordion-${index}`}
+                  className="accordion-header"
+                  onClick={() => toggleFAQ(index)}
+                >
+                  {faq.question}
+                </a>
+                <div
+                  className={`accordion-content ${
+                    openIndex === index ? "open" : ""
+                  }`}
+                >
+                  <p>{faq.answer}</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        
+        </div>
+
         <hr className="mt-4 mb-2" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
           {/* Review Summary Section */}
           <div className="p-4 bg-white shadow-md rounded-md">
-            <div className="text-xl font-bold mb-2">{t('customerReviews')}</div>
+            <div className="text-xl font-bold mb-2">{t("customerReviews")}</div>
             <div className="flex items-center mb-2">
-              <div className="text-xl font-bold mr-2">{overallRating || '0'}</div>
+              <div className="text-xl font-bold mr-2">
+                {overallRating || "0"}
+              </div>
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
                   <FaStar
                     key={i}
-                    color={i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"}
+                    color={
+                      i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"
+                    }
                     size={18}
                   />
                 ))}
               </div>
               <div className="ml-2 text-sm text-gray-500">
-                {reviews.length} {t('globalRatings')}
+                {reviews.length} {t("globalRatings")}
               </div>
             </div>
             <div>
@@ -951,13 +968,13 @@ export default function Home(reactions ) {
             </div>
             <hr className="my-4" />
             <div>
-              <h4 className="text-lg font-semibold">{t('reviewThisTool')}</h4>
-              <p className="text-sm text-gray-600">{t('shareYourThoughts')}</p>
+              <h4 className="text-lg font-semibold">{t("reviewThisTool")}</h4>
+              <p className="text-sm text-gray-600">{t("shareYourThoughts")}</p>
               <button
                 className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
                 onClick={openReviewForm}
               >
-                {t('writeReview')}
+                {t("writeReview")}
               </button>
             </div>
           </div>
@@ -981,8 +998,12 @@ export default function Home(reactions ) {
                     />
                   </div>
                   <div className="ml-3">
-                    <div className="font-semibold text-sm">{review?.userName}</div>
-                    <div className="text-gray-500 text-xs">{t('verifiedPurchase')}</div>
+                    <div className="font-semibold text-sm">
+                      {review?.userName}
+                    </div>
+                    <div className="text-gray-500 text-xs">
+                      {t("verifiedPurchase")}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center mb-3">
@@ -995,7 +1016,9 @@ export default function Home(reactions ) {
                   ))}
                 </div>
                 <div className="text-sm mb-2">{review.comment}</div>
-                <div className="text-gray-500 text-xs">{t('reviewedOn')} {review.createdAt}</div>
+                <div className="text-gray-500 text-xs">
+                  {t("reviewedOn")} {review.createdAt}
+                </div>
               </div>
             ))}
             {!showAllReviews && reviews.length > 5 && (
@@ -1003,7 +1026,7 @@ export default function Home(reactions ) {
                 className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
                 onClick={handleShowMoreReviews}
               >
-                {t('seeMoreReviews')}
+                {t("seeMoreReviews")}
               </button>
             )}
             {showAllReviews &&
@@ -1024,14 +1047,20 @@ export default function Home(reactions ) {
                       />
                     </div>
                     <div className="ml-3">
-                      <div className="font-semibold text-sm">{review?.userName}</div>
-                      <div className="text-gray-500 text-xs">{t('verifiedPurchase')}</div>
+                      <div className="font-semibold text-sm">
+                        {review?.userName}
+                      </div>
+                      <div className="text-gray-500 text-xs">
+                        {t("verifiedPurchase")}
+                      </div>
                       <p className="text-gray-400 text-xs">
-                        {t('reviewedOn')} {review?.createdAt}
+                        {t("reviewedOn")} {review?.createdAt}
                       </p>
                     </div>
                   </div>
-                  <div className="text-sm font-semibold mb-2">{review.title}</div>
+                  <div className="text-sm font-semibold mb-2">
+                    {review.title}
+                  </div>
                   <div className="text-sm mb-2">{review.comment}</div>
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (
@@ -1051,18 +1080,22 @@ export default function Home(reactions ) {
             <div className="fixed inset-0 flex items-center justify-center z-50">
               <div className="fixed inset-0 bg-black opacity-50"></div>
               <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
-                <h2 className="text-xl font-semibold mb-4">{t('leaveReview')}</h2>
+                <h2 className="text-xl font-semibold mb-4">
+                  {t("leaveReview")}
+                </h2>
                 <div className="mb-4">
                   <StarRating
                     rating={newReview.rating}
-                    setRating={(rating) => setNewReview({ ...newReview, rating })}
+                    setRating={(rating) =>
+                      setNewReview({ ...newReview, rating })
+                    }
                   />
                 </div>
                 <div className="mb-4">
                   <input
                     type="text"
                     className="w-full p-2 border rounded-md"
-                    placeholder={t('reviewTitle')}
+                    placeholder={t("reviewTitle")}
                     value={newReview.title}
                     onChange={(e) =>
                       setNewReview({ ...newReview, title: e.target.value })
@@ -1072,7 +1105,7 @@ export default function Home(reactions ) {
                 <div className="mb-4">
                   <textarea
                     className="w-full p-2 border rounded-md"
-                    placeholder={t('yourReview')}
+                    placeholder={t("yourReview")}
                     value={newReview.comment}
                     onChange={(e) =>
                       setNewReview({ ...newReview, comment: e.target.value })
@@ -1083,13 +1116,13 @@ export default function Home(reactions ) {
                   className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline w-full"
                   onClick={handleReviewSubmit}
                 >
-                  {t('submitReview')}
+                  {t("submitReview")}
                 </button>
                 <button
                   className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2 w-full"
                   onClick={() => setModalVisible(false)}
                 >
-                  {t('cancel')}
+                  {t("cancel")}
                 </button>
               </div>
             </div>
@@ -1098,7 +1131,9 @@ export default function Home(reactions ) {
 
         {/* Related Tools Section */}
         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
-          <h2 className="text-2xl font-bold mb-5 text-center">{t('relatedTools')}</h2>
+          <h2 className="text-2xl font-bold mb-5 text-center">
+            {t("relatedTools")}
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {relatedTools?.map((tool, index) => (
               <a
@@ -1122,11 +1157,10 @@ export default function Home(reactions ) {
       </div>
     </>
   );
-};
-
+}
 export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
+  const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
   const apiUrl = `${protocol}://${host}/api/content?category=tagGenerator&language=${locale}`;
 
   try {
@@ -1138,23 +1172,33 @@ export async function getServerSideProps({ req, locale }) {
 
     const contentData = await contentResponse.json();
 
-    if (!contentData.translations || !contentData.translations[locale]) {
-      throw new Error("Invalid content data format");
-    }
-    const reactions = contentData.translations[locale]?.reactions || { likes: 0, unlikes: 0, reports: [], users: {} };
+    const localeData = contentData.translations?.[locale] || {};
+    const reactions = localeData.reactions || {
+      likes: 0,
+      unlikes: 0,
+      reports: [],
+      users: {},
+    };
+
     const meta = {
-      title: contentData.translations[locale]?.title || "",
-      description: contentData.translations[locale]?.description || "",
-      image: contentData.translations[locale]?.image || "",
+      title: localeData.title || "Default Title",
+      description: localeData.description || "Default description",
+      image: localeData.image || "/default-image.png",
       url: `${protocol}://${host}`,
     };
 
+    const existingContent = localeData.content || "";
+    const faqs = localeData.faqs || [];
+    const relatedTools = localeData.relatedTools || [];
 
     return {
       props: {
         initialMeta: meta,
         reactions,
-        ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
+        content: existingContent,
+        faqList: faqs,
+        tools: relatedTools,
+        ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
       },
     };
   } catch (error) {
@@ -1164,10 +1208,12 @@ export async function getServerSideProps({ req, locale }) {
       props: {
         initialMeta: {},
         reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
-        ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
+        content: "",
+        faqList: [],
+        tools: [],
+        ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
       },
     };
   }
 }
-
 

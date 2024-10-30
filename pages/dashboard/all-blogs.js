@@ -44,48 +44,18 @@ function AllBlogs() {
   const fetchBlogs = async () => {
     setLoading(true);
     try {
-      const blogsResponse = await fetch('/api/blogs');
-      if (!blogsResponse.ok) {
+      const response = await fetch('/api/blogs');
+      if (!response.ok) {
         throw new Error('Failed to fetch blogs');
       }
-      const blogsData = await blogsResponse.json();
-  
-      // Fetch categories separately
-      const categoriesResponse = await fetch('/api/categories');
-      if (!categoriesResponse.ok) {
-        throw new Error('Failed to fetch categories');
-      }
-      const categoriesData = await categoriesResponse.json();
-  
-      // Create a category mapping based on ID
-      const categoryMap = {};
-      categoriesData.forEach(category => {
-        categoryMap[category._id] = category.name;
-      });
-  
-      // Assign category names to each blog based on category IDs
-      const blogsWithCategories = blogsData.map(blog => {
-        const translations = blog.translations || {};
-        const updatedTranslations = Object.entries(translations).reduce((acc, [language, translation]) => {
-          // Update the category field to use the category name(s)
-          const categoryArray = getCategoriesArray(translation.category);
-          const categoryNames = categoryArray.map(catId => categoryMap[catId] || catId); // Fallback to ID if not found
-          acc[language] = {
-            ...translation,
-            category: categoryNames.join(', ')
-          };
-          return acc;
-        }, {});
-        return { ...blog, translations: updatedTranslations };
-      });
-  
-      setBlogs(blogsWithCategories);
+      const data = await response.json();
+      setBlogs(data);
     } catch (error) {
       console.error('Error fetching blogs:', error.message);
     }
     setLoading(false);
   };
-  
+
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
   };

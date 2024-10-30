@@ -130,11 +130,11 @@ function Blogs() {
       formData.append('language', selectedLanguage);
       formData.append('category', selectedCategory);
       if (imageFile) {
-        formData.append('image', imageFile); // Use the image file
+        formData.append('image', imageFile);
       }
-      formData.append('author', selectedAuthor); // Use the selected author
-      formData.append('editor', selectedEditor); // Use the selected editor
-      formData.append('developer', selectedDeveloper); // Use the selected developer
+      formData.append('author', selectedAuthor);
+      formData.append('editor', selectedEditor);
+      formData.append('developer', selectedDeveloper);
       formData.append('slug', slug);
       formData.append('createdAt', new Date().toISOString());
       formData.append('isDraft', JSON.stringify(false));
@@ -169,14 +169,14 @@ function Blogs() {
 
   const handleLanguageChange = (e) => {
     setSelectedLanguage(e.target.value);
-    setSelectedCategory(''); // Reset selected category when language changes
+    setSelectedCategory('');
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setImage(URL.createObjectURL(file));
-      setImageFile(file); // Save the file for form submission
+      setImageFile(file);
     }
   };
 
@@ -201,7 +201,7 @@ function Blogs() {
         <h2 className="text-3xl font-semibold mb-6">Add Post - {selectedCategory ? selectedCategory : 'Select a category'}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="col-span-2">
-          <div className="mb-6">
+            <div className="mb-6">
               <label htmlFor="language" className="block mb-2 text-lg font-medium">Language*</label>
               <select
                 id="language"
@@ -306,13 +306,12 @@ function Blogs() {
                 {categories
                   .filter((category) => category.translations && category.translations[selectedLanguage])
                   .map((category) => (
-                    <option key={category._id} value={category._id}>
+                    <option key={category._id} value={category.translations[selectedLanguage].name}>
                       {category.translations[selectedLanguage].name}
                     </option>
                   ))}
               </select>
             </div>
-           
             <div className="mb-6">
               <label htmlFor="author" className="block mb-2 text-lg font-medium">Author*</label>
               <select

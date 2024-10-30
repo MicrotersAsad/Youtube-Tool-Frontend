@@ -1,8 +1,7 @@
 // replaceShortcodes.js
 import React, { useEffect, useState } from 'react';
 
-
-// Dynamically load the component based on the component name
+// Dynamically import the component based on the component name
 const loadComponent = async (componentName) => {
   try {
     const componentModule = await import(`../pages/tools/${componentName}`);
@@ -17,7 +16,6 @@ export function replaceShortcodes(content, shortcodes) {
   const [components, setComponents] = useState({});
 
   useEffect(() => {
-    // Load components based on the provided shortcodes
     const loadAllComponents = async () => {
       const componentMap = {};
       for (const shortcode of shortcodes) {
@@ -29,44 +27,34 @@ export function replaceShortcodes(content, shortcodes) {
       setComponents(componentMap);
     };
 
-    if (shortcodes && shortcodes.length > 0) {
-      loadAllComponents();
-    }
+    loadAllComponents();
   }, [shortcodes]);
 
-  // Ensure content is a string to avoid null errors
-  if (!content || typeof content !== 'string') return null;
-
-  let processedContent = [content];
-
-  // Process each shortcode
-  for (const shortcode of shortcodes) {
-    const regex = new RegExp(`\\[${shortcode.shortcode}\\]`, 'g');
-    const tempContent = [];
-
-    processedContent.forEach((chunk, index) => {
-      if (typeof chunk === 'string') {
-        // Split the chunk by the shortcode regex
-        const parts = chunk.split(regex);
-        // Loop through each part and push it into tempContent array
-        parts.forEach((part, partIndex) => {
-          tempContent.push(part);
-          // Add the component after each part, except for the last one
-          if (partIndex < parts.length - 1) {
-            const Component = components[shortcode.shortcode];
-            if (Component) {
-              tempContent.push(<Component key={`${shortcode.shortcode}-${index}-${partIndex}`} />);
-            }
-          }
-        });
-      } else {
-        // If it's already a JSX element, keep it as-is
-        tempContent.push(chunk);
-      }
-    });
-
-    processedContent = tempContent;
+  // Check if the content is not a string, convert to a string, or handle it gracefully
+  if (typeof content !== 'string') {
+    console.warn("The content passed to replaceShortcodes is not a string.");
+    return content;
   }
 
-  return <>{processedContent}</>;
+  let processedContent = content; // It's confirmed to be a string at this point
+
+  // Replace each shortcode with a corresponding component or JSX element
+  for (const shortcode of shortcodes) {
+    const regex = new RegExp(`\\[${shortcode.shortcode}\\]`, 'g');
+
+    // Ensure that processedContent is a string for the split operation
+    if (typeof processedContent !== 'string') {
+      console.error("Processed content is not a string before attempting to split.");
+      continue; // Skip further processing for this shortcode
+    }
+
+    processedContent = processedContent.split(regex).map((part, index, arr) => (
+      <React.Fragment key={`${shortcode.shortcode}-${index}`}>
+        <div dangerouslySetInnerHTML={{ __html: part }} /> {/* Render HTML parts */}
+        {index !== arr.length - 1 && components[shortcode.shortcode] && React.createElement(components[shortcode.shortcode])}
+      </React.Fragment>
+    ));
+  }
+
+  return processedContent;
 }

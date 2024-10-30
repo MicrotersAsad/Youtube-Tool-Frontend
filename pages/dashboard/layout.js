@@ -60,7 +60,7 @@ const Layout = React.memo(({ children }) => {
   
       if (result.success) {
         const pendingTickets = result.tickets.filter((ticket) => ticket.status === 'pending');
-        console.log(pendingTickets);
+   
       
         setPendingCount(pendingTickets); // Set the count of pending tickets
       } else {

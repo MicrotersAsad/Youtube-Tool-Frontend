@@ -5,7 +5,7 @@ import Script from 'next/script';
 import '../styles/globals.css';
 import { AuthProvider } from '../contexts/AuthContext';
 import Footer from './Footer'; // Adjust your path based on file structure
-import Navbar from './Navbar'; 
+import Navbar from './Navbar';
 import { ContentProvider } from '../contexts/ContentContext';
 import CookieConsent from 'react-cookie-consent';
 import Link from 'next/link';
@@ -23,6 +23,9 @@ function MyApp({ Component, pageProps }) {
     const checkMaintenanceMode = async () => {
       try {
         const response = await fetch('/api/maintenance');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
         const data = await response.json();
         if (data.status === 'enabled') {
           setIsMaintenance(true);
@@ -55,8 +58,8 @@ function MyApp({ Component, pageProps }) {
     let timeout;
     return () => {
       if (!timeout) {
+        func(); // Directly call the function when throttling
         timeout = setTimeout(() => {
-          func();
           timeout = null;
         }, delay);
       }
@@ -89,12 +92,6 @@ function MyApp({ Component, pageProps }) {
       <Head>
         <meta name="twitter:image" content={pageProps.meta?.image || ""} />
         <link rel="icon" href="/favicon.ico" />
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-          crossOrigin="anonymous"
-        />
       </Head>
 
       <Script
@@ -138,8 +135,8 @@ function MyApp({ Component, pageProps }) {
         expires={150}
       >
         This website uses cookies to enhance the user experience.{" "}
-        <Link href="/privacy" style={{ color: "#fff", textDecoration: 'underline' }}>
-          Learn more
+        <Link href="/privacy" passHref>
+          <span style={{ color: "#fff", textDecoration: 'underline' }}>Learn more</span>
         </Link>
       </CookieConsent>
 
