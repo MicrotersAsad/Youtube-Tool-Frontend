@@ -212,9 +212,9 @@ const Test = () => {
   return (
     <div>
       <ToastContainer />
-      <div className="border max-w-7xl mx-auto rounded-xl  bg-[#dceffd]">
-        <h2 className="text-3xl text-black p-4">YouTube Name Generator</h2>
-        <div className="keywords-input-container sm:m-4">
+      <div className="border max-w-7xl mx-auto p-4 rounded-xl  bg-[#dceffd]">
+        <h2 className="md:text-3xl sm:text-xl text-black md:p-4">YouTube Name Generator</h2>
+        <div className="keywords-input-container  sm:m-4">
           <div className="tags-container flex flex-wrap gap-2 mb-4">
             {tags.map((tag, index) => (
               <span key={index} className="bg-gray-200 px-2 py-1 rounded-md flex items-center">
@@ -235,17 +235,16 @@ const Test = () => {
             required
           />
         </div>
-
-        <div className="flex flex-col md:flex-row items-center mt-4 mb-4 md:mt-0 ps-6 pe-6">
+        <div className="flex flex-col md:flex-row mt-4 mb-4 md:ms-2 md:mt-0 md:ps-8 ps-2 pe-6 items-start">
   {/* Generate Button */}
   <button
-    className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-500 mb-4 md:mb-0"
+    className="flex items-center justify-center px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-500 mb-4 md:mb-0"
     type="button"
     id="button-addon2"
     onClick={generateTitles}
     disabled={isLoading || tags.length === 0}
   >
-    <span className="animate-spin mr-2">
+    <span className={`${isLoading ? "animate-spin" : ""} mr-2`}>
       <svg
         aria-hidden="true"
         className="h-5 w-5"
@@ -259,26 +258,28 @@ const Test = () => {
     {isLoading ? "Loading..." : "Generate Name"}
   </button>
 
-  {/* Social Media Icons for Mobile */}
-  <div className="social-share-container flex justify-center mt-4 md:mt-0 md:ml-auto w-full md:w-auto">
+  {/* Social Media Icons */}
+  <div className="social-share-container flex justify-center md:ms-auto md:me-4 md:ml-4 space-x-2">
     <FaFacebook
-      className="text-blue-600 text-2xl mx-2 cursor-pointer"
+      className="text-blue-600 text-2xl cursor-pointer"
       onClick={() => shareOnSocialMedia("facebook")}
     />
     <FaTwitter
-      className="text-blue-400 text-2xl mx-2 cursor-pointer"
+      className="text-blue-400 text-2xl cursor-pointer"
       onClick={() => shareOnSocialMedia("twitter")}
     />
     <FaInstagram
-      className="text-pink-600 text-2xl mx-2 cursor-pointer"
+      className="text-pink-600 text-2xl cursor-pointer"
       onClick={() => shareOnSocialMedia("instagram")}
     />
     <FaLinkedin
-      className="text-blue-700 text-2xl mx-2 cursor-pointer"
+      className="text-blue-700 text-2xl cursor-pointer"
       onClick={() => shareOnSocialMedia("linkedin")}
     />
   </div>
 </div>
+
+
 
 
 {generatedTitles.length > 0 && (

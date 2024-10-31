@@ -141,37 +141,20 @@ const BlogPost = ({
           }
 
           /* Apply scrolling styles to tables with scrollable-table class */
-          .scrollable-table {
-            display: block;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            font-size: 1rem;
-            text-align: left;
-            min-width: 600px;
-          }
+        @media (max-width: 768px) {
+  .youtube-content table {
+    display: block !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin: 20px 0 !important;
+    font-size: 1rem !important;
+    text-align: left !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+  }
+}
 
-          .scrollable-table th,
-          .scrollable-table td {
-            border: 1px solid #ddd;
-            padding: 12px 15px;
-            white-space: nowrap;
-          }
 
-          .scrollable-table th {
-            background-color: #f4f4f4;
-            font-weight: bold;
-          }
-
-          .scrollable-table tr:nth-child(even) {
-            background-color: #f9f9f9;
-          }
-
-          .scrollable-table tr:hover {
-            background-color: #f1f1f1;
-          }
         `}</style>
       </div>
     </div>
