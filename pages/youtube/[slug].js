@@ -33,7 +33,6 @@ const BlogPost = ({
   const [author, setAuthor] = useState(authorData?.author);
   const [loading, setLoading] = useState(!initialBlog);
   const [shortcodes, setShortcodes] = useState(initialShortcodes || []);
-  console.log(initialBlog);
 
   useEffect(() => {
     if (!initialBlog && slug) {
@@ -77,6 +76,14 @@ const BlogPost = ({
 
   const categoryName = translation.category || "Blog";
 
+  // Ensure scroll styles are applied on tables after content load
+  useEffect(() => {
+    const tables = document.querySelectorAll(".youtube-content table");
+    tables.forEach((table) => {
+      table.classList.add("scrollable-table");
+    });
+  }, [contentWithShortcodes]); // Re-run when content updates
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -111,10 +118,10 @@ const BlogPost = ({
             </h1>
             <p>{getDescription(translation)}</p>
 
-            <div className=" overflow-hidden  sm:rounded-lg mb-8">
+            <div className="overflow-hidden sm:rounded-lg mb-8">
               <div className="border-b border-gray-200">
                 {/* Render processed content with shortcodes */}
-                <div className="my-4 result-content">
+                <div className="my-4 youtube-content">
                   {contentWithShortcodes}
                 </div>
                 {/* Additional sections like comments */}
@@ -123,47 +130,47 @@ const BlogPost = ({
             </div>
           </div>
         </div>
+
         <style jsx global>{`
-          .result-content h2 {
+          .youtube-content h2 {
             padding-top: 12px;
           }
-          .result-content p {
+          .youtube-content p {
             padding-top: 12px;
             padding-bottom: 12px;
           }
-          .result-content table {
+
+          /* Apply scrolling styles to tables with scrollable-table class */
+          .scrollable-table {
+            display: block;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
             width: 100%;
             border-collapse: collapse;
             margin: 20px 0;
             font-size: 1rem;
             text-align: left;
-            overflow-x: auto; /* Enable horizontal scrolling */
-
-            white-space: nowrap; /* Prevent cells from breaking to the next line */
+            min-width: 600px;
           }
 
-          .result-content table th,
-          .result-content table td {
+          .scrollable-table th,
+          .scrollable-table td {
             border: 1px solid #ddd;
             padding: 12px 15px;
+            white-space: nowrap;
           }
 
-          .result-content table th {
+          .scrollable-table th {
             background-color: #f4f4f4;
             font-weight: bold;
           }
 
-          .result-content table tr:nth-child(even) {
+          .scrollable-table tr:nth-child(even) {
             background-color: #f9f9f9;
           }
 
-          .result-content table tr:hover {
+          .scrollable-table tr:hover {
             background-color: #f1f1f1;
-          }
-
-          .result-content table td {
-            word-wrap: break-word;
-            max-width: 300px;
           }
         `}</style>
       </div>
