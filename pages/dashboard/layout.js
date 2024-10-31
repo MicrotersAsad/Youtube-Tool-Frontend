@@ -453,7 +453,8 @@ const Layout = React.memo(({ children }) => {
                     className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
                       isActiveRoute("/dashboard/categories") ||
                       isActiveRoute("/dashboard/all-article") ||
-                      isActiveRoute("/dashboard/article")
+                      isActiveRoute("/dashboard/article")||
+                      isActiveRoute("/dashboard/create-shortcode")
                         ? "bg-[#4634ff] text-white"
                         : menuOpen === "blog"
                         ? "bg-[#1d1e8e] text-white"
@@ -520,6 +521,18 @@ const Layout = React.memo(({ children }) => {
                       >
                         <FaCircle className="mr-2 text-xs" />
                         Add Article
+                      </p>
+                    </Link>
+                    <Link href="/dashboard/create-shortcode" passHref>
+                      <p
+                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                          isActiveRoute("/dashboard/create-shortcode")
+                            ? "bg-[#1d1e8e] text-white"
+                            : "hover:bg-[#1d1e8e] hover:text-white"
+                        }`}
+                      >
+                        <FaCircle className="mr-2 text-xs" />
+                        Create Shortcode
                       </p>
                     </Link>
                   </div>
