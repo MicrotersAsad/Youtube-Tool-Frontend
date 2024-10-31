@@ -1,25 +1,25 @@
 // BlogPost.jsx
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useRouter } from 'next/router';
-import Head from 'next/head';
-import { ClipLoader } from 'react-spinners';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import Breadcrumb from '../Breadcrumb';
-import Comments from '../../components/Comments';
-import { useToc } from '../../hook/useToc';
-import TableOfContents from '../../components/TableOfContents';
-import ReactDOMServer from 'react-dom/server';
-import { format } from 'date-fns';
-import AuthorInfo from '../../components/AuthorCard';
-import { useTranslation } from 'react-i18next';
-import { replaceShortcodes } from '../../components/replaceShortcodes'; // Import shortcode function
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { useRouter } from "next/router";
+import Head from "next/head";
+import { ClipLoader } from "react-spinners";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import Breadcrumb from "../Breadcrumb";
+import Comments from "../../components/Comments";
+import { useToc } from "../../hook/useToc";
+import TableOfContents from "../../components/TableOfContents";
+import ReactDOMServer from "react-dom/server";
+import { format } from "date-fns";
+import AuthorInfo from "../../components/AuthorCard";
+import { useTranslation } from "react-i18next";
+import { replaceShortcodes } from "../../components/replaceShortcodes"; // Import shortcode function
 
-const getTitle = (translation) => translation.title || translation.Title || '';
-const getDescription = (translation) => translation.description || translation.description || '';
-const getMetaTitle = (translation) => translation.metaTitle || translation.metaTitle || '';
-const getMetaDescription = (translation) => translation.metaDescription || translation.metaDescription || '';
-const getContent = (translation) => translation.content || translation.Content || '';
+const getTitle = (translation) => translation.title || translation.Title || "";
+const getDescription = (translation) => translation.description || translation.Description || "";
+const getMetaTitle = (translation) => translation.metaTitle || translation.MetaTitle || "";
+const getMetaDescription = (translation) => translation.metaDescription || translation.MetaDescription || "";
+const getContent = (translation) => translation.content || translation.Content || "";
 
 const insertTocBeforeFirstHeading = (content, tocHtml) => {
   const firstHeadingIndex = content.search(/<h[1-6][^>]*>/);
@@ -30,7 +30,7 @@ const insertTocBeforeFirstHeading = (content, tocHtml) => {
 };
 
 const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) => {
-  const { t } = useTranslation('blog');
+  const { t } = useTranslation("blog");
   const router = useRouter();
   const { slug } = router.query;
   const { locale } = router;
@@ -38,8 +38,7 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
   const [author, setAuthor] = useState(authorData?.author);
   const [loading, setLoading] = useState(!initialBlog);
   const [shortcodes, setShortcodes] = useState(initialShortcodes || []);
-console.log(initialBlog);
-
+  
   useEffect(() => {
     if (!initialBlog && slug) {
       const fetchData = async () => {
@@ -48,8 +47,8 @@ console.log(initialBlog);
           const { data } = await axios.get(apiUrl);
           const blogs = data;
 
-          const blog = blogs.find(blog =>
-            Object.values(blog.translations).some(translation => translation.slug === slug)
+          const blog = blogs.find((blog) =>
+            Object.values(blog.translations).some((translation) => translation.slug === slug)
           );
 
           if (blog) {
@@ -60,7 +59,7 @@ console.log(initialBlog);
             }
           }
         } catch (error) {
-          console.error('Error fetching blogs:', error.message);
+          console.error("Error fetching blogs:", error.message);
         } finally {
           setLoading(false);
         }
@@ -73,14 +72,13 @@ console.log(initialBlog);
   const translation = blog?.translations ? blog.translations[locale] || {} : {};
   const content = getContent(translation);
   const [toc, updatedContent] = useToc(content);
-
-  const tocHtml = toc ? ReactDOMServer.renderToStaticMarkup(<TableOfContents headings={toc} />) : '';
+  const tocHtml = toc ? ReactDOMServer.renderToStaticMarkup(<TableOfContents headings={toc} />) : "";
   const contentWithToc = insertTocBeforeFirstHeading(updatedContent, tocHtml);
-
-  // Replace shortcodes in the updated content dynamically
   const contentWithShortcodes = replaceShortcodes(contentWithToc, shortcodes);
+  const categoryName = translation.category || "Blog";
 
-  const categoryName = translation.category || 'Blog';
+  // Displaying the formatted publication date
+  const publicationDate = blog?.createdAt ? format(new Date(blog.createdAt), "MMMM dd, yyyy") : "";
 
   if (loading) {
     return (
@@ -91,24 +89,25 @@ console.log(initialBlog);
   }
 
   if (!blog) {
-    return <p className="text-red-500">{t('No content available for this language.')}</p>;
+    return <p className="text-red-500">{t("No content available for this language.")}</p>;
   }
 
   return (
     <div className="relative">
       <Head>
         <title>{getMetaTitle(translation)} | ytubetools</title>
-        <meta name="description" content={getMetaDescription(translation) || ''} />
+        <meta name="description" content={getMetaDescription(translation) || ""} />
       </Head>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
         <div className="flex flex-col lg:flex-row">
           <div className="flex-grow order-1 lg:order-2">
-            
-            <h1 className="md:text-5xl text-xl font-bold mb-4">{getTitle(translation)}</h1>
-            <p>{getDescription(translation)}</p>
-          
-            <div className=" overflow-hidden  sm:rounded-lg mb-8">
+            <h1 className="md:text-5xl text-xl font-bold mb-2">{getTitle(translation)}</h1>
+            <p className="text-gray-600 mb-4">{getDescription(translation)}</p>
+            <h6>{t('Updated on')} {format(new Date(blog.createdAt), 'MMMM dd, yyyy')}</h6> {/* Updated format */}
+            <AuthorInfo data={authorData}/>
+
+            <div className=" overflow-hidden sm:rounded-lg mb-8">
               <div className="border-b border-gray-200">
                 {/* Render processed content with shortcodes */}
                 <div className="my-4 result-content">{contentWithShortcodes}</div>
@@ -118,51 +117,45 @@ console.log(initialBlog);
             </div>
           </div>
         </div>
+
         <style jsx global>{`
-                .result-content h2{
-                padding-top: 12px;
+          .result-content h2 {
+            padding-top: 12px;
             
-                }
-                .result-content p{
-                padding-top: 12px;
-                padding-bottom: 12px;
-                }
-              .result-content table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 20px 0;
-  font-size: 1rem;
-  text-align: left;
-  overflow-x: auto; /* Enable horizontal scrolling */
-  display: block; /* Make the table a block element */
-  white-space: nowrap; /* Prevent cells from breaking to the next line */
-}
-
-.result-content table th,
-.result-content table td {
-  border: 1px solid #ddd;
-  padding: 12px 15px;
-}
-
-.result-content table th {
-  background-color: #f4f4f4;
-  font-weight: bold;
-}
-
-.result-content table tr:nth-child(even) {
-  background-color: #f9f9f9;
-}
-
-.result-content table tr:hover {
-  background-color: #f1f1f1;
-}
-
-.result-content table td {
-  word-wrap: break-word;
-  max-width: 300px;
-}
-
-            `}</style>
+          }
+          .result-content p {
+            padding-top: 12px;
+            padding-bottom: 12px;
+          }
+          .result-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 1rem;
+            text-align: left;
+            overflow-x: auto;
+            white-space: nowrap;
+          }
+          .result-content table th,
+          .result-content table td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+          }
+          .result-content table th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+          }
+          .result-content table tr:nth-child(even) {
+            background-color: #f9f9f9;
+          }
+          .result-content table tr:hover {
+            background-color: #f1f1f1;
+          }
+          .result-content table td {
+            word-wrap: break-word;
+            max-width: 300px;
+          }
+        `}</style>
       </div>
     </div>
   );
@@ -171,15 +164,15 @@ console.log(initialBlog);
 export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
-    const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
-    const host = req.headers.host || 'localhost:3000';
+    const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
+    const host = req.headers.host || "localhost:3000";
     const apiUrl = `${protocol}://${host}/api/blogs`;
 
     const { data } = await axios.get(apiUrl);
     const blogs = data;
 
-    const blog = blogs.find(blog =>
-      Object.values(blog.translations).some(translation => translation.slug === slug)
+    const blog = blogs.find((blog) =>
+      Object.values(blog.translations).some((translation) => translation.slug === slug)
     );
 
     if (!blog) {
@@ -208,19 +201,26 @@ export async function getServerSideProps({ locale, params, req }) {
     const authorResponse = await axios.get(`${protocol}://${host}/api/authors`);
     const authors = authorResponse.data;
 
-    const author = authors.find(author => author.role === 'Author' && author.name === blog.author);
-    const editor = authors.find(author => author.role === 'Editor' && author.name === blog.editor);
-    const developer = authors.find(author => author.role === 'Developer' && author.name === blog.developer);
+    const author = authors.find(
+      (author) => author.role === "Author" && author.name === blog.author
+    );
+    const editor = authors.find(
+      (author) => author.role === "Editor" && author.name === blog.editor
+    );
+    const developer = authors.find(
+      (author) => author.role === "Developer" && author.name === blog.developer
+    );
 
-    const categoryBlogs = blogs.filter(
-      (b) =>
-        b !== blog &&
-        Object.values(b.translations).some(
-          (translation) => translation.category === blog.translations[locale]?.category
-        )
-    ).slice(0, 3);
+    const categoryBlogs = blogs
+      .filter(
+        (b) =>
+          b !== blog &&
+          Object.values(b.translations).some(
+            (translation) => translation.category === blog.translations[locale]?.category
+          )
+      )
+      .slice(0, 3);
 
-    // Fetch shortcodes dynamically on the server side
     const shortcodesResponse = await axios.get(`${protocol}://${host}/api/shortcodes-tools`);
     const initialShortcodes = shortcodesResponse.data;
 
@@ -234,11 +234,11 @@ export async function getServerSideProps({ locale, params, req }) {
         },
         relatedBlogs: categoryBlogs,
         initialShortcodes,
-        ...(await serverSideTranslations(locale, ['blog', 'navbar', 'footer'])),
+        ...(await serverSideTranslations(locale, ["blog", "navbar", "footer"])),
       },
     };
   } catch (error) {
-    console.error('Error fetching blogs or authors:', error.message);
+    console.error("Error fetching blogs or authors:", error.message);
     return {
       notFound: true,
     };

@@ -123,9 +123,9 @@ const handlePostRequest = async (req, res, youtube) => {
       return res.status(400).json({ message: 'Invalid request body' });
     }
 
-    const existingBlog = await youtube.findOne({ 'translations.slug': slug });
+    const existingyoutube = await youtube.findOne({ 'translations.slug': slug });
 
-    if (existingBlog) {
+    if (existingyoutube) {
       const updateDoc = {
         $set: {
           [`translations.${language}.title`]: title,
@@ -143,7 +143,7 @@ const handlePostRequest = async (req, res, youtube) => {
       };
 
       const result = await youtube.updateOne(
-        { _id: existingBlog._id },
+        { _id: existingyoutube._id },
         updateDoc
       );
 
@@ -190,16 +190,16 @@ const handlePostRequest = async (req, res, youtube) => {
 const handlePutRequest = async (req, res, youtube, query) => {
   try {
     const { db } = await connectToDatabase();
-    const categoriesCollection = db.collection('categories');
+    const categoriesCollection = db.collection('yt-categories');
 
     await runMiddleware(req, res, upload.single('image'));
 
     const id = query.id;
     const { language, category, ...updatedData } = req.body;
 
-    // Validate that the blog ID is a valid ObjectId
+    // Validate that the youtube ID is a valid ObjectId
     if (!ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid blog ID format' });
+      return res.status(400).json({ message: 'Invalid youtube ID format' });
     }
 
     // Ensure the category ID is a valid ObjectId
@@ -287,25 +287,25 @@ const handleGetRequest = async (req, res, youtube, query) => {
       res.status(200).json(filteredyoutube);
     } else {
       const youtubeArray = await youtube.find({}).limit(15).toArray();
-      const updatedyoutubeArray = youtubeArray.map((blog) => {
-        if (!blog.translations) {
-          blog.translations = {};
+      const updatedyoutubeArray = youtubeArray.map((youtube) => {
+        if (!youtube.translations) {
+          youtube.translations = {};
         }
-        if (!blog.translations.en) {
-          const title = blog.title || blog.Title || '';
-          const content = blog.content || blog.Content || '';
-          blog.translations.en = {
+        if (!youtube.translations.en) {
+          const title = youtube.title || youtube.Title || '';
+          const content = youtube.content || youtube.Content || '';
+          youtube.translations.en = {
             title,
             content,
-            metaTitle: blog.metaTitle || '',
-            description: blog.description || '',
-            metaDescription: blog.metaDescription || '',
-            category: blog.category || '',
-            image: blog.image || '',
-            slug: blog.slug || createSlug(title),
+            metaTitle: youtube.metaTitle || '',
+            description: youtube.description || '',
+            metaDescription: youtube.metaDescription || '',
+            category: youtube.category || '',
+            image: youtube.image || '',
+            slug: youtube.slug || createSlug(title),
           };
         }
-        return blog;
+        return youtube;
       });
       res.status(200).json(updatedyoutubeArray);
     }
@@ -323,30 +323,30 @@ const handleDeleteRequest = async (req, res, youtube, query) => {
       return res.status(400).json({ message: 'Invalid ID' });
     }
 
-    const blog = await youtube.findOne({ _id: new ObjectId(id) });
+    const youtube = await youtube.findOne({ _id: new ObjectId(id) });
 
-    if (!blog) {
-      return res.status(404).json({ message: 'Blog post not found' });
+    if (!youtube) {
+      return res.status(404).json({ message: 'youtube post not found' });
     }
 
-    // Check if the blog has the language translation specified for deletion
-    if (language && blog.translations && blog.translations[language]) {
-      delete blog.translations[language]; // Remove the specific language translation
+    // Check if the youtube has the language translation specified for deletion
+    if (language && youtube.translations && youtube.translations[language]) {
+      delete youtube.translations[language]; // Remove the specific language translation
 
-      // If no translations remain, delete the entire blog post
-      if (Object.keys(blog.translations).length === 0) {
+      // If no translations remain, delete the entire youtube post
+      if (Object.keys(youtube.translations).length === 0) {
         const deleteResult = await youtube.deleteOne({ _id: new ObjectId(id) });
 
         if (deleteResult.deletedCount === 1) {
-          return res.status(200).json({ message: 'Blog post deleted successfully as no translations remain.' });
+          return res.status(200).json({ message: 'youtube post deleted successfully as no translations remain.' });
         } else {
-          return res.status(500).json({ message: 'Failed to delete blog post.' });
+          return res.status(500).json({ message: 'Failed to delete youtube post.' });
         }
       } else {
-        // Otherwise, update the blog post with the remaining translations
+        // Otherwise, update the youtube post with the remaining translations
         const updateResult = await youtube.updateOne(
           { _id: new ObjectId(id) },
-          { $set: { translations: blog.translations } }
+          { $set: { translations: youtube.translations } }
         );
 
         if (updateResult.modifiedCount === 1) {
@@ -356,13 +356,13 @@ const handleDeleteRequest = async (req, res, youtube, query) => {
         }
       }
     } else {
-      // If no language is provided or the translation doesn't exist, delete the entire blog post
+      // If no language is provided or the translation doesn't exist, delete the entire youtube post
       const deleteResult = await youtube.deleteOne({ _id: new ObjectId(id) });
 
       if (deleteResult.deletedCount === 1) {
-        return res.status(200).json({ message: 'Blog post deleted successfully.' });
+        return res.status(200).json({ message: 'youtube post deleted successfully.' });
       } else {
-        return res.status(500).json({ message: 'Failed to delete blog post.' });
+        return res.status(500).json({ message: 'Failed to delete youtube post.' });
       }
     }
   } catch (error) {

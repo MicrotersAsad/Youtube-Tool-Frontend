@@ -212,7 +212,7 @@ const Test = () => {
   return (
     <div>
       <ToastContainer />
-      <div className="border max-w-4xl mx-auto rounded-xl  bg-[#dceffd]">
+      <div className="border max-w-7xl mx-auto rounded-xl  bg-[#dceffd]">
         <h2 className="text-3xl text-black p-4">YouTube Name Generator</h2>
         <div className="keywords-input-container sm:m-4">
           <div className="tags-container flex flex-wrap gap-2 mb-4">

@@ -29,7 +29,7 @@ function Allarticle() {
   const fetchCategories = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/categories');
+      const response = await fetch('/api/yt-categories');
       if (!response.ok) {
         throw new Error('Failed to fetch categories');
       }
@@ -69,19 +69,19 @@ function Allarticle() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this blog?')) {
+    if (window.confirm('Are you sure you want to delete this youtube?')) {
       try {
         const response = await fetch(`/api/youtube?id=${id}`, {
           method: 'DELETE',
         });
         if (!response.ok) {
-          throw new Error('Failed to delete blog');
+          throw new Error('Failed to delete youtube');
         }
-        setarticle(article.filter((blog) => blog._id !== id));
-        toast.success('Blog deleted successfully!');
+        setarticle(article.filter((youtube) => youtube._id !== id));
+        toast.success('youtube deleted successfully!');
       } catch (error) {
-        console.error('Error deleting blog:', error.message);
-        toast.error('Failed to delete blog');
+        console.error('Error deleting youtube:', error.message);
+        toast.error('Failed to delete youtube');
       }
     }
   };
@@ -98,21 +98,21 @@ function Allarticle() {
     }
   };
 
-  const filteredarticle = article.flatMap((blog) => {
-    const translations = blog.translations || {};
+  const filteredarticle = article.flatMap((youtube) => {
+    const translations = youtube.translations || {};
     return Object.entries(translations).map(([language, translation]) => {
       const categoryArray = getCategoriesArray(translation.category);
       const categoryMatch = !selectedCategory || selectedCategory === 'All' || categoryArray.includes(selectedCategory);
       const languageMatch = !selectedLanguage || selectedLanguage === 'All' || selectedLanguage === language;
       const searchMatch = !search || translation.title.toLowerCase().includes(search.toLowerCase());
       const draftMatch = showDrafts ? translation.isDraft : !translation.isDraft;
-      return categoryMatch && languageMatch && searchMatch && draftMatch ? { ...translation, _id: blog._id, language, languages: Object.keys(translations).join(', ') } : null;
-    }).filter(blog => blog !== null);
+      return categoryMatch && languageMatch && searchMatch && draftMatch ? { ...translation, _id: youtube._id, language, languages: Object.keys(translations).join(', ') } : null;
+    }).filter(youtube => youtube !== null);
   });
 
-  const indexOfLastBlog = currentPage * articlePerPage;
-  const indexOfFirstBlog = indexOfLastBlog - articlePerPage;
-  const currentarticle = filteredarticle.slice(indexOfFirstBlog, indexOfLastBlog);
+  const indexOfLastyoutube = currentPage * articlePerPage;
+  const indexOfFirstyoutube = indexOfLastyoutube - articlePerPage;
+  const currentarticle = filteredarticle.slice(indexOfFirstyoutube, indexOfLastyoutube);
   const totalPages = Math.ceil(filteredarticle.length / articlePerPage);
 
   const handleClick = (event, pageNumber) => {
@@ -120,11 +120,11 @@ function Allarticle() {
     setCurrentPage(pageNumber);
   };
 
-  const handleSelectBlog = (blogId) => {
-    if (selectedarticle.includes(blogId)) {
-      setSelectedarticle(selectedarticle.filter(id => id !== blogId));
+  const handleSelectyoutube = (youtubeId) => {
+    if (selectedarticle.includes(youtubeId)) {
+      setSelectedarticle(selectedarticle.filter(id => id !== youtubeId));
     } else {
-      setSelectedarticle([...selectedarticle, blogId]);
+      setSelectedarticle([...selectedarticle, youtubeId]);
     }
   };
 
@@ -132,7 +132,7 @@ function Allarticle() {
     if (selectedarticle.length === currentarticle.length) {
       setSelectedarticle([]);
     } else {
-      setSelectedarticle(currentarticle.map(blog => blog._id));
+      setSelectedarticle(currentarticle.map(youtube => youtube._id));
     }
   };
 
@@ -217,34 +217,34 @@ function Allarticle() {
                 </tr>
               </thead>
               <tbody>
-                {currentarticle.map((blog) => (
-                  <tr key={blog._id}>
+                {currentarticle.map((youtube) => (
+                  <tr key={youtube._id}>
                     <td className="py-2 px-4 border-b">
                       <input
                         type="checkbox"
-                        checked={selectedarticle.includes(blog._id)}
-                        onChange={() => handleSelectBlog(blog._id)}
+                        checked={selectedarticle.includes(youtube._id)}
+                        onChange={() => handleSelectyoutube(youtube._id)}
                       />
                     </td>
-                    <td className="py-2 px-4 border-b">{blog.title}</td>
+                    <td className="py-2 px-4 border-b">{youtube.title}</td>
                     <td className="py-2 px-4 border-b">
-                      {Array.isArray(blog.category) ? blog.category.join(', ') : blog.category}
+                      {Array.isArray(youtube.category) ? youtube.category.join(', ') : youtube.category}
                     </td>
                     <td className="py-2 px-4 border-b">
-                      {blog.languages}
+                      {youtube.languages}
                     </td>
                     <td className="py-2 px-4 border-b">
                       <span className="flex items-center">
-                        <FaEye className="mr-1" /> {blog.viewCount}
+                        <FaEye className="mr-1" /> {youtube.viewCount}
                       </span>
                     </td>
                     <td className="py-2 px-4 border-b flex items-center justify-center">
-                      <Link href={`/dashboard/edit-blog?id=${blog._id}`}>
+                      <Link href={`/dashboard/edit-article?id=${youtube._id}`}>
                         <button className="mr-3 text-blue-500 hover:text-blue-700">
                           <FaEdit />
                         </button>
                       </Link>
-                      <button onClick={() => handleDelete(blog._id)} className="text-red-500 hover:text-red-700">
+                      <button onClick={() => handleDelete(youtube._id)} className="text-red-500 hover:text-red-700">
                         <FaTrash />
                       </button>
                     </td>

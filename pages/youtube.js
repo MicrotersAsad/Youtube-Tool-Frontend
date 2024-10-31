@@ -50,7 +50,7 @@ const BlogSection = ({ initialBlogs = [] }) => {
 
   const fetchCategories = useCallback(async () => {
     try {
-      const response = await axios.get('/api/categories');
+      const response = await axios.get('/api/yt-categories');
       const filteredCategories = response.data.map(category => {
         const translation = category.translations[currentLanguage];
         return {
@@ -178,7 +178,7 @@ const BlogSection = ({ initialBlogs = [] }) => {
   }
 
   return (
-    <div className=''>
+    <div className="max-w-7xl container">
       <title>Ytubetools || Blog</title>
       <meta name="description" content="Blog Page" />
       <meta property="og:url" content="https://ytubetools.com/blog" />
@@ -186,134 +186,7 @@ const BlogSection = ({ initialBlogs = [] }) => {
         property="og:description"
         content="Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
       />
-
-      <PromoSection />
-
-      <div className="max-w-7xl container">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mt-8">
-          <div className="col-span-12">
-            <h2 className="text-2xl text-blue-900 font-bold mb-2">Latest Blog</h2>
-          </div>
-          <div className="col-span-12 md:col-span-5">
-            {latestBlogs.slice(0, 1).map((blog, index) => {
-              const content = blog.translations[currentLanguage];
-              return (
-                <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden relative">
-                  {content?.image && (
-                    <div className="w-full" style={{ height: '260px'}}>
-                      <Image
-                        src={content.image}
-                        alt={content.title}
-                        width={400}
-                        height={260}
-                        className='blog-img'
-                        quality={50} // Image quality reduced
-                      />
-                      <div className="absolute top-2 left-2 bg-blue-500 text-white text-sm rounded-full px-2 py-1">
-                        <span className="mr-2">{content?.category || content._id}</span>
-                      </div>
-                    </div>
-                  )}
-                  <div className="border-t ps-3 pe-3 pt-3 d-flex">
-                    <p className="text-sm text-gray-500">
-                      <FaUserCircle className="text-center fs-6 text-red-400 inline" /> {blog.author}
-                    </p>
-                    <p className="text-sm text-gray-500 ms-auto">
-                      <FaCalendar className="text-center text-red-400 inline" />
-                      {format(new Date(blog.createdAt), 'dd/MM/yyyy')}
-                    </p>
-                  </div>
-                  <div className="pe-3 ps-3 pt-2">
-                    <h6 className="text-lg font-semibold">
-                      <Link href={`/youtube/${content.slug}`} passHref>
-                        <span className="text-blue-500 text-xl font-bold hover:underline">{content.title}</span>
-                      </Link>
-                    </h6>
-                    <p className="text-gray-600 mb-4">{content.description || content.Description}</p>
-                    <Link href={`/youtube/${content.slug}`} passHref>
-                      <span className="text-red-500 mt-4 block">Read More →</span>
-                    </Link>
-                    <div className="mt-2">
-                      {parseCategories(blog.category).map((category, i) => (
-                        <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">
-                          {category}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div className="col-span-12 md:col-span-7 space-y-4">
-            {latestBlogs.slice(1, 4).map((blog, index) => {
-              const content = blog.translations[currentLanguage];
-              return (
-                <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden flex flex-col md:flex-row relative">
-                  {content?.image && (
-                    <div className="w-full  md:w-5/12" style={{ height: '165px', position: 'relative' }}>
-                      <Image
-                        src={content.image}
-                        alt={content.title}
-                        layout="fill"
-                        objectFit="cover"
-                        className="rounded"
-                        quality={50} // Image quality reduced
-                      />
-                      <div className="absolute top-2 left-2 bg-blue-500 text-white text-sm rounded-full px-2 py-1">
-                        <span className="mr-2">{content?.category || content._id}</span>
-                      </div>
-                    </div>
-                  )}
-                  <div className="ps-2 pt-2 flex-1 md:w-7/12">
-                    <h6 className="text-lg font-semibold">
-                      <Link href={`/youtube/${content.slug}`} passHref>
-                        <span className="text-blue-500 text-xl font-bold hover:underline">{content.title}</span>
-                      </Link>
-                    </h6>
-                    <Link href={`/youtube/${content.slug}`} passHref>
-                      <span className="text-red-500 mt-4 block">Read More →</span>
-                    </Link>
-                    <div className="border-t ps-2 pe-2 pt-2 d-flex">
-                      <p className="text-sm text-gray-500">
-                        <FaUserCircle className="text-center fs-6 text-red-400 inline" /> {blog.author}
-                      </p>
-                      <p className="text-sm text-gray-500 ms-auto">
-                        <FaCalendar className="text-center text-red-400 inline" />
-                        {format(new Date(blog.createdAt), 'dd/MM/yyyy')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        <div className="bg-[#f7f3ff] bg py-8 pt-5 pb-5 px-5 md:px-10 flex items-center justify-center rounded-lg shadow-md my-10">
-          <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-            <div className="col-span-12 md:col-span-5 text-center md:text-left">
-              <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">Subscribe to our newsletter.</h2>
-              <p className="text-gray-600 mt-2">Join 80,000 others!</p>
-            </div>
-            <div className="col-span-12 md:col-span-7">
-              <form className="flex flex-col items-center md:flex-row w-full">
-                <input
-                  type="email"
-                  placeholder="Email Address"
-                  className="w-full md:flex-1 p-3 rounded-l-md border border-gray-300 focus:outline-none"
-                />
-                <button type="submit" className="bg-purple-700 text-white p-3 rounded-r-md">
-                  Sign Up
-                </button>
-              </form>
-              <p className="text-gray-600 text-xs mt-3 md:mt-1 text-center md:text-left">
-                By signing up, you agree to our <Link href="/privacy-policy"><span className="text-purple-600">Privacy Policy</span></Link>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-6 mt-6">
           <div className="relative w-full max-w-lg">
             <input
               type="text"
@@ -422,7 +295,7 @@ const BlogSection = ({ initialBlogs = [] }) => {
           )}
         </div>
       </div>
-    </div>
+  
   );
 };
 

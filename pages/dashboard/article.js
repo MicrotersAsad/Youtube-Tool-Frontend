@@ -73,7 +73,7 @@ function Article() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories');
+      const response = await fetch('/api/yt-categories');
       if (!response.ok) {
         throw new Error('Failed to fetch categories');
       }

@@ -8,7 +8,7 @@ import Image from 'next/image';
 
 const QuillWrapper = dynamic(() => import('../../components/EditorWrapper'), { ssr: false });
 
-function EditArticle() {
+function EditBlog() {
   const router = useRouter();
   const { id } = router.query;
   const [slug, setSlug] = useState('');
@@ -58,7 +58,7 @@ function EditArticle() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories');
+      const response = await fetch('/api/yt-categories');
       if (!response.ok) {
         throw new Error('Failed to fetch categories');
       }
@@ -128,7 +128,7 @@ function EditArticle() {
   const handleSave = useCallback(async () => {
     try {
       console.log('Selected Category ID being sent:', selectedCategory); // Debugging
-      if (!selectedCategory || selectedCategory.length !== 24) throw new Error('Invalid category ID format');
+      if (!selectedCategory || selectedCategory.length !== 24) throw new Error('please select existing  category');
 
       const formData = new FormData();
       formData.append('content', quillContent);
@@ -218,7 +218,7 @@ function EditArticle() {
   return (
     <Layout>
       <div className="container mx-auto p-5 bg-gray-100 rounded-lg shadow-md">
-        <h2 className="text-3xl font-semibold mb-6">Edit Article</h2>
+        <h2 className="text-3xl font-semibold mb-6">Edit Blog</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="mb-3">
             <label htmlFor="language" className="block mb-2 text-lg font-medium">Language*</label>
@@ -384,26 +384,45 @@ function EditArticle() {
                 ))}
             </select>
           </div>
-          <div className="mb-3">
-            <label htmlFor="image" className="block mb-2 text-lg font-medium">Image</label>
-            <input
-              type="file"
-              id="image"
-              onChange={handleImageChange}
-              className="block w-full text-gray-700"
-            />
-            {initialImage && !image && (
-              <div className="mt-4">
-                <Image src={initialImage} alt="Preview" width={300} height={200} className="w-full h-auto rounded-lg shadow-md" />
-              </div>
-            )}
-            {image && (
-              <div className="mt-4">
-                <Image src={URL.createObjectURL(image)} alt="Preview" width={300} height={200} className="w-full h-auto rounded-lg shadow-md" />
-              </div>
-            )}
-            <p className="text-gray-600 text-sm mt-1">Valid image size: 400 * 270 px </p>
-          </div>
+          <div className="mb-3 flex flex-col">
+  <label htmlFor="image" className="text-lg font-medium mb-2">Image</label>
+  
+  <div className="flex items-center gap-4">
+    {/* File Input */}
+    <input
+      type="file"
+      id="image"
+      onChange={handleImageChange}
+      className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    />
+    
+    {/* Preview Area */}
+    <div className="flex-shrink-0">
+      {initialImage && !image && (
+        <Image
+          src={initialImage}
+          alt="Initial Preview"
+          width={100}
+          height={50}
+          className="rounded-lg shadow-md"
+        />
+      )}
+      {image && (
+        <Image
+          src={URL.createObjectURL(image)}
+          alt="Uploaded Preview"
+          width={100}
+          height={50}
+          className="rounded-lg shadow-md"
+        />
+      )}
+    </div>
+  </div>
+
+  {/* Image Guidelines */}
+  <p className="text-gray-600 text-sm mt-2">Valid image size: 400 * 270 px</p>
+</div>
+
           <div className="mb-3 col-span-2">
             <label htmlFor="content" className="block mb-2 text-lg font-medium">Content*</label>
             <div className="border border-gray-300 rounded-lg shadow-sm p-3">
@@ -422,4 +441,4 @@ function EditArticle() {
   );
 }
 
-export default EditArticle;
+export default EditBlog;

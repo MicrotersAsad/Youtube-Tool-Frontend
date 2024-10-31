@@ -486,7 +486,7 @@ const Layout = React.memo(({ children }) => {
                         : "max-h-0 opacity-0 scale-y-0"
                     }`}
                   >
-                    <Link href="/dashboard/categories" passHref>
+                    <Link href="/dashboard/yt-categories" passHref>
                       <p
                         className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
                           isActiveRoute("/dashboard/categories")
