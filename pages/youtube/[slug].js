@@ -122,24 +122,24 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
                 {/* Render processed content with shortcodes */}
                 <div className="my-4 result-content">{contentWithShortcodes}</div>
           
-<div className="my-8">
-  <h2 className="text-2xl font-bold mb-4">{t("Related Blogs")}</h2>
-  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div className="my-8">
+  <h2 className="text-2xl font-bold mb-4">{t("Related Article")}</h2>
+  <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
     {relatedBlogs.map((relatedBlog, index) => {
       const relatedTranslation = relatedBlog.translations[locale] || {};
       return (
         <div key={index} className="p-4 border rounded-lg hover:shadow-md transition-shadow duration-300">
           <a href={`/youtube/${relatedTranslation.slug}`}>
-            <h3 className="text-lg font-semibold text-blue-600 mb-2 hover:underline">
+            <h5 className="text-lg font-semibold text-blue-600 mb-2 hover:underline truncate whitespace-nowrap overflow-hidden text-ellipsis">
               {getTitle(relatedTranslation)}
-            </h3>
-            <p className="text-gray-500">{getDescription(relatedTranslation).substring(0, 100)}...</p>
+            </h5>
           </a>
         </div>
       );
     })}
   </div>
 </div>
+
 
                 {/* Additional sections like comments */}
                 <Comments slug={slug} />
