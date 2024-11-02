@@ -13,7 +13,7 @@ import ReactDOMServer from "react-dom/server";
 import { format } from "date-fns";
 import AuthorInfo from "../../components/AuthorCard";
 import { useTranslation } from "react-i18next";
-import { replaceShortcodes } from "../../components/replaceShortcodes"; // Import shortcode function
+import { ReplaceShortcodes } from "../../components/replaceShortcodes"; // Updated import for ReplaceShortcodes
 import { FaFacebook, FaLinkedin, FaTwitter } from "react-icons/fa";
 import Image from "next/image";
 
@@ -40,7 +40,7 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
   const [author, setAuthor] = useState(authorData?.author);
   const [loading, setLoading] = useState(!initialBlog);
   const [shortcodes, setShortcodes] = useState(initialShortcodes || []);
-  
+
   useEffect(() => {
     if (!initialBlog && slug) {
       const fetchData = async () => {
@@ -76,10 +76,14 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
   const [toc, updatedContent] = useToc(content);
   const tocHtml = toc ? ReactDOMServer.renderToStaticMarkup(<TableOfContents headings={toc} />) : "";
   const contentWithToc = insertTocBeforeFirstHeading(updatedContent, tocHtml);
-  const contentWithShortcodes = replaceShortcodes(contentWithToc, shortcodes);
+
+  // Update to use ReplaceShortcodes component for rendering shortcodes in content
+  const contentWithShortcodes = (
+    <ReplaceShortcodes content={contentWithToc} shortcodes={shortcodes} />
+  );
+
   const categoryName = translation.category || "Blog";
 
-  // Displaying the formatted publication date
   const publicationDate = blog?.createdAt ? format(new Date(blog.createdAt), "MMMM dd, yyyy") : "";
 
   if (loading) {
@@ -97,7 +101,7 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
   return (
     <div className="relative">
       <Head>
-        <title>{getMetaTitle(translation)} | ytubetools</title>
+        <title>{getMetaTitle(translation)}|ytubetools</title>
         <meta name="description" content={getMetaDescription(translation) || ""} />
       </Head>
 
@@ -106,85 +110,88 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
           <div className="flex-grow order-1 lg:order-2">
             <h1 className="md:text-5xl text-xl font-bold mb-2">{getTitle(translation)}</h1>
             <p className="text-gray-600 mb-4">{getDescription(translation)}</p>
-            <h6>{t('Updated on')} {format(new Date(blog.createdAt), 'MMMM dd, yyyy')}</h6> {/* Updated format */}
-            <AuthorInfo data={authorData}/>
+            <h6>{t('Updated on')} {publicationDate}</h6>
+            <AuthorInfo data={authorData} />
 
             <div className=" overflow-hidden sm:rounded-lg mb-8">
               <div className="border-b border-gray-200">
                 {/* Render processed content with shortcodes */}
-                <div className="my-4 result-content">{contentWithShortcodes}</div>
-                {/* Additional sections like comments */}
+             
+<div className="my-4 result-content">{contentWithShortcodes}</div>
+
+
+                {/* Author Information */}
                 <div className="p-6 mb-3 bg-blue-50 md:w-full rounded-lg shadow-md">
-              <h2 className="text-2xl font-bold mb-4">{t('About The Author')}</h2>
-              <hr/>
-              <div className="flex items-center">
-                <img 
-                  src={author?.image} 
-                  alt={author?.name ? `Profile picture of ${author.name}` : 'Author image'} 
-                  className="w-40 h-40 rounded-full mr-4" 
-                />
-                <div>
-                  <h3 className="text-xl font-bold pt-3">{author?.name}</h3>
-                  <p className="text-gray-700">{author?.bio}</p>
-                  <div className="flex mt-2 space-x-4">
-                    {author?.socialLinks?.facebook && (
-                      <a href={author.socialLinks.facebook} target="_blank" rel="noopener noreferrer">
-                        <FaFacebook size={24} />
-                      </a>
-                    )}
-                    {author?.socialLinks?.twitter && (
-                      <a href={author.socialLinks.twitter} target="_blank" rel="noopener noreferrer">
-                        <FaTwitter size={24} />
-                      </a>
-                    )}
-                    {author?.socialLinks?.linkedin && (
-                      <a href={author.socialLinks.linkedin} target="_blank" rel="noopener noreferrer">
-                        <FaLinkedin size={24} />
-                      </a>
-                    )}
+                  <h2 className="text-2xl font-bold mb-4">{t('About The Author')}</h2>
+                  <hr />
+                  <div className="flex items-center">
+                    <img 
+                      src={author?.image} 
+                      alt={author?.name ? `Profile picture of ${author.name}` : 'Author image'} 
+                      className="w-40 h-40 rounded-full mr-4" 
+                    />
+                    <div>
+                      <h3 className="text-xl font-bold pt-3">{author?.name}</h3>
+                      <p className="text-gray-700">{author?.bio}</p>
+                      <div className="flex mt-2 space-x-4">
+                        {author?.socialLinks?.facebook && (
+                          <a href={author.socialLinks.facebook} target="_blank" rel="noopener noreferrer">
+                            <FaFacebook size={24} />
+                          </a>
+                        )}
+                        {author?.socialLinks?.twitter && (
+                          <a href={author.socialLinks.twitter} target="_blank" rel="noopener noreferrer">
+                            <FaTwitter size={24} />
+                          </a>
+                        )}
+                        {author?.socialLinks?.linkedin && (
+                          <a href={author.socialLinks.linkedin} target="_blank" rel="noopener noreferrer">
+                            <FaLinkedin size={24} />
+                          </a>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Related Blogs Section */}
-            {relatedBlogs?.length > 0 && (
-  <div className="my-8">
-    <h2 className="text-2xl font-bold mb-4">{t('Related Blogs')}</h2>
-    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
-      {relatedBlogs.map((relatedBlog, index) => {
-        const relatedTranslation = relatedBlog.translations[locale];
-        if (!relatedTranslation) return null;
-        return (
-          <div key={index} className="bg-gray-100 rounded-lg shadow hover:shadow-md transition-shadow">
-            <div className='h-[270px] rounded'>
-              <Image
-                src={relatedTranslation?.image || '/placeholder.jpg'}
-                alt={relatedTranslation?.title || 'Related blog image'}
-                width={400}
-                height={270}
-                className='blog-img rounded'
-                quality={50} // Image quality reduced
-              />
-            </div>
-            <div className='p-4'>
-              <h3 className="text-xl font-semibold mb-2">
-                <a href={`/blog/${relatedTranslation.slug}`} className="text-blue-600 hover:underline">
-                  {relatedTranslation.title}
-                </a>
-              </h3>
-              <p className="text-gray-600 mb-2">{relatedTranslation.description?.substring(0, 100)}...</p>
-              <a href={`/blog/${relatedTranslation.slug}`} className="text-blue-500 hover:underline">
-                {t("Read More")}
-              </a>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  </div>
-)}
-
+                {/* Related Blogs Section */}
+                {relatedBlogs?.length > 0 && (
+                  <div className="my-8">
+                    <h2 className="text-2xl font-bold mb-4">{t('Related Blogs')}</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
+                      {relatedBlogs.map((relatedBlog, index) => {
+                        const relatedTranslation = relatedBlog.translations[locale];
+                        if (!relatedTranslation) return null;
+                        return (
+                          <div key={index} className="bg-gray-100 rounded-lg shadow hover:shadow-md transition-shadow">
+                            <div className="h-[270px] rounded">
+                              <Image
+                                src={relatedTranslation?.image || '/placeholder.jpg'}
+                                alt={relatedTranslation?.title || 'Related blog image'}
+                                width={400}
+                                height={270}
+                                className="blog-img rounded"
+                                quality={50}
+                              />
+                            </div>
+                            <div className="p-4">
+                              <h3 className="text-xl font-semibold mb-2">
+                                <a href={`/blog/${relatedTranslation.slug}`} className="text-blue-600 hover:underline">
+                                  {relatedTranslation.title}
+                                </a>
+                              </h3>
+                              <p className="text-gray-600 mb-2">{relatedTranslation.description?.substring(0, 100)}...</p>
+                              <a href={`/blog/${relatedTranslation.slug}`} className="text-blue-500 hover:underline">
+                                {t("Read More")}
+                              </a>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                
                 <Comments slug={slug} />
               </div>
             </div>
@@ -192,57 +199,14 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
         </div>
 
         <style jsx global>{`
-          .result-content h2 {
-            padding-top: 12px;
-            
-          }
-          .result-content p {
-            padding-top: 12px;
-            padding-bottom: 12px;
-          }
-          .result-content table {
-           
-   width: 100% !important;
-  border-collapse: collapse !important;
-  margin: 20px 0 !important;
-  font-size: 1rem !important;
-  text-align: left !important;
-  overflow-x: auto !important;
-  white-space: nowrap !important;
-          }
-          .result-content table th,
-          .result-content table td {
-            border: 1px solid #ddd;
-            padding: 12px 15px;
-          }
-          .result-content table th {
-            background-color: #f4f4f4;
-            font-weight: bold;
-          }
-          .result-content table tr:nth-child(even) {
-            background-color: #f9f9f9;
-          }
-          .result-content table tr:hover {
-            background-color: #f1f1f1;
-          }
-          .result-content table td {
-            word-wrap: break-word;
-            max-width: 300px;
-          }
-
-          @media (max-width: 768px) {
-  .result-content table {
-    display: block !important;
-    width: 100% !important;
-    border-collapse: collapse !important;
-    margin: 20px 0 !important;
-    font-size: 1rem !important;
-    text-align: left !important;
-    overflow-x: auto !important;
-    white-space: nowrap !important;
-  }
-}
-
+          .result-content h2 { padding-top: 12px; }
+          .result-content p { padding-top: 12px; padding-bottom: 12px; }
+          .result-content table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 1rem; }
+          .result-content table th, .result-content table td { border: 1px solid #ddd; padding: 12px 15px; }
+          .result-content table th { background-color: #f4f4f4; font-weight: bold; }
+          .result-content table tr:nth-child(even) { background-color: #f9f9f9; }
+          .result-content table tr:hover { background-color: #f1f1f1; }
+          .result-content table td { word-wrap: break-word; max-width: 300px; }
         `}</style>
       </div>
     </div>
@@ -311,6 +275,8 @@ export async function getServerSideProps({ locale, params, req }) {
 
     const shortcodesResponse = await axios.get(`${protocol}://${host}/api/shortcodes-tools`);
     const initialShortcodes = shortcodesResponse.data;
+    console.log(initialShortcodes);
+    
 
     return {
       props: {

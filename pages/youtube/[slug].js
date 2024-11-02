@@ -6,25 +6,19 @@ import Head from "next/head";
 import { ClipLoader } from "react-spinners";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Comments from "../../components/Comments";
+import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
-import { replaceShortcodes } from "../../components/replaceShortcodes"; // Import shortcode function
+import { ReplaceShortcodes } from "../../components/replaceShortcodes"; // Import ReplaceShortcodes function
+import { FaFacebook, FaLinkedin, FaTwitter } from "react-icons/fa";
+import Image from "next/image";
 
 const getTitle = (translation) => translation.title || translation.Title || "";
-const getDescription = (translation) =>
-  translation.description || translation.description || "";
-const getMetaTitle = (translation) =>
-  translation.metaTitle || translation.metaTitle || "";
-const getMetaDescription = (translation) =>
-  translation.metaDescription || translation.metaDescription || "";
-const getContent = (translation) =>
-  translation.content || translation.Content || "";
+const getDescription = (translation) => translation.description || translation.Description || "";
+const getMetaTitle = (translation) => translation.metaTitle || translation.MetaTitle || "";
+const getMetaDescription = (translation) => translation.metaDescription || translation.MetaDescription || "";
+const getContent = (translation) => translation.content || translation.Content || "";
 
-const BlogPost = ({
-  initialBlog,
-  authorData,
-  relatedBlogs,
-  initialShortcodes,
-}) => {
+const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) => {
   const { t } = useTranslation("blog");
   const router = useRouter();
   const { slug } = router.query;
@@ -43,22 +37,18 @@ const BlogPost = ({
           const blogs = data;
 
           const blog = blogs.find((blog) =>
-            Object.values(blog.translations).some(
-              (translation) => translation.slug === slug
-            )
+            Object.values(blog.translations).some((translation) => translation.slug === slug)
           );
 
           if (blog) {
             setBlog(blog);
-            const authorResponse = await axios.get(
-              `/api/authors?name=${blog.author}`
-            );
+            const authorResponse = await axios.get(`/api/authors?name=${blog.author}`);
             if (authorResponse.data.length > 0) {
               setAuthor(authorResponse.data[0]);
             }
           }
         } catch (error) {
-          console.error("Error fetching articles:", error.message);
+          console.error("Error fetching blogs:", error.message);
         } finally {
           setLoading(false);
         }
@@ -72,17 +62,12 @@ const BlogPost = ({
   const content = getContent(translation);
 
   // Replace shortcodes in the updated content dynamically
-  const contentWithShortcodes = replaceShortcodes(content, shortcodes);
+  const contentWithShortcodes = (
+    <ReplaceShortcodes content={content} shortcodes={shortcodes} />
+  );
 
   const categoryName = translation.category || "Blog";
-
-  // Ensure scroll styles are applied on tables after content load
-  useEffect(() => {
-    const tables = document.querySelectorAll(".youtube-content table");
-    tables.forEach((table) => {
-      table.classList.add("scrollable-table");
-    });
-  }, [contentWithShortcodes]); // Re-run when content updates
+  const publicationDate = blog?.createdAt ? format(new Date(blog.createdAt), "MMMM dd, yyyy") : "";
 
   if (loading) {
     return (
@@ -93,37 +78,28 @@ const BlogPost = ({
   }
 
   if (!blog) {
-    return (
-      <p className="text-red-500">
-        {t("No content available for this language.")}
-      </p>
-    );
+    return <p className="text-red-500">{t("No content available for this language.")}</p>;
   }
 
   return (
     <div className="relative">
       <Head>
         <title>{getMetaTitle(translation)} | ytubetools</title>
-        <meta
-          name="description"
-          content={getMetaDescription(translation) || ""}
-        />
+        <meta name="description" content={getMetaDescription(translation) || ""} />
       </Head>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
         <div className="flex flex-col lg:flex-row">
           <div className="flex-grow order-1 lg:order-2">
-            <h1 className="md:text-5xl text-xl font-bold mb-4">
-              {getTitle(translation)}
-            </h1>
-            <p>{getDescription(translation)}</p>
+            <h1 className="md:text-5xl text-xl font-bold mb-2">{getTitle(translation)}</h1>
+            <p className="text-gray-600 mb-4">{getDescription(translation)}</p>
+            <h6>{t('Updated on')} {publicationDate}</h6>
 
             <div className="overflow-hidden sm:rounded-lg mb-8">
               <div className="border-b border-gray-200">
                 {/* Render processed content with shortcodes */}
-                <div className="my-4 youtube-content">
-                  {contentWithShortcodes}
-                </div>
+                <div className="my-4 result-content">{contentWithShortcodes}</div>
+
                 {/* Additional sections like comments */}
                 <Comments slug={slug} />
               </div>
@@ -132,29 +108,14 @@ const BlogPost = ({
         </div>
 
         <style jsx global>{`
-          .youtube-content h2 {
-            padding-top: 12px;
-          }
-          .youtube-content p {
-            padding-top: 12px;
-            padding-bottom: 12px;
-          }
-
-          /* Apply scrolling styles to tables with scrollable-table class */
-        @media (max-width: 768px) {
-  .youtube-content table {
-    display: block !important;
-    width: 100% !important;
-    border-collapse: collapse !important;
-    margin: 20px 0 !important;
-    font-size: 1rem !important;
-    text-align: left !important;
-    overflow-x: auto !important;
-    white-space: nowrap !important;
-  }
-}
-
-
+          .result-content h2 { padding-top: 12px; }
+          .result-content p { padding-top: 12px; padding-bottom: 12px; }
+          .result-content table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 1rem; }
+          .result-content table th, .result-content table td { border: 1px solid #ddd; padding: 12px 15px; }
+          .result-content table th { background-color: #f4f4f4; font-weight: bold; }
+          .result-content table tr:nth-child(even) { background-color: #f9f9f9; }
+          .result-content table tr:hover { background-color: #f1f1f1; }
+          .result-content table td { word-wrap: break-word; max-width: 300px; }
         `}</style>
       </div>
     </div>
@@ -164,8 +125,7 @@ const BlogPost = ({
 export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
-    const protocol =
-      req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
+    const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
     const host = req.headers.host || "localhost:3000";
     const apiUrl = `${protocol}://${host}/api/youtube`;
 
@@ -173,29 +133,23 @@ export async function getServerSideProps({ locale, params, req }) {
     const blogs = data;
 
     const blog = blogs.find((blog) =>
-      Object.values(blog.translations).some(
-        (translation) => translation.slug === slug
-      )
+      Object.values(blog.translations).some((translation) => translation.slug === slug)
     );
 
     if (!blog) {
-      return {
-        notFound: true,
-      };
+      return { notFound: true };
     }
 
     const currentTranslation = blog.translations[locale];
     if (!currentTranslation) {
-      return {
-        notFound: true,
-      };
+      return { notFound: true };
     }
 
     const currentSlug = currentTranslation.slug;
     if (currentSlug !== slug) {
       return {
         redirect: {
-          destination: `/youtube/${currentSlug}`,
+          destination: `/blog/${currentSlug}`,
           permanent: false,
         },
       };
@@ -219,16 +173,12 @@ export async function getServerSideProps({ locale, params, req }) {
         (b) =>
           b !== blog &&
           Object.values(b.translations).some(
-            (translation) =>
-              translation.category === blog.translations[locale]?.category
+            (translation) => translation.category === blog.translations[locale]?.category
           )
       )
       .slice(0, 3);
 
-    // Fetch shortcodes dynamically on the server side
-    const shortcodesResponse = await axios.get(
-      `${protocol}://${host}/api/shortcodes-tools`
-    );
+    const shortcodesResponse = await axios.get(`${protocol}://${host}/api/shortcodes-tools`);
     const initialShortcodes = shortcodesResponse.data;
 
     return {
@@ -246,9 +196,7 @@ export async function getServerSideProps({ locale, params, req }) {
     };
   } catch (error) {
     console.error("Error fetching blogs or authors:", error.message);
-    return {
-      notFound: true,
-    };
+    return { notFound: true };
   }
 }
 

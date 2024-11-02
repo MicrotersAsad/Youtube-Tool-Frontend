@@ -82,7 +82,8 @@ const CreateShortCode = () => {
           >
             <option value="">Select a tool</option>
             <option value="name-generator">YouTube Name Generator</option>
-            <option value="youtube-title-and-description-extractor">YouTube title  Generator</option>
+            <option value="youtube-earning-calculator">YouTube Earning  Calculator</option>
+           
             {/* Add more tools as needed */}
           </select>
         </div>

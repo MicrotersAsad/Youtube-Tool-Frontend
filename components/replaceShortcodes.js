@@ -12,10 +12,10 @@ const loadComponent = async (componentName) => {
 };
 
 // শর্টকোড প্রসেস করার মূল ফাংশন
-export function replaceShortcodes(content, shortcodes) {
+export function ReplaceShortcodes({ content, shortcodes }) {
   const [components, setComponents] = useState({});
 
-  // শর্টকোডের জন্য কম্পোনেন্ট লোড করা
+  // শর্টকোডের জন্য সব কম্পোনেন্ট একবারে লোড করা
   useEffect(() => {
     const loadAllComponents = async () => {
       const componentMap = {};
@@ -34,29 +34,23 @@ export function replaceShortcodes(content, shortcodes) {
   // যদি কনটেন্ট না থাকে বা এটি স্ট্রিং না হয়, তাহলে null রিটার্ন করবো
   if (!content || typeof content !== 'string') return null;
 
-  let processedContent = content;
+  // কনটেন্ট প্রসেস করা
+  const regexPattern = shortcodes
+    .map((shortcode) => `\\[${shortcode.shortcode}\\]`)
+    .join('|'); // একটি regex তৈরি করা যা সকল শর্টকোড ধরবে
+  const regex = new RegExp(`(${regexPattern})`, 'g');
 
-  // প্রতিটি শর্টকোড প্রসেস করা
-  for (const shortcode of shortcodes) {
-    const regex = new RegExp(`\\[${shortcode.shortcode}\\]`, 'g');
-
-    // Ensure processedContent is a string before applying split()
-    if (typeof processedContent === 'string') {
-      processedContent = processedContent.split(regex).map((part, index, arr) => (
-        <React.Fragment key={`${shortcode.shortcode}-${index}`}>
-          {/* কনটেন্টের অংশ রেন্ডার করা */}
-          <div dangerouslySetInnerHTML={{ __html: part }} />
-          
-          {/* শর্টকোডের কন্টেন্ট UI-তে দেখানো এবং raw শর্টকোড HTML সোর্সে রাখা */}
-          {index !== arr.length - 1 && components[shortcode.shortcode] && (
-            <div data-shortcode={`[${shortcode.shortcode}]`}>
-              {React.createElement(components[shortcode.shortcode])}
-            </div>
-          )}
-        </React.Fragment>
-      ));
+  const processedContent = content.split(regex).map((part, index) => {
+    // Check if part is a shortcode and render it, otherwise render plain HTML content
+    const shortcode = shortcodes.find((sc) => `[${sc.shortcode}]` === part);
+    if (shortcode && components[shortcode.shortcode]) {
+      const Component = components[shortcode.shortcode];
+      return <Component key={`${shortcode.shortcode}-${index}`} />;
     }
-  }
+    // Render plain text or HTML if it's not a shortcode
+    return <span key={`text-${index}`} dangerouslySetInnerHTML={{ __html: part }} />;
+  });
 
+  // Return the processed content as JSX
   return <>{processedContent}</>;
 }
