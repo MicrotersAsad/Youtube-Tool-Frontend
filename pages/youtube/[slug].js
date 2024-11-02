@@ -12,6 +12,7 @@ import { ReplaceShortcodes } from "../../components/replaceShortcodes"; // Impor
 import { FaFacebook, FaLinkedin, FaTwitter } from "react-icons/fa";
 import Image from "next/image";
 
+const getImage = (translation) => translation.image || translation.image || "";
 const getTitle = (translation) => translation.title || translation.Title || "";
 const getDescription = (translation) => translation.description || translation.Description || "";
 const getMetaTitle = (translation) => translation.metaTitle || translation.MetaTitle || "";
@@ -83,9 +84,30 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
 
   return (
     <div className="relative">
-      <Head>
-        <title>{getMetaTitle(translation)} | ytubetools</title>
+   <Head>
+        <title>{getMetaTitle(translation)}</title>
         <meta name="description" content={getMetaDescription(translation) || ""} />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={getMetaTitle(translation)} />
+        <meta property="og:description" content={getMetaDescription(translation)} />
+        <meta property="og:image" content={getImage(translation)} />
+        <meta property="og:url" content={`https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3001'}/youtube/${slug}`} />
+        <meta property="og:site_name" content="ytubetools" />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={getMetaTitle(translation)} />
+        <meta name="twitter:description" content={getMetaDescription(translation)} />
+        <meta name="twitter:image" content={getImage(translation)} />
+        
+        {/* Author and Article-specific metadata */}
+        <meta name="author" content={author?.name || "ytubetools"} />
+        <meta property="article:published_time" content={blog?.createdAt || ""} />
+        <meta property="article:author" content={author?.name || ""} />
+        <meta property="article:section" content={categoryName} />
+        <meta property="article:tag" content={categoryName} />
       </Head>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
@@ -99,6 +121,25 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
               <div className="border-b border-gray-200">
                 {/* Render processed content with shortcodes */}
                 <div className="my-4 result-content">{contentWithShortcodes}</div>
+          
+<div className="my-8">
+  <h2 className="text-2xl font-bold mb-4">{t("Related Blogs")}</h2>
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+    {relatedBlogs.map((relatedBlog, index) => {
+      const relatedTranslation = relatedBlog.translations[locale] || {};
+      return (
+        <div key={index} className="p-4 border rounded-lg hover:shadow-md transition-shadow duration-300">
+          <a href={`/youtube/${relatedTranslation.slug}`}>
+            <h3 className="text-lg font-semibold text-blue-600 mb-2 hover:underline">
+              {getTitle(relatedTranslation)}
+            </h3>
+            <p className="text-gray-500">{getDescription(relatedTranslation).substring(0, 100)}...</p>
+          </a>
+        </div>
+      );
+    })}
+  </div>
+</div>
 
                 {/* Additional sections like comments */}
                 <Comments slug={slug} />
@@ -176,7 +217,7 @@ export async function getServerSideProps({ locale, params, req }) {
             (translation) => translation.category === blog.translations[locale]?.category
           )
       )
-      .slice(0, 3);
+      ;
 
     const shortcodesResponse = await axios.get(`${protocol}://${host}/api/shortcodes-tools`);
     const initialShortcodes = shortcodesResponse.data;

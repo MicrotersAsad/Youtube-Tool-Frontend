@@ -76,9 +76,7 @@ const YouTubeMoneyCalculator = () => {
 
   return (
     <>
-      <Head>
-        <title>YouTube Money Calculator</title>
-      </Head>
+    
       <div className="calculator-box">
         <ToastContainer />
 
