@@ -315,7 +315,7 @@ const handleGetRequest = async (req, res, youtube, query) => {
   }
 };
 
-const handleDeleteRequest = async (req, res, youtube, query) => {
+const handleDeleteRequest = async (req, res, blogs, query) => {
   try {
     const { id, language } = query;
 
@@ -323,30 +323,30 @@ const handleDeleteRequest = async (req, res, youtube, query) => {
       return res.status(400).json({ message: 'Invalid ID' });
     }
 
-    const youtube = await youtube.findOne({ _id: new ObjectId(id) });
+    const blog = await blogs.findOne({ _id: new ObjectId(id) });
 
-    if (!youtube) {
-      return res.status(404).json({ message: 'youtube post not found' });
+    if (!blog) {
+      return res.status(404).json({ message: 'Blog post not found' });
     }
 
-    // Check if the youtube has the language translation specified for deletion
-    if (language && youtube.translations && youtube.translations[language]) {
-      delete youtube.translations[language]; // Remove the specific language translation
+    // Check if the blog has the language translation specified for deletion
+    if (language && blog.translations && blog.translations[language]) {
+      delete blog.translations[language]; // Remove the specific language translation
 
-      // If no translations remain, delete the entire youtube post
-      if (Object.keys(youtube.translations).length === 0) {
-        const deleteResult = await youtube.deleteOne({ _id: new ObjectId(id) });
+      // If no translations remain, delete the entire blog post
+      if (Object.keys(blog.translations).length === 0) {
+        const deleteResult = await blogs.deleteOne({ _id: new ObjectId(id) });
 
         if (deleteResult.deletedCount === 1) {
-          return res.status(200).json({ message: 'youtube post deleted successfully as no translations remain.' });
+          return res.status(200).json({ message: 'Blog post deleted successfully as no translations remain.' });
         } else {
-          return res.status(500).json({ message: 'Failed to delete youtube post.' });
+          return res.status(500).json({ message: 'Failed to delete blog post.' });
         }
       } else {
-        // Otherwise, update the youtube post with the remaining translations
-        const updateResult = await youtube.updateOne(
+        // Otherwise, update the blog post with the remaining translations
+        const updateResult = await blogs.updateOne(
           { _id: new ObjectId(id) },
-          { $set: { translations: youtube.translations } }
+          { $set: { translations: blog.translations } }
         );
 
         if (updateResult.modifiedCount === 1) {
@@ -356,13 +356,13 @@ const handleDeleteRequest = async (req, res, youtube, query) => {
         }
       }
     } else {
-      // If no language is provided or the translation doesn't exist, delete the entire youtube post
-      const deleteResult = await youtube.deleteOne({ _id: new ObjectId(id) });
+      // If no language is provided or the translation doesn't exist, delete the entire blog post
+      const deleteResult = await blogs.deleteOne({ _id: new ObjectId(id) });
 
       if (deleteResult.deletedCount === 1) {
-        return res.status(200).json({ message: 'youtube post deleted successfully.' });
+        return res.status(200).json({ message: 'Blog post deleted successfully.' });
       } else {
-        return res.status(500).json({ message: 'Failed to delete youtube post.' });
+        return res.status(500).json({ message: 'Failed to delete blog post.' });
       }
     }
   } catch (error) {
@@ -370,4 +370,5 @@ const handleDeleteRequest = async (req, res, youtube, query) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 

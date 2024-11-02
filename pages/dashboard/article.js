@@ -375,12 +375,7 @@ function Article() {
               )}
               <p className="text-gray-600 text-sm mt-1">Valid image size: 400 * 270 px </p>
             </div>
-            <button
-              className="bg-blue-500 text-white p-3 rounded-lg w-full mb-4 shadow-md"
-              onClick={handleSubmit}
-            >
-              Save & Edit
-            </button>
+           
             <button
               className="bg-green-500 text-white p-3 rounded-lg w-full shadow-md"
               onClick={handleSubmit}

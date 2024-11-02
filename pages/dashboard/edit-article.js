@@ -431,7 +431,7 @@ function EditBlog() {
           </div>
           {error && <div className="text-red-500 mb-6 col-span-2">Error: {error}</div>}
           <div className="mb-3 col-span-2 flex space-x-4">
-            <button className="bg-blue-500 text-white p-3 rounded-lg shadow-md flex-1" onClick={handleSave}>Save & Edit</button>
+           
             <button className="bg-green-500 text-white p-3 rounded-lg shadow-md flex-1" onClick={handleSave}>Save</button>
           </div>
         </div>
