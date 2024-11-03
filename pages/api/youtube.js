@@ -50,15 +50,15 @@ const runMiddleware = (req, res, fn) => {
   });
 };
 
-const createSlug = (title) => {
-  return title
-    .toString()
-    .toLowerCase()
-    .replace(/\s+/g, '-') // Replace spaces with -
-    .replace(/[^\w-]+/g, '') // Remove all non-word characters
-    .replace(/--+/g, '-') // Replace multiple - with single -
-    .replace(/^-+/, '') // Trim - from start of text
-    .replace(/-+$/, ''); // Trim - from end of text
+// Generate a unique slug if a duplicate exists
+const generateUniqueSlug = async (slug, language, youtube) => {
+  let uniqueSlug = slug;
+  let counter = 1;
+  while (await youtube.findOne({ [`translations.${language}.slug`]: uniqueSlug })) {
+    uniqueSlug = `${slug}-${counter}`;
+    counter += 1;
+  }
+  return uniqueSlug;
 };
 
 export default async function handler(req, res) {
@@ -134,6 +134,9 @@ const handlePostRequest = async (req, res, youtube) => {
       return res.status(400).json({ message: 'Invalid request body' });
     }
 
+    // Generate a unique slug if the slug already exists
+    const uniqueSlug = await generateUniqueSlug(slug, language, youtube);
+
     const existingyoutube = await youtube.findOne({ 'translations.slug': slug });
 
     if (existingyoutube) {
@@ -146,7 +149,7 @@ const handlePostRequest = async (req, res, youtube) => {
           [`translations.${language}.metaDescription`]: metaDescription,
           [`translations.${language}.category`]: category,
           [`translations.${language}.image`]: image,
-          [`translations.${language}.slug`]: slug,
+          [`translations.${language}.slug`]: uniqueSlug,
           author,
           editor,
           developer,
@@ -175,7 +178,7 @@ const handlePostRequest = async (req, res, youtube) => {
             metaDescription,
             category,
             image,
-            slug,
+            slug: uniqueSlug,
           },
         },
         author,
@@ -195,6 +198,45 @@ const handlePostRequest = async (req, res, youtube) => {
     }
   } catch (error) {
     console.error('POST error:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
+const handleGetRequest = async (req, res, youtube, query) => {
+  try {
+    if (query.id) {
+      const id = query.id;
+      const result = await youtube.findOne({ _id: new ObjectId(id) });
+
+      if (!result) {
+        return res.status(404).json({ message: 'Resource not found' });
+      }
+
+      res.status(200).json(result);
+    } else if (query.slug) {
+      const slug = query.slug;
+      const result = await youtube.findOne({ 'translations.slug': slug });
+
+      if (!result) {
+        return res.status(404).json({ message: 'Resource not found' });
+      }
+
+      res.status(200).json(result);
+    } else if (query.name && query.role) {
+      const filter = { [query.role]: query.name };
+      const filteredyoutube = await youtube.find(filter).toArray();
+
+      if (filteredyoutube.length === 0) {
+        return res.status(404).json({ message: 'No posts found for this person' });
+      }
+
+      res.status(200).json(filteredyoutube);
+    } else {
+      const youtubeArray = await youtube.find({}).limit(15).toArray();
+      res.status(200).json(youtubeArray);
+    }
+  } catch (error) {
+    console.error('GET error:', error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
@@ -242,45 +284,6 @@ const handlePutRequest = async (req, res, youtube, query) => {
     }
   } catch (error) {
     console.error('PUT error:', error);
-    res.status(500).json({ message: 'Internal server error', error: error.message });
-  }
-};
-
-const handleGetRequest = async (req, res, youtube, query) => {
-  try {
-    if (query.id) {
-      const id = query.id;
-      const result = await youtube.findOne({ _id: new ObjectId(id) });
-
-      if (!result) {
-        return res.status(404).json({ message: 'Resource not found' });
-      }
-
-      res.status(200).json(result);
-    } else if (query.slug) {
-      const slug = query.slug;
-      const result = await youtube.findOne({ 'translations.slug': slug });
-
-      if (!result) {
-        return res.status(404).json({ message: 'Resource not found' });
-      }
-
-      res.status(200).json(result);
-    } else if (query.name && query.role) {
-      const filter = { [query.role]: query.name };
-      const filteredyoutube = await youtube.find(filter).toArray();
-
-      if (filteredyoutube.length === 0) {
-        return res.status(404).json({ message: 'No posts found for this person' });
-      }
-
-      res.status(200).json(filteredyoutube);
-    } else {
-      const youtubeArray = await youtube.find({}).limit(15).toArray();
-      res.status(200).json(youtubeArray);
-    }
-  } catch (error) {
-    console.error('GET error:', error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
