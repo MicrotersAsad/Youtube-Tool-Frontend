@@ -235,7 +235,7 @@ function AllBlogs() {
                     </td>
                     <td className="py-2 px-4 border-b">
                       <span className="flex items-center">
-                        <FaEye className="mr-1" /> {blog.viewCount}
+                        <FaEye className="mr-1" /> <Link href={`/blog/${blog?.slug}`}>View More</Link>
                       </span>
                     </td>
                     <td className="py-2 px-4 border-b flex items-center justify-center">

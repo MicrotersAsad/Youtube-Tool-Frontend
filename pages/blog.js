@@ -9,6 +9,7 @@ import { i18n } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { format } from 'date-fns';
 import PromoSection from '../components/BlogPromoSection';
+import Head from 'next/head';
 
 // Utility functions
 const createSlug = (title) => {
@@ -179,13 +180,13 @@ const BlogSection = ({ initialBlogs = [] }) => {
 
   return (
     <div className=''>
-      <title>Ytubetools || Blog</title>
-      <meta name="description" content="Blog Page" />
-      <meta property="og:url" content="https://ytubetools.com/blog" />
-      <meta
-        property="og:description"
-        content="Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
-      />
+       <Head>
+        <title>Ytubetools - Enhance Your YouTube Experience</title>
+        <meta name="description" content="Explore our blog at Ytubetools for insights, tips, and tools designed to improve your YouTube content creation and viewer experience." />
+        <meta property="og:title" content="Ytubetools Blog - Tips and Tools for YouTube Creators" />
+        <meta property="og:description" content="Learn how to use Ytubetools to optimize your YouTube channel. Get the latest tips, tutorials, and insights on maximizing your YouTube content." />
+        <meta property="og:url" content="https://ytubetools.com/blog" />
+      </Head>
 
       <PromoSection />
 

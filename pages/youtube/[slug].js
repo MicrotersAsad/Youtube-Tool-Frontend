@@ -9,9 +9,9 @@ import Comments from "../../components/Comments";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { ReplaceShortcodes } from "../../components/replaceShortcodes"; // Import ReplaceShortcodes function
-import { FaFacebook, FaLinkedin, FaTwitter } from "react-icons/fa";
+import { FaCheck, FaCheckCircle, FaFacebook, FaLinkedin, FaTwitter } from "react-icons/fa";
 import Image from "next/image";
-
+import { FaArrowRight } from "react-icons/fa"; // Import right arrow icon
 const getImage = (translation) => translation.image || translation.image || "";
 const getTitle = (translation) => translation.title || translation.Title || "";
 const getDescription = (translation) => translation.description || translation.Description || "";
@@ -122,15 +122,17 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
                 {/* Render processed content with shortcodes */}
                 <div className="my-4 result-content">{contentWithShortcodes}</div>
           
+                
                 <div className="my-8">
-  <h2 className="text-2xl font-bold mb-4">{t("Related Article")}</h2>
-  <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
+  <h2 className="text-2xl font-bold mb-4">{t("Other Countries Highest Earning Youtubers")}</h2>
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
     {relatedBlogs.map((relatedBlog, index) => {
       const relatedTranslation = relatedBlog.translations[locale] || {};
       return (
-        <div key={index} className="p-4 border rounded-lg hover:shadow-md transition-shadow duration-300">
-          <a href={`/youtube/${relatedTranslation.slug}`}>
-            <h5 className="text-lg font-semibold text-blue-600 mb-2 hover:underline truncate whitespace-nowrap overflow-hidden text-ellipsis">
+        <div key={index} className=" ">
+          <a href={`/youtube/${relatedTranslation.slug}`} className="flex items-center space-x-3">
+            <FaCheckCircle className="text-green-600 text-lg mb-2" /> {/* Adjusted size and color */}
+            <h5 className="text-lg font-semibold text-blue-600 hover:underline truncate whitespace-nowrap overflow-hidden">
               {getTitle(relatedTranslation)}
             </h5>
           </a>

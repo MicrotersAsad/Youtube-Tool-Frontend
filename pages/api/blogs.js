@@ -1,9 +1,8 @@
-
 import { ObjectId } from 'mongodb';
 import { connectToDatabase } from '../../utils/mongodb';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import multerS3 from 'multer-s3';
 
 export const config = {
   api: {
@@ -11,21 +10,34 @@ export const config = {
   },
 };
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(process.cwd(), 'public', 'uploads');
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `${uniqueSuffix}-${file.originalname}`);
+// Configure AWS S3 v3
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
 
-const upload = multer({ storage });
+// Check if bucket name is provided
+if (!process.env.AWS_S3_BUCKET_NAME) {
+  throw new Error("AWS_S3_BUCKET environment variable is not set");
+}
+
+// Configure multer to use S3 for image storage
+const upload = multer({
+  storage: multerS3({
+    s3,
+    bucket: process.env.AWS_S3_BUCKET_NAME,
+    metadata: (req, file, cb) => {
+      cb(null, { fieldName: file.fieldname });
+    },
+    key: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, `uploads/${uniqueSuffix}-${file.originalname}`);
+    },
+  }),
+});
 
 const runMiddleware = (req, res, fn) => {
   return new Promise((resolve, reject) => {
@@ -55,10 +67,9 @@ export default async function handler(req, res) {
 
   try {
     ({ db, client } = await connectToDatabase());
- 
   } catch (error) {
     console.error('Database connection error:', error);
-    return res.status(500).json({ message: 'Database connection error' });
+    return res.status(500).json({ message: 'Database connection error', error: error.message });
   }
 
   const blogs = db.collection('blogs');
@@ -105,7 +116,7 @@ const handlePostRequest = async (req, res, blogs) => {
       editor,
       developer,
     } = formData;
-    const image = req.file ? `/uploads/${req.file.filename}` : null;
+    const image = req.file ? req.file.location : null;
 
     if (
       !content ||
@@ -123,9 +134,9 @@ const handlePostRequest = async (req, res, blogs) => {
       return res.status(400).json({ message: 'Invalid request body' });
     }
 
-    const existingBlog = await blogs.findOne({ 'translations.slug': slug });
+    const existingblogs = await blogs.findOne({ 'translations.slug': slug });
 
-    if (existingBlog) {
+    if (existingblogs) {
       const updateDoc = {
         $set: {
           [`translations.${language}.title`]: title,
@@ -143,7 +154,7 @@ const handlePostRequest = async (req, res, blogs) => {
       };
 
       const result = await blogs.updateOne(
-        { _id: existingBlog._id },
+        { _id: existingblogs._id },
         updateDoc
       );
 
@@ -184,40 +195,23 @@ const handlePostRequest = async (req, res, blogs) => {
     }
   } catch (error) {
     console.error('POST error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
+
 const handlePutRequest = async (req, res, blogs, query) => {
   try {
-    const { db } = await connectToDatabase();
-    const categoriesCollection = db.collection('categories');
-
     await runMiddleware(req, res, upload.single('image'));
 
     const id = query.id;
     const { language, category, ...updatedData } = req.body;
 
-    // Validate that the blog ID is a valid ObjectId
     if (!ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid blog ID format' });
+      return res.status(400).json({ message: 'Invalid blogs ID format' });
     }
-
-    // Ensure the category ID is a valid ObjectId
-    if (!ObjectId.isValid(category)) {
-      return res.status(400).json({ message: 'Invalid category ID format' });
-    }
-
-    // Fetch the full category details based on the provided category ID
-    const categoryData = await categoriesCollection.findOne({ _id: new ObjectId(category) });
-    if (!categoryData) {
-      return res.status(400).json({ message: 'Category not found' });
-    }
-
-    // Get the category name based on the selected language or default to English if not available
-    const categoryName = categoryData.translations[language]?.name || categoryData.translations['en'].name;
 
     if (req.file) {
-      updatedData.image = `/uploads/${req.file.filename}`;
+      updatedData.image = req.file.location;
     }
 
     const updateDoc = {
@@ -227,7 +221,7 @@ const handlePutRequest = async (req, res, blogs, query) => {
         [`translations.${language}.metaTitle`]: updatedData.metaTitle,
         [`translations.${language}.description`]: updatedData.description,
         [`translations.${language}.metaDescription`]: updatedData.metaDescription,
-        [`translations.${language}.category`]: categoryName,
+        [`translations.${language}.category`]: updatedData.category,
         [`translations.${language}.image`]: updatedData.image,
         [`translations.${language}.slug`]: updatedData.slug,
         author: updatedData.author,
@@ -248,12 +242,9 @@ const handlePutRequest = async (req, res, blogs, query) => {
     }
   } catch (error) {
     console.error('PUT error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
-
-
-
 
 const handleGetRequest = async (req, res, blogs, query) => {
   try {
@@ -276,42 +267,21 @@ const handleGetRequest = async (req, res, blogs, query) => {
 
       res.status(200).json(result);
     } else if (query.name && query.role) {
-      // Filtering based on author/editor/developer name
       const filter = { [query.role]: query.name };
-      const filteredBlogs = await blogs.find(filter).toArray();
+      const filteredblogs = await blogs.find(filter).toArray();
 
-      if (filteredBlogs.length === 0) {
+      if (filteredblogs.length === 0) {
         return res.status(404).json({ message: 'No posts found for this person' });
       }
 
-      res.status(200).json(filteredBlogs);
+      res.status(200).json(filteredblogs);
     } else {
       const blogsArray = await blogs.find({}).limit(15).toArray();
-      const updatedBlogsArray = blogsArray.map((blog) => {
-        if (!blog.translations) {
-          blog.translations = {};
-        }
-        if (!blog.translations.en) {
-          const title = blog.title || blog.Title || '';
-          const content = blog.content || blog.Content || '';
-          blog.translations.en = {
-            title,
-            content,
-            metaTitle: blog.metaTitle || '',
-            description: blog.description || '',
-            metaDescription: blog.metaDescription || '',
-            category: blog.category || '',
-            image: blog.image || '',
-            slug: blog.slug || createSlug(title),
-          };
-        }
-        return blog;
-      });
-      res.status(200).json(updatedBlogsArray);
+      res.status(200).json(blogsArray);
     }
   } catch (error) {
     console.error('GET error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
 
@@ -323,30 +293,27 @@ const handleDeleteRequest = async (req, res, blogs, query) => {
       return res.status(400).json({ message: 'Invalid ID' });
     }
 
-    const blog = await blogs.findOne({ _id: new ObjectId(id) });
+    const blogsDoc = await blogs.findOne({ _id: new ObjectId(id) });
 
-    if (!blog) {
-      return res.status(404).json({ message: 'Blog post not found' });
+    if (!blogsDoc) {
+      return res.status(404).json({ message: 'Resource not found' });
     }
 
-    // Check if the blog has the language translation specified for deletion
-    if (language && blog.translations && blog.translations[language]) {
-      delete blog.translations[language]; // Remove the specific language translation
+    if (language && blogsDoc.translations && blogsDoc.translations[language]) {
+      delete blogsDoc.translations[language];
 
-      // If no translations remain, delete the entire blog post
-      if (Object.keys(blog.translations).length === 0) {
+      if (Object.keys(blogsDoc.translations).length === 0) {
         const deleteResult = await blogs.deleteOne({ _id: new ObjectId(id) });
 
         if (deleteResult.deletedCount === 1) {
-          return res.status(200).json({ message: 'Blog post deleted successfully as no translations remain.' });
+          return res.status(200).json({ message: 'Document deleted successfully as no translations remain.' });
         } else {
-          return res.status(500).json({ message: 'Failed to delete blog post.' });
+          return res.status(500).json({ message: 'Failed to delete document.' });
         }
       } else {
-        // Otherwise, update the blog post with the remaining translations
         const updateResult = await blogs.updateOne(
           { _id: new ObjectId(id) },
-          { $set: { translations: blog.translations } }
+          { $set: { translations: blogsDoc.translations } }
         );
 
         if (updateResult.modifiedCount === 1) {
@@ -356,18 +323,16 @@ const handleDeleteRequest = async (req, res, blogs, query) => {
         }
       }
     } else {
-      // If no language is provided or the translation doesn't exist, delete the entire blog post
       const deleteResult = await blogs.deleteOne({ _id: new ObjectId(id) });
 
       if (deleteResult.deletedCount === 1) {
-        return res.status(200).json({ message: 'Blog post deleted successfully.' });
+        return res.status(200).json({ message: 'Document deleted successfully.' });
       } else {
-        return res.status(500).json({ message: 'Failed to delete blog post.' });
+        return res.status(500).json({ message: 'Failed to delete document.' });
       }
     }
   } catch (error) {
     console.error('DELETE error:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
-
