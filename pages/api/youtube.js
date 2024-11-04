@@ -232,7 +232,8 @@ const handleGetRequest = async (req, res, youtube, query) => {
 
       res.status(200).json(filteredyoutube);
     } else {
-      const youtubeArray = await youtube.find({}).limit(15).toArray();
+      const youtubeArray = await youtube.find({}).toArray();
+
       res.status(200).json(youtubeArray);
     }
   } catch (error) {

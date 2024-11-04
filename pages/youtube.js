@@ -29,6 +29,8 @@ const extractFirstImage = (content) => {
 };
 
 const BlogSection = ({ initialBlogs = [] }) => {
+  console.log(initialBlogs);
+  
   const router = useRouter();
   const { category: selectedCategory } = router.query;
   const [loading, setLoading] = useState(!initialBlogs.length);
@@ -281,6 +283,8 @@ export async function getServerSideProps({ locale, req }) {
     const host = req.headers.host;
     const apiUrl = `${protocol}://${host}/api/youtube`;
     const { data } = await axios.get(apiUrl);
+    console.log(data);
+    
     return {
       props: {
         initialBlogs: data,
