@@ -125,7 +125,7 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
                 
                 <div className="my-8">
   <h2 className="text-2xl font-bold mb-4">{t("Other Countries Highest Earning Youtubers")}</h2>
-  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+  <div className="grid grid-cols-1 sm:grid-cols-3">
     {relatedBlogs.map((relatedBlog, index) => {
       const relatedTranslation = relatedBlog.translations[locale] || {};
       return (
@@ -149,17 +149,76 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
             </div>
           </div>
         </div>
-
         <style jsx global>{`
-          .result-content h2 { padding-top: 12px; }
-          .result-content p { padding-top: 12px; padding-bottom: 12px; }
-          .result-content table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 1rem; }
-          .result-content table th, .result-content table td { border: 1px solid #ddd; padding: 12px 15px; }
-          .result-content table th { background-color: #f4f4f4; font-weight: bold; }
-          .result-content table tr:nth-child(even) { background-color: #f9f9f9; }
-          .result-content table tr:hover { background-color: #f1f1f1; }
-          .result-content table td { word-wrap: break-word; max-width: 300px; }
-        `}</style>
+  .result-content h2 {
+    padding-top: 12px !important;
+  }
+  .result-content p {
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+  .result-content table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin: 20px 0 !important;
+    font-size: 1rem !important;
+  }
+  .result-content table th, .result-content table td {
+    border: 1px solid #ddd !important;
+    padding: 12px 15px !important;
+  }
+  .result-content table th {
+    background-color: #f4f4f4 !important;
+    font-weight: bold !important;
+  }
+  .result-content table tr:nth-child(even) {
+    background-color: #f9f9f9 !important;
+  }
+  .result-content table tr:hover {
+    background-color: #f1f1f1 !important;
+  }
+  .result-content table td {
+    word-wrap: break-word !important;
+    max-width: 450px !important;
+  }
+
+  /* Mobile-friendly stacked layout */
+  @media (max-width: 768px) {
+    .result-content table,
+    .result-content table tr,
+    .result-content table th,
+    .result-content table td {
+      display: block;
+      width: 100% !important;
+      box-sizing: border-box;
+      padding-left: 30px;
+    }
+    
+    .result-content table tr {
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      padding: 10px;
+      background-color: #f9f9f9;
+    }
+    
+    .result-content table th,
+    .result-content table td {
+      text-align: left;
+     
+    }
+
+    .result-content table td::before {
+      content: attr(data-label);
+      font-weight: bold;
+      color: #333;
+      margin-right: 5px;
+      display: inline-block;
+      width: 45%; /* Adjust width as needed */
+    }
+  }
+`}</style>
+
+
       </div>
     </div>
   );

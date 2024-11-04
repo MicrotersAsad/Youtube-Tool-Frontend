@@ -62,7 +62,7 @@
     "path": "^0.12.7",
     "prismjs": "^1.29.0",
     "prop-types": "^15.8.1",
-    "puppeteer": "^22.12.1",
+    "puppeteer": "^23.6.1",
     "query-string": "^9.0.0",
     "quill": "^2.0.2",
     "quill-better-table": "^1.2.10",
