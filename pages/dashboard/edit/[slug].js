@@ -65,19 +65,7 @@ const EditPage = () => {
         window.Laraberg.init('LarabergId', {
           height: '600px',
           showBlockInserter: true,
-          blocks: [
-            'core/paragraph',
-            'core/heading',
-            'core/list',
-            'core/image',
-            'core/gallery',
-            'core/quote',
-            'core/table',
-            'core/preformatted',
-            'core/code',
-            'core/verse',
-            'core/html',
-          ],
+          
         });
 
         // Inject existing content directly into the editor

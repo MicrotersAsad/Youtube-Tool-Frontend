@@ -126,7 +126,7 @@ const ViewPage = ({ pageData, error }) => {
       <div className="max-w-7xl mx-auto p-4 mt-5 mb-5">
         {/* Render sanitized content */}
         <div
-          className="content-container mb-8"
+          className="mb-8"
           dangerouslySetInnerHTML={{ __html: sanitizedContent }}
         />
       </div>

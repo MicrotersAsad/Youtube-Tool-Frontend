@@ -14,7 +14,7 @@ export default function Home() {
       const response = await fetch(`/api/topChannels?channelId=${encodeURIComponent(channelId)}`);
       const data = await response.json();
       console.log(data);
-      
+
       setChannelInfo(data);
     } catch (error) {
       console.error("Error fetching channel info:", error);
@@ -40,8 +40,55 @@ export default function Home() {
       {channelInfo && (
         <div style={{ marginTop: '20px' }}>
           <h2>Channel Info</h2>
-          <p><strong>Channel Name:</strong> {channelInfo.channelTitle}</p>
-          <p><strong>Subscriber Count:</strong> {channelInfo.subscriberCount}</p>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+            <tbody>
+              <tr>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}><strong>Channel Name:</strong></td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{channelInfo.channelTitle}</td>
+              </tr>
+              <tr>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}><strong>Subscriber Count:</strong></td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{channelInfo.subscriberCount}</td>
+              </tr>
+              <tr>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}><strong>Video Count:</strong></td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{channelInfo.channelVideo}</td>
+              </tr>
+              <tr>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}><strong>Description:</strong></td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{channelInfo.channelDescription}</td>
+              </tr>
+              <tr>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}><strong>Total Views:</strong></td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{channelInfo.additionalInfo?.totalViews}</td>
+              </tr>
+              <tr>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}><strong>Joined Date:</strong></td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{channelInfo.additionalInfo?.joinedDate}</td>
+              </tr>
+              <tr>
+               
+              </tr>
+              <tr>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}><strong>External Links:</strong></td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>
+                  {channelInfo.externalLinks?.length > 0 ? (
+                    <ul style={{ paddingLeft: '16px' }}>
+                      {channelInfo.externalLinks.map((link, index) => (
+                        <li key={index}>
+                          <a href={link.url} target="_blank" rel="noopener noreferrer">
+                            {link.title}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    'N/A'
+                  )}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       )}
     </div>
