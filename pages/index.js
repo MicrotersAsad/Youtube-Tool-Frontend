@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 import { FaShareAlt, FaThumbsUp, FaThumbsDown, FaFlag, FaBookmark, FaFacebook, FaLinkedin, FaInstagram, FaTwitter, FaCopy, FaDownload, FaStar } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
 import Link from "next/link";
@@ -91,9 +93,12 @@ export default function Home({ initialMeta, reactions, content, faqList, tools }
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      fetchContent(i18n.language);
+      if (router.isReady) {
+        fetchContent(i18n.language);
+      }
+  
     }
-  }, [i18n.language]); // i18n.language পরিবর্তন হলে পুনরায় ফেচ হবে
+  },[router.isReady, i18n.language]); // i18n.language পরিবর্তন হলে পুনরায় ফেচ হবে
 
 
   
@@ -589,62 +594,55 @@ const buttonColors = {
           })}
         </Script>
 
-        <div className="max-w-7xl mx-auto p-4">
-    <h2 className="text-3xl text-white">{t("YouTube Tag Generator")}</h2>
-    <ToastContainer />
-    {modalVisible && (
-      <div
-        className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
-        role="alert"
-      >
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <svg
-              className="fill-current h-6 w-6 text-yellow-500 mr-4"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-            ></svg>
-            <div className="mt-4">
-              {!user ? (
-                <p className="text-center p-3 alert-warning">
-                  {t("You need to be logged in to generate tags.")}
-                </p>
-              ) : user.paymentStatus === "success" || user.role === "admin" ? (
-                <p className="text-center p-3 alert-warning">
-                  {t("You can generate unlimited tags.")}
-                </p>
-              ) : (
-                <p className="text-center p-3 alert-warning">
-                  {t("You have not upgraded. You can generate")}{" "}
-                  {5 - generateCount} {t("more times.")}{" "}
-                  <Link className="btn btn-warning ms-3" href="/pricing">
-                    {t("Upgrade")}
-                  </Link>
-                </p>
-              )}
-            </div>
+
+
+<div className="max-w-7xl mx-auto p-4">
+  <h2 className="text-3xl text-white">
+    {isLoading ? <Skeleton width={250} /> : t("YouTube Tag Generator")}
+  </h2>
+
+  <ToastContainer />
+
+  {modalVisible && (
+    <div className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3" role="alert">
+      <div className="flex justify-between items-center">
+        <div className="flex items-center">
+          <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"></svg>
+          <div className="mt-4">
+            {!user ? (
+              <p className="text-center p-3 alert-warning">{t("You need to be logged in to generate tags.")}</p>
+            ) : user.paymentStatus === "success" || user.role === "admin" ? (
+              <p className="text-center p-3 alert-warning">{t("You can generate unlimited tags.")}</p>
+            ) : (
+              <p className="text-center p-3 alert-warning">
+                {t("You have not upgraded. You can generate")} {5 - generateCount} {t("more times.")}{" "}
+                <Link className="btn btn-warning ms-3" href="/pricing">{t("Upgrade")}</Link>
+              </p>
+            )}
           </div>
-          <button className="text-yellow-700" onClick={closeModal}>
-            ×
-          </button>
         </div>
+        <button className="text-yellow-700" onClick={closeModal}>×</button>
       </div>
-    )}
-         <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
-      <div className="keywords-input-container">
-        <div className="tags-container flex flex-wrap gap-2 mb-4">
-          {tags.map((tag, index) => (
+    </div>
+  )}
+
+  <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
+    <div className="keywords-input-container">
+      <div className="tags-container flex flex-wrap gap-2 mb-4">
+        {isLoading ? (
+          Array(3).fill(0).map((_, i) => <Skeleton key={i} width={80} height={30} />)
+        ) : (
+          tags.map((tag, index) => (
             <span key={index} className="bg-gray-200 px-2 py-1 rounded-md flex items-center">
               {tag}
-              <span
-                className="ml-2 cursor-pointer"
-                onClick={() => setTags(tags.filter((_, i) => i !== index))}
-              >
-                ×
-              </span>
+              <span className="ml-2 cursor-pointer" onClick={() => setTags(tags.filter((_, i) => i !== index))}>×</span>
             </span>
-          ))}
-        </div>
+          ))
+        )}
+      </div>
+      {isLoading ? (
+        <Skeleton height={40} width="100%" />
+      ) : (
         <input
           type="text"
           placeholder={t("Add a keyword")}
@@ -654,406 +652,347 @@ const buttonColors = {
           onKeyDown={handleKeyDown}
           required
         />
-      </div>
-      
-      <div className="flex items-center mt-4 md:mt-0 ps-6 pe-6">
-        <button
-          className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-500"
-          type="button"
-          id="button-addon2"
-          onClick={generateTitles}
-          disabled={isLoading || tags.length === 0}
-        >
-          <span className="animate-spin mr-2">
-            <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill="white">
-              <path d="..."></path>
-            </svg>
-          </span>
-          {isLoading ? t("Generating...") : t("Generate Tag")}
-        </button>
-        <div className="ms-auto">
+      )}
+    </div>
+    
+    <div className="flex items-center mt-4 md:mt-0 ps-6 pe-6">
+      <button
+        className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-500"
+        type="button"
+        id="button-addon2"
+        onClick={generateTitles}
+        disabled={isLoading || tags.length === 0}
+      >
+        <span className="animate-spin mr-2">
+          <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill="white">
+            <path d="..."></path>
+          </svg>
+        </span>
+        {isLoading ? t("Generating...") : t("Generate Tag")}
+      </button>
+      <div className="ms-auto">
+        {isLoading ? (
+          <Skeleton width={30} height={30} circle />
+        ) : (
           <button className="flex items-center justify-center" onClick={saveChannel} style={{ color: buttonColors.save }}>
             <FaBookmark className={`text-lg ${isSaved ? "text-purple-600" : "text-red-500"}`} />
           </button>
-        </div>
+        )}
       </div>
-
-         
-            {/* Reaction Bar */}
-            <div className="w-full flex items-center justify-between mt-4 p-3 bg-gray-100 rounded-md">
-        <div className="flex items-center space-x-4">
-          <button onClick={() => handleReaction("like")} className="flex items-center space-x-1" style={{ color: buttonColors.like }}>
-            <FaThumbsUp className="text-xl text-green-600" />
-            <span className="text-black">{likes}</span>
-          </button>
-          <button onClick={() => handleReaction("unlike")} className="flex items-center space-x-1" style={{ color: buttonColors.unlike }}>
-            <FaThumbsDown className="text-xl text-red-400" />
-            <span className="text-black">{unlikes}</span>
-          </button>
-          <button onClick={() => setShowReportModal(true)} className="flex items-center space-x-1" style={{ color: buttonColors.report }}>
-            <FaFlag className="text-xl text-red-500" />
-            <span className="text-black">{t("Report")}</span>
-          </button>
-        </div>
-      </div>
-
-
-      {showReportModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="fixed inset-0 bg-black opacity-50"></div>
-          <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
-            <h2 className="text-2xl font-semibold mb-4">{t("Report This Tool")}</h2>
-            <textarea
-              className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-              placeholder={t("Describe your issue...")}
-              value={reportText}
-              onChange={(e) => setReportText(e.target.value)}
-            />
-            <div className="mt-4 flex justify-end space-x-4">
-              <button
-                className="btn btn-secondary text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline"
-                onClick={() => setShowReportModal(false)}
-              >
-                {t("Cancel")}
-              </button>
-              <button
-                className="btn btn-primary text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
-                onClick={() => handleReaction("report")}
-              >
-                {t("Submit Report")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
 
+    {/* Reaction Bar */}
+    <div className="w-full flex items-center justify-between mt-4 p-3 bg-gray-100 rounded-md">
+      <div className="flex items-center space-x-4">
+        {isLoading ? (
+          <>
+            <Skeleton width={60} height={30} />
+            <Skeleton width={60} height={30} />
+            <Skeleton width={60} height={30} />
+          </>
+        ) : (
+          <>
+            <button onClick={() => handleReaction("like")} className="flex items-center space-x-1" style={{ color: buttonColors.like }}>
+              <FaThumbsUp className="text-xl text-green-600" />
+              <span className="text-black">{likes}</span>
+            </button>
+            <button onClick={() => handleReaction("unlike")} className="flex items-center space-x-1" style={{ color: buttonColors.unlike }}>
+              <FaThumbsDown className="text-xl text-red-400" />
+              <span className="text-black">{unlikes}</span>
+            </button>
+            <button onClick={() => setShowReportModal(true)} className="flex items-center space-x-1" style={{ color: buttonColors.report }}>
+              <FaFlag className="text-xl text-red-500" />
+              <span className="text-black">{t("Report")}</span>
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+    
+    {/* Show Report Modal */}
+    {showReportModal && (
+      <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black opacity-50"></div>
+        <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
+          <h2 className="text-2xl font-semibold mb-4">{t("Report This Tool")}</h2>
+          <textarea
+            className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+            placeholder={t("Describe your issue...")}
+            value={reportText}
+            onChange={(e) => setReportText(e.target.value)}
+          />
+          <div className="mt-4 flex justify-end space-x-4">
+            <button
+              className="btn btn-secondary text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline"
+              onClick={() => setShowReportModal(false)}
+            >
+              {t("Cancel")}
+            </button>
+            <button
+              className="btn btn-primary text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+              onClick={() => handleReaction("report")}
+            >
+              {t("Submit Report")}
+            </button>
+          </div>
         </div>
       </div>
-      <div className="max-w-7xl mx-auto p-4">
-        <div className="text-center my-4">
-          {generatedTitles.length > 0 && (
-            <div className="inline-block p-2 rounded-md bg-gray-200">
-              <input
-                type="checkbox"
-                checked={selectAll}
-                onChange={handleSelectAll}
-                className="mr-2"
-              />
-              <span>{t("selectAll")}</span>
-            </div>
-          )}
+    )}
+  </div>
+</div>
+
+      </div>
+
+
+<div className="max-w-7xl mx-auto p-4">
+  {/* Generated Titles Section */}
+  <div className="text-center my-4">
+    {generatedTitles.length > 0 && (
+      <div className="inline-block p-2 rounded-md bg-gray-200">
+        <input
+          type="checkbox"
+          checked={selectAll}
+          onChange={handleSelectAll}
+          className="mr-2"
+        />
+        <span>{t("selectAll")}</span>
+      </div>
+    )}
+  </div>
+
+  <div className="generated-titles-container grid grid-cols-1 md:grid-cols-4 gap-4">
+    {isLoading ? (
+      Array(8)
+        .fill(0)
+        .map((_, i) => (
+          <Skeleton key={i} width="100%" height={40} className="rounded-md" />
+        ))
+    ) : (
+      generatedTitles.map((title, index) => (
+        <div key={index} className="flex items-center p-2 border rounded-md">
+          <input
+            className="mr-2"
+            type="checkbox"
+            checked={title.selected}
+            onChange={() => toggleTitleSelect(index)}
+          />
+          {title.text.replace(/^\d+\.\s*/, "")}
+          <FaCopy
+            className="ml-2 cursor-pointer"
+            onClick={() => copyToClipboard(title.text.replace(/^\d+\.\s*/, ""))}
+          />
         </div>
-        <div className="generated-titles-container grid grid-cols-1 md:grid-cols-4 gap-4">
-          {generatedTitles.map((title, index) => (
-            <div
-              key={index}
-              className="flex items-center p-2 border rounded-md"
-            >
-              <input
-                className="mr-2"
-                type="checkbox"
-                checked={title.selected}
-                onChange={() => toggleTitleSelect(index)}
-              />
-              {title.text.replace(/^\d+\.\s*/, "")}
-              <FaCopy
-                className="ml-2 cursor-pointer"
-                onClick={() =>
-                  copyToClipboard(title.text.replace(/^\d+\.\s*/, ""))
-                }
-              />
+      ))
+    )}
+  </div>
+
+  {/* Content Section */}
+  <div className="content pt-6 pb-5">
+    {isLoading ? (
+      <Skeleton count={5} />
+    ) : (
+      <article
+        dangerouslySetInnerHTML={{ __html: existingContent }}
+        style={{ listStyleType: "none" }}
+      ></article>
+    )}
+  </div>
+
+  {/* FAQ Section */}
+  <div className="accordion">
+    <h2 className="faq-title">
+      {isLoading ? <Skeleton width={200} /> : t("Frequently Asked Questions")}
+    </h2>
+    <p className="faq-subtitle">
+      {isLoading ? <Skeleton width={300} /> : t("Here are some of the most frequently asked questions")}
+    </p>
+    <div className="faq-grid">
+      {isLoading
+        ? Array(3)
+            .fill(0)
+            .map((_, i) => (
+              <Skeleton key={i} height={30} className="rounded-md mb-2" />
+            ))
+        : faqs?.map((faq, index) => (
+            <div key={index} className="faq-item">
+              <a href={`#accordion-${index}`} id={`open-accordion-${index}`} className="accordion-header" onClick={() => toggleFAQ(index)}>
+                {faq.question}
+              </a>
+              <div className={`accordion-content ${openIndex === index ? "open" : ""}`}>
+                <p>{faq.answer}</p>
+              </div>
             </div>
           ))}
-        </div>
-        <div className="flex justify-center my-4">
-          {generatedTitles.some((title) => title.selected) && (
-            <>
-              <FaCopy
-                onClick={copySelectedTitles}
-                className="text-red-500 cursor-pointer mx-2 text-2xl"
-              />
-              <FaDownload
-                onClick={downloadSelectedTitles}
-                className="text-red-500 cursor-pointer mx-2 text-2xl"
-              />
-            </>
-          )}
-        </div>
+    </div>
+  </div>
 
-        <div className="content pt-6 pb-5">
-          <article
-            dangerouslySetInnerHTML={{ __html: existingContent }}
-            style={{ listStyleType: "none" }}
-          ></article>
-        </div>
-
-        <div className="accordion">
-          <h2 className="faq-title">{t("Frequently Asked Questions")}</h2>
-          <p className="faq-subtitle">{t("Here are some of the most frequently asked questions")}</p>
-          <div className="faq-grid">
-            {faqs?.map((faq, index) => (
-              <div key={index} className="faq-item">
-                <span id={`accordion-${index}`} className="target-fix"></span>
-                <a
-                  href={`#accordion-${index}`}
-                  id={`open-accordion-${index}`}
-                  className="accordion-header"
-                  onClick={() => toggleFAQ(index)}
-                >
-                  {faq.question}
-                </a>
-                <a
-                  href={`#accordion-${index}`}
-                  id={`close-accordion-${index}`}
-                  className="accordion-header"
-                  onClick={() => toggleFAQ(index)}
-                >
-                  {faq.question}
-                </a>
-                <div
-                  className={`accordion-content ${
-                    openIndex === index ? "open" : ""
-                  }`}
-                >
-                  <p>{faq.answer}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <hr className="mt-4 mb-2" />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-          {/* Review Summary Section */}
-          <div className="p-4 bg-white shadow-md rounded-md">
-            <div className="text-xl font-bold mb-2">{t("Customer Reviews")}</div>
-            <div className="flex items-center mb-2">
-              <div className="text-xl font-bold mr-2">
-                {overallRating || "0"}
-              </div>
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <FaStar
-                    key={i}
-                    color={
-                      i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"
-                    }
-                    size={18}
-                  />
-                ))}
-              </div>
-              <div className="ml-2 text-sm text-gray-500">
-                {reviews.length} {t("global ratings")}
-              </div>
-            </div>
-            <div>
-              {[5, 4, 3, 2, 1].map((rating) => (
-                <div key={rating} className="flex items-center mb-2">
-                  <div className="w-16 text-right mr-2">{rating}-star</div>
-                  <div className="flex-1 h-3 bg-gray-200 rounded-full relative">
-                    <div
-                      className="h-3 bg-yellow-500 rounded-full absolute top-0 left-0"
-                      style={{ width: `${calculateRatingPercentage(rating)}%` }}
-                    ></div>
-                  </div>
-                  <div className="w-16 text-left ml-2">
-                    {calculateRatingPercentage(rating).toFixed(1)}%
-                  </div>
-                </div>
-              ))}
-            </div>
-            <hr className="my-4" />
-            <div>
-              <h4 className="text-lg font-semibold">{t("Review this tool")}</h4>
-              <p className="text-sm text-gray-600">{t("Share your thoughts with other customers")}</p>
-              <button
-                className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
-                onClick={openReviewForm}
-              >
-                {t("Write a review")}
-              </button>
-            </div>
-          </div>
-
-          {/* Review List Section */}
-          <div className="p-4 bg-white shadow-md rounded-md col-span-1 md:col-span-1">
-            {reviews?.slice(0, 5).map((review, index) => (
-              <div
-                key={index}
-                className="border p-4 mb-4 bg-gray-50 rounded-md shadow-sm"
-              >
-                <div className="flex items-center mb-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden">
-                  <Image
-  src={review?.userProfile}
-  alt={review.name}
-  width={40}
-  height={40}
-  layout="intrinsic"
-  priority
-/>
-
-                  </div>
-                  <div className="ml-3">
-                    <div className="font-semibold text-sm">
-                      {review?.userName}
-                    </div>
-                    <div className="text-gray-500 text-xs">
-                      {t("Verified Purchase")}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <FaStar
-                      key={i}
-                      size={18}
-                      color={i < review.rating ? "#ffc107" : "#e4e5e9"}
-                    />
-                  ))}
-                </div>
-                <div className="text-sm mb-2">{review.comment}</div>
-                <div className="text-gray-500 text-xs">
-                  {t("Reviewed on")} {review.createdAt}
-                </div>
-              </div>
-            ))}
-            {!showAllReviews && reviews.length > 5 && (
-              <button
-                className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
-                onClick={handleShowMoreReviews}
-              >
-                {t("See more reviews")}
-              </button>
-            )}
-            {showAllReviews &&
-              reviews?.slice(5).map((review, index) => (
-                <div
-                  key={index}
-                  className="border p-4 mb-4 bg-gray-50 rounded-md shadow-sm"
-                >
-                  <div className="flex items-center mb-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden">
-                    <Image
-  src={review?.userProfile}
-  alt={review.name}
-  width={40}
-  height={40}
-  layout="intrinsic"
-  priority
-/>
-                    </div>
-                    <div className="ml-3">
-                      <div className="font-semibold text-sm">
-                        {review?.userName}
-                      </div>
-                      <div className="text-gray-500 text-xs">
-                        {t("Verified Purchase")}
-                      </div>
-                      <p className="text-gray-400 text-xs">
-                        {t("Reviewed on")} {review?.createdAt}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-sm font-semibold mb-2">
-                    {review.title}
-                  </div>
-                  <div className="text-sm mb-2">{review.comment}</div>
-                  <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <FaStar
-                        key={i}
-                        size={18}
-                        color={i < review.rating ? "#ffc107" : "#e4e5e9"}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
-          </div>
-
-          {/* Review Modal */}
-          {modalVisible && (
-            <div className="fixed inset-0 flex items-center justify-center z-50">
-              <div className="fixed inset-0 bg-black opacity-50"></div>
-              <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
-                <h2 className="text-xl font-semibold mb-4">
-                  {t("Leave a Review")}
-                </h2>
-                <div className="mb-4">
-                  <StarRating
-                    rating={newReview.rating}
-                    setRating={(rating) =>
-                      setNewReview({ ...newReview, rating })
-                    }
-                  />
-                </div>
-                <div className="mb-4">
-                  <input
-                    type="text"
-                    className="w-full p-2 border rounded-md"
-                    placeholder={t("Review Title")}
-                    value={newReview.title}
-                    onChange={(e) =>
-                      setNewReview({ ...newReview, title: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="mb-4">
-                  <textarea
-                    className="w-full p-2 border rounded-md"
-                    placeholder={t("Your Review")}
-                    value={newReview.comment}
-                    onChange={(e) =>
-                      setNewReview({ ...newReview, comment: e.target.value })
-                    }
-                  />
-                </div>
-                <button
-                  className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline w-full"
-                  onClick={handleReviewSubmit}
-                >
-                  {t("Submit Review")}
-                </button>
-                <button
-                  className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2 w-full"
-                  onClick={() => setModalVisible(false)}
-                >
-                  {t("Cancel")}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Related Tools Section */}
-        <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
-          <h2 className="text-2xl font-bold mb-5 text-center">
-            {t("Related Tools")}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {relatedTools?.map((tool, index) => (
-              <a
-                key={index}
-                href={tool.link}
-                className="flex items-center border rounded-lg p-4 bg-gray-100 transition"
-              >
-                <Image
-                  src={tool?.logo?.src}
-                  alt={`${tool.name} Icon`}
-                  width={64}
-                  height={64}
-                  className="mr-4"
-                />
-                <span className="text-blue-600 font-medium">{tool.name}</span>
-              </a>
-            ))}
-          </div>
-        </div>
-        {/* End of Related Tools Section */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+  {/* Review Summary Section */}
+  <div className="p-4 bg-white shadow-md rounded-md">
+    <div className="text-xl font-bold mb-2">
+      {isLoading ? <Skeleton width={150} /> : t("Customer Reviews")}
+    </div>
+    <div className="flex items-center mb-2">
+      <div className="text-xl font-bold mr-2">
+        {isLoading ? <Skeleton width={30} /> : overallRating || "0"}
       </div>
+      <div className="flex">
+        {[...Array(5)].map((_, i) => (
+          <FaStar
+            key={i}
+            color={isLoading ? "#e4e5e9" : i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"}
+            size={18}
+          />
+        ))}
+      </div>
+      <div className="ml-2 text-sm text-gray-500">
+        {isLoading ? <Skeleton width={50} /> : `${reviews.length} ${t("global ratings")}`}
+      </div>
+    </div>
+    <div>
+      {[5, 4, 3, 2, 1].map((rating) => (
+        <div key={rating} className="flex items-center mb-2">
+          <div className="w-16 text-right mr-2">{rating}-star</div>
+          <div className="flex-1 h-3 bg-gray-200 rounded-full relative">
+            <div
+              className="h-3 bg-yellow-500 rounded-full absolute top-0 left-0"
+              style={{
+                width: isLoading ? "100%" : `${calculateRatingPercentage(rating)}%`,
+              }}
+            ></div>
+          </div>
+          <div className="w-16 text-left ml-2">
+            {isLoading ? <Skeleton width={20} /> : `${calculateRatingPercentage(rating).toFixed(1)}%`}
+          </div>
+        </div>
+      ))}
+    </div>
+    <hr className="my-4" />
+    <div>
+      <h4 className="text-lg font-semibold">{t("Review this tool")}</h4>
+      <p className="text-sm text-gray-600">{t("Share your thoughts with other customers")}</p>
+      <button
+        className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
+        onClick={openReviewForm}
+      >
+        {t("Write a review")}
+      </button>
+    </div>
+  </div>
+
+  {/* Review List Section */}
+  <div className="p-4 bg-white shadow-md rounded-md col-span-1 md:col-span-1">
+    {isLoading
+      ? Array(3)
+          .fill(0)
+          .map((_, i) => (
+            <Skeleton key={i} height={120} className="rounded-md mb-4" />
+          ))
+      : reviews?.slice(0, 5).map((review, index) => (
+          <div key={index} className="border p-4 mb-4 bg-gray-50 rounded-md shadow-sm">
+            <div className="flex items-center mb-3">
+              <div className="w-10 h-10 rounded-full overflow-hidden">
+                {isLoading ? (
+                  <Skeleton circle={true} width={40} height={40} />
+                ) : (
+                  <Image src={review?.userProfile} alt={review.name} width={40} height={40} layout="intrinsic" priority />
+                )}
+              </div>
+              <div className="ml-3">
+                <div className="font-semibold text-sm">
+                  {isLoading ? <Skeleton width={80} /> : review?.userName}
+                </div>
+                <div className="text-gray-500 text-xs">
+                  {isLoading ? <Skeleton width={60} /> : t("Verified Purchase")}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center mb-3">
+              {[...Array(5)].map((_, i) => (
+                <FaStar
+                  key={i}
+                  size={18}
+                  color={isLoading ? "#e4e5e9" : i < review.rating ? "#ffc107" : "#e4e5e9"}
+                />
+              ))}
+            </div>
+            <div className="text-sm mb-2">
+              {isLoading ? <Skeleton width="80%" /> : review.comment}
+            </div>
+            <div className="text-gray-500 text-xs">
+              {isLoading ? <Skeleton width={100} /> : `${t("Reviewed on")} ${review.createdAt}`}
+            </div>
+          </div>
+        ))}
+    {!showAllReviews && reviews.length > 5 && (
+      <button
+        className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
+        onClick={handleShowMoreReviews}
+      >
+        {t("See more reviews")}
+      </button>
+    )}
+    {showAllReviews &&
+      reviews?.slice(5).map((review, index) => (
+        <div key={index} className="border p-4 mb-4 bg-gray-50 rounded-md shadow-sm">
+          <div className="flex items-center mb-3">
+            <div className="w-10 h-10 rounded-full overflow-hidden">
+              {isLoading ? (
+                <Skeleton circle={true} width={40} height={40} />
+              ) : (
+                <Image src={review?.userProfile} alt={review.name} width={40} height={40} layout="intrinsic" priority />
+              )}
+            </div>
+            <div className="ml-3">
+              <div className="font-semibold text-sm">
+                {isLoading ? <Skeleton width={80} /> : review?.userName}
+              </div>
+              <div className="text-gray-500 text-xs">
+                {isLoading ? <Skeleton width={60} /> : t("Verified Purchase")}
+              </div>
+              <p className="text-gray-400 text-xs">
+                {isLoading ? <Skeleton width={80} /> : `${t("Reviewed on")} ${review.createdAt}`}
+              </p>
+            </div>
+          </div>
+          <div className="text-sm font-semibold mb-2">
+            {isLoading ? <Skeleton width="50%" /> : review.title}
+          </div>
+          <div className="text-sm mb-2">
+            {isLoading ? <Skeleton width="80%" /> : review.comment}
+          </div>
+          <div className="flex items-center">
+            {[...Array(5)].map((_, i) => (
+              <FaStar key={i} size={18} color={isLoading ? "#e4e5e9" : i < review.rating ? "#ffc107" : "#e4e5e9"} />
+            ))}
+          </div>
+        </div>
+      ))}
+  </div>
+</div>
+
+  {/* Related Tools Section */}
+  <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
+    <h2 className="text-2xl font-bold mb-5 text-center">
+      {isLoading ? <Skeleton width={200} /> : t("Related Tools")}
+    </h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {isLoading
+        ? Array(6)
+            .fill(0)
+            .map((_, i) => (
+              <Skeleton key={i} width="100%" height={60} className="rounded-lg" />
+            ))
+        : relatedTools?.map((tool, index) => (
+            <a key={index} href={tool.link} className="flex items-center border rounded-lg p-4 bg-gray-100 transition">
+              <Image src={tool?.logo?.src} alt={`${tool.name} Icon`} width={64} height={64} className="mr-4" />
+              <span className="text-blue-600 font-medium">{tool.name}</span>
+            </a>
+          ))}
+    </div>
+  </div>
+</div>
+
     </>
   );
 }

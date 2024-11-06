@@ -3,23 +3,23 @@ import axios from 'axios';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { ClipLoader } from 'react-spinners';
 import { FaCalendar, FaSearch, FaUserCircle } from 'react-icons/fa';
 import { i18n } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { format } from 'date-fns';
 import Head from 'next/head';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 
-// Utility functions
 const createSlug = (title) => {
   return title
     .toString()
     .toLowerCase()
-    .replace(/\s+/g, '-') // Replace spaces with -
-    .replace(/[^\w-]+/g, '') // Remove all non-word characters
-    .replace(/--+/g, '-') // Replace multiple - with single -
-    .replace(/^-+/, '') // Trim - from start of text
-    .replace(/-+$/, ''); // Trim - from end of text
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]+/g, '')
+    .replace(/--+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '');
 };
 
 const extractFirstImage = (content) => {
@@ -29,8 +29,6 @@ const extractFirstImage = (content) => {
 };
 
 const BlogSection = ({ initialBlogs = [] }) => {
-  console.log(initialBlogs);
-  
   const router = useRouter();
   const { category: selectedCategory } = router.query;
   const [loading, setLoading] = useState(!initialBlogs.length);
@@ -42,9 +40,8 @@ const BlogSection = ({ initialBlogs = [] }) => {
   const [currentCategory, setCurrentCategory] = useState(selectedCategory || '');
 
   const blogsPerPage = 9;
-  const currentLanguage = i18n.language || 'en'; // Default to English if no language is set
+  const currentLanguage = i18n.language || 'en';
 
-  // Fetch categories from API
   const fetchCategories = useCallback(async () => {
     try {
       const response = await axios.get('/api/yt-categories');
@@ -66,7 +63,6 @@ const BlogSection = ({ initialBlogs = [] }) => {
     fetchCategories();
   }, [fetchCategories]);
 
-  // Process blogs with current language translation
   const processedBlogs = useMemo(() => {
     return blogsData
       .map((blog) => {
@@ -96,7 +92,6 @@ const BlogSection = ({ initialBlogs = [] }) => {
       .filter((blog) => blog.translations[currentLanguage]);
   }, [blogsData, currentLanguage]);
 
-  // Filter blogs by category and search
   const categoryBlogs = useMemo(() => {
     let blogs = processedBlogs;
     if (currentCategory) {
@@ -154,14 +149,6 @@ const BlogSection = ({ initialBlogs = [] }) => {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <ClipLoader size={50} color="#123abc" loading={loading} />
-      </div>
-    );
-  }
-
   if (error) {
     return <p className="text-red-500 text-center">{error}</p>;
   }
@@ -213,48 +200,50 @@ const BlogSection = ({ initialBlogs = [] }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-        {currentBlogs.map((blog) => {
-          const content = blog.translations[currentLanguage];
-          return (
-            <div key={blog._id} className="bg-white shadow-md rounded-lg overflow-hidden relative">
-              
-              {/* Blog Image */}
-              <Image
-                src={content.image || '/default.jpg'}
-                alt={content.title || 'Blog Image'}
-                width={400}
-                height={270}
-                className="blog-img"
-              />
-              
-              {/* Category Badge */}
-              <div className="absolute top-2 left-2 bg-blue-500 text-white text-sm rounded-full px-2 py-1">
-                <span>{content.category || 'Uncategorized'}</span>
-              </div>
-
-              {/* Blog Content */}
-              <div className="p-4">
-                <h4 className="text-lg font-semibold">
-                  <Link href={`/youtube/${content.slug}`}>
-                    <span className="text-blue-500 text-xl font-bold hover:underline">
-                      {content.title}
-                    </span>
-                  </Link>
-                </h4>
-                <p className="text-gray-500 text-sm">{content.description}</p>
-
-                {/* Display Author and Date */}
-                <div className="flex items-center mt-2 text-sm text-gray-500">
-                  <FaUserCircle className="mr-1" /> {blog.author} &nbsp; | &nbsp;
-                  <FaCalendar className="mr-1" /> {format(new Date(blog.createdAt), 'dd/MM/yyyy')}
+        {loading
+          ? Array(9)
+              .fill(0)
+              .map((_, i) => (
+                <div key={i} className="bg-white shadow-md rounded-lg p-4">
+                  <Skeleton height={180} className="mb-4" />
+                  <Skeleton height={20} width="60%" className="mb-2" />
+                  <Skeleton height={15} width="80%" className="mb-2" />
+                  <Skeleton height={15} width="40%" />
                 </div>
-              </div>
-            </div>
-          );
-        })}
+              ))
+          : currentBlogs.map((blog) => {
+              const content = blog.translations[currentLanguage];
+              return (
+                <div key={blog._id} className="bg-white shadow-md rounded-lg overflow-hidden relative">
+                  <Image
+                    src={content.image || '/default.jpg'}
+                    alt={content.title || 'Blog Image'}
+                    width={400}
+                    height={270}
+                    className="blog-img"
+                  />
+                  <div className="absolute top-2 left-2 bg-blue-500 text-white text-sm rounded-full px-2 py-1">
+                    <span>{content.category || 'Uncategorized'}</span>
+                  </div>
+                  <div className="p-4">
+                    <h4 className="text-lg font-semibold">
+                      <Link href={`/youtube/${content.slug}`}>
+                        <span className="text-blue-500 text-xl font-bold hover:underline">
+                          {content.title}
+                        </span>
+                      </Link>
+                    </h4>
+                    <p className="text-gray-500 text-sm">{content.description}</p>
+                    <div className="flex items-center mt-2 text-sm text-gray-500">
+                      <FaUserCircle className="mr-1" /> {blog.author} &nbsp; | &nbsp;
+                      <FaCalendar className="mr-1" /> {format(new Date(blog.createdAt), 'dd/MM/yyyy')}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
       </div>
 
-      {/* Pagination */}
       <div className="flex justify-center mt-8">
         {totalPages > 1 && (
           <nav className="block">
@@ -283,8 +272,7 @@ export async function getServerSideProps({ locale, req }) {
     const host = req.headers.host;
     const apiUrl = `${protocol}://${host}/api/youtube`;
     const { data } = await axios.get(apiUrl);
-    console.log(data);
-    
+
     return {
       props: {
         initialBlogs: data,
