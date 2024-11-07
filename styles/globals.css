@@ -1155,3 +1155,16 @@ div .content article img {
 .animate-spin {
   animation: spin 1s linear infinite;
 }
+
+
+.dropdown-content {
+  overflow: hidden;
+  transition: max-height 0.5s ease, opacity 0.5s ease;
+  max-height: 0; /* start with a height of 0 when closed */
+  opacity: 0;
+}
+
+.dropdown-content.open {
+  max-height: 500px; /* or some large enough value that can accommodate the full height */
+  opacity: 1;
+}

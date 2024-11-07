@@ -317,15 +317,11 @@ const Layout = React.memo(({ children }) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-40 transform transition-all duration-300 bg-[#071251] text-white shadow-lg ${
-          isCollapsed ? "w-24" : "w-72"
-        } ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 lg:static lg:inset-0 h-full flex flex-col`}
-        onMouseEnter={() => isCollapsed && setIsCollapsed(false)}
-        onMouseLeave={() => isCollapsed && setIsCollapsed(true)}
-        style={{ borderRight: "2px solid rgba(255, 255, 255, 0.2)" }}
-      >
+  className={`fixed inset-y-0 left-0 z-40 transform transition-all duration-300 bg-[#071251] text-white shadow-lg ${
+    isCollapsed ? "w-24" : "w-72"
+  } ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static lg:inset-0 h-full flex flex-col`}
+// Removed onMouseEnter and onMouseLeave
+>
         <div className="sticky top-0 bg-[#071251] z-50">
           {/* Logo */}
           <div className="flex items-center text-white justify-center mt-8">
@@ -352,93 +348,91 @@ const Layout = React.memo(({ children }) => {
                     ? "bg-[#4634ff] text-white"
                     : "hover:bg-[#1d1e8e] hover:text-white"
                 }`}
-                style={{ paddingLeft: isCollapsed ? "16px" : "24px" }} // Conditional padding to adjust based on collapsed state
+                style={{ marginLeft: isCollapsed ? "0" : "0" }}
               >
-                <FaTachometerAlt className="mr-3 text-white" />
-                {!isCollapsed && <span>Dashboard</span>}
+                <FaTachometerAlt className="text-white" />
+                {!isCollapsed && <span className="ml-3">Dashboard</span>}
               </Link>
             </div>
-            {user && (user.role === "admin" || user.role === "super_admin") ? (
-              <>
-                {/* Blog */}
-                <div className="mt-2">
-                  <p
-                    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-                      isActiveRoute("/dashboard/categories") ||
-                      isActiveRoute("/dashboard/all-blogs") ||
-                      isActiveRoute("/dashboard/blogs")
-                        ? "bg-[#4634ff] text-white"
-                        : menuOpen === "blog"
-                        ? "bg-[#1d1e8e] text-white"
-                        : "hover:bg-[#1d1e8e] hover:text-white"
-                    }`}
-                    onClick={() => toggleMenu("blog")}
-                  >
-                    <FaBlog className="mr-3 text-white" />
-                    {!isCollapsed && <span>Blog</span>}
-                    {!isCollapsed && (
-                      <span className="ml-auto">
-                        {menuOpen === "blog" ? (
-                          <FiChevronUp className="w-6 h-6" />
-                        ) : (
-                          <FiChevronDown className="w-6 h-6" />
-                        )}
-                      </span>
-                    )}
-                  </p>
+            <>
+  {/* Blog Main Menu Item with 0.3s Transition */}
+  <div className="mt-2">
+    <p
+      className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
+        isActiveRoute("/dashboard/categories") ||
+        isActiveRoute("/dashboard/all-blogs") ||
+        isActiveRoute("/dashboard/blogs")
+          ? "bg-[#4634ff] text-white"
+          : menuOpen === "blog"
+          ? "bg-[#1d1e8e] text-white"
+          : "hover:bg-[#1d1e8e] hover:text-white"
+      }`}
+      onClick={() => toggleMenu("blog")}
+      style={{ transition: "all 0.3s ease" }} // Main menu item transition
+    >
+      <FaBlog className="mr-3 text-white" />
+      {!isCollapsed && <span>Blog</span>}
+      {!isCollapsed && (
+        <span className="ml-auto">
+          {menuOpen === "blog" ? (
+            <FiChevronUp className="w-6 h-6" />
+          ) : (
+            <FiChevronDown className="w-6 h-6" />
+          )}
+        </span>
+      )}
+    </p>
 
-                  {/* Dropdown Content with Smooth Opening and Closing Animation */}
-                  <div
-                    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
-                      (menuOpen === "blog" ||
-                        isActiveRoute("/dashboard/categories") ||
-                        isActiveRoute("/dashboard/all-blogs") ||
-                        isActiveRoute("/dashboard/blogs")) &&
-                      !isCollapsed
-                        ? "max-h-screen opacity-100 scale-y-100"
-                        : "max-h-0 opacity-0 scale-y-0"
-                    }`}
-                  >
-                    <Link href="/dashboard/categories" passHref>
-                      <p
-                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/categories")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Categories
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/all-blogs" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/all-blogs")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        All Posts
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/blogs" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/blogs")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Add Post
-                      </p>
-                    </Link>
-                  </div>
-                </div>
-              </>
-            ) : null}
+    {/* Submenu without Animation */}
+    {menuOpen === "blog" && (
+      <div className="ml-6 mt-2 mb-1 overflow-hidden">
+        <Link href="/dashboard/categories" passHref>
+          <p
+            className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+              isActiveRoute("/dashboard/categories")
+                ? "bg-[#1d1e8e] text-white"
+                : "hover:bg-[#1d1e8e] hover:text-white"
+            }`}
+          >
+            <FaCircle className="mr-2 text-xs" />
+            Categories
+          </p>
+        </Link>
+        <Link href="/dashboard/all-blogs" passHref>
+          <p
+            className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+              isActiveRoute("/dashboard/all-blogs")
+                ? "bg-[#1d1e8e] text-white"
+                : "hover:bg-[#1d1e8e] hover:text-white"
+            }`}
+          >
+            <FaCircle className="mr-2 text-xs" />
+            All Posts
+          </p>
+        </Link>
+        <Link href="/dashboard/blogs" passHref>
+          <p
+            className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+              isActiveRoute("/dashboard/blogs")
+                ? "bg-[#1d1e8e] text-white"
+                : "hover:bg-[#1d1e8e] hover:text-white"
+            }`}
+          >
+            <FaCircle className="mr-2 text-xs" />
+            Add Post
+          </p>
+        </Link>
+      </div>
+    )}
+  </div>
+  
+</>
+
+
+
+
+  
+
             {user && (user.role === "admin" || user.role === "super_admin") ? (
               <>
                 {/* Blog */}
@@ -1309,9 +1303,7 @@ const Layout = React.memo(({ children }) => {
                   <div
                     className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
                       (menuOpen === "appearance" ||
-                        isActiveRoute("/dashboard/setting") ||
                         isActiveRoute("/dashboard/report") ||
-                        isActiveRoute("/dashboard/contact") ||
                         isActiveRoute("/dashboard/allcontact") ||
                         isActiveRoute("/dashboard/emailConfigForm") ||
                         isActiveRoute("/dashboard/comment") ||
@@ -1325,18 +1317,7 @@ const Layout = React.memo(({ children }) => {
                         : "max-h-0 opacity-0 scale-y-0"
                     }`}
                   >
-                    <Link href="/dashboard/setting" passHref>
-                      <p
-                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/setting")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Settings
-                      </p>
-                    </Link>
+                   
                     <Link href="/dashboard/report" passHref>
                       <p
                         className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
@@ -1473,7 +1454,7 @@ const Layout = React.memo(({ children }) => {
                         ? "bg-[#4634ff] text-white"
                         : "hover:bg-[#1d1e8e] hover:text-white"
                     }`}
-                    style={{ paddingLeft: isCollapsed ? "16px" : "24px" }} // Conditional padding to adjust based on collapsed state
+                    style={{ paddingLeft: isCollapsed ? "24px" : "24px" }} // Conditional padding to adjust based on collapsed state
                   >
                     <FaTachometerAlt className="mr-3 text-white" />
                     {!isCollapsed && <span>System Setting</span>}
@@ -1484,9 +1465,21 @@ const Layout = React.memo(({ children }) => {
           </nav>
         </div>
         {/* Bottom Fixed Section */}
-        <div className="bg-[#071251] p-4 text-center">
-          <p className="text-white font-bold">Ytubetools V1.0</p>
-        </div>
+       {/* Footer Text */}
+  <div
+    className="text-center text-white font-bold text-xs"
+    style={{
+      position: "absolute",
+      bottom: "10px",
+      width: "100%",
+      whiteSpace: "nowrap",
+      textAlign: "center",
+      transition: "all 0.3s ease",
+      opacity: isCollapsed ? "1" : "1",
+    }}
+  >
+    {!isCollapsed ? "Ytubetools V1.0" : "Yt V1.0"}
+  </div>
       </div>
 
       {/* Main content area */}
