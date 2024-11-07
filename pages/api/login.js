@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import geoip from 'geoip-lite';
 import { connectToDatabase } from '../../utils/mongodb';
 
 export default async function handler(req, res) {
@@ -41,20 +42,13 @@ export default async function handler(req, res) {
       const browser = userAgent.includes("Chrome") ? "Chrome" : userAgent.includes("Firefox") ? "Firefox" : "Other";
       const os = userAgent.includes("Windows") ? "Windows" : userAgent.includes("Mac") ? "MacOS" : "Other";
 
-      // Get country using IP address
-      let country = "Unknown"; // Default value
+      // Use geoip-lite to get the country
+      let country = 'Unknown';
       if (ipAddress && ipAddress !== '::1' && ipAddress !== '127.0.0.1') {
-        try {
-          const countryResponse = await fetch(`https://ipapi.co/${ipAddress}/country/`);
-          if (!countryResponse.ok) {
-            throw new Error("Failed to fetch country information");
-          }
-          country = await countryResponse.text();
-        } catch (error) {
-          console.error("Error fetching country:", error);
-        }
+        const geo = geoip.lookup(ipAddress);
+        country = geo && geo.country ? geo.country : 'Unknown';
       } else {
-        country = "Localhost"; // Or set a default value for local testing
+        country = 'Localhost';
       }
 
       // Store login info in the database

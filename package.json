@@ -30,6 +30,7 @@
     "file-saver": "^2.0.5",
     "flag-icons": "^7.2.3",
     "formidable": "^3.5.1",
+    "geoip-lite": "^1.4.10",
     "google-auth-library": "^9.11.0",
     "google-search-results-nodejs": "^2.1.0",
     "highlight.js": "^11.10.0",

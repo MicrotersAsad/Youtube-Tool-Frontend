@@ -5,30 +5,23 @@ import { useAuth } from "../../contexts/AuthContext";
 import logo from "../../public/yt icon.png";
 import {
   FaTachometerAlt,
-  FaBell,
-  FaPhotoVideo,
   FaBlog,
   FaFileAlt,
-  FaBookOpen,
   FaCogs,
-  FaUserGraduate,
   FaBars,
   FaSearch,
   FaUsers,
   FaSignOutAlt,
-  FaClipboardList,
   FaCircle,
   FaUser,
-  FaArrowLeft,
-  FaFirefoxBrowser,
   FaGlobe,
   FaWrench,
-  FaArrowUp,
   FaKey,
   FaInfoCircle,
-  FaSubscript,
   FaFirstOrderAlt,
   FaListAlt,
+  FaCheckCircle,
+  FaTimesCircle,
 } from "react-icons/fa";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 
@@ -46,6 +39,7 @@ const Layout = React.memo(({ children }) => {
   const [pendingCount, setPendingCount] = useState([]);
   const [openCount, setOpenCount] = useState([]);
   const [loading, setLoading ] = useState(false);
+
 
   const router = useRouter();
   useEffect(() => {
@@ -451,7 +445,7 @@ const Layout = React.memo(({ children }) => {
                 <div className="mt-2">
                   <p
                     className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-                      isActiveRoute("/dashboard/categories") ||
+                      isActiveRoute("/dashboard/yt-categories") ||
                       isActiveRoute("/dashboard/all-article") ||
                       isActiveRoute("/dashboard/article")||
                       isActiveRoute("/dashboard/create-shortcode")
@@ -479,7 +473,7 @@ const Layout = React.memo(({ children }) => {
                   <div
                     className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
                       (menuOpen === "article" ||
-                        isActiveRoute("/dashboard/categories") ||
+                        isActiveRoute("/dashboard/yt-categories") ||
                         isActiveRoute("/dashboard/all-article") ||
                         isActiveRoute("/dashboard/article")) &&
                       !isCollapsed
@@ -1518,16 +1512,7 @@ const Layout = React.memo(({ children }) => {
                 <FaBars className="w-6 h-6" />
               </button>
 
-              {/* Search Input for Desktop */}
-              {/* <div className="relative hidden lg:block w-64">
-      <FaSearch className="absolute top-1/2 left-3 transform -translate-y-1/2 text-white text-lg" />
-      <input
-        type="text"
-        className="w-full pl-10 py-2 rounded-lg bg-transparent border border-[#4b4ba5] text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-300 ease-in-out hover:border-[#6a6aff]"
-        placeholder="Search here..."
-      />
-    </div> */}
-              {/* Search Input for Desktop */}
+             
               {/* Search Input for Desktop */}
               <div className="relative hidden lg:block w-64">
                 <FaSearch className="absolute top-1/2 left-3 transform -translate-y-1/2 text-white text-lg" />
@@ -1563,16 +1548,10 @@ const Layout = React.memo(({ children }) => {
               >
                 <FaGlobe className="w-5 h-5" />
               </button>
-              {/* <button
-      className="flex items-center text-white relative"
-      onClick={() => router.push("/dashboard/notifications")}
-    >
-      <FaBell className="w-5 h-5" />
-      <span className="absolute -top-1 -right-1 bg-orange-500 rounded-full w-4 h-4 text-xs flex items-center justify-center">9+</span>
-    </button> */}
+            
               <button
                 className="flex items-center text-white"
-                onClick={() => router.push("/dashboard/setting")}
+                onClick={() => router.push("/dashboard/system-setting")}
               >
                 <FaWrench className="w-5 h-5" />
               </button>
@@ -1585,7 +1564,7 @@ const Layout = React.memo(({ children }) => {
                 >
                   {user?.profileImage ? (
                     <Image
-                      src={getProfileImagePath(user?.profileImage)}
+                      src={user?.profileImage}
                       width={30}
                       height={30}
                       className="rounded-full border"
@@ -1615,7 +1594,7 @@ const Layout = React.memo(({ children }) => {
                     <div className="px-4 py-2 flex items-center">
                       {user?.profileImage ? (
                         <Image
-                          src={`data:image/jpeg;base64,${user.profileImage}`}
+                          src={user.profileImage}
                           alt="User profile image"
                           className="w-8 h-8 rounded-full"
                           width={32}
@@ -1633,13 +1612,20 @@ const Layout = React.memo(({ children }) => {
                         <p className="font-semibold text-blue-500">
                           {user?.username || "Username"}
                         </p>
-                        <p className="text-gray-500 text-sm">
-                          {user?.role || "Role"}
-                        </p>
+                        
+
+<div className="flex items-center space-x-2">
+  <p className="text-gray-500 text-sm">{user?.role || "Role"}</p>
+  {user?.verified ? (
+    <FaCheckCircle className="text-green-500" title="Verified" /> // Green checkmark for verified
+  ) : (
+    <FaTimesCircle className="text-red-500" title="Not Verified" /> // Red cross for unverified
+  )}
+</div>
                       </div>
                     </div>
                     <hr />
-                    <Link href="profile" passHref>
+                    <Link href="/user/profile" passHref>
                       <button className="flex items-center w-full px-4 py-2 text-gray-800 hover:bg-gray-100">
                         <FaUser className="mr-3" />
                         Profile

@@ -1,7 +1,5 @@
 User-agent: *
-Disallow: /wp-admin/
-Allow: /wp-admin/admin-ajax.php
+Disallow: /dashboard/dashboard/
 User-agent: *
-Disallow: /wp-admin/
-Allow: /wp-admin/admin-ajax.php
-Sitemap: https://microters.com/sitemap.xml
+Disallow: /dashboard/dashboard/
+Sitemap: https://ytubetools.com/sitemap.xml

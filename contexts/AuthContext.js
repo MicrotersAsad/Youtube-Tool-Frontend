@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
-import PropTypes from 'prop-types'; // Import prop-types
+import PropTypes from 'prop-types';
 
 const AuthContext = createContext();
 
@@ -16,7 +16,8 @@ export const AuthProvider = ({ children }) => {
       try {
         const decoded = jwt.decode(token);
         if (decoded) {
-          setUser(decoded);
+          // Fetch the full user profile on page load to get profileImage and other data
+          fetchUserProfile(decoded);
         } else {
           console.error("Token decoding failed");
         }
@@ -28,14 +29,28 @@ export const AuthProvider = ({ children }) => {
     }
   }, [router]);
 
+  const fetchUserProfile = async (decoded) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/user', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setUser({ ...decoded, ...response.data }); // Merge decoded token data with API response
+    } catch (error) {
+      console.error("Failed to fetch user profile:", error);
+    }
+  };
+
   const login = async (email, password) => {
     try {
       const response = await axios.post('/api/login', { email, password });
       const token = response.data.token;
       const decoded = jwt.decode(token);
       if (decoded) {
-        setUser(decoded);
         localStorage.setItem('token', token);
+        fetchUserProfile(decoded); // Fetch full profile with profileImage after login
       } else {
         console.error("Token decoding failed on login");
       }
@@ -58,7 +73,7 @@ export const AuthProvider = ({ children }) => {
           Authorization: `Bearer ${token}`,
         },
       });
-      setUser(response.data); // Ensure the response contains the profileImage field
+      setUser(prevUser => ({ ...prevUser, ...response.data })); // Update only user data, keeping token data intact
     } catch (error) {
       console.error('Failed to update profile:', error);
     }
@@ -72,7 +87,7 @@ export const AuthProvider = ({ children }) => {
 };
 
 AuthProvider.propTypes = {
-  children: PropTypes.node.isRequired, // Add prop type validation for children
+  children: PropTypes.node.isRequired,
 };
 
 export const useAuth = () => useContext(AuthContext);
