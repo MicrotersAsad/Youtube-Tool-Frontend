@@ -1,3 +1,5 @@
+// pages/_app.js
+
 import { appWithTranslation } from 'next-i18next';
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
@@ -17,15 +19,14 @@ function MyApp({ Component, pageProps }) {
   const [showButton, setShowButton] = useState(false);
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [maintenanceData, setMaintenanceData] = useState(null);
+  const [headerContent, setHeaderContent] = useState(''); // State for header content
   const router = useRouter();
 
   useEffect(() => {
     const checkMaintenanceMode = async () => {
       try {
         const response = await fetch('/api/maintenance');
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
+        if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         if (data.status === 'enabled') {
           setIsMaintenance(true);
@@ -42,23 +43,72 @@ function MyApp({ Component, pageProps }) {
     checkMaintenanceMode();
   }, []);
 
+  // Fetch and apply header content from the API
   useEffect(() => {
-    const handleScroll = () => {
-      setShowButton(window.scrollY > 300);
+    const fetchHeaderContent = async () => {
+      const protocol = window.location.protocol;
+      const host = window.location.host;
+
+      try {
+        const headerResponse = await fetch(`${protocol}//${host}/api/heading`);
+        const headerData = await headerResponse.json();
+        setHeaderContent(headerData[0]?.content || '');
+        console.log(headerContent);
+        
+      } catch (error) {
+        console.error('Error fetching header content:', error);
+      }
     };
+
+    fetchHeaderContent();
+  }, []);
+
+  // Inject fetched meta tags and scripts into the document head
+  useEffect(() => {
+    if (!headerContent) return;
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(headerContent, 'text/html');
+
+    // Add meta tags if they don't already exist
+    const metaTags = doc.querySelectorAll('meta');
+    metaTags.forEach((meta) => {
+      if (!document.head.querySelector(`meta[content="${meta.getAttribute('content')}"]`)) {
+        document.head.appendChild(meta.cloneNode(true));
+      }
+    });
+
+    // Add script tags if they don't already exist
+    const scriptTags = doc.querySelectorAll('script');
+    scriptTags.forEach((script) => {
+      if (script.src && !document.head.querySelector(`script[src="${script.src}"]`)) {
+        const newScript = document.createElement('script');
+        newScript.src = script.src;
+        newScript.type = script.type || 'text/javascript';
+        newScript.async = script.async || false;
+        document.head.appendChild(newScript);
+      } else if (!script.src) {
+        const inlineScript = document.createElement('script');
+        inlineScript.type = script.type || 'text/javascript';
+        inlineScript.textContent = script.textContent;
+        document.head.appendChild(inlineScript);
+      }
+    });
+  }, [headerContent]);
+
+  useEffect(() => {
+    const handleScroll = () => setShowButton(window.scrollY > 300);
     const throttledHandleScroll = throttle(handleScroll, 200);
     window.addEventListener('scroll', throttledHandleScroll);
 
-    return () => {
-      window.removeEventListener('scroll', throttledHandleScroll);
-    };
+    return () => window.removeEventListener('scroll', throttledHandleScroll);
   }, []);
 
   const throttle = (func, delay) => {
     let timeout;
     return () => {
       if (!timeout) {
-        func(); // Directly call the function when throttling
+        func();
         timeout = setTimeout(() => {
           timeout = null;
         }, delay);

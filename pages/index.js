@@ -965,88 +965,33 @@ const buttonColors = {
     </>
   );
 }
-// export async function getServerSideProps({ req, locale }) {
-  // const protocol = req.headers["x-forwarded-proto"] || "http";
-  // const host = req.headers.host;
-  // const apiUrl = `${protocol}://${host}/api/content?category=tagGenerator&language=${locale}`;
-
-//   try {
-//     const contentResponse = await fetch(apiUrl);
-//     const contentData = await contentResponse.json();
-
-//     const localeData = contentData.translations?.[locale] || {};
-    
-    
-//     const meta = {
-//       title: localeData.title || "Default Title",
-//       description: localeData.description || "Default description",
-//       url: `${protocol}://${host}`,
-//     };
-
-//     return {
-//       props: {
-//         initialMeta: meta,
-//         reactions: localeData.reactions || { likes: 0, unlikes: 0, reports: [], users: {} },
-//         content: localeData.content || "",
-//         faqList: localeData.faqs || [],
-//         tools: localeData.relatedTools || [],
-//         ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
-//       },
-//     };
-//   } catch (error) {
-//     console.error("Error fetching data:", error);
-//     return {
-//       props: {
-//         initialMeta: {},
-//         reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
-//         content: "",
-//         faqList: [],
-//         tools: [],
-//         ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
-//       },
-//     };
-//   }
-// }
-
-
-
-
-export async function getStaticProps({ locale }) {
-  // Set base URL based on the environment
-  const baseUrl =
-    process.env.NODE_ENV === "development"
-      ? "http://localhost:3000"
-      : "https://ytubetools.com";
-
-  const apiUrl = `${baseUrl}/api/content?category=tagGenerator&language=${locale}`;
+export async function getServerSideProps({ req, locale }) {
+  const protocol = req.headers["x-forwarded-proto"] || "http";
+  const host = req.headers.host;
+  const apiUrl = `${protocol}://${host}/api/content?category=tagGenerator&language=${locale}`;
 
   try {
     const contentResponse = await fetch(apiUrl);
     const contentData = await contentResponse.json();
 
     const localeData = contentData.translations?.[locale] || {};
-
+    
+    
     const meta = {
       title: localeData.title || "Default Title",
       description: localeData.description || "Default description",
-      url: `${baseUrl}`,
+      url: `${protocol}://${host}`,
     };
 
     return {
       props: {
         initialMeta: meta,
-        reactions: localeData.reactions || {
-          likes: 0,
-          unlikes: 0,
-          reports: [],
-          users: {},
-        },
+        reactions: localeData.reactions || { likes: 0, unlikes: 0, reports: [], users: {} },
         content: localeData.content || "",
         faqList: localeData.faqs || [],
         tools: localeData.relatedTools || [],
         ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
       },
-      revalidate: 60, // Revalidate every 60 seconds for ISR
     };
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -1059,8 +1004,11 @@ export async function getStaticProps({ locale }) {
         tools: [],
         ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
       },
-      revalidate: 60, // Revalidate even if there's an error
     };
   }
 }
+
+
+
+
 
