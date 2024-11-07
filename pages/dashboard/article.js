@@ -81,9 +81,10 @@ function Article() {
       setCategories(data);
     } catch (error) {
       console.error('Error fetching categories:', error.message);
+      toast.error('Error fetching categories');
     }
   };
-
+  
   const fetchAuthors = async () => {
     try {
       const response = await fetch('/api/authors');
@@ -94,9 +95,10 @@ function Article() {
       setAuthors(data);
     } catch (error) {
       console.error('Error fetching authors:', error.message);
+      toast.error('Error fetching authors');
     }
   };
-
+  
   const fetchContent = async () => {
     try {
       const response = await fetch(`/api/youtube?category=${selectedCategory}&language=${selectedLanguage}`);
@@ -108,19 +110,57 @@ function Article() {
       setIsEditing(false);
     } catch (error) {
       console.error('Error fetching content:', error.message);
+      toast.error('Error fetching content');
       setError(error.message);
     }
   };
-
+  
   const handleSubmit = async () => {
-    if (!title || !quillContent || !metaDescription || !metaTitle || !description || !selectedCategory || !selectedLanguage || !selectedAuthor || !selectedEditor || !selectedDeveloper) {
-      setError('Please fill in all the fields.');
+    // ফিল্ড চেক করে ত্রুটি বার্তা সেট করা
+    if (!title) {
+      toast.error('Title is required.');
       return;
     }
-
+    if (!quillContent) {
+      toast.error('Content is required.');
+      return;
+    }
+    if (!metaDescription) {
+      toast.error('Meta Description is required.');
+      return;
+    }
+    if (!metaTitle) {
+      toast.error('Meta Title is required.');
+      return;
+    }
+    if (!description) {
+      toast.error('Description is required.');
+      return;
+    }
+    if (!selectedCategory) {
+      toast.error('Category is required.');
+      return;
+    }
+    if (!selectedLanguage) {
+      toast.error('Language is required.');
+      return;
+    }
+    if (!selectedAuthor) {
+      toast.error('Author is required.');
+      return;
+    }
+    if (!selectedEditor) {
+      toast.error('Editor is required.');
+      return;
+    }
+    if (!selectedDeveloper) {
+      toast.error('Developer is required.');
+      return;
+    }
+  
     try {
       const method = isEditing ? 'PUT' : 'POST';
-
+  
       const formData = new FormData();
       formData.append('content', quillContent);
       formData.append('title', title);
@@ -138,17 +178,17 @@ function Article() {
       formData.append('slug', slug);
       formData.append('createdAt', new Date().toISOString());
       formData.append('isDraft', JSON.stringify(false));
-
+  
       const response = await fetch('/api/youtube', {
         method,
         body: formData,
       });
-
+  
       if (!response.ok) {
         const errorMessage = await response.text();
         throw new Error(`Failed to post content: ${errorMessage}`);
       }
-
+  
       setError(null);
       fetchContent();
       toast.success('Blog uploaded successfully!');
@@ -157,8 +197,26 @@ function Article() {
       console.error('Error posting content:', error.message);
       setError(error.message);
     }
+  
+    // শুধুমাত্র এখানেই localStorage এ সেভ করা হচ্ছে
+    const formState = {
+      quillContent,
+      selectedCategory,
+      selectedLanguage,
+      slug,
+      title,
+      metaTitle,
+      description,
+      metaDescription,
+      image,
+      selectedAuthor,
+      selectedEditor,
+      selectedDeveloper,
+    };
+    localStorage.setItem('blogFormState', JSON.stringify(formState));
   };
-
+  
+  
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
   }, []);
@@ -172,13 +230,32 @@ function Article() {
     setSelectedCategory('');
   };
 
+  // const handleImageChange = (e) => {
+  //   const file = e.target.files[0];
+  //   if (file) {
+  //     setImage(URL.createObjectURL(file));
+  //     setImageFile(file);
+  //   }
+  // };
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImage(URL.createObjectURL(file));
+      if (image) URL.revokeObjectURL(image); // পুরনো URL রিলিজ করা
+      const newImageUrl = URL.createObjectURL(file);
+      setImage(newImageUrl);
       setImageFile(file);
     }
   };
+  
+  // Component Unmount হলে URL রিলিজ করতে useEffect ব্যবহার করা যেতে পারে
+  useEffect(() => {
+    return () => {
+      if (image) {
+        URL.revokeObjectURL(image);
+      }
+    };
+  }, [image]);
+  
 
   useEffect(() => {
     if (!isSlugEditable) {

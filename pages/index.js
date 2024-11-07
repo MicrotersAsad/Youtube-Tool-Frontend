@@ -63,43 +63,12 @@ export default function Home({ initialMeta, reactions, content, faqList, tools }
   };
 
   const closeModal = () => setModalVisible(false);
-
-  const fetchContent = async (language) => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/content?category=tagGenerator&language=${language}`);
-      if (!response.ok) throw new Error("ডাটা ফেচ করতে সমস্যা হয়েছে");
-  
-      const data = await response.json();
-      setMeta({
-        title: data.translations?.[language]?.title || "Default Title",
-        description: data.translations?.[language]?.description || "Default description",
-        url: window.location.href,
-      });
-      setExistingContent(data.translations?.[language]?.content || "");
-      setFaqs(data.translations?.[language]?.faqs || []);
-      setRelatedTools(data.translations?.[language]?.relatedTools || []);
-      setLikes(data.reactions?.likes || 0);
-      setUnlikes(data.reactions?.unlikes || 0);
-    } catch (error) {
-      console.error("ডাটা লোড করতে সমস্যা:", error);
-      toast.error("ডাটা লোড করতে সমস্যা হয়েছে। দয়া করে পরে আবার চেষ্টা করুন।");
-    }
-    finally {
-      setIsLoading(false); // API শেষ হলে লোডিং false হবে
-    }
-  };
-  
-
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if (router.isReady) {
-        fetchContent(i18n.language);
-      }
-  
-    }
-  },[router.isReady, i18n.language]); // i18n.language পরিবর্তন হলে পুনরায় ফেচ হবে
+    // ডেটা লোড হয়ে গেলে isLoading স্টেট false করে দেয়
+    setIsLoading(false);
+  }, []);
 
+ 
 
   
 
@@ -996,33 +965,88 @@ const buttonColors = {
     </>
   );
 }
-export async function getServerSideProps({ req, locale }) {
-  const protocol = req.headers["x-forwarded-proto"] || "http";
-  const host = req.headers.host;
-  const apiUrl = `${protocol}://${host}/api/content?category=tagGenerator&language=${locale}`;
+// export async function getServerSideProps({ req, locale }) {
+  // const protocol = req.headers["x-forwarded-proto"] || "http";
+  // const host = req.headers.host;
+  // const apiUrl = `${protocol}://${host}/api/content?category=tagGenerator&language=${locale}`;
+
+//   try {
+//     const contentResponse = await fetch(apiUrl);
+//     const contentData = await contentResponse.json();
+
+//     const localeData = contentData.translations?.[locale] || {};
+    
+    
+//     const meta = {
+//       title: localeData.title || "Default Title",
+//       description: localeData.description || "Default description",
+//       url: `${protocol}://${host}`,
+//     };
+
+//     return {
+//       props: {
+//         initialMeta: meta,
+//         reactions: localeData.reactions || { likes: 0, unlikes: 0, reports: [], users: {} },
+//         content: localeData.content || "",
+//         faqList: localeData.faqs || [],
+//         tools: localeData.relatedTools || [],
+//         ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
+//       },
+//     };
+//   } catch (error) {
+//     console.error("Error fetching data:", error);
+//     return {
+//       props: {
+//         initialMeta: {},
+//         reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
+//         content: "",
+//         faqList: [],
+//         tools: [],
+//         ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
+//       },
+//     };
+//   }
+// }
+
+
+
+
+export async function getStaticProps({ locale }) {
+  // Set base URL based on the environment
+  const baseUrl =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000"
+      : "https://ytubetools.com";
+
+  const apiUrl = `${baseUrl}/api/content?category=tagGenerator&language=${locale}`;
 
   try {
     const contentResponse = await fetch(apiUrl);
     const contentData = await contentResponse.json();
 
     const localeData = contentData.translations?.[locale] || {};
-    
-    
+
     const meta = {
       title: localeData.title || "Default Title",
       description: localeData.description || "Default description",
-      url: `${protocol}://${host}`,
+      url: `${baseUrl}`,
     };
 
     return {
       props: {
         initialMeta: meta,
-        reactions: localeData.reactions || { likes: 0, unlikes: 0, reports: [], users: {} },
+        reactions: localeData.reactions || {
+          likes: 0,
+          unlikes: 0,
+          reports: [],
+          users: {},
+        },
         content: localeData.content || "",
         faqList: localeData.faqs || [],
         tools: localeData.relatedTools || [],
         ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
       },
+      revalidate: 60, // Revalidate every 60 seconds for ISR
     };
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -1035,8 +1059,8 @@ export async function getServerSideProps({ req, locale }) {
         tools: [],
         ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
       },
+      revalidate: 60, // Revalidate even if there's an error
     };
   }
 }
-
 

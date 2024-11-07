@@ -10,7 +10,7 @@ export const config = {
   },
 };
 
-// Configure AWS S3 v3
+// Configure AWS S3
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
   credentials: {
@@ -19,7 +19,6 @@ const s3 = new S3Client({
   },
 });
 
-// Check if bucket name is provided
 if (!process.env.AWS_S3_BUCKET_NAME) {
   throw new Error("AWS_S3_BUCKET environment variable is not set");
 }
@@ -110,13 +109,18 @@ const handlePostRequest = async (req, res, youtube) => {
       description,
       slug,
       metaDescription,
-      category,
+      category, // Ensure category is present
       language,
       author,
       editor,
       developer,
     } = formData;
     const image = req.file ? req.file.location : null;
+
+    // Category field check
+    if (!category) {
+      return res.status(400).json({ message: 'Category is required' });
+    }
 
     if (
       !content ||
@@ -125,7 +129,6 @@ const handlePostRequest = async (req, res, youtube) => {
       !metaTitle ||
       !description ||
       !metaDescription ||
-      !category ||
       !language ||
       !author ||
       !editor ||
@@ -147,7 +150,7 @@ const handlePostRequest = async (req, res, youtube) => {
           [`translations.${language}.metaTitle`]: metaTitle,
           [`translations.${language}.description`]: description,
           [`translations.${language}.metaDescription`]: metaDescription,
-          [`translations.${language}.category`]: category,
+          [`translations.${language}.category`]: category, // Update category
           [`translations.${language}.image`]: image,
           [`translations.${language}.slug`]: uniqueSlug,
           author,
