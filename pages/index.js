@@ -20,8 +20,7 @@ import cloud2 from "../public/shape/cloud2.png";
 import Script from "next/script";
 
 const StarRating = dynamic(() => import("./tools/StarRating"), { ssr: false });
-
-export default function Home({ initialMeta, reactions, content, faqList, tools }) {
+export default function Home({ initialMeta, reactions, content, faqList, tools, headerContent }) {
   const { user, updateUserProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -68,9 +67,22 @@ export default function Home({ initialMeta, reactions, content, faqList, tools }
     setIsLoading(false);
   }, []);
 
- 
+  useEffect(() => {
+    if (!headerContent) return;
 
-  
+    // HTML হিসেবে ডিকোড করার জন্য একটি ডিভ তৈরি করা হচ্ছে
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = headerContent;
+
+    // `<head>` এ মেটা ট্যাগ যুক্ত করা হচ্ছে
+    const metaTags = tempDiv.querySelectorAll("meta");
+    metaTags.forEach((meta) => {
+      if (!document.head.querySelector(`meta[content="${meta.getAttribute("content")}"]`)) {
+        document.head.appendChild(meta.cloneNode(true));
+      }
+    });
+  }, [headerContent]);
+
 
 // Refactored code
 useEffect(() => {
@@ -968,15 +980,17 @@ const buttonColors = {
 export async function getServerSideProps({ req, locale }) {
   const protocol = req.headers["x-forwarded-proto"] || "http";
   const host = req.headers.host;
-  const apiUrl = `${protocol}://${host}/api/content?category=tagGenerator&language=${locale}`;
+  const contentApiUrl = `${protocol}://${host}/api/content?category=tagGenerator&language=${locale}`;
+  const headerApiUrl = `${protocol}://${host}/api/heading`;
 
   try {
-    const contentResponse = await fetch(apiUrl);
+    const contentResponse = await fetch(contentApiUrl);
     const contentData = await contentResponse.json();
+    const headerResponse = await fetch(headerApiUrl);
+    const headerData = await headerResponse.json();
+    const headerContent = headerData[0]?.content || "";
 
     const localeData = contentData.translations?.[locale] || {};
-    
-    
     const meta = {
       title: localeData.title || "Default Title",
       description: localeData.description || "Default description",
@@ -990,6 +1004,7 @@ export async function getServerSideProps({ req, locale }) {
         content: localeData.content || "",
         faqList: localeData.faqs || [],
         tools: localeData.relatedTools || [],
+        headerContent, // Pass headerContent to props
         ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
       },
     };
@@ -1007,8 +1022,3 @@ export async function getServerSideProps({ req, locale }) {
     };
   }
 }
-
-
-
-
-
