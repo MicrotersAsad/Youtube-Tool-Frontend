@@ -978,15 +978,20 @@ const buttonColors = {
   );
 }
 export async function getServerSideProps({ req, locale }) {
-  const protocol = req.headers["x-forwarded-proto"] || "http";
+  // Check for `x-forwarded-proto` header or set protocol to `https` in production
+  const protocol = req.headers["x-forwarded-proto"] || (process.env.NODE_ENV === "production" ? "https" : "http");
   const host = req.headers.host;
-  const contentApiUrl = `${protocol}://${host}/api/content?category=tagGenerator&language=${locale}`;
-  const headerApiUrl = `${protocol}://${host}/api/heading`;
+  
+  const apiUrl = `${protocol}://${host}/api/content?category=tagGenerator&language=${locale}`;
+  const headerUrl = `${protocol}://${host}/api/heading`;
 
   try {
-    const contentResponse = await fetch(contentApiUrl);
+    // Fetch the main content data
+    const contentResponse = await fetch(apiUrl);
     const contentData = await contentResponse.json();
-    const headerResponse = await fetch(headerApiUrl);
+
+    // Fetch the header content data
+    const headerResponse = await fetch(headerUrl);
     const headerData = await headerResponse.json();
     const headerContent = headerData[0]?.content || "";
 
@@ -1000,11 +1005,10 @@ export async function getServerSideProps({ req, locale }) {
     return {
       props: {
         initialMeta: meta,
-        reactions: localeData.reactions || { likes: 0, unlikes: 0, reports: [], users: {} },
+        headerContent,
         content: localeData.content || "",
         faqList: localeData.faqs || [],
         tools: localeData.relatedTools || [],
-        headerContent, // Pass headerContent to props
         ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
       },
     };
@@ -1013,7 +1017,7 @@ export async function getServerSideProps({ req, locale }) {
     return {
       props: {
         initialMeta: {},
-        reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
+        headerContent: "",
         content: "",
         faqList: [],
         tools: [],
@@ -1022,3 +1026,4 @@ export async function getServerSideProps({ req, locale }) {
     };
   }
 }
+
