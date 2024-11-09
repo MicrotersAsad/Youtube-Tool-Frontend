@@ -120,6 +120,69 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
             <Comments slug={slug} />
           </div>
         </div>
+        <style jsx global>{`
+          .result-content h2 {
+            padding-top: 12px !important;
+          }
+          .result-content p {
+            padding-top: 12px !important;
+            padding-bottom: 12px !important;
+          }
+          .result-content table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            margin: 20px 0 !important;
+            font-size: 1rem !important;
+          }
+          .result-content table th,
+          .result-content table td {
+            border: 1px solid #ddd !important;
+            padding: 12px 15px !important;
+          }
+          .result-content table th {
+            background-color: #f4f4f4 !important;
+            font-weight: bold !important;
+          }
+          .result-content table tr:nth-child(even) {
+            background-color: #f9f9f9 !important;
+          }
+          .result-content table tr:hover {
+            background-color: #f1f1f1 !important;
+          }
+          .result-content table td {
+            word-wrap: break-word !important;
+            max-width: 450px !important;
+          }
+          @media (max-width: 768px) {
+            .result-content table,
+            .result-content table tr,
+            .result-content table th,
+            .result-content table td {
+              display: block;
+              width: 100% !important;
+              box-sizing: border-box;
+              padding-left: 30px;
+            }
+            .result-content table tr {
+              margin-bottom: 10px;
+              border: 1px solid #ddd;
+              padding: 10px;
+              background-color: #f9f9f9;
+            }
+            .result-content table th,
+            .result-content table td {
+              text-align: left;
+            }
+            .result-content table td::before {
+              content: attr(data-label);
+              font-weight: bold;
+              color: #333;
+              margin-right: 5px;
+              display: inline-block;
+              width: 45%;
+            }
+          }
+        `}</style>
       </div>
     </div>
   );
