@@ -7,6 +7,7 @@ module.exports = withBundleAnalyzer({
   reactStrictMode: true,
   i18n,
   swcMinify: true, // Enable SWC-based minification
+  trailingSlash: false,
 
   async rewrites() {
     return [
