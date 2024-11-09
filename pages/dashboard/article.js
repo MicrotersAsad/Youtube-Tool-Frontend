@@ -116,7 +116,7 @@ function Article() {
   };
   
   const handleSubmit = async () => {
-    // ফিল্ড চেক করে ত্রুটি বার্তা সেট করা
+  
     if (!title) {
       toast.error('Title is required.');
       return;
@@ -135,10 +135,6 @@ function Article() {
     }
     if (!description) {
       toast.error('Description is required.');
-      return;
-    }
-    if (!selectedCategory) {
-      toast.error('Category is required.');
       return;
     }
     if (!selectedLanguage) {
@@ -168,7 +164,7 @@ function Article() {
       formData.append('description', description);
       formData.append('metaDescription', metaDescription);
       formData.append('language', selectedLanguage);
-      formData.append('category', selectedCategory);
+      formData.append('category', selectedCategory || 'unknown'); // Default to 'unknown' if category is not selected
       if (imageFile) {
         formData.append('image', imageFile);
       }
@@ -193,29 +189,16 @@ function Article() {
       fetchContent();
       toast.success('Blog uploaded successfully!');
       localStorage.removeItem('blogFormState');
+
+      // Reset form state and reload page to clear everything
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       console.error('Error posting content:', error.message);
       setError(error.message);
     }
-  
-    // শুধুমাত্র এখানেই localStorage এ সেভ করা হচ্ছে
-    const formState = {
-      quillContent,
-      selectedCategory,
-      selectedLanguage,
-      slug,
-      title,
-      metaTitle,
-      description,
-      metaDescription,
-      image,
-      selectedAuthor,
-      selectedEditor,
-      selectedDeveloper,
-    };
-    localStorage.setItem('blogFormState', JSON.stringify(formState));
   };
-  
   
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
@@ -230,13 +213,6 @@ function Article() {
     setSelectedCategory('');
   };
 
-  // const handleImageChange = (e) => {
-  //   const file = e.target.files[0];
-  //   if (file) {
-  //     setImage(URL.createObjectURL(file));
-  //     setImageFile(file);
-  //   }
-  // };
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -247,7 +223,6 @@ function Article() {
     }
   };
   
-  // Component Unmount হলে URL রিলিজ করতে useEffect ব্যবহার করা যেতে পারে
   useEffect(() => {
     return () => {
       if (image) {
@@ -256,7 +231,6 @@ function Article() {
     };
   }, [image]);
   
-
   useEffect(() => {
     if (!isSlugEditable) {
       const generateSlug = (str) => {
