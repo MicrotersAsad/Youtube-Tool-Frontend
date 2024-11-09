@@ -978,49 +978,58 @@ const buttonColors = {
   );
 }
 export async function getServerSideProps({ req, locale }) {
-  // Check for `x-forwarded-proto` header or set protocol to `https` in production
+  // Set protocol based on the environment (https for production)
   const protocol = req.headers["x-forwarded-proto"] || (process.env.NODE_ENV === "production" ? "https" : "http");
   const host = req.headers.host;
-  
-  const apiUrl = `${protocol}://${host}/api/content?category=tagGenerator&language=${locale}`;
-  const headerUrl = `${protocol}://${host}/api/heading`;
+  const baseUrl = `${protocol}://${host}`;
+  const contentApiUrl = `${baseUrl}/api/content?category=tagGenerator&language=${locale}`;
+  const headerApiUrl = `${baseUrl}/api/heading`;
 
   try {
-    // Fetch the main content data
-    const contentResponse = await fetch(apiUrl);
+    // Fetch content and header data in parallel
+    const [contentResponse, headerResponse] = await Promise.all([
+      fetch(contentApiUrl),
+      fetch(headerApiUrl),
+    ]);
+
     const contentData = await contentResponse.json();
-
-    // Fetch the header content data
-    const headerResponse = await fetch(headerUrl);
     const headerData = await headerResponse.json();
-    const headerContent = headerData[0]?.content || "";
 
+    // Extract header content and localized data with fallbacks
+    const headerContent = headerData[0]?.content || "";
     const localeData = contentData.translations?.[locale] || {};
+
+    // Meta information with fallback defaults
     const meta = {
       title: localeData.title || "Default Title",
       description: localeData.description || "Default description",
-      url: `${protocol}://${host}`,
+      url: baseUrl,
     };
 
+    // Return all props for the page
     return {
       props: {
         initialMeta: meta,
-        headerContent,
+        reactions: localeData.reactions || { likes: 0, unlikes: 0, reports: [], users: {} },
         content: localeData.content || "",
         faqList: localeData.faqs || [],
         tools: localeData.relatedTools || [],
+        headerContent, // Pass header content to props
         ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
       },
     };
   } catch (error) {
     console.error("Error fetching data:", error);
+
+    // Fallback props in case of error
     return {
       props: {
         initialMeta: {},
-        headerContent: "",
+        reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
         content: "",
         faqList: [],
         tools: [],
+        headerContent: "", // Empty header content as fallback
         ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
       },
     };
