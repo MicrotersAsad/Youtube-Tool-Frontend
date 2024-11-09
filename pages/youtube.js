@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 import Head from 'next/head';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
-
+import oops from "../public/opps.png"
 const createSlug = (title) => {
   return title
     .toString()
@@ -66,8 +66,12 @@ const BlogSection = ({ initialBlogs = [] }) => {
   const processedBlogs = useMemo(() => {
     return blogsData
       .map((blog) => {
-        const lang = blog.defaultLanguage || 'en';
-        const translation = blog.translations[lang] || blog.translations['en'] || {};
+        const translation = blog.translations[currentLanguage];
+
+        if (!translation) {
+          return null; // Exclude blogs without the current language translation
+        }
+
         const title = translation.title || '';
 
         if (!translation.slug && title) {
@@ -84,12 +88,11 @@ const BlogSection = ({ initialBlogs = [] }) => {
           ...blog,
           translations: {
             ...blog.translations,
-            [lang]: translation,
-            [currentLanguage]: blog.translations[currentLanguage] || translation,
+            [currentLanguage]: translation,
           },
         };
       })
-      .filter((blog) => blog.translations[currentLanguage]);
+      .filter((blog) => blog); // Filter out null values
   }, [blogsData, currentLanguage]);
 
   const categoryBlogs = useMemo(() => {
@@ -154,7 +157,7 @@ const BlogSection = ({ initialBlogs = [] }) => {
   }
 
   return (
-    <div className="max-w-7xl container">
+    <div className="max-w-7xl container mx-auto px-4">
       <Head>
         <title>Ytubetools - Enhance Your YouTube Experience</title>
         <meta
@@ -162,56 +165,71 @@ const BlogSection = ({ initialBlogs = [] }) => {
           content="Explore our Article at Ytubetools for insights, tips, and tools designed to improve your YouTube content creation and viewer experience."
         />
       </Head>
-      <div className="flex justify-center mb-6 mt-6">
-        <div className="relative w-full max-w-lg">
-          <input
-            type="text"
-            placeholder="Search blogs by title..."
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <FaSearch className="absolute top-3 right-3 text-gray-400" />
+
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+          {Array(9)
+            .fill(0)
+            .map((_, i) => (
+              <div key={i} className="bg-white shadow-md rounded-lg p-4">
+                <Skeleton height={180} className="mb-4" />
+                <Skeleton height={20} width="60%" className="mb-2" />
+                <Skeleton height={15} width="80%" className="mb-2" />
+                <Skeleton height={15} width="40%" />
+              </div>
+            ))}
         </div>
-      </div>
+      ) : currentBlogs.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <Image src={oops} alt="No Blogs Available" width={200} height={200} />
+          <h2 className="text-2xl font-semibold text-gray-700 mt-6">
+            Oops! No Blogs Available
+          </h2>
+          <p className="text-gray-500 mt-4">
+            It seems like we don't have any articles in this language or category.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="flex justify-center mb-6 mt-6">
+            <div className="relative w-full max-w-lg">
+              <input
+                type="text"
+                placeholder="Search blogs by title..."
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <FaSearch className="absolute top-3 right-3 text-gray-400" />
+            </div>
+          </div>
 
-      <div className="flex justify-center mb-4">
-        <ul className="flex flex-wrap justify-center space-x-2">
-          <li
-            className={`px-4 py-2 list-none rounded-full text-sm font-medium border ${
-              !currentCategory ? 'bg-purple-700 text-white' : 'bg-white text-gray-700'
-            }`}
-            onClick={() => handleCategoryChange('')}
-          >
-            <span className="cursor-pointer">All Posts</span>
-          </li>
-          {categories.map((category) => (
-            <li
-              key={category.slug}
-              className={`px-4 py-2 list-none rounded-full text-sm font-medium border ${
-                currentCategory === category.slug ? 'bg-purple-700 text-white' : 'bg-white text-gray-700'
-              }`}
-              onClick={() => handleCategoryChange(category.slug)}
-            >
-              <span className="cursor-pointer">{category.name}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+          <div className="flex justify-center mb-4">
+            <ul className="flex flex-wrap justify-center space-x-2">
+              <li
+                className={`px-4 py-2 list-none rounded-full text-sm font-medium border ${
+                  !currentCategory ? 'bg-purple-700 text-white' : 'bg-white text-gray-700'
+                }`}
+                onClick={() => handleCategoryChange('')}
+              >
+                <span className="cursor-pointer">All Posts</span>
+              </li>
+              {categories.map((category) => (
+                <li
+                  key={category.slug}
+                  className={`px-4 py-2 list-none rounded-full text-sm font-medium border ${
+                    currentCategory === category.slug ? 'bg-purple-700 text-white' : 'bg-white text-gray-700'
+                  }`}
+                  onClick={() => handleCategoryChange(category.slug)}
+                >
+                  <span className="cursor-pointer">{category.name}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-        {loading
-          ? Array(9)
-              .fill(0)
-              .map((_, i) => (
-                <div key={i} className="bg-white shadow-md rounded-lg p-4">
-                  <Skeleton height={180} className="mb-4" />
-                  <Skeleton height={20} width="60%" className="mb-2" />
-                  <Skeleton height={15} width="80%" className="mb-2" />
-                  <Skeleton height={15} width="40%" />
-                </div>
-              ))
-          : currentBlogs.map((blog) => {
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+            {currentBlogs.map((blog) => {
               const content = blog.translations[currentLanguage];
               return (
                 <div key={blog._id} className="bg-white shadow-md rounded-lg overflow-hidden relative">
@@ -242,26 +260,30 @@ const BlogSection = ({ initialBlogs = [] }) => {
                 </div>
               );
             })}
-      </div>
+          </div>
 
-      <div className="flex justify-center mt-8">
-        {totalPages > 1 && (
-          <nav className="block">
-            <ul className="flex pl-0 rounded list-none flex-wrap">
-              {Array.from({ length: totalPages }, (_, index) => (
-                <li key={index} className="page-item">
-                  <button
-                    onClick={() => setCurrentPage(index + 1)}
-                    className={`page-link ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white text-blue-500'} px-4 py-2 mx-1 rounded-full`}
-                  >
-                    {index + 1}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        )}
-      </div>
+          <div className="flex justify-center mt-8">
+            {totalPages > 1 && (
+              <nav className="block">
+                <ul className="flex pl-0 rounded list-none flex-wrap">
+                  {Array.from({ length: totalPages }, (_, index) => (
+                    <li key={index} className="page-item">
+                      <button
+                        onClick={() => setCurrentPage(index + 1)}
+                        className={`page-link ${
+                          currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white text-blue-500'
+                        } px-4 py-2 mx-1 rounded-full`}
+                      >
+                        {index + 1}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 };
@@ -280,6 +302,7 @@ export async function getServerSideProps({ locale, req }) {
       },
     };
   } catch (error) {
+    console.error('Error in getServerSideProps:', error);
     return {
       props: {
         initialBlogs: [],
