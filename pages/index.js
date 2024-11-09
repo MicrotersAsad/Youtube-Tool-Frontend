@@ -270,22 +270,23 @@ const generateTitles = async () => {
 };
 
 useEffect(() => {
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch("/api/reviews?tool=tagGenerator");
-      const data = await response.json();
-      const formattedData = data.map((review) => ({
-        ...review,
-        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"),
-      }));
-      setReviews(formattedData);
-    } catch (error) {
-      console.error("Failed to fetch reviews:", error);
-    }
-  };
-
-  fetchReviews(); // Call once on mount
+  // Fetch reviews on component mount
+  fetchReviews();
 }, []);
+
+const fetchReviews = async () => {
+  try {
+    const response = await fetch("/api/reviews?tool=tagGenerator");
+    const data = await response.json();
+    const formattedData = data.map((review) => ({
+      ...review,
+      createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"),
+    }));
+    setReviews(formattedData);
+  } catch (error) {
+    console.error("Failed to fetch reviews:", error);
+  }
+};
 
 const handleReviewSubmit = async () => {
   if (!user) {
@@ -301,9 +302,7 @@ const handleReviewSubmit = async () => {
   try {
     const response = await fetch("/api/reviews", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         tool: "tagGenerator",
         ...newReview,
@@ -315,49 +314,42 @@ const handleReviewSubmit = async () => {
     if (!response.ok) throw new Error("Failed to submit review");
 
     toast.success(t("reviewSubmitted"));
-    setNewReview({
-      name: "",
-      rating: 0,
-      comment: "",
-      title: "", // Reset title field
-      userProfile: "",
-    });
+    setNewReview({ name: "", rating: 0, comment: "", title: "", userProfile: "" });
     setShowReviewForm(false);
-    refreshReviews(); // Update the review list
+    fetchReviews(); // Refresh reviews after submission
   } catch (error) {
     console.error("Failed to submit review:", error);
     toast.error(t("reviewSubmitFailed"));
   }
 };
 
-// Helper function to refresh reviews
-const refreshReviews = () => {
-  fetchReviews();
-};
-
 const calculateRatingPercentage = (rating) => {
-  const totalReviews = reviews.length;
-  if (totalReviews === 0) return 0;
+  if (reviews.length === 0) return 0; // Avoid division by zero
+  
   const ratingCount = reviews.filter((review) => review.rating === rating).length;
-  return (ratingCount / totalReviews) * 100;
+  const percentage = (ratingCount / reviews.length) * 100;
+
+  // Ensure it returns a number and fallback to 0 if not
+  return isNaN(percentage) ? 0 : percentage;
 };
 
-// Calculate overall rating with safety check for division by zero
-const overallRating = reviews.length > 0
+
+const overallRating = reviews.length
   ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
   : "0";
 
-const handleShowMoreReviews = () => {
-  setShowAllReviews(true);
-};
+const handleShowMoreReviews = () => setShowAllReviews(true);
 
 const openReviewForm = () => {
   if (!user) {
     router.push("/login");
-    return;
+  } else {
+    console.log("Opening review form"); // Debug
+    setModalVisible(true);
   }
-  setModalVisible(true);
 };
+;
+
 
 // useEffect for setting initial user actions and checking saved channels
 useEffect(() => {
@@ -837,13 +829,12 @@ const buttonColors = {
           <div className="flex-1 h-3 bg-gray-200 rounded-full relative">
             <div
               className="h-3 bg-yellow-500 rounded-full absolute top-0 left-0"
-              style={{
-                width: isLoading ? "100%" : `${calculateRatingPercentage(rating)}%`,
-              }}
+              style={{ width: isLoading ? "100%" : `${calculateRatingPercentage(rating)}%` }}
             ></div>
           </div>
           <div className="w-16 text-left ml-2">
-            {isLoading ? <Skeleton width={20} /> : `${calculateRatingPercentage(rating).toFixed(1)}%`}
+          {isLoading ? <Skeleton width={20} /> : `${calculateRatingPercentage(rating).toFixed(1)}%`}
+
           </div>
         </div>
       ))}
@@ -862,26 +853,24 @@ const buttonColors = {
   </div>
 
   {/* Review List Section */}
-  <div className="p-4 bg-white shadow-md rounded-md col-span-1 md:col-span-1">
+  <div className="p-4 bg-white shadow-md rounded-md">
     {isLoading
       ? Array(3)
           .fill(0)
-          .map((_, i) => (
-            <Skeleton key={i} height={120} className="rounded-md mb-4" />
-          ))
-      : reviews?.slice(0, 5).map((review, index) => (
+          .map((_, i) => <Skeleton key={i} height={120} className="rounded-md mb-4" />)
+      : reviews.slice(0, showAllReviews ? reviews.length : 5).map((review, index) => (
           <div key={index} className="border p-4 mb-4 bg-gray-50 rounded-md shadow-sm">
             <div className="flex items-center mb-3">
               <div className="w-10 h-10 rounded-full overflow-hidden">
                 {isLoading ? (
                   <Skeleton circle={true} width={40} height={40} />
                 ) : (
-                  <Image src={review?.userProfile} alt={review.name} width={40} height={40} layout="intrinsic" priority />
+                  <Image src={review.userProfile} alt={review.name} width={40} height={40} layout="intrinsic" priority />
                 )}
               </div>
               <div className="ml-3">
                 <div className="font-semibold text-sm">
-                  {isLoading ? <Skeleton width={80} /> : review?.userName}
+                  {isLoading ? <Skeleton width={80} /> : review.userName}
                 </div>
                 <div className="text-gray-500 text-xs">
                   {isLoading ? <Skeleton width={60} /> : t("Verified Purchase")}
@@ -890,11 +879,7 @@ const buttonColors = {
             </div>
             <div className="flex items-center mb-3">
               {[...Array(5)].map((_, i) => (
-                <FaStar
-                  key={i}
-                  size={18}
-                  color={isLoading ? "#e4e5e9" : i < review.rating ? "#ffc107" : "#e4e5e9"}
-                />
+                <FaStar key={i} size={18} color={isLoading ? "#e4e5e9" : i < review.rating ? "#ffc107" : "#e4e5e9"} />
               ))}
             </div>
             <div className="text-sm mb-2">
@@ -905,73 +890,88 @@ const buttonColors = {
             </div>
           </div>
         ))}
-    {!showAllReviews && reviews.length > 5 && (
+    {reviews.length > 5 && !showAllReviews && (
       <button
         className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
-        onClick={handleShowMoreReviews}
+        onClick={() => setShowAllReviews(true)}
       >
         {t("See more reviews")}
       </button>
     )}
-    {showAllReviews &&
-      reviews?.slice(5).map((review, index) => (
-        <div key={index} className="border p-4 mb-4 bg-gray-50 rounded-md shadow-sm">
-          <div className="flex items-center mb-3">
-            <div className="w-10 h-10 rounded-full overflow-hidden">
-              {isLoading ? (
-                <Skeleton circle={true} width={40} height={40} />
-              ) : (
-                <Image src={review?.userProfile} alt={review.name} width={40} height={40} layout="intrinsic" priority />
-              )}
-            </div>
-            <div className="ml-3">
-              <div className="font-semibold text-sm">
-                {isLoading ? <Skeleton width={80} /> : review?.userName}
-              </div>
-              <div className="text-gray-500 text-xs">
-                {isLoading ? <Skeleton width={60} /> : t("Verified Purchase")}
-              </div>
-              <p className="text-gray-400 text-xs">
-                {isLoading ? <Skeleton width={80} /> : `${t("Reviewed on")} ${review.createdAt}`}
-              </p>
-            </div>
-          </div>
-          <div className="text-sm font-semibold mb-2">
-            {isLoading ? <Skeleton width="50%" /> : review.title}
-          </div>
-          <div className="text-sm mb-2">
-            {isLoading ? <Skeleton width="80%" /> : review.comment}
-          </div>
-          <div className="flex items-center">
-            {[...Array(5)].map((_, i) => (
-              <FaStar key={i} size={18} color={isLoading ? "#e4e5e9" : i < review.rating ? "#ffc107" : "#e4e5e9"} />
-            ))}
-          </div>
+  </div>
+</div>
+{modalVisible && (
+  <div className="fixed inset-0 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black opacity-50" onClick={closeModal}></div>
+    <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
+      <h2 className="text-2xl font-semibold mb-4">{t("Write a Review")}</h2>
+      <div className="mb-4">
+        <label className="block text-sm font-bold mb-2">{t("Review Title")}</label>
+        <input
+          type="text"
+          value={newReview.title}
+          onChange={(e) => setNewReview({ ...newReview, title: e.target.value })}
+          className="w-full p-2 border border-gray-300 rounded"
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block text-sm font-bold mb-2">{t("Your Review")}</label>
+        <textarea
+          value={newReview.comment}
+          onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+          className="w-full p-2 border border-gray-300 rounded"
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block text-sm font-bold mb-2">{t("Rating")}</label>
+        <div className="flex space-x-2">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <FaStar
+              key={star}
+              size={24}
+              color={newReview.rating >= star ? "#ffc107" : "#e4e5e9"}
+              onClick={() => setNewReview({ ...newReview, rating: star })}
+              className="cursor-pointer"
+            />
+          ))}
         </div>
-      ))}
+      </div>
+      <div className="mt-4 flex justify-end space-x-4">
+        <button className="bg-gray-500 text-white font-bold py-2 px-4 rounded" onClick={closeModal}>
+          {t("Cancel")}
+        </button>
+        <button
+          className="bg-blue-500 text-white font-bold py-2 px-4 rounded"
+          onClick={handleReviewSubmit}
+        >
+          {t("Submit Review")}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* Related Tools Section */}
+<div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
+  <h2 className="text-2xl font-bold mb-5 text-center">
+    {isLoading ? <Skeleton width={200} /> : t("Related Tools")}
+  </h2>
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {isLoading
+      ? Array(6)
+          .fill(0)
+          .map((_, i) => <Skeleton key={i} width="100%" height={60} className="rounded-lg" />)
+      : relatedTools.map((tool, index) => (
+          <a key={index} href={tool.link} className="flex items-center border rounded-lg p-4 bg-gray-100 transition">
+            <Image src={tool.logo.src} alt={`${tool.name} Icon`} width={64} height={64} className="mr-4" />
+            <span className="text-blue-600 font-medium">{tool.name}</span>
+          </a>
+        ))}
   </div>
 </div>
 
-  {/* Related Tools Section */}
-  <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
-    <h2 className="text-2xl font-bold mb-5 text-center">
-      {isLoading ? <Skeleton width={200} /> : t("Related Tools")}
-    </h2>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {isLoading
-        ? Array(6)
-            .fill(0)
-            .map((_, i) => (
-              <Skeleton key={i} width="100%" height={60} className="rounded-lg" />
-            ))
-        : relatedTools?.map((tool, index) => (
-            <a key={index} href={tool.link} className="flex items-center border rounded-lg p-4 bg-gray-100 transition">
-              <Image src={tool?.logo?.src} alt={`${tool.name} Icon`} width={64} height={64} className="mr-4" />
-              <span className="text-blue-600 font-medium">{tool.name}</span>
-            </a>
-          ))}
-    </div>
-  </div>
+
+ 
 </div>
 
     </>
@@ -979,7 +979,7 @@ const buttonColors = {
 }
 export async function getServerSideProps({ req, locale }) {
   // Set protocol based on the environment (https for production)
-  const protocol = req.headers["x-forwarded-proto"] || (process.env.NODE_ENV === "production" ? "https" : "http");
+  const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
   const host = req.headers.host;
   const baseUrl = `${protocol}://${host}`;
   const contentApiUrl = `${baseUrl}/api/content?category=tagGenerator&language=${locale}`;
