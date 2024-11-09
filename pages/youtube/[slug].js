@@ -62,10 +62,12 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
     }
   }, [slug, initialBlog]);
 
-  const translation = blog?.translations ? blog.translations[locale] || {} : {};
+  // Get translation for the current locale, falling back to English if needed
+  const translation =
+    blog?.translations?.[locale] || blog?.translations?.["en"] || {}; // Fall back to English
   const content = getContent(translation);
 
-  // Fallback message for missing content
+  // Show fallback message if no content is available in the selected language or English
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -77,7 +79,7 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
   if (!content) {
     return (
       <div className="text-center py-20">
-        <p className="text-red-500 mb-4">{t("No content available for this language.")}</p>
+        <p className="text-red-500 mb-4">{t("Sorry, this language is not available.")}</p>
         <button
           onClick={() => push("/", "/", { locale: defaultLocale })}
           className="bg-blue-500 text-white px-4 py-2 rounded"
@@ -194,10 +196,13 @@ export async function getServerSideProps({ locale, params, req }) {
     const { data } = await axios.get(apiUrl);
     const blogs = data;
 
-    const blog = blogs.find((blog) =>
-      Object.values(blog.translations).some((translation) => translation.slug === slug)
+    // Find the blog with the given slug in the specified locale only
+    const blog = blogs.find(
+      (blog) =>
+        blog.translations[locale] && blog.translations[locale].slug === slug
     );
 
+    // If the blog or translation in the specified locale is not found, return 404
     if (!blog) {
       return { notFound: true };
     }
@@ -209,9 +214,8 @@ export async function getServerSideProps({ locale, params, req }) {
     const categoryBlogs = blogs.filter(
       (b) =>
         b !== blog &&
-        Object.values(b.translations).some(
-          (translation) => translation.category === blog.translations[locale]?.category
-        )
+        b.translations[locale] &&
+        b.translations[locale].category === blog.translations[locale].category
     );
 
     const shortcodesResponse = await axios.get(`${protocol}://${host}/api/shortcodes-tools`);
@@ -231,5 +235,8 @@ export async function getServerSideProps({ locale, params, req }) {
     return { notFound: true };
   }
 }
+
+
+
 
 export default BlogPost;
