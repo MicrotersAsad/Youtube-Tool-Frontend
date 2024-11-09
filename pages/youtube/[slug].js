@@ -189,28 +189,30 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
 export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
-    const protocol = req.headers["x-forwarded-proto"] || "http";
+    const protocol = req.headers["x-forwarded-proto"] || "https"; // Use https as default in production
     const host = req.headers.host || "localhost:3000";
     const apiUrl = `${protocol}://${host}/api/youtube`;
 
+    // Fetch all blogs
     const { data } = await axios.get(apiUrl);
     const blogs = data;
 
-    // Find the blog with the given slug in the specified locale only
+    // Find the blog with the specified slug and locale
     const blog = blogs.find(
       (blog) =>
         blog.translations[locale] && blog.translations[locale].slug === slug
     );
 
-    // If the blog or translation in the specified locale is not found, return 404
     if (!blog) {
       return { notFound: true };
     }
 
+    // Fetch authors and find the author of the blog
     const authorResponse = await axios.get(`${protocol}://${host}/api/authors`);
     const authors = authorResponse.data;
     const author = authors.find((author) => author.name === blog.author);
 
+    // Find related blogs in the same category
     const categoryBlogs = blogs.filter(
       (b) =>
         b !== blog &&
@@ -218,6 +220,7 @@ export async function getServerSideProps({ locale, params, req }) {
         b.translations[locale].category === blog.translations[locale].category
     );
 
+    // Fetch shortcodes
     const shortcodesResponse = await axios.get(`${protocol}://${host}/api/shortcodes-tools`);
     const initialShortcodes = shortcodesResponse.data;
 
@@ -235,6 +238,7 @@ export async function getServerSideProps({ locale, params, req }) {
     return { notFound: true };
   }
 }
+
 
 
 
