@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Layout from './layout';
 import { ClipLoader } from 'react-spinners';
 import { toast, ToastContainer } from 'react-toastify';
@@ -12,14 +12,18 @@ const Users = () => {
   const [error, setError] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [paymentInfo, setPaymentInfo] = useState('');
-  const [selectedFile, setSelectedFile] = useState(null);
   const [emailSubject, setEmailSubject] = useState('');
   const [emailMessage, setEmailMessage] = useState('');
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [sendingAll, setSendingAll] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 10;
+  const [pageGroup, setPageGroup] = useState(0);
+  const pagesPerGroup = 5;
 
   useEffect(() => {
     fetchUsers();
@@ -30,20 +34,16 @@ const Users = () => {
   }, [searchTerm, users]);
 
   const fetchUsers = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No token found');
-      }
+      if (!token) throw new Error('No token found');
+      
       const response = await fetch('/api/user-list', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { 'Authorization': `Bearer ${token}` },
       });
   
-      if (!response.ok) {
-        throw new Error('Failed to fetch users');
-      }
+      if (!response.ok) throw new Error('Failed to fetch users');
   
       const result = await response.json();
       if (result.success && Array.isArray(result.data)) {
@@ -74,34 +74,7 @@ const Users = () => {
     }
   };
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`/api/user?id=${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText);
-        }
-
-        setUsers(users.filter((user) => user._id !== id));
-        setFilteredUsers(filteredUsers.filter((user) => user._id !== id));
-        toast.success('User deleted successfully!');
-      } catch (error) {
-        toast.error('Failed to delete user');
-      }
-    }
-  };
+  const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   const calculateRemainingDays = (date) => {
     const today = new Date();
@@ -121,14 +94,8 @@ const Users = () => {
     try {
       const response = await fetch('/api/send-email', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          emails,
-          subject: emailSubject,
-          message: emailMessage,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emails, subject: emailSubject, message: emailMessage }),
       });
 
       if (!response.ok) {
@@ -146,12 +113,8 @@ const Users = () => {
   };
 
   const openEmailModal = (user = null) => {
-    if (user) {
-      setSelectedUser(user.email);
-      setSendingAll(false);
-    } else {
-      setSendingAll(true);
-    }
+    setSelectedUser(user ? user.email : null);
+    setSendingAll(!user);
     setEmailSubject('Important Update');
     setEmailMessage('Dear User,\n\nWe have an important update for you.\n\nBest regards,\nYtTools');
     setShowEmailModal(true);
@@ -172,13 +135,38 @@ const Users = () => {
   };
 
   const handleSelectUser = (email) => {
-    setSelectedUsers((prevSelectedUsers) => {
-      if (prevSelectedUsers.includes(email)) {
-        return prevSelectedUsers.filter((userEmail) => userEmail !== email);
-      } else {
-        return [...prevSelectedUsers, email];
-      }
-    });
+    setSelectedUsers((prevSelectedUsers) =>
+      prevSelectedUsers.includes(email)
+        ? prevSelectedUsers.filter((userEmail) => userEmail !== email)
+        : [...prevSelectedUsers, email]
+    );
+  };
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
+
+  const paginationGroup = useMemo(() => {
+    const start = pageGroup * pagesPerGroup;
+    return Array.from({ length: pagesPerGroup }, (_, i) => start + i + 1).filter(page => page <= totalPages);
+  }, [pageGroup, totalPages]);
+
+  const handleNextGroup = () => {
+    if ((pageGroup + 1) * pagesPerGroup < totalPages) {
+      setPageGroup(pageGroup + 1);
+    }
+  };
+
+  const handlePreviousGroup = () => {
+    if (pageGroup > 0) {
+      setPageGroup(pageGroup - 1);
+    }
+  };
+
+  const handlePageChange = (pageNumber) => {
+    if (pageNumber > 0 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
   };
 
   return (
@@ -211,36 +199,50 @@ const Users = () => {
             <div className="overflow-x-auto">
               <table className="min-w-full bg-white">
                 <thead>
-                  <tr className="bg-gray-200">
-                    <th className="py-2 px-4 border-b">
+                  <tr className="bg-[#4634ff] text-white">
+                    <th className="pt-3 pb-3 px-4 border-b text-sm">
                       <input type="checkbox" onChange={handleSelectAllUsers} checked={selectedUsers.length === filteredUsers.length} />
                     </th>
-                    <th className="py-2 px-4 border-b">Email</th>
-                    <th className="py-2 px-4 border-b">Profile Image</th>
-                    <th className="py-2 px-4 border-b">Payment Info</th>
-                    <th className="py-2 px-4 border-b">Subscription Plan</th>
-                    <th className="py-2 px-4 border-b">Subscription Valid</th>
-                    <th className="py-2 px-4 border-b">Actions</th>
+                    <th className="py-2 px-4 border-b text-sm">Email</th>
+                    <th className="py-2 px-4 border-b text-sm">Profile Image</th>
+                    <th className="py-2 px-4 border-b text-sm">Payment Info</th>
+                    <th className="py-2 px-4 border-b text-sm">Subscription Plan</th>
+                    <th className="py-2 px-4 border-b text-sm">Subscription Valid</th>
+                    <th className="py-2 px-4 border-b text-sm">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers.map((user) => (
+                  {paginatedUsers.map((user) => (
                     <tr key={user._id} className="hover:bg-gray-100">
                       <td className="py-2 px-4 border-b">
                         <input type="checkbox" onChange={() => handleSelectUser(user.email)} checked={selectedUsers.includes(user.email)} />
                       </td>
                       <td className="py-2 px-4 border-b">{user.email}</td>
                       <td className="py-2 px-4 border-b">
-                        {user.profileImage ? (
-                          <img
-                            src={`data:image/jpeg;base64,${user.profileImage}`}
-                            alt="Profile"
-                            className="w-16 h-16 rounded-full mx-auto"
-                          />
-                        ) : (
-                          <span className="text-gray-500">No Image</span>
-                        )}
-                      </td>
+  {user.profileImage ? (
+    user.profileImage.startsWith('data:image') ? (
+      // Base64 Image
+      <img
+        src={user.profileImage}
+        alt="Profile"
+        className="w-16 h-16 rounded-full mx-auto"
+      />
+    ) : (
+      // Regular Image URL
+      <img
+        src={`${user.profileImage.startsWith('http') ? '' : ''}${user.profileImage}`}
+        alt="Profile"
+        className="w-16 h-16 rounded-full mx-auto"
+      />
+    )
+  ) : (
+    <span className="text-gray-500">No Image</span>
+  )}
+</td>
+
+
+
+
                       <td className="py-2 px-4 border-b">{user.paymentStatus || 'N/A'}</td>
                       <td className="py-2 px-4 border-b">{user.subscriptionPlan || 'N/A'}</td>
                       <td className="py-2 px-4 border-b">
@@ -272,7 +274,35 @@ const Users = () => {
               </table>
             </div>
           )}
+
+          {/* Pagination controls */}
+          <div className="flex justify-center items-center mt-6 space-x-2">
+            <button
+              onClick={handlePreviousGroup}
+              className={`bg-gray-300 px-4 py-2 rounded-md ${pageGroup === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={pageGroup === 0}
+            >
+              «
+            </button>
+            {paginationGroup.map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`px-3 py-1 rounded ${currentPage === page ? 'bg-red-500 text-white' : ''}`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              onClick={handleNextGroup}
+              className={`bg-gray-300 px-4 py-2 rounded-md ${(pageGroup + 1) * pagesPerGroup >= totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={(pageGroup + 1) * pagesPerGroup >= totalPages}
+            >
+              »
+            </button>
+          </div>
         </div>
+
         {selectedUsers.length > 0 && (
           <div className="flex justify-center mt-4">
             <button

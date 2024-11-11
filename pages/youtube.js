@@ -10,7 +10,8 @@ import { format } from 'date-fns';
 import Head from 'next/head';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
-import oops from "../public/opps.png"
+import oops from "../public/opps.png";
+
 const createSlug = (title) => {
   return title
     .toString()
@@ -26,6 +27,58 @@ const extractFirstImage = (content) => {
   const regex = /<img.*?src="(.*?)"/;
   const match = regex.exec(content);
   return match ? match[1] : null;
+};
+
+const Pagination = ({ totalPages, currentPage, setCurrentPage }) => {
+  const [pageGroup, setPageGroup] = useState(0);
+  const pagesPerGroup = 5;
+  
+  const paginationGroup = useMemo(() => {
+    const start = pageGroup * pagesPerGroup;
+    return Array.from({ length: pagesPerGroup }, (_, i) => start + i + 1).filter(page => page <= totalPages);
+  }, [pageGroup, totalPages, pagesPerGroup]);
+
+  const handleNextGroup = () => {
+    if ((pageGroup + 1) * pagesPerGroup < totalPages) {
+      setPageGroup(pageGroup + 1);
+    }
+  };
+
+  const handlePreviousGroup = () => {
+    if (pageGroup > 0) {
+      setPageGroup(pageGroup - 1);
+    }
+  };
+
+  return (
+    <nav className="flex justify-center mt-8 space-x-2 pt-5 pb-5">
+      <button
+        onClick={handlePreviousGroup}
+        disabled={pageGroup === 0}
+        className="px-4 py-2 rounded bg-gray-300 text-gray-700 disabled:opacity-50"
+      >
+        Previous
+      </button>
+      
+      {paginationGroup.map((page) => (
+        <button
+          key={page}
+          onClick={() => setCurrentPage(page)}
+          className={`px-4 py-2 rounded ${currentPage === page ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}
+        >
+          {page}
+        </button>
+      ))}
+      
+      <button
+        onClick={handleNextGroup}
+        disabled={(pageGroup + 1) * pagesPerGroup >= totalPages}
+        className="px-4 py-2 rounded bg-gray-300 text-gray-700 disabled:opacity-50"
+      >
+        Next
+      </button>
+    </nav>
+  );
 };
 
 const BlogSection = ({ initialBlogs = [] }) => {
@@ -67,20 +120,16 @@ const BlogSection = ({ initialBlogs = [] }) => {
     return blogsData
       .map((blog) => {
         const translation = blog.translations[currentLanguage];
-
         if (!translation) {
-          return null; // Exclude blogs without the current language translation
+          return null;
         }
-
         const title = translation.title || '';
-
         if (!translation.slug && title) {
           translation.slug = createSlug(title);
         }
         if (!translation.image && translation.content) {
           translation.image = extractFirstImage(translation.content);
         }
-
         return {
           _id: blog._id,
           createdAt: blog.createdAt,
@@ -92,7 +141,7 @@ const BlogSection = ({ initialBlogs = [] }) => {
           },
         };
       })
-      .filter((blog) => blog); // Filter out null values
+      .filter((blog) => blog);
   }, [blogsData, currentLanguage]);
 
   const categoryBlogs = useMemo(() => {
@@ -124,7 +173,8 @@ const BlogSection = ({ initialBlogs = [] }) => {
     setLoading(true);
     try {
       const response = await axios.get('/api/youtube');
-      setBlogsData(response.data);
+      const sortedData = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setBlogsData(sortedData);
     } catch (error) {
       console.error('Error fetching blogs:', error);
       setError('Failed to fetch blogs.');
@@ -132,7 +182,7 @@ const BlogSection = ({ initialBlogs = [] }) => {
       setLoading(false);
     }
   }, []);
-
+  
   useEffect(() => {
     if (!initialBlogs.length) {
       fetchBlogs();
@@ -168,16 +218,14 @@ const BlogSection = ({ initialBlogs = [] }) => {
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-          {Array(9)
-            .fill(0)
-            .map((_, i) => (
-              <div key={i} className="bg-white shadow-md rounded-lg p-4">
-                <Skeleton height={180} className="mb-4" />
-                <Skeleton height={20} width="60%" className="mb-2" />
-                <Skeleton height={15} width="80%" className="mb-2" />
-                <Skeleton height={15} width="40%" />
-              </div>
-            ))}
+          {Array(9).fill(0).map((_, i) => (
+            <div key={i} className="bg-white shadow-md rounded-lg p-4">
+              <Skeleton height={180} className="mb-4" />
+              <Skeleton height={20} width="60%" className="mb-2" />
+              <Skeleton height={15} width="80%" className="mb-2" />
+              <Skeleton height={15} width="40%" />
+            </div>
+          ))}
         </div>
       ) : currentBlogs.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20">
@@ -207,9 +255,7 @@ const BlogSection = ({ initialBlogs = [] }) => {
           <div className="flex justify-center mb-4">
             <ul className="flex flex-wrap justify-center space-x-2">
               <li
-                className={`px-4 py-2 list-none rounded-full text-sm font-medium border ${
-                  !currentCategory ? 'bg-purple-700 text-white' : 'bg-white text-gray-700'
-                }`}
+                className={`px-4 py-2 list-none rounded-full text-sm font-medium border ${!currentCategory ? 'bg-purple-700 text-white' : 'bg-white text-gray-700'}`}
                 onClick={() => handleCategoryChange('')}
               >
                 <span className="cursor-pointer">All Posts</span>
@@ -217,9 +263,7 @@ const BlogSection = ({ initialBlogs = [] }) => {
               {categories.map((category) => (
                 <li
                   key={category.slug}
-                  className={`px-4 py-2 list-none rounded-full text-sm font-medium border ${
-                    currentCategory === category.slug ? 'bg-purple-700 text-white' : 'bg-white text-gray-700'
-                  }`}
+                  className={`px-4 py-2 list-none rounded-full text-sm font-medium border ${currentCategory === category.slug ? 'bg-purple-700 text-white' : 'bg-white text-gray-700'}`}
                   onClick={() => handleCategoryChange(category.slug)}
                 >
                   <span className="cursor-pointer">{category.name}</span>
@@ -262,26 +306,11 @@ const BlogSection = ({ initialBlogs = [] }) => {
             })}
           </div>
 
-          <div className="flex justify-center mt-8">
-            {totalPages > 1 && (
-              <nav className="block">
-                <ul className="flex pl-0 rounded list-none flex-wrap">
-                  {Array.from({ length: totalPages }, (_, index) => (
-                    <li key={index} className="page-item">
-                      <button
-                        onClick={() => setCurrentPage(index + 1)}
-                        className={`page-link ${
-                          currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white text-blue-500'
-                        } px-4 py-2 mx-1 rounded-full`}
-                      >
-                        {index + 1}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-            )}
-          </div>
+          <Pagination 
+            totalPages={totalPages} 
+            currentPage={currentPage} 
+            setCurrentPage={setCurrentPage} 
+          />
         </>
       )}
     </div>
@@ -295,9 +324,11 @@ export async function getServerSideProps({ locale, req }) {
     const apiUrl = `${protocol}://${host}/api/youtube`;
     const { data } = await axios.get(apiUrl);
 
+    const sortedData = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
     return {
       props: {
-        initialBlogs: data,
+        initialBlogs: sortedData,
         ...(await serverSideTranslations(locale, ['blog', 'navbar', 'footer'])),
       },
     };

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Layout from './layout';
 import { ClipLoader } from 'react-spinners';
 import Skeleton from 'react-loading-skeleton';
@@ -22,7 +22,9 @@ const Users = () => {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
-  
+  const [pageGroup, setPageGroup] = useState(0);
+  const pagesPerGroup = 5;
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -62,6 +64,23 @@ const Users = () => {
   // Pagination Logic
   const totalPages = Math.ceil(users.length / usersPerPage);
   const paginatedUsers = users.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
+
+  const paginationGroup = useMemo(() => {
+    const start = pageGroup * pagesPerGroup;
+    return Array.from({ length: pagesPerGroup }, (_, i) => start + i + 1).filter(page => page <= totalPages);
+  }, [pageGroup, totalPages]);
+
+  const handleNextGroup = () => {
+    if ((pageGroup + 1) * pagesPerGroup < totalPages) {
+      setPageGroup(pageGroup + 1);
+    }
+  };
+
+  const handlePreviousGroup = () => {
+    if (pageGroup > 0) {
+      setPageGroup(pageGroup - 1);
+    }
+  };
 
   const handlePageChange = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
@@ -167,7 +186,7 @@ const Users = () => {
     <Layout>
       <div className="min-h-screen bg-gray-100 p-4 md:p-8">
         <ToastContainer />
-        <div className="bg-white p-4 md:p-8 rounded-lg shadow-lg">
+        <div className="bg-white p-4 md:p-8 rounded-lg shadow-sm">
           <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4 md:mb-6 text-center">Unverified Users</h2>
           {error && <div className="text-red-500 mb-4">{error}</div>}
           {loading ? (
@@ -178,26 +197,26 @@ const Users = () => {
             <div className="overflow-x-auto">
               <table className="min-w-full bg-white">
                 <thead>
-                  <tr className="bg-gray-200">
-                    <th className="py-2 px-4 border-b">
+                  <tr className="bg-[#4634ff] text-white">
+                    <th className="pt-3 pb-3 px-4 border-b text-sm">
                       <input type="checkbox" onChange={handleSelectAllUsers} checked={selectedUsers.length === users.length} />
                     </th>
-                    <th className="py-2 px-4 border-b">Email</th>
-                    <th className="py-2 px-4 border-b">Profile Image</th>
-                    <th className="py-2 px-4 border-b">Payment Info</th>
-                    <th className="py-2 px-4 border-b">Subscription Plan</th>
-                    <th className="py-2 px-4 border-b">Subscription Valid</th>
-                    <th className="py-2 px-4 border-b">Actions</th>
+                    <th className="py-2 px-4 border-b text-sm">Email</th>
+                    <th className="py-2 px-4 border-b text-sm">Profile Image</th>
+                    <th className="py-2 px-4 border-b text-sm">Payment Info</th>
+                    <th className="py-2 px-4 border-b text-sm">Subscription Plan</th>
+                    <th className="py-2 px-4 border-b text-sm">Subscription Valid</th>
+                    <th className="py-2 px-4 border-b text-sm">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedUsers.map((user) => (
                     <tr key={user._id} className="hover:bg-gray-100">
-                      <td className="py-2 px-4 border-b">
+                      <td className="py-2 px-4 border-b text-sm">
                         <input type="checkbox" onChange={() => handleSelectUser(user.email)} checked={selectedUsers.includes(user.email)} />
                       </td>
-                      <td className="py-2 px-4 border-b">{user.email}</td>
-                      <td className="py-2 px-4 border-b">
+                      <td className="py-2 px-4 border-b text-sm">{user.email}</td>
+                      <td className="py-2 px-4 border-b text-sm">
                         {user.profileImage ? (
                           <img
                             src={`data:image/jpeg;base64,${user.profileImage}`}
@@ -208,9 +227,9 @@ const Users = () => {
                           <span className="text-gray-500">No Image</span>
                         )}
                       </td>
-                      <td className="py-2 px-4 border-b">{user.paymentStatus || 'N/A'}</td>
-                      <td className="py-2 px-4 border-b">{user.subscriptionPlan || 'N/A'}</td>
-                      <td className="py-2 px-4 border-b">
+                      <td className="py-2 px-4 border-b text-sm">{user.paymentStatus || 'N/A'}</td>
+                      <td className="py-2 px-4 border-b text-sm">{user.subscriptionPlan || 'N/A'}</td>
+                      <td className="py-2 px-4 border-b text-sm">
                         {user.subscriptionValidUntil
                           ? `${user.subscriptionValidUntil} (${calculateRemainingDays(user.subscriptionValidUntil)} days left)`
                           : 'N/A'}
@@ -243,25 +262,25 @@ const Users = () => {
           {/* Pagination controls */}
           <div className="flex justify-center items-center mt-6 space-x-2">
             <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              className={`bg-gray-300 px-4 py-2 rounded-md ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={currentPage === 1}
+              onClick={handlePreviousGroup}
+              className={`bg-gray-300 px-4 py-2 rounded-md ${pageGroup === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={pageGroup === 0}
             >
               «
             </button>
-            {[...Array(totalPages).keys()].map(number => (
+            {paginationGroup.map((page) => (
               <button
-                key={number}
-                className={`px-3 py-1 rounded ${currentPage === number + 1 ? 'bg-red-500 text-white' : ''}`}
-                onClick={() => handlePageChange(number + 1)}
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`px-3 py-1 rounded ${currentPage === page ? 'bg-red-500 text-white' : ''}`}
               >
-                {number + 1}
+                {page}
               </button>
             ))}
             <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              className={`bg-gray-300 px-4 py-2 rounded-md ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={currentPage === totalPages}
+              onClick={handleNextGroup}
+              className={`bg-gray-300 px-4 py-2 rounded-md ${(pageGroup + 1) * pagesPerGroup >= totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={(pageGroup + 1) * pagesPerGroup >= totalPages}
             >
               »
             </button>

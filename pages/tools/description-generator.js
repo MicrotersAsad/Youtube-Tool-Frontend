@@ -375,7 +375,9 @@ ${keywords}
   <Head>
   <title>{meta?.title}</title>
   <meta name="description" content={meta?.description} />
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+   {/* <!-- Canonical URL --> */}
+   <link rel="canonical" href={meta?.url} />
   {/* Open Graph Tags */}
   <meta property="og:url" content={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/description-generator`} />
   <meta property="og:title" content={meta?.title} />

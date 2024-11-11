@@ -61,6 +61,21 @@ export default function Home({ initialMeta, reactions, content, faqList, tools, 
     setOpenIndex(openIndex === index ? null : index);
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`/api/content?category=tagGenerator&language=${i18n.language}`);
+        const data = await response.json();
+        setTranslations(data.translations);
+        setLikes(data.reactions.likes || 0);
+        setUnlikes(data.reactions.unlikes || 0);
+      } catch (error) {
+        console.error("Error fetching content:", error);
+        toast.error("Failed to fetch content");
+      }
+    };
+    fetchData();
+  }, [i18n.language]);
   const closeModal = () => setModalVisible(false);
   useEffect(() => {
     // ডেটা লোড হয়ে গেলে isLoading স্টেট false করে দেয়
@@ -454,49 +469,46 @@ const buttonColors = {
           <Image className="shape4" src={chart} alt="chart" priority />
         </div>
         <Head>
-         
-          <title>{meta?.title}</title>
-          <meta name="description" content={meta?.description} />
-          <meta
-            property="og:url"
-            content={`${meta?.url}/${
-              i18n.language !== "en" ? i18n.language : ""
-            }`}
+  {/* SEO Meta Tags */}
+  <title>{meta?.title}</title>
+  <meta name="description" content={meta?.description} />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  {/* Canonical URL */}
+  <link rel="canonical" href={meta?.url} />
+
+  {/* Open Graph Meta Tags */}
+  <meta property="og:url" content={meta?.url} />
+  <meta property="og:title" content={meta?.title} />
+  <meta property="og:description" content={meta?.description} />
+  <meta property="og:image" content={meta?.image || ""} />
+
+  {/* Twitter Meta Tags */}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta property="twitter:domain" content={meta?.url} />
+  <meta property="twitter:url" content={meta?.url} />
+  <meta name="twitter:title" content={meta?.title} />
+  <meta name="twitter:description" content={meta?.description} />
+  <meta name="twitter:image" content={meta?.image || ""} />
+
+  {/* Alternate hreflang Tags for SEO */}
+  <link rel="alternate" hreflang="x-default" href={meta?.url} />
+  <link rel="alternate" hreflang="en" href={meta?.url} />
+  {translations &&
+    typeof translations === "object" &&
+    Object.keys(translations).map(
+      (lang) =>
+        lang !== "en" && (
+          <link
+            key={lang}
+            rel="alternate"
+            hrefLang={lang}
+            href={`${meta?.url}/${lang}`}
           />
-          <meta property="og:title" content={meta?.title} />
-          <meta property="og:description" content={meta?.description} />
-          <meta property="og:image" content={meta?.image || ""} />
-          <meta name="twitter:card" content={meta?.image || ""} />
-          <meta
-            property="twitter:domain"
-            content={`${meta?.url}/${
-              i18n.language !== "en" ? i18n.language : ""
-            }`}
-          />
-          <meta
-            property="twitter:url"
-            ccontent={`${meta?.url}/${
-              i18n.language !== "en" ? i18n.language : ""
-            }`}
-          />
-          <meta name="twitter:title" content={meta?.title} />
-          <meta name="twitter:description" content={meta?.description} />
-          <meta name="twitter:image" content={meta?.image || ""} />
-          <link rel="alternate" hreflang="x-default" href={meta?.url} />
-          <link rel="alternate" hreflang="en" href={meta?.url} />
-          {translations &&
-            Object.keys(translations).map(
-              (lang) =>
-                lang !== "en" && (
-                  <link
-                    key={lang}
-                    rel="alternate"
-                    hrefLang={lang}
-                    href={`${meta?.url}/${lang}`}
-                  />
-                )
-            )}
-        </Head>
+        )
+    )}
+</Head>
+
 
         {/* - Webpage Schema */}
         <Script id="webpage-structured-data" type="application/ld+json">
