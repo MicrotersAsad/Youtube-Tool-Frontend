@@ -414,11 +414,11 @@ ${keywords}
                 href={`${hreflang.href}/tools/description-generator`}
               />
             ))}
-          <link
+          {/* <link
             rel="alternate"
             hreflang="en"
             href={meta?.url?.replace(/\/$/, "").replace(/\/$/, "")}
-          />
+          /> */}
         </Head>
   {/* JSON-LD Structured Data */}
   <Script id="webpage-description-generator" type="application/ld+json">
