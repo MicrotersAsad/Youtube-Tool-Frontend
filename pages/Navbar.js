@@ -43,9 +43,16 @@ function Navbar() {
     if (availableLanguages.find(l => l.code === lang)) {
       setSelectedLanguage(lang);
       await i18n?.changeLanguage(lang);
-      router.push(router.pathname, router.asPath, { locale: lang });
+      
+      // Ensure the router updates with the locale setting properly
+      router.push(router.pathname, router.asPath, { locale: lang }).then(() => {
+        // Reload the page after changing the language in the router
+        window.location.reload();
+      });
     }
   };
+  
+  
 
   useEffect(() => {
     if (router) {

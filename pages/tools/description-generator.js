@@ -16,7 +16,7 @@ import Script from "next/script";
 
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
-const YouTubeDescriptionGenerator = ({ meta = [], faqs = [], relatedTools = [], existingContent = "", reactions }) => {
+const YouTubeDescriptionGenerator = ({ meta = [], faqs = [], relatedTools = [], existingContent = "", reactions,translations,hreflangs  }) => {
   const { user, updateUserProfile } = useAuth();
   const [likes, setLikes] = useState(reactions.likes || 0);
   const [unlikes, setUnlikes] = useState(reactions.unlikes || 0);
@@ -58,7 +58,6 @@ const YouTubeDescriptionGenerator = ({ meta = [], faqs = [], relatedTools = [], 
     { id: "keywords", title: t("Keywords to Target (Optional)"), visible: true },
   ]);
   const [isSaved, setIsSaved] = useState(false);
-  const [translations, setTranslations] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [reviews, setReviews] = useState([]);
@@ -79,7 +78,7 @@ const YouTubeDescriptionGenerator = ({ meta = [], faqs = [], relatedTools = [], 
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
         console.log(data);
-        setTranslations(data.translations);
+       
         setLikes(data.reactions.likes || 0);
         setUnlikes(data.reactions.unlikes || 0);
       } catch (error) {
@@ -372,47 +371,62 @@ ${keywords}
 
   return (
     <div className="max-w-7xl mx-auto p-4">
-  <Head>
-  <title>{meta?.title}</title>
-  <meta name="description" content={meta?.description} />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-   {/* <!-- Canonical URL --> */}
-   <link rel="canonical" href={meta?.url} />
-  {/* Open Graph Tags */}
-  <meta property="og:url" content={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/description-generator`} />
-  <meta property="og:title" content={meta?.title} />
-  <meta property="og:description" content={meta?.description} />
-  <meta property="og:image" content={meta?.image || ""} />
-  
-  {/* Twitter Card Tags */}
-  <meta name="twitter:card" content={meta?.image || ""} />
-  <meta property="twitter:domain" content={meta?.url} />
-  <meta property="twitter:url" content={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/description-generator`} />
-  <meta name="twitter:title" content={meta?.title} />
-  <meta name="twitter:description" content={meta?.description} />
-  <meta name="twitter:image" content={meta?.image || ""} />
-  
-  {/* hreflang and Alternate Language Links */}
-  <link rel="alternate" href={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/description-generator`}  hrefLang="x-default" />
-  <link rel="alternate" href={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/description-generator`}  hrefLang="en" />
-  {translations && Object.keys(translations).map(lang => (
-    lang !== 'en' && (
-      <link
-        key={lang}
-        rel="alternate"
-        hrefLang={lang}
-        href={`${meta?.url}/${lang}/tools/description-generator`}
-      />
-    )
-  ))}
-  </Head>
+    <Head>
+          {/* SEO Meta Tags */}
+          <title>{meta?.title}</title>
+          <meta name="description" content={meta?.description} />
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+          />
+          <meta name="robots" content="index, follow" />
+
+          {/* Canonical URL */}
+          <link rel="canonical" href={`${meta?.url}/tools/description-generator`} />
+
+          {/* Open Graph Meta Tags */}
+          <meta property="og:type" content="website" />
+          <meta property="og:url"  content={`${meta?.url}/tools/description-generator`}/>
+          <meta property="og:title" content={meta?.title} />
+          <meta property="og:description" content={meta?.description} />
+          <meta property="og:image" content={meta?.image} />
+          <meta property="og:image:secure_url" content={meta?.image} />
+          <meta property="og:site_name" content="Ytubetools" />
+          <meta property="og:locale" content="en_US" />
+
+          {/* Twitter Meta Tags */}
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:domain" content={meta?.url} />
+          <meta property="twitter:url" content={`${meta?.url}/tools/description-generator`}/>
+          <meta name="twitter:title" content={meta?.title} />
+          <meta name="twitter:description" content={meta?.description} />
+          <meta name="twitter:image" content={meta?.image} />
+          <meta name="twitter:site" content="@ytubetools" />
+          <meta name="twitter:image:alt" content={meta?.imageAlt} />
+
+          {/* Alternate hreflang Tags for SEO */}
+          {hreflangs &&
+            hreflangs.map((hreflang, index) => (
+              <link
+                key={index}
+                rel={hreflang.rel}
+                hreflang={hreflang.hreflang}
+                href={`${hreflang.href}/tools/description-generator`}
+              />
+            ))}
+          <link
+            rel="alternate"
+            hreflang="en"
+            href={meta?.url?.replace(/\/$/, "").replace(/\/$/, "")}
+          />
+        </Head>
   {/* JSON-LD Structured Data */}
   <Script id="webpage-description-generator" type="application/ld+json">
   {JSON.stringify({
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: meta?.title,
-    url: `${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/description-generator`,
+    url: `${meta?.url}/tools/description-generator`,
     description: meta?.description,
     breadcrumb: {
       "@id": `${meta?.url}#breadcrumb`,
@@ -433,7 +447,7 @@ ${keywords}
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     name: meta?.title,
-    url: `${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/description-generator`,
+    url: `${meta?.url}/tools/description-generator`,
     applicationCategory: "Multimedia",
     aggregateRating: {
       "@type": "AggregateRating",
@@ -856,50 +870,115 @@ ${keywords}
 };
 
 export async function getServerSideProps({ req, locale }) {
-  const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : 'http';
-  const apiUrl = `${protocol}://${host}/api/content?category=DescriptionGenerator&language=${locale}`;
+  // Determine protocol
+  const protocol =
+    req.headers["x-forwarded-proto"]?.split(",")[0] ||
+    (req.connection.encrypted ? "https" : "http");
+  const host = req.headers.host || "your-default-domain.com";
+  const baseUrl = `${protocol}://${host}`;
+  const contentApiUrl = `${baseUrl}/api/content?category=DescriptionGenerator&language=${locale}`;
+  const headerApiUrl = `${baseUrl}/api/heading`;
 
   try {
-    const contentResponse = await fetch(apiUrl);
+    // Fetch content and header data in parallel
+    const [contentResponse, headerResponse] = await Promise.all([
+      fetch(contentApiUrl),
+      fetch(headerApiUrl),
+    ]);
 
-    if (!contentResponse.ok) {
-      throw new Error('Failed to fetch content');
+    if (!contentResponse.ok || !headerResponse.ok) {
+      throw new Error("Failed to fetch data from APIs");
     }
 
     const contentData = await contentResponse.json();
-    
-    const meta = {
-      title: contentData.translations[locale]?.title || '',
-      description: contentData.translations[locale]?.description || '',
-      image: contentData.translations[locale]?.image || '',
-      url: `${protocol}://${host}`,
-    };
-    const reactions = contentData.translations[locale]?.reactions || { likes: 0, unlikes: 0, reports: [], users: {} };
+    const headerData = await headerResponse.json();
 
+    // Extract header content and localized data with fallbacks
+    const headerContent = headerData[0]?.content || "";
+    const localeData = contentData.translations?.[locale] || {};
+
+    // Meta information with fallback defaults
+    const meta = {
+      title: localeData.title || 'Default Title',
+      description: localeData.description || 'Default description',
+      image: localeData.image || '',
+      url: `${baseUrl}${locale === "en" ? "" : `/${locale}`}`,
+    };
+
+    // Extract reactions with default values
+    const reactions = localeData.reactions || {
+      likes: 0,
+      unlikes: 0,
+      reports: [],
+      users: {},
+    };
+
+    // Generate hreflang links
+    const translations = contentData.translations || {};
+    const hreflangs = [
+      { rel: "alternate", hreflang: "x-default", href: baseUrl },
+      { rel: "alternate", hreflang: "en", href: baseUrl },
+      ...Object.keys(translations)
+        .filter((lang) => lang !== "en")
+        .map((lang) => ({
+          rel: "alternate",
+          hreflang: lang,
+          href: `${baseUrl}/${lang}`,
+        })),
+    ];
+
+    // Return props for the page
     return {
       props: {
         meta,
-        faqs: contentData.translations[locale]?.faqs || [],
-        relatedTools: contentData.translations[locale]?.relatedTools || [],
-        existingContent: contentData.translations[locale]?.content || '',
         reactions,
-        ...(await serverSideTranslations(locale, ['description', 'navbar', 'footer'])),
+        existingContent: localeData.content || '',
+        faqList: localeData.faqs || [],
+        relatedTools: localeData.relatedTools || [],
+        headerContent,
+        translations,
+        hreflangs,
+        ...(await serverSideTranslations(locale, [
+          "description",
+          "navbar",
+          "footer",
+        ])),
       },
     };
   } catch (error) {
-    console.error('Error fetching data:', error);
+    console.error("Error fetching data:", error);
+
+    // Fallback props in case of error
     return {
       props: {
-        meta: {},
-        faqs: [],
-        relatedTools: [],
+        meta: {
+          title: 'Default Title',
+          description: 'Default description',
+          image: '',
+          url: `${baseUrl}${locale === "en" ? "" : `/${locale}`}`,
+        },
+        reactions: {
+          likes: 0,
+          unlikes: 0,
+          reports: [],
+          users: {},
+        },
         existingContent: '',
-        reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
-        ...(await serverSideTranslations(locale, ['description', 'navbar', 'footer'])),
+        faqList: [],
+        relatedTools: [],
+        headerContent: "",
+        translations: {},
+        hreflangs: [
+          { rel: "alternate", hreflang: "x-default", href: baseUrl },
+          { rel: "alternate", hreflang: "en", href: baseUrl },
+        ],
+        ...(await serverSideTranslations(locale, [
+          "description",
+          "navbar",
+          "footer",
+        ])),
       },
     };
   }
 }
-
 export default YouTubeDescriptionGenerator;
