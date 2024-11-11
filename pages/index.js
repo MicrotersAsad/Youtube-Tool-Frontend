@@ -20,7 +20,7 @@ import cloud2 from "../public/shape/cloud2.png";
 import Script from "next/script";
 
 const StarRating = dynamic(() => import("./tools/StarRating"), { ssr: false });
-export default function Home({ initialMeta, reactions, content, faqList, tools, headerContent }) {
+export default function Home({ initialMeta, reactions, content, faqList, tools, headerContent,translations }) {
   const { user, updateUserProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -35,7 +35,7 @@ export default function Home({ initialMeta, reactions, content, faqList, tools, 
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [meta, setMeta] = useState(initialMeta);
   const [existingContent, setExistingContent] = useState(content);
-  const [translations, setTranslations] = useState([]);
+  
   const [relatedTools, setRelatedTools] = useState(tools);
   const [faqs, setFaqs] = useState(faqList);
   const [likes, setLikes] = useState(reactions.likes || 0);
@@ -66,7 +66,7 @@ export default function Home({ initialMeta, reactions, content, faqList, tools, 
       try {
         const response = await fetch(`/api/content?category=tagGenerator&language=${i18n.language}`);
         const data = await response.json();
-        setTranslations(data.translations);
+   
         setLikes(data.reactions.likes || 0);
         setUnlikes(data.reactions.unlikes || 0);
       } catch (error) {
@@ -989,10 +989,14 @@ const buttonColors = {
     </>
   );
 }
+
+
 export async function getServerSideProps({ req, locale }) {
-  // Set protocol based on the environment (https for production)
-  const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
-  const host = req.headers.host;
+  // Determine protocol
+  const protocol =
+    req.headers['x-forwarded-proto']?.split(',')[0] ||
+    (req.connection.encrypted ? 'https' : 'http');
+  const host = req.headers.host || 'your-default-domain.com';
   const baseUrl = `${protocol}://${host}`;
   const contentApiUrl = `${baseUrl}/api/content?category=tagGenerator&language=${locale}`;
   const headerApiUrl = `${baseUrl}/api/heading`;
@@ -1004,17 +1008,24 @@ export async function getServerSideProps({ req, locale }) {
       fetch(headerApiUrl),
     ]);
 
+    if (!contentResponse.ok || !headerResponse.ok) {
+      throw new Error('Failed to fetch data from APIs');
+    }
+
     const contentData = await contentResponse.json();
     const headerData = await headerResponse.json();
 
     // Extract header content and localized data with fallbacks
-    const headerContent = headerData[0]?.content || "";
+    const headerContent = headerData[0]?.content || '';
     const localeData = contentData.translations?.[locale] || {};
+
+    // Extract translations
+    const translations = contentData.translations || {};
 
     // Meta information with fallback defaults
     const meta = {
-      title: localeData.title || "Default Title",
-      description: localeData.description || "Default description",
+      title: localeData.title || 'Default Title',
+      description: localeData.description || 'Default description',
       url: baseUrl,
     };
 
@@ -1022,29 +1033,42 @@ export async function getServerSideProps({ req, locale }) {
     return {
       props: {
         initialMeta: meta,
-        reactions: localeData.reactions || { likes: 0, unlikes: 0, reports: [], users: {} },
-        content: localeData.content || "",
+        reactions:
+          localeData.reactions || {
+            likes: 0,
+            unlikes: 0,
+            reports: [],
+            users: {},
+          },
+        content: localeData.content || '',
         faqList: localeData.faqs || [],
         tools: localeData.relatedTools || [],
         headerContent, // Pass header content to props
-        ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
+        translations,  // Include translations in props
+        ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
       },
     };
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error('Error fetching data:', error);
 
     // Fallback props in case of error
     return {
       props: {
-        initialMeta: {},
+        initialMeta: {
+          title: 'Default Title',
+          description: 'Default description',
+          url: baseUrl,
+        },
         reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
-        content: "",
+        content: '',
         faqList: [],
         tools: [],
-        headerContent: "", // Empty header content as fallback
-        ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
+        headerContent: '', // Empty header content as fallback
+        translations: {},  // Empty translations as fallback
+        ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
       },
     };
   }
 }
+
 
