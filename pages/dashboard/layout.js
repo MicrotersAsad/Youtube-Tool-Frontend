@@ -1152,6 +1152,7 @@ const Layout = React.memo(({ children }) => {
                       isActiveRoute("/dashboard/teacher") ||
                       isActiveRoute("/dashboard/achievement") ||
                       isActiveRoute("/dashboard/privacy") ||
+                      isActiveRoute("/dashboard/refund") ||
                       isActiveRoute("/dashboard/terms") ||
                       isActiveRoute("/dashboard/gdpr") ||
                       isActiveRoute("/dashboard/notice") ||
@@ -1208,6 +1209,18 @@ const Layout = React.memo(({ children }) => {
                       >
                         <FaCircle className="mr-2 text-xs" />
                         Privacy Policy
+                      </p>
+                    </Link>
+                    <Link href="/dashboard/refund" passHref>
+                      <p
+                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                          isActiveRoute("/dashboard/refund")
+                            ? "bg-[#1d1e8e] text-white"
+                            : "hover:bg-[#1d1e8e] hover:text-white"
+                        }`}
+                      >
+                        <FaCircle className="mr-2 text-xs" />
+                        Refund
                       </p>
                     </Link>
                     <Link href="/dashboard/terms" passHref>

@@ -70,26 +70,46 @@ const Pricing = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
-       <Head>
-            <title>Pricing</title>
-            <meta
-              name="description"
-              content="Pricing Page"
-            />
-            <meta
-              property="og:url"
-              content="https://youtube-tool-frontend.vercel.app/about"
-            />
-         
-            <meta
-              property="og:description"
-              content={
-                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
-              }
-            />
-          
-          
-            </Head>
+     <Head>
+  {/* SEO Meta Tags for Pricing Page */}
+  <title>Pricing | Ytubetools</title>
+  <meta
+    name="description"
+    content="Explore our affordable pricing plans at Ytubetools. Choose the right plan to access powerful YouTube tools designed for creators and viewers, enhancing your channel's growth and engagement."
+  />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="index, follow" /> 
+
+  {/* Canonical URL */}
+  <link rel="canonical" href="https://ytubetools.com/pricing" />
+
+  {/* Open Graph Meta Tags */}
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://ytubetools.com/pricing" />
+  <meta property="og:title" content="Pricing | Ytubetools" />
+  <meta
+    property="og:description"
+    content="Discover Ytubetools’ pricing options. Choose the perfect plan to unlock exclusive YouTube tools and features tailored for creators. Boost your channel’s performance with powerful insights and tools."
+  />
+  <meta property="og:image" content="https://ytubetools.com/static/images/pricing-og-image.jpg" />
+  <meta property="og:image:secure_url" content="https://ytubetools.com/static/images/pricing-og-image.jpg" />
+  <meta property="og:site_name" content="Ytubetools" />
+  <meta property="og:locale" content="en_US" />
+
+  {/* Twitter Meta Tags */}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:domain" content="ytubetools.com" />
+  <meta property="twitter:url" content="https://ytubetools.com/pricing" />
+  <meta name="twitter:title" content="Pricing | Ytubetools" />
+  <meta
+    name="twitter:description"
+    content="Check out Ytubetools’ pricing plans. Select a plan that fits your needs to gain access to tools and insights that will help elevate your YouTube channel."
+  />
+  <meta name="twitter:image" content="https://ytubetools.com/static/images/pricing-twitter-image.jpg" />
+  <meta name="twitter:site" content="@ytubetools" />
+  <meta name="twitter:image:alt" content="Ytubetools Pricing Plans" />
+</Head>
+
       <div className="container mx-auto px-4">
         {/* Features and Pricing Plans */}
         <div className="flex flex-col md:flex-row justify-center items-start md:space-x-8 space-y-8 md:space-y-0">

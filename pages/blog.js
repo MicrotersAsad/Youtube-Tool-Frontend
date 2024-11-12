@@ -10,7 +10,8 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { format } from 'date-fns';
 import PromoSection from '../components/BlogPromoSection';
 import Head from 'next/head';
-
+import oops from "../public/opps.png";
+import Skeleton from 'react-loading-skeleton';
 // Utility functions
 const createSlug = (title) => {
   return title
@@ -36,7 +37,7 @@ const parseCategories = (category) => {
   return category ? category.split(',') : [];
 };
 
-const BlogSection = ({ initialBlogs = [] }) => {
+const BlogSection = ({ initialBlogs = [],availableLanguages, metaUrl  }) => {
   const router = useRouter();
   const { category: selectedCategory } = router.query;
   const [loading, setLoading] = useState(!initialBlogs.length);
@@ -48,7 +49,14 @@ const BlogSection = ({ initialBlogs = [] }) => {
   const currentLanguage = i18n.language || 'en'; // Default to English if no language is set
   const [searchQuery, setSearchQuery] = useState('');
   const [currentCategory, setCurrentCategory] = useState(selectedCategory || '');
-
+  const hreflangs = [
+    { rel: "alternate", hreflang: "x-default", href: metaUrl }, // x-default for fallback
+    ...availableLanguages.map((lang) => ({
+      rel: "alternate",
+      hreflang: lang,
+      href: lang === 'en' ? metaUrl : `${metaUrl.replace(/\/$/, '')}/${lang}/youtube`,
+    })),
+  ];
   const fetchCategories = useCallback(async () => {
     try {
       const response = await axios.get('/api/categories');
@@ -162,292 +170,257 @@ const BlogSection = ({ initialBlogs = [] }) => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <ClipLoader size={50} color={"#123abc"} loading={loading} />
-      </div>
-    );
-  }
+
 
   if (error) {
     return <p className="text-red-500 text-center">{error}</p>;
   }
 
-  if (processedBlogs.length === 0) {
-    return <p className="text-center text-gray-600 text-xl mt-10">No blogs available in this language.</p>;
-  }
+  
 
   return (
     <div className=''>
-       <Head>
-        <title>Ytubetools - Enhance Your YouTube Experience</title>
-        <meta name="description" content="Explore our blog at Ytubetools for insights, tips, and tools designed to improve your YouTube content creation and viewer experience." />
-        <meta property="og:title" content="Ytubetools Blog - Tips and Tools for YouTube Creators" />
-        <meta property="og:description" content="Learn how to use Ytubetools to optimize your YouTube channel. Get the latest tips, tutorials, and insights on maximizing your YouTube content." />
-        <meta property="og:url" content="https://ytubetools.com/blog" />
+      <Head>
+        <title>Blog | YtubeTools</title>
+        <meta name="description" content="Explore insightful articles on YtubeTools, where we dive into the world of YouTube creators, share growth strategies, review tools, and provide tips to enhance your YouTube journey. Stay updated and learn more about becoming a successful YouTuber." />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="index, follow" /> 
+  
+        {/* Canonical URL */}
+        <link rel="canonical" href={metaUrl} />
+  
+        {/* Open Graph Meta Tags */}
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={metaUrl} />
+        <meta property="og:title" content="Blog | YtubeTools" />
+        <meta property="og:description" content="Explore insightful articles on YtubeTools, where we dive into the world of YouTube creators, share growth strategies, review tools, and provide tips to enhance your YouTube journey. Stay updated and learn more about becoming a successful YouTuber." />
+        <meta property="og:image" content="https://ytubetools.com/static/images/youtubers-og-image.jpg" />
+        <meta property="og:image:secure_url" content="https://ytubetools.com/static/images/youtubers-og-image.jpg" />
+        <meta property="og:site_name" content="YtubeTools" />
+        <meta property="og:locale" content="en_US" />
+  
+        {/* Twitter Meta Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:domain" content="ytubetools.com" />
+        <meta property="twitter:url" content={metaUrl} />
+        <meta name="twitter:title" content="Blog | YtubeTools" />
+        <meta name="twitter:description" content="Explore insightful articles on YtubeTools, where we dive into the world of YouTube creators, share growth strategies, review tools, and provide tips to enhance your YouTube journey. Stay updated and learn more about becoming a successful YouTuber." />
+        <meta name="twitter:image" content="https://ytubetools.com/static/images/youtubers-twitter-image.jpg" />
+        <meta name="twitter:site" content="@ytubetools" />
+        <meta name="twitter:image:alt" content="Blog" />
+  
+        {/* Alternate hreflang Tags for SEO */}
+        {hreflangs.map((hreflang, index) => (
+          <link
+            key={index}
+            rel={hreflang.rel}
+            hreflang={hreflang.hreflang}
+            href={hreflang.href}
+          />
+        ))}
       </Head>
-
-      <PromoSection />
-
-      <div className="max-w-7xl container">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mt-8">
-          <div className="col-span-12">
-            <h2 className="text-2xl text-blue-900 font-bold mb-2">Latest Blog</h2>
-          </div>
-          <div className="col-span-12 md:col-span-5">
-            {latestBlogs.slice(0, 1).map((blog, index) => {
-              const content = blog.translations[currentLanguage];
-              return (
-                <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden relative">
-                  {content?.image && (
-                    <div className="w-full" style={{ height: '260px'}}>
-                      <Image
-                        src={content.image}
-                        alt={content.title}
-                        width={400}
-                        height={260}
-                        className='blog-img'
-                        quality={50} // Image quality reduced
-                      />
-                      <div className="absolute top-2 left-2 bg-blue-500 text-white text-sm rounded-full px-2 py-1">
-                        <span className="mr-2">{content?.category || content._id}</span>
+  
+      {/* Conditional Rendering: Display message if no blogs are available */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+          {Array(9).fill(0).map((_, i) => (
+            <div key={i} className="bg-white shadow-md rounded-lg p-4">
+              <Skeleton height={180} className="mb-4" />
+              <Skeleton height={20} width="60%" className="mb-2" />
+              <Skeleton height={15} width="80%" className="mb-2" />
+              <Skeleton height={15} width="40%" />
+            </div>
+          ))}
+        </div>
+      ) : processedBlogs.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <Image src={oops} alt="No Blogs Available" width={200} height={200} />
+          <h2 className="text-2xl font-semibold text-gray-700 mt-6">
+            Oops! No Blogs Available
+          </h2>
+          <p className="text-gray-500 mt-4">
+            It seems like we don't have any articles in this language or category.
+          </p>
+        </div>
+      ) : (
+        <>
+          <PromoSection />
+  
+          <div className="max-w-7xl container">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mt-8">
+              <div className="col-span-12">
+                <h2 className="text-2xl text-blue-900 font-bold mb-2">Latest Blog</h2>
+              </div>
+  
+              {/* Latest Blogs */}
+              <div className="col-span-12 md:col-span-5">
+                {latestBlogs.slice(0, 1).map((blog, index) => {
+                  const content = blog.translations[currentLanguage];
+                  return (
+                    <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden relative">
+                      {content?.image && (
+                        <div className="w-full" style={{ height: '260px'}}>
+                          <Image
+                            src={content.image}
+                            alt={content.title}
+                            width={400}
+                            height={260}
+                            className='blog-img'
+                            quality={50} // Image quality reduced
+                          />
+                          <div className="absolute top-2 left-2 bg-blue-500 text-white text-sm rounded-full px-2 py-1">
+                            <span className="mr-2">{content?.category || content._id}</span>
+                          </div>
+                        </div>
+                      )}
+                      <div className="border-t ps-3 pe-3 pt-3 d-flex">
+                        <p className="text-sm text-gray-500">
+                          <FaUserCircle className="text-center fs-6 text-red-400 inline" /> {blog.author}
+                        </p>
+                        <p className="text-sm text-gray-500 ms-auto">
+                          <FaCalendar className="text-center text-red-400 inline" />
+                          {format(new Date(blog.createdAt), 'dd/MM/yyyy')}
+                        </p>
+                      </div>
+                      <div className="pe-3 ps-3 pt-2">
+                        <h6 className="text-lg font-semibold">
+                          <Link href={`/blog/${content.slug}`} passHref>
+                            <span className="text-blue-500 text-xl font-bold hover:underline">{content.title}</span>
+                          </Link>
+                        </h6>
+                        <p className="text-gray-600 mb-4">{content.description || content.Description}</p>
+                        <Link href={`/blog/${content.slug}`} passHref>
+                          <span className="text-red-500 mt-4 block">Read More →</span>
+                        </Link>
+                        <div className="mt-2">
+                          {parseCategories(blog.category).map((category, i) => (
+                            <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">
+                              {category}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  )}
-                  <div className="border-t ps-3 pe-3 pt-3 d-flex">
-                    <p className="text-sm text-gray-500">
-                      <FaUserCircle className="text-center fs-6 text-red-400 inline" /> {blog.author}
-                    </p>
-                    <p className="text-sm text-gray-500 ms-auto">
-                      <FaCalendar className="text-center text-red-400 inline" />
-                      {format(new Date(blog.createdAt), 'dd/MM/yyyy')}
-                    </p>
-                  </div>
-                  <div className="pe-3 ps-3 pt-2">
-                    <h6 className="text-lg font-semibold">
-                      <Link href={`/blog/${content.slug}`} passHref>
-                        <span className="text-blue-500 text-xl font-bold hover:underline">{content.title}</span>
-                      </Link>
-                    </h6>
-                    <p className="text-gray-600 mb-4">{content.description || content.Description}</p>
-                    <Link href={`/blog/${content.slug}`} passHref>
-                      <span className="text-red-500 mt-4 block">Read More →</span>
-                    </Link>
-                    <div className="mt-2">
-                      {parseCategories(blog.category).map((category, i) => (
-                        <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">
-                          {category}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div className="col-span-12 md:col-span-7 space-y-4">
-            {latestBlogs.slice(1, 4).map((blog, index) => {
-              const content = blog.translations[currentLanguage];
-              return (
-                <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden flex flex-col md:flex-row relative">
-                  {content?.image && (
-                    <div className="w-full  md:w-5/12" style={{ height: '165px', position: 'relative' }}>
-                      <Image
-                        src={content.image}
-                        alt={content.title}
-                        layout="fill"
-                        objectFit="cover"
-                        className="rounded"
-                        quality={50} // Image quality reduced
-                      />
-                      <div className="absolute top-2 left-2 bg-blue-500 text-white text-sm rounded-full px-2 py-1">
-                        <span className="mr-2">{content?.category || content._id}</span>
+                  );
+                })}
+              </div>
+  
+              {/* Other Blog Cards */}
+              <div className="col-span-12 md:col-span-7 space-y-4">
+                {latestBlogs.slice(1, 4).map((blog, index) => {
+                  const content = blog.translations[currentLanguage];
+                  return (
+                    <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden flex flex-col md:flex-row relative">
+                      {content?.image && (
+                        <div className="w-full md:w-5/12" style={{ height: '165px', position: 'relative' }}>
+                          <Image
+                            src={content.image}
+                            alt={content.title}
+                            layout="fill"
+                            objectFit="cover"
+                            className="rounded"
+                            quality={50} // Image quality reduced
+                          />
+                          <div className="absolute top-2 left-2 bg-blue-500 text-white text-sm rounded-full px-2 py-1">
+                            <span className="mr-2">{content?.category || content._id}</span>
+                          </div>
+                        </div>
+                      )}
+                      <div className="ps-2 pt-2 flex-1 md:w-7/12">
+                        <h6 className="text-lg font-semibold">
+                          <Link href={`/blog/${content.slug}`} passHref>
+                            <span className="text-blue-500 text-xl font-bold hover:underline">{content.title}</span>
+                          </Link>
+                        </h6>
+                        <Link href={`/blog/${content.slug}`} passHref>
+                          <span className="text-red-500 mt-4 block">Read More →</span>
+                        </Link>
+                        <div className="border-t ps-2 pe-2 pt-2 d-flex">
+                          <p className="text-sm text-gray-500">
+                            <FaUserCircle className="text-center fs-6 text-red-400 inline" /> {blog.author}
+                          </p>
+                          <p className="text-sm text-gray-500 ms-auto">
+                            <FaCalendar className="text-center text-red-400 inline" />
+                            {format(new Date(blog.createdAt), 'dd/MM/yyyy')}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  )}
-                  <div className="ps-2 pt-2 flex-1 md:w-7/12">
-                    <h6 className="text-lg font-semibold">
-                      <Link href={`/blog/${content.slug}`} passHref>
-                        <span className="text-blue-500 text-xl font-bold hover:underline">{content.title}</span>
-                      </Link>
-                    </h6>
-                    <Link href={`/blog/${content.slug}`} passHref>
-                      <span className="text-red-500 mt-4 block">Read More →</span>
-                    </Link>
-                    <div className="border-t ps-2 pe-2 pt-2 d-flex">
-                      <p className="text-sm text-gray-500">
-                        <FaUserCircle className="text-center fs-6 text-red-400 inline" /> {blog.author}
-                      </p>
-                      <p className="text-sm text-gray-500 ms-auto">
-                        <FaCalendar className="text-center text-red-400 inline" />
-                        {format(new Date(blog.createdAt), 'dd/MM/yyyy')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        <div className="bg-[#f7f3ff] bg py-8 pt-5 pb-5 px-5 md:px-10 flex items-center justify-center rounded-lg shadow-md my-10">
-          <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-            <div className="col-span-12 md:col-span-5 text-center md:text-left">
-              <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">Subscribe to our newsletter.</h2>
-              <p className="text-gray-600 mt-2">Join 80,000 others!</p>
+                  );
+                })}
+              </div>
             </div>
-            <div className="col-span-12 md:col-span-7">
-              <form className="flex flex-col items-center md:flex-row w-full">
-                <input
-                  type="email"
-                  placeholder="Email Address"
-                  className="w-full md:flex-1 p-3 rounded-l-md border border-gray-300 focus:outline-none"
-                />
-                <button type="submit" className="bg-purple-700 text-white p-3 rounded-r-md">
-                  Sign Up
-                </button>
-              </form>
-              <p className="text-gray-600 text-xs mt-3 md:mt-1 text-center md:text-left">
-                By signing up, you agree to our <Link href="/privacy-policy"><span className="text-purple-600">Privacy Policy</span></Link>
-              </p>
+  
+            {/* Additional UI Elements */}
+            <div className="flex justify-center mt-8">
+              {totalPages > 1 && (
+                <nav className="block">
+                  <ul className="flex pl-0 rounded list-none flex-wrap">
+                    {Array.from({ length: totalPages }, (_, index) => (
+                      <li key={index} className="page-item">
+                        <button
+                          onClick={() => paginate(index + 1)}
+                          className={`page-link ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white text-blue-500'}`}
+                        >
+                          {index + 1}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              )}
             </div>
           </div>
-        </div>
-
-        <div className="flex justify-center mb-6">
-          <div className="relative w-full max-w-lg">
-            <input
-              type="text"
-              placeholder="Search blogs by title..."
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <FaSearch className="absolute top-3 right-3 text-gray-400" />
-          </div>
-        </div>
-
-        <div className="text-white rounded-lg relative w-full mt-5 mb-5">
-        
-          <div className="flex justify-center mb-4">
-            <ul className="flex flex-wrap justify-center space-x-2">
-              <li
-                className={`px-4 py-2 list-none rounded-full text-sm font-medium border ${!currentCategory ? 'bg-purple-700 text-white' : 'bg-white text-gray-700'}`}
-                onClick={() => handleCategoryChange('')}
-              >
-                <span className="cursor-pointer">All Posts</span>
-              </li>
-              {categories.map((category) => {
-                return (
-                  <li
-                    key={category.slug}
-                    className={`px-4 py-2 list-none rounded-full text-sm font-medium border ${currentCategory === category.slug ? 'bg-purple-700 text-white' : 'bg-white text-gray-700'}`}
-                    onClick={() => handleCategoryChange(category.slug)}
-                  >
-                    <span className="cursor-pointer">{category.name}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-
-          <div id='all-blog' className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-            {currentBlogs.slice(0, 9).map((blog, index) => {
-              const content = blog.translations[currentLanguage];
-              return (
-                <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden relative">
-                  <div className='w-[400px] h-[270px]'>
-                    {content.image && (
-                      <Image
-                        src={content.image}
-                        alt={getTitle(content)}
-                        width={400}
-                        height={270}
-                        className='blog-img'
-                        quality={50} // Image quality reduced
-                      />
-                    )}
-                  </div>
-                  <div className="absolute top-2 left-2 bg-blue-500 text-white text-sm rounded-full px-2 py-1">
-                    <span className="mr-2">{content?.category || content._id}</span>
-                  </div>
-                  <div className="border-t ps-4 pe-4 pt-2 d-flex">
-                    <p className="text-sm text-gray-500">
-                      <FaUserCircle className="text-center fs-6 text-red-400 inline" /> {blog.author}
-                    </p>
-                    <p className="text-sm text-gray-500 ms-auto">
-                      <FaCalendar className="text-center text-red-400 inline" />
-                      {format(new Date(blog.createdAt), 'dd/MM/yyyy')}
-                    </p>
-                  </div>
-                  <div className="p-4">
-                    <h4 className="text-lg font-semibold">
-                      <Link href={`/blog/${content.slug}`} passHref>
-                        <span className="text-blue-500 text-xl font-bold hover:underline">{getTitle(content)}</span>
-                      </Link>
-                    </h4>
-                    <p className="text-gray-500 text-sm">{content?.description}</p>
-                    <div className="mt-2">
-                      {parseCategories(blog.category).map((category, i) => (
-                        <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">
-                          {category}
-                        </span>
-                      ))}
-                    </div>
-                    <Link href={`/blog/${content.slug}`} passHref>
-                      <span className="text-red-500 mt-4 block">Read More →</span>
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="flex justify-center mt-8">
-          {totalPages > 1 && (
-            <nav className="block">
-              <ul className="flex pl-0 rounded list-none flex-wrap">
-                {Array.from({ length: totalPages }, (_, index) => (
-                  <li key={index} className="page-item">
-                    <button
-                      onClick={() => paginate(index + 1)}
-                      className={`page-link ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white text-blue-500'}`}
-                    >
-                      {index + 1}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          )}
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
-};
+}  
 
 export async function getServerSideProps({ locale, req }) {
   try {
+    // Determine protocol and host to build the base URL
     const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
     const host = req.headers.host;
-    const apiUrl = `${protocol}://${host}/api/blogs`;
+    const baseUrl = `${protocol}://${host}`;
+
+    // Construct the active URL based on locale and request URL
+    // Exclude 'en' from the URL path to avoid "/en" in the meta URL
+    const metaUrl = locale === 'en' ? `${baseUrl}${req.url}` : `${baseUrl}/${locale}${req.url}`;
+
+    // Fetch blog data from API
+    const apiUrl = `${baseUrl}/api/blogs`;
     const { data } = await axios.get(apiUrl);
+
+    // Sort blogs by creation date
+    const sortedData = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Determine available languages for blogs
+    const availableLanguages = Array.from(
+      new Set(
+        sortedData.flatMap((blog) => Object.keys(blog.translations || {}))
+      )
+    );
+
     return {
       props: {
-        initialBlogs: data,
+        initialBlogs: sortedData,
+        availableLanguages, // Pass available languages as prop
+        metaUrl, // Pass the active URL as metaUrl
         ...(await serverSideTranslations(locale, ['blog', 'navbar', 'footer'])),
       },
     };
   } catch (error) {
-    console.error('Error fetching blogs:', error.message);
+    console.error('Error in getServerSideProps:', error);
+
     return {
       props: {
         initialBlogs: [],
+        availableLanguages: [],
+        metaUrl: locale === 'en' ? `${protocol}://${host}${req.url}` : `${protocol}://${host}/${locale}${req.url}`, // Fallback meta URL
         ...(await serverSideTranslations(locale, ['blog', 'navbar', 'footer'])),
       },
     };
   }
 }
-
-export default memo(BlogSection);
+export default BlogSection;

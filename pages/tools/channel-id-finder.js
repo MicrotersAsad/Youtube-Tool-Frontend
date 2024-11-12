@@ -22,9 +22,9 @@ import Script from "next/script";
 
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
-const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions }) => {
+const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions,hreflangs }) => {
   const { user, updateUserProfile } = useAuth();
-  const [translations, setTranslations] = useState([]);
+ 
   const [modalVisible, setModalVisible] = useState(true);
   const [videoUrl, setVideoUrl] = useState("");
   const { t } = useTranslation("channelId");
@@ -67,7 +67,7 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions 
         
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
-        setTranslations(data.translations);
+       
         setLikes(data.reactions.likes || 0);
         setUnlikes(data.reactions.unlikes || 0);
       } catch (error) {
@@ -366,37 +366,54 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions 
 
         <div className="max-w-7xl mx-auto p-4">
         <Head>
-  <title>{meta?.title}</title>
-  <meta name="description" content={meta?.description} />
-  
-  {/* Open Graph Tags */}
-  <meta property="og:url" content={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/channel-id-finder`} />
-  <meta property="og:title" content={meta?.title} />
-  <meta property="og:description" content={meta?.description} />
-  <meta property="og:image" content={meta?.image || ""} />
-  
-  {/* Twitter Card Tags */}
-  <meta name="twitter:card" content={meta?.image || ""} />
-  <meta property="twitter:domain" content={meta?.url} />
-  <meta property="twitter:url" content={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/channel-id-finder`} />
-  <meta name="twitter:title" content={meta?.title} />
-  <meta name="twitter:description" content={meta?.description} />
-  <meta name="twitter:image" content={meta?.image || ""} />
-  
-  {/* hreflang and Alternate Language Links */}
-  <link rel="alternate" href={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/channel-id-finder`}  hrefLang="x-default" />
-  <link rel="alternate" href={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/channel-id-finder`}  hrefLang="en" />
-  {translations && Object.keys(translations).map(lang => (
-    lang !== 'en' && (
-      <link
-        key={lang}
-        rel="alternate"
-        hrefLang={lang}
-        href={`${meta?.url}/${lang}/tools/channel-id-finder`}
-      />
-    )
-  ))}
-  </Head>
+          {/* SEO Meta Tags */}
+          <title>{meta?.title}</title>
+          <meta name="description" content={meta?.description} />
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+          />
+          <meta name="robots" content="index, follow" />
+
+          {/* Canonical URL */}
+          <link rel="canonical" href={`${meta?.url}`} />
+
+          {/* Open Graph Meta Tags */}
+          <meta property="og:type" content="website" />
+          <meta property="og:url"  content={`${meta?.url}`}/>
+          <meta property="og:title" content={meta?.title} />
+          <meta property="og:description" content={meta?.description} />
+          <meta property="og:image" content={meta?.image} />
+          <meta property="og:image:secure_url" content={meta?.image} />
+          <meta property="og:site_name" content="Ytubetools" />
+          <meta property="og:locale" content="en_US" />
+
+          {/* Twitter Meta Tags */}
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:domain" content={meta?.url} />
+          <meta property="twitter:url" content={`${meta?.url}`}/>
+          <meta name="twitter:title" content={meta?.title} />
+          <meta name="twitter:description" content={meta?.description} />
+          <meta name="twitter:image" content={meta?.image} />
+          <meta name="twitter:site" content="@ytubetools" />
+          <meta name="twitter:image:alt" content={meta?.imageAlt} />
+
+          {/* Alternate hreflang Tags for SEO */}
+          {hreflangs &&
+            hreflangs.map((hreflang, index) => (
+              <link
+                key={index}
+                rel={hreflang.rel}
+                hreflang={hreflang.hreflang}
+                href={`${hreflang.href}`}
+              />
+            ))}
+          {/* <link
+            rel="alternate"
+            hreflang="en"
+            href={meta?.url?.replace(/\/$/, "").replace(/\/$/, "")}
+          /> */}
+        </Head>
   {/* JSON-LD Structured Data */}
   <Script id="webpage-structured-data" type="application/ld+json">
   {JSON.stringify({
@@ -996,33 +1013,172 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions 
   );
 };
 
+// export async function getServerSideProps({ req, locale }) {
+//   // Determine the host and protocol
+//   const host = req.headers.host || 'your-default-domain.com';
+//   const protocol =
+//     req.headers["x-forwarded-proto"] === 'https' ? 'https' : "http";
+  
+//   // Define the base URL for the tool
+//   const baseUrl = `${protocol}://${host}/tools/channel-id-finder`;
+  
+//   // Construct the API URL for content fetching
+//   const apiUrl = `${protocol}://${host}/api/content?category=channel-id-finder&language=${locale}`;
+
+//   try {
+//     // Fetch content data from API
+//     const contentResponse = await fetch(apiUrl);
+
+//     if (!contentResponse.ok) {
+//       throw new Error("Failed to fetch content");
+//     }
+
+//     // Parse the content data
+//     const contentData = await contentResponse.json();
+
+//     // Extract meta information with fallback defaults
+//     const meta = {
+//       title: contentData.translations[locale]?.title || "Default Title",
+//       description: contentData.translations[locale]?.description || "Default Description",
+//       image: contentData.translations[locale]?.image || "",
+//       url: baseUrl, // Use base URL for meta URLs
+//     };
+
+//     // Extract hreflang translations and generate hreflang URLs
+//     const translations = contentData.translations || {};
+//     const hreflangs = [
+//       { rel: "alternate", hreflang: "x-default", href: baseUrl },
+//       { rel: "alternate", hreflang: "en", href: baseUrl },
+//       ...Object.keys(translations)
+//         .filter(lang => lang !== "en")
+//         .map(lang => ({
+//           rel: "alternate",
+//           hreflang: lang,
+//           href: `${protocol}://${host}/${lang}/tools/channel-id-finder`,
+//         })),
+//     ];
+
+    // return {
+    //   props: {
+    //     meta,
+    //     faqs: contentData.translations[locale]?.faqs || [],
+    //     relatedTools: contentData.translations[locale]?.relatedTools || [],
+    //     existingContent: contentData.translations[locale]?.content || "",
+    //     reactions: contentData.translations[locale]?.reactions || { likes: 0, unlikes: 0, reports: [], users: {} },
+    //     hreflangs, // Pass hreflang data as props
+    //     ...(await serverSideTranslations(locale, [
+    //       "common",
+    //       "tagextractor",
+    //       "navbar",
+    //       "channelId",
+    //       "footer",
+    //     ])),
+//       },
+//     };
+//   } catch (error) {
+//     console.error("Error fetching data:", error);
+    
+//     // Fallback props in case of error
+//     return {
+//       props: {
+//         meta: {
+//           title: "Default Title",
+//           description: "Default Description",
+//           image: "",
+//           url: baseUrl,
+//         },
+//         faqs: [],
+//         relatedTools: [],
+//         existingContent: "",
+//         reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
+//         hreflangs: [
+//           { rel: "alternate", hreflang: "x-default", href: baseUrl },
+//           { rel: "alternate", hreflang: "en", href: baseUrl },
+//         ],
+//         ...(await serverSideTranslations(locale, [
+//           "common",
+//           "tagextractor",
+//           "navbar",
+//           "channelId",
+//           "footer",
+//         ])),
+//       },
+//     };
+//   }
+// }
+
 export async function getServerSideProps({ req, locale }) {
-  const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : "http";
-  const apiUrl = `${protocol}://${host}/api/content?category=channel-id-finder&language=${locale}`;
+  // Determine protocol
+  const protocol =
+    req.headers["x-forwarded-proto"]?.split(",")[0] ||
+    (req.connection.encrypted ? "https" : "http");
+  const host = req.headers.host || "your-default-domain.com";
+  
+  // Define base URL (language-specific part added here)
+  const basePath = `${protocol}://${host}/tools/channel-id-finder`;
+  const baseUrl = locale === "en" ? basePath : `${protocol}://${host}/${locale}/tools/channel-id-finder`;
+  
+  // Define content and header API URLs
+  const contentApiUrl = `${protocol}://${host}/api/content?category=channel-id-finder&language=${locale}`;
+  const headerApiUrl = `${protocol}://${host}/api/heading`;
 
   try {
-    const contentResponse = await fetch(apiUrl);
+    // Fetch content and header data in parallel
+    const [contentResponse, headerResponse] = await Promise.all([
+      fetch(contentApiUrl),
+      fetch(headerApiUrl),
+    ]);
 
-    if (!contentResponse.ok) {
-      throw new Error("Failed to fetch content");
+    if (!contentResponse.ok || !headerResponse.ok) {
+      throw new Error("Failed to fetch data from APIs");
     }
 
     const contentData = await contentResponse.json();
+    const headerData = await headerResponse.json();
+
+    // Extract header content and localized data with fallbacks
+    const headerContent = headerData[0]?.content || "";
+    const localeData = contentData.translations?.[locale] || {};
+
+    // Meta information with fallback defaults
     const meta = {
-      title: contentData.translations[locale]?.title || "",
-      description: contentData.translations[locale]?.description || "",
-      image: contentData.translations[locale]?.image || "",
-      url: `${protocol}://${host}`,
+      title: localeData.title || "Default Title",
+      description: localeData.description || "Default description",
+      image: localeData.image || "",
+      url: baseUrl, // Canonical URL includes language-specific path if needed
     };
 
+    // Extract reactions with default values
+    const reactions = localeData.reactions || {
+      likes: 0,
+      unlikes: 0,
+      reports: [],
+      users: {},
+    };
+
+    // Generate hreflang links
+    const translations = contentData.translations || {};
+    const hreflangs = [
+      { rel: "alternate", hreflang: "x-default", href: `${basePath}` },
+      { rel: "alternate", hreflang: "en", href: `${basePath}` },
+      ...Object.keys(translations)
+        .filter((lang) => lang !== "en")
+        .map((lang) => ({
+          rel: "alternate",
+          hreflang: lang,
+          href: `${protocol}://${host}/${lang}/tools/channel-id-finder`,
+        })),
+    ];
+
+    // Return props for the page
     return {
       props: {
         meta,
         faqs: contentData.translations[locale]?.faqs || [],
         relatedTools: contentData.translations[locale]?.relatedTools || [],
         existingContent: contentData.translations[locale]?.content || "",
-        reactions: contentData.translations[locale]?.reactions || { likes: 0, unlikes: 0, reports: [], users: {} },
+        reactions,
+        hreflangs, // Pass hreflang data as props
         ...(await serverSideTranslations(locale, [
           "common",
           "tagextractor",
@@ -1034,23 +1190,40 @@ export async function getServerSideProps({ req, locale }) {
     };
   } catch (error) {
     console.error("Error fetching data:", error);
+
+    // Fallback props in case of error
     return {
       props: {
-        meta: {},
-        faqs: [],
-        relatedTools: [],
+        meta: {
+          title: "Default Title",
+          description: "Default description",
+          image: "",
+          url: `${protocol}://${host}/tools/channel-id-finder${locale === "en" ? "" : `/${locale}`}`,
+        },
+        reactions: {
+          likes: 0,
+          unlikes: 0,
+          reports: [],
+          users: {},
+        },
         existingContent: "",
-        reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
+        faqList: [],
+        relatedTools: [],
+        headerContent: "",
+        translations: {},
+        hreflangs: [
+          { rel: "alternate", hreflang: "x-default", href: `${basePath}` },
+          { rel: "alternate", hreflang: "en", href: `${basePath}` },
+        ],
         ...(await serverSideTranslations(locale, [
-          "common",
-          "tagextractor",
-          "navbar",
           "channelId",
+          "navbar",
           "footer",
         ])),
       },
     };
   }
 }
+
 
 export default ChannelIdFinder;

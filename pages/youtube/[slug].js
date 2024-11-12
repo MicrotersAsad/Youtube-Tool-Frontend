@@ -11,16 +11,24 @@ import { useTranslation } from "react-i18next";
 import { ReplaceShortcodes } from "../../components/replaceShortcodes";
 import { FaCheckCircle } from "react-icons/fa";
 import Skeleton from "react-loading-skeleton";
-import 'react-loading-skeleton/dist/skeleton.css';
+import "react-loading-skeleton/dist/skeleton.css";
 
 const getImage = (translation) => translation.image || "";
 const getTitle = (translation) => translation.title || "Untitled Post";
-const getDescription = (translation) => translation.description || "Description not available.";
+const getDescription = (translation) =>
+  translation.description || "Description not available.";
 const getMetaTitle = (translation) => translation.metaTitle || "Blog Post";
 const getMetaDescription = (translation) => translation.metaDescription || "";
-const getContent = (translation) => translation.content || "Content not available in this language.";
+const getContent = (translation) =>
+  translation.content || "Content not available in this language.";
 
-const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) => {
+const BlogPost = ({
+  initialBlog,
+  authorData,
+  relatedBlogs,
+  initialShortcodes,
+  availableLanguages,
+}) => {
   const { t } = useTranslation("blog");
   const router = useRouter();
   const { slug } = router.query;
@@ -34,40 +42,54 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
   const translation = blog?.translations ? blog.translations[locale] : null;
 
   if (!translation) {
-    return <p className="text-red-500">{t("No content available for this language.")}</p>;
-  }
-
-  const content = getContent(translation);
-  const contentWithShortcodes = <ReplaceShortcodes content={content} shortcodes={shortcodes} />;
-
-  const categoryName = translation.category || "Blog";
-  const publicationDate = blog?.createdAt ? format(new Date(blog.createdAt), "MMMM dd, yyyy") : "";
-
-  if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <ClipLoader size={50} color={"#123abc"} loading={loading} />
-      </div>
+      <p className="text-red-500">
+        {t("No content available for this language.")}
+      </p>
     );
   }
 
-  if (!blog) {
-    return <p className="text-red-500">{t("No content available for this language.")}</p>;
-  }
+  const content = getContent(translation);
+  const contentWithShortcodes = (
+    <ReplaceShortcodes content={content} shortcodes={shortcodes} />
+  );
+
+  const categoryName = translation.category || "Blog";
+  const publicationDate = blog?.createdAt
+    ? format(new Date(blog.createdAt), "MMMM dd, yyyy")
+    : "";
+  const metaUrl = `https://${
+    typeof window !== "undefined" ? window.location.host : "localhost:3000"
+  }/youtube/${slug}`;
+
+  // Generate hreflang URLs
+  const hreflangs = availableLanguages.map((lang) => ({
+    rel: "alternate",
+    hreflang: lang,
+    href: lang === "en" ? metaUrl : `${metaUrl.replace(/\/$/, "")}/${lang}`,
+  }));
+
 
   return (
     <div className="relative">
       <Head>
         <title>{getMetaTitle(translation)}</title>
         <meta name="description" content={getMetaDescription(translation)} />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="index, follow" />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href={metaUrl} />
         <meta property="og:type" content="article" />
         <meta property="og:title" content={getMetaTitle(translation)} />
         <meta property="og:description" content={getMetaDescription(translation)} />
         <meta property="og:image" content={getImage(translation)} />
-        <meta property="og:url" content={`https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3001'}/youtube/${slug}`} />
+        <meta property="og:url" content={metaUrl} />
         <meta property="og:site_name" content="ytubetools" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={getMetaTitle(translation)} />
+        <meta name="twitter:domain" content="ytubetools.com" />
+        <meta property="twitter:url" content={metaUrl} />
         <meta name="twitter:description" content={getMetaDescription(translation)} />
         <meta name="twitter:image" content={getImage(translation)} />
         <meta name="author" content={author?.name || "ytubetools"} />
@@ -75,51 +97,64 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
         <meta property="article:author" content={author?.name || ""} />
         <meta property="article:section" content={categoryName} />
         <meta property="article:tag" content={categoryName} />
+
+        {/* Alternate hreflang Tags for SEO */}
+        {hreflangs.map((hreflang, index) => (
+          <link key={index} rel={hreflang.rel} hreflang={hreflang.hreflang} href={hreflang.href} />
+        ))}
       </Head>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
-        <h1 className="md:text-5xl text-xl font-bold mb-2">
-          {loading ? <Skeleton width={300} /> : getTitle(translation)}
-        </h1>
-        <p className="text-gray-600 mb-4">
-          {loading ? <Skeleton count={2} /> : getDescription(translation)}
-        </p>
-        <h6>{t('Updated on')} {publicationDate || <Skeleton width={100} />}</h6>
+      {/* Render loading or error state if applicable */}
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <ClipLoader size={50} color={"#123abc"} loading={loading} />
+        </div>
+      ) : !blog ? (
+        <p className="text-red-500">{t("No content available for this language.")}</p>
+      ) : (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
+          <h1 className="md:text-5xl text-xl font-bold mb-2">
+            {getTitle(translation)}
+          </h1>
+          <p className="text-gray-600 mb-4">
+            {getDescription(translation)}
+          </p>
+          <h6>{t("Updated on")} {publicationDate}</h6>
 
-        <div className="overflow-hidden sm:rounded-lg mb-8">
-          <div className="border-b border-gray-200">
-            <div className="my-4 result-content">
-              {loading ? <Skeleton count={10} /> : contentWithShortcodes}
-            </div>
-
-            <div className="my-8">
-              <h2 className="text-2xl font-bold mb-4">{t("Other Countries Highest Earning Youtubers")}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3">
-                {loading
-                  ? Array(3).fill(0).map((_, i) => (
-                      <Skeleton key={i} width="100%" height={20} />
-                    ))
-                  : relatedBlogs.map((relatedBlog, index) => {
-                      const relatedTranslation = relatedBlog.translations[locale];
-                      if (!relatedTranslation) return null;  // Skip if translation is missing
-                      
-                      return (
-                        <div key={index}>
-                          <a href={`/youtube/${relatedTranslation.slug}`} className="flex items-center space-x-3">
-                            <FaCheckCircle className="text-green-600 text-lg mb-2" />
-                            <h5 className="text-lg font-semibold text-blue-600 hover:underline truncate whitespace-nowrap overflow-hidden">
-                              {getTitle(relatedTranslation)}
-                            </h5>
-                          </a>
-                        </div>
-                      );
-                    })}
+          <div className="overflow-hidden sm:rounded-lg mb-8">
+            <div className="border-b border-gray-200">
+              <div className="my-4 result-content">
+                {contentWithShortcodes}
               </div>
-            </div>
 
-            <Comments slug={slug} />
+              <div className="my-8">
+                <h2 className="text-2xl font-bold mb-4">
+                  {t("Other Countries Highest Earning Youtubers")}
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3">
+                  {relatedBlogs.map((relatedBlog, index) => {
+                    const relatedTranslation = relatedBlog.translations[locale];
+                    if (!relatedTranslation) return null; // Skip if translation is missing
+
+                    return (
+                      <div key={index}>
+                        <a href={`/youtube/${relatedTranslation.slug}`} className="flex items-center space-x-3">
+                          <FaCheckCircle className="text-green-600 text-lg mb-2" />
+                          <h5 className="text-lg font-semibold text-blue-600 hover:underline truncate whitespace-nowrap overflow-hidden">
+                            {getTitle(relatedTranslation)}
+                          </h5>
+                        </a>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <Comments slug={slug} />
+            </div>
           </div>
         </div>
+      )}
         <style jsx global>{`
           .result-content h2 {
             padding-top: 12px !important;
@@ -184,14 +219,16 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
           }
         `}</style>
       </div>
-    </div>
+    
   );
 };
+
 
 export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
-    const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
+    const protocol =
+      req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
     const host = req.headers.host || "localhost:3000";
     const apiUrl = `${protocol}://${host}/api/youtube`;
 
@@ -199,12 +236,17 @@ export async function getServerSideProps({ locale, params, req }) {
     const blogs = data;
 
     const blog = blogs.find((blog) =>
-      Object.values(blog.translations).some((translation) => translation.slug === slug)
+      Object.values(blog.translations).some(
+        (translation) => translation.slug === slug
+      )
     );
 
     if (!blog || !blog.translations[locale]) {
       return { notFound: true };
     }
+
+    // Determine available languages from translations
+    const availableLanguages = Object.keys(blog.translations);
 
     const authorResponse = await axios.get(`${protocol}://${host}/api/authors`);
     const authors = authorResponse.data;
@@ -214,11 +256,14 @@ export async function getServerSideProps({ locale, params, req }) {
       (b) =>
         b !== blog &&
         Object.values(b.translations).some(
-          (translation) => translation.category === blog.translations[locale]?.category
+          (translation) =>
+            translation.category === blog.translations[locale]?.category
         )
     );
 
-    const shortcodesResponse = await axios.get(`${protocol}://${host}/api/shortcodes-tools`);
+    const shortcodesResponse = await axios.get(
+      `${protocol}://${host}/api/shortcodes-tools`
+    );
     const initialShortcodes = shortcodesResponse.data;
 
     return {
@@ -227,6 +272,7 @@ export async function getServerSideProps({ locale, params, req }) {
         authorData: { author: author || null },
         relatedBlogs: categoryBlogs,
         initialShortcodes,
+        availableLanguages, // Pass available languages
         ...(await serverSideTranslations(locale, ["blog", "navbar", "footer"])),
       },
     };

@@ -81,7 +81,7 @@ const Pagination = ({ totalPages, currentPage, setCurrentPage }) => {
   );
 };
 
-const BlogSection = ({ initialBlogs = [] }) => {
+const BlogSection = ({ initialBlogs = [],availableLanguages, metaUrl  }) => {
   const router = useRouter();
   const { category: selectedCategory } = router.query;
   const [loading, setLoading] = useState(!initialBlogs.length);
@@ -94,7 +94,15 @@ const BlogSection = ({ initialBlogs = [] }) => {
 
   const blogsPerPage = 9;
   const currentLanguage = i18n.language || 'en';
-
+  const hreflangs = [
+    { rel: "alternate", hreflang: "x-default", href: metaUrl }, // x-default for fallback
+    ...availableLanguages.map((lang) => ({
+      rel: "alternate",
+      hreflang: lang,
+      href: lang === 'en' ? metaUrl : `${metaUrl.replace(/\/$/, '')}/${lang}/youtube`,
+    })),
+  ];
+  
   const fetchCategories = useCallback(async () => {
     try {
       const response = await axios.get('/api/yt-categories');
@@ -209,11 +217,43 @@ const BlogSection = ({ initialBlogs = [] }) => {
   return (
     <div className="max-w-7xl container mx-auto px-4">
       <Head>
-        <title>Ytubetools - Enhance Your YouTube Experience</title>
-        <meta
-          name="description"
-          content="Explore our Article at Ytubetools for insights, tips, and tools designed to improve your YouTube content creation and viewer experience."
-        />
+      <title>Learn More About Youtubers | YtubeTools</title>
+  <meta name="description" content="Discover insights, tools, and information about YouTubers with YtubeTools. Learn more about popular creators, growth tips, and strategies to enhance your YouTube experience." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="index, follow" /> 
+
+  {/* Canonical URL */}
+  <link rel="canonical" href={metaUrl} />
+
+  {/* Open Graph Meta Tags */}
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={metaUrl} />
+  <meta property="og:title" content="Learn More About Youtubers | YtubeTools" />
+  <meta property="og:description" content="Discover insights and tools to learn more about popular YouTubers. Access exclusive resources to improve your YouTube knowledge and growth strategies with YtubeTools." />
+  <meta property="og:image" content="https://ytubetools.com/static/images/youtubers-og-image.jpg" />
+  <meta property="og:image:secure_url" content="https://ytubetools.com/static/images/youtubers-og-image.jpg" />
+  <meta property="og:site_name" content="YtubeTools" />
+  <meta property="og:locale" content="en_US" />
+
+  {/* Twitter Meta Tags */}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:domain" content="ytubetools.com" />
+  <meta property="twitter:url" content={metaUrl} />
+  <meta name="twitter:title" content="Learn More About Youtubers | YtubeTools" />
+  <meta name="twitter:description" content="Explore YtubeTools for information on popular YouTubers, growth tips, and strategies to enhance your YouTube journey." />
+  <meta name="twitter:image" content="https://ytubetools.com/static/images/youtubers-twitter-image.jpg" />
+  <meta name="twitter:site" content="@ytubetools" />
+  <meta name="twitter:image:alt" content="Learn More About Youtubers" />
+
+        {/* Alternate hreflang Tags for SEO */}
+        {hreflangs.map((hreflang, index) => (
+          <link
+            key={index}
+            rel={hreflang.rel}
+            hreflang={hreflang.hreflang}
+            href={hreflang.href}
+          />
+        ))}
       </Head>
 
       {loading ? (
@@ -317,30 +357,78 @@ const BlogSection = ({ initialBlogs = [] }) => {
   );
 };
 
+// export async function getServerSideProps({ locale, req }) {
+//   try {
+//     const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+//     const host = req.headers.host;
+//     const apiUrl = `${protocol}://${host}/api/youtube`;
+//     const { data } = await axios.get(apiUrl);
+
+//     const sortedData = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+//     return {
+//       props: {
+//         initialBlogs: sortedData,
+//         ...(await serverSideTranslations(locale, ['blog', 'navbar', 'footer'])),
+//       },
+//     };
+//   } catch (error) {
+//     console.error('Error in getServerSideProps:', error);
+//     return {
+//       props: {
+//         initialBlogs: [],
+//         ...(await serverSideTranslations(locale, ['blog', 'navbar', 'footer'])),
+//       },
+//     };
+//   }
+// }
 export async function getServerSideProps({ locale, req }) {
   try {
+    // Determine protocol and host to build the base URL
     const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
     const host = req.headers.host;
-    const apiUrl = `${protocol}://${host}/api/youtube`;
+    const baseUrl = `${protocol}://${host}`;
+
+    // Construct the active URL based on locale and request URL
+    // Exclude 'en' from the URL path to avoid "/en" in the meta URL
+    const metaUrl = locale === 'en' ? `${baseUrl}${req.url}` : `${baseUrl}/${locale}${req.url}`;
+
+    // Fetch blog data from API
+    const apiUrl = `${baseUrl}/api/youtube`;
     const { data } = await axios.get(apiUrl);
 
+    // Sort blogs by creation date
     const sortedData = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Determine available languages for blogs
+    const availableLanguages = Array.from(
+      new Set(
+        sortedData.flatMap((blog) => Object.keys(blog.translations || {}))
+      )
+    );
 
     return {
       props: {
         initialBlogs: sortedData,
+        availableLanguages, // Pass available languages as prop
+        metaUrl, // Pass the active URL as metaUrl
         ...(await serverSideTranslations(locale, ['blog', 'navbar', 'footer'])),
       },
     };
   } catch (error) {
     console.error('Error in getServerSideProps:', error);
+
     return {
       props: {
         initialBlogs: [],
+        availableLanguages: [],
+        metaUrl: locale === 'en' ? `${protocol}://${host}${req.url}` : `${protocol}://${host}/${locale}${req.url}`, // Fallback meta URL
         ...(await serverSideTranslations(locale, ['blog', 'navbar', 'footer'])),
       },
     };
   }
 }
+
+
 
 export default BlogSection;

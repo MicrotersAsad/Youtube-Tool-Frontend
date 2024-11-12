@@ -1,92 +1,108 @@
-import { i18n } from 'next-i18next';
+// pages/about.js
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Head from 'next/head';
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
+import { i18n } from '../next-i18next.config'; // Adjust this import path based on your project structure
 
-function About({existingContent }) {
-
-  
-  const [quillContent, setQuillContent] = useState(existingContent || '');
-  const [title, setTitle] = useState(existingContent || '');
-  const [description, setDescription] = useState(existingContent || '');
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const language = i18n.language;
-        const response = await fetch(`/api/about?lang=${language}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch content');
-        }
-        const data = await response.json();
-        setQuillContent(data?.content || '');
-        setTitle(data?.metaTitle || '');
-        setDescription(data?.metaDescription || '');
-        
-      } catch (error) {
-        console.error('Error fetching content');
-        setError('Failed to fetch content');
-      }
-    };
-
-    fetchContent();
-  }, [i18n.language]);
-
-  const handleQuillChange = useCallback((newContent) => {
-    setQuillContent(newContent);
-  }, []);
-
+function About({ existingContent, metaTitle, metaDescription, metaUrl, hreflangs }) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
       <Head>
-        <title>{title || 'About Us'}</title>
-        <meta name="description" content={description || 'About Page'} />
-        <meta property="og:url" content="https://ytubetools.com/about" />
-        <meta property="og:description" content={description || 'Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel\'s performance with advanced features and insights.'} />
+        {/* SEO Meta Tags */}
+        <title>{metaTitle}</title>
+        <meta name="description" content={metaDescription} />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="index, follow" />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href={metaUrl} />
+
+        {/* Open Graph Meta Tags */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={metaUrl} />
+        <meta property="og:title" content={metaTitle} />
+        <meta property="og:description" content={metaDescription} />
+        <meta property="og:image" content="/path/to/your/image.jpg" />
+        <meta property="og:image:secure_url" content="/path/to/your/image.jpg" />
+        <meta property="og:site_name" content="Ytubetools" />
+        <meta property="og:locale" content="en_US" />
+
+        {/* Twitter Meta Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:domain" content={metaUrl
+                .replace("/about", "")}
+            />
+        <meta property="twitter:url" content={metaUrl} />
+        <meta name="twitter:title" content={metaTitle} />
+        <meta name="twitter:description" content={metaDescription} />
+        <meta name="twitter:image" content="/path/to/your/image.jpg" />
+        <meta name="twitter:site" content="@ytubetools" />
+        <meta name="twitter:image:alt" content="Description of the image" />
+
+        {/* Alternate hreflang Tags for SEO */}
+        {hreflangs.map((hreflang, index) => (
+          <link
+            key={index}
+            rel="alternate"
+            hreflang={hreflang.hreflang}
+            href={hreflang.href}
+          />
+        ))}
       </Head>
       <div className="mt-10">
         <h1 className="text-center">About Us</h1>
-        <div dangerouslySetInnerHTML={{ __html: quillContent }} style={{ listStyleType: 'none' }}></div>
+        <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
       </div>
-      {error && <div className="text-red-500 mt-4">{error}</div>}
     </div>
   );
 }
 
+
 export async function getServerSideProps({ req, locale }) {
-  const host = req.headers.host;
   const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
-  const apiUrl = `${protocol}://${host}/api/about?language=${locale}`;
+  const host = req.headers.host || 'your-default-domain.com';
+  const baseUrl = `${protocol}://${host}`;
+  const aboutApiUrl = `${baseUrl}/api/about`;
 
-  try {
-    const contentResponse = await fetch(apiUrl);
+  // Prepare hreflangs based on actual content availability
+  const hreflangs = [];
 
-    if (!contentResponse.ok) {
-      throw new Error('Failed to fetch content');
+  for (const lang of i18n.locales) {
+    const url = `${aboutApiUrl}?lang=${lang}`;
+    const response = await fetch(url);
+    
+    if (response.ok) {
+      // If content exists for this language, add to hreflangs
+      hreflangs.push({
+        rel: "alternate",
+        hreflang: lang,
+        href: `${baseUrl}${lang === 'en' ? '/about' : `/${lang}/about`}`,
+      });
     }
-
-    const contentData = await contentResponse.json();
-
-
-
-    return {
-      props: {
-       
-        existingContent: contentData.content || '',
-        ...(await serverSideTranslations(locale, ['footer', 'navbar'])),
-      },
-    };
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    return {
-      props: {
-      
-        existingContent: '',
-        ...(await serverSideTranslations(locale, ['footer', 'navbar'])),
-      },
-    };
   }
+
+  // Add x-default hreflang tag as a fallback
+  hreflangs.unshift({
+    rel: "alternate",
+    hreflang: "x-default",
+    href: `${baseUrl}/about`,
+  });
+
+  // Fetch the content for the requested locale
+  const currentLocaleUrl = `${aboutApiUrl}?lang=${locale}`;
+  const contentResponse = await fetch(currentLocaleUrl);
+  const contentData = contentResponse.ok ? await contentResponse.json() : {};
+
+  return {
+    props: {
+      existingContent: contentData.content || '',
+      metaTitle: contentData.metaTitle || 'Default Title',
+      metaDescription: contentData.metaDescription || 'Default description',
+      metaUrl: `${baseUrl}${locale === 'en' ? '/about' : `/${locale}/about`}`,
+      hreflangs,
+      ...(await serverSideTranslations(locale, ['common', 'navbar', 'footer'])),
+    },
+  };
 }
 
 export default About;

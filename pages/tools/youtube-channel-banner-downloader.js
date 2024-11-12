@@ -28,7 +28,7 @@ const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const Banner = dynamic(() => import("../../components/Banner"), { ssr: false });
 
 
-const YtChannelDw =  ({ meta, reviews, content, relatedTools, faqs,reactions,translations}) => {
+const YtChannelDw =  ({ meta, reviews, content, relatedTools, faqs,reactions,hreflangs}) => {
   const { t } = useTranslation('banner');
   const { user, updateUserProfile } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -427,37 +427,70 @@ const YtChannelDw =  ({ meta, reviews, content, relatedTools, faqs,reactions,tra
 
         <div className="max-w-7xl mx-auto p-4">
         <Head>
-  <title>{meta?.title}</title>
-  <meta name="description" content={meta?.description} />
-  
-  {/* Open Graph Tags */}
-  <meta property="og:url" content={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-channel-banner-downloader`} />
-  <meta property="og:title" content={meta?.title} />
-  <meta property="og:description" content={meta?.description} />
-  <meta property="og:image" content={meta?.image || ""} />
-  
-  {/* Twitter Card Tags */}
-  <meta name="twitter:card" content={meta?.image || ""} />
-  <meta property="twitter:domain" content={meta?.url} />
-  <meta property="twitter:url" content={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-channel-banner-downloader`} />
-  <meta name="twitter:title" content={meta?.title} />
-  <meta name="twitter:description" content={meta?.description} />
-  <meta name="twitter:image" content={meta?.image || ""} />
-  
-  {/* hreflang and Alternate Language Links */}
-  <link rel="alternate" href={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-channel-banner-downloader`}  hrefLang="x-default" />
-  <link rel="alternate" href={`${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-channel-banner-downloader`}  hrefLang="en" />
-  {translations && Object.keys(translations).map(lang => (
-    lang !== 'en' && (
-      <link
-        key={lang}
-        rel="alternate"
-        hrefLang={lang}
-        href={`${meta?.url}/${lang}/tools/youtube-channel-banner-downloader`}
-      />
-    )
-  ))}
-</Head> 
+            {/* SEO Meta Tags */}
+            <title>{meta?.title}</title>
+            <meta name="description" content={meta?.description} />
+            <meta
+              name="viewport"
+              content="width=device-width, initial-scale=1.0"
+            />
+            <meta name="robots" content="index, follow" />
+
+            {/* Canonical URL */}
+            <link
+              rel="canonical"
+              href={`${meta?.url
+                .toLowerCase()
+                .replace("YouTube-Channel-Banner-Downloader", "youtube-channel-banner-downloader")}`}
+            />
+
+            {/* Open Graph Meta Tags */}
+            <meta property="og:type" content="website" />
+            <meta
+              property="og:url"
+              content={`${meta?.url
+                .toLowerCase()
+                .replace("YouTube-Channel-Banner-Downloader", "youtube-channel-banner-downloader")}`}
+            />
+            <meta property="og:title" content={meta?.title} />
+            <meta property="og:description" content={meta?.description} />
+            <meta property="og:image" content={meta?.image} />
+            <meta property="og:image:secure_url" content={meta?.image} />
+            <meta property="og:site_name" content="Ytubetools" />
+            <meta property="og:locale" content="en_US" />
+
+            {/* Twitter Meta Tags */}
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta
+              name="twitter:domain"
+              content={meta?.url
+                .replace("tools/YouTube-Channel-Banner-Downloader", "")}
+            />
+            <meta
+              property="twitter:url"
+              content={`${meta?.url
+                .toLowerCase()
+                .replace("YouTube-Channel-Banner-Downloader", "youtube-channel-banner-downloader")}`}
+            />
+            <meta name="twitter:title" content={meta?.title} />
+            <meta name="twitter:description" content={meta?.description} />
+            <meta name="twitter:image" content={meta?.image} />
+            <meta name="twitter:site" content="@ytubetools" />
+            <meta name="twitter:image:alt" content={meta?.imageAlt} />
+
+            {/* Alternate hreflang Tags for SEO */}
+            {hreflangs &&
+              hreflangs.map((hreflang, index) => (
+                <link
+                  key={index}
+                  rel={hreflang.rel}
+                  hreflang={hreflang.hreflang}
+                  href={`${hreflang.href
+                    .toLowerCase()
+                    .replace("YouTube-Channel-Banner-Downloader", "youtube-channel-banner-downloader")}`}
+                />
+              ))}
+          </Head>
   {/* JSON-LD Structured Data */}
   <Script id="webpage-structured-data" type="application/ld+json">
   {JSON.stringify({

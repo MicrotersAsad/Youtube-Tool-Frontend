@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import Head from 'next/head';
 
 import TagGenerator from "../public/tagGenerator.png";
 import TagExtractor from "../public/youtube-tag-extractor.png";
@@ -32,7 +33,7 @@ const SavedChannels = () => {
     { name: 'Youtube Description Generator', link: 'http://www.ytubetools.com/tools/description-generator', logo: DescriptionGenerator },
     { name: 'Youtube Title&Description Extractor', link: 'http://www.ytubetools.com/tools/youtube-title-and-description-extractor', logo: TitleDescriptionExtractor },
     { name: 'YouTube Channel Banner Downloader', link: 'http://www.ytubetools.com/tools/youtube-channel-banner-downloader', logo: BannerDownloader },
-    { name: 'YouTube Hashtag Geneartor', link: 'http://www.ytubetools.com/tools/youtube-hashtag-generator', logo: Hashtag },
+    { name: 'YouTube Hashtag Generator', link: 'http://www.ytubetools.com/tools/youtube-hashtag-generator', logo: Hashtag },
     { name: 'YouTube Channel Logo Downloader', link: 'http://www.ytubetools.com/tools/youtube-channel-logo-downloader', logo: LogoDownloader },
     { name: 'YouTube Thumbnail Downloader', link: 'http://www.ytubetools.com/tools/youtube-thumbnail', logo: ThumbnailDownloader },
     { name: 'YouTube Channel ID Finder', link: 'http://www.ytubetools.com/tools/channel-id-finder', logo: ChannelIDFinder },
@@ -45,50 +46,80 @@ const SavedChannels = () => {
     { name: 'Youtube Comment Picker', link: 'http://www.ytubetools.com/tools/youtube-comment-picker', logo: Comment },
     { name: 'YouTube Keyword Research', link: 'http://www.ytubetools.com/tools/keyword-research', logo: research },
     { name: 'YouTube Embed Code Generator', link: 'http://www.ytubetools.com/tools/youtube-embed-code-generator', logo: Embed },
-    // Add more tools as needed
   ];
 
   useEffect(() => {
     const channels = JSON.parse(localStorage.getItem('savedChannels') || '[]');
 
-    // Enhance saved channels with tool details from allTools
     const enhancedChannels = channels.map(channel => {
       const matchedTool = allTools.find(tool => tool.name === channel.toolName);
       return {
         ...channel,
         toolImage: matchedTool ? matchedTool.logo.src : null,
-        toolUrl: matchedTool ? matchedTool.link : channel.toolUrl, // Default to saved URL if no match
+        toolUrl: matchedTool ? matchedTool.link : channel.toolUrl,
       };
     });
 
     setSavedChannels(enhancedChannels);
   }, []);
 
-  if (savedChannels.length === 0) {
-    return <p>No channels saved.</p>;
-  }
   return (
-    <div className="related-tools max-w-7xl mx-auto   mt-10 shadow-lg  p-5 rounded-lg bg-white">
+    <div className="related-tools max-w-7xl mx-auto mt-10 shadow-lg p-5 rounded-lg bg-white">
+      <Head>
+        {/* SEO Meta Tags */}
+        <title>Saved YouTube Tools - Ytubetools</title>
+        <meta name="description" content="Access all your saved YouTube tools and channels from Ytubetools in one place for easy access." />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="index, follow" />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href="http://www.ytubetools.com/saved-channels" />
+
+        {/* Open Graph Meta Tags */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="http://www.ytubetools.com/saved-channels" />
+        <meta property="og:title" content="Saved YouTube Tools - Ytubetools" />
+        <meta property="og:description" content="Access all your saved YouTube tools and channels from Ytubetools in one place for easy access." />
+        <meta property="og:image" content="https://www.ytubetools.com/images/saved-channels-thumbnail.jpg" />
+        <meta property="og:image:secure_url" content="https://www.ytubetools.com/images/saved-channels-thumbnail.jpg" />
+        <meta property="og:site_name" content="Ytubetools" />
+        <meta property="og:locale" content="en_US" />
+
+        {/* Twitter Meta Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:domain" content="ytubetools.com" />
+        <meta property="twitter:url" content="http://www.ytubetools.com/saved-channels" />
+        <meta name="twitter:title" content="Saved YouTube Tools - Ytubetools" />
+        <meta name="twitter:description" content="Access all your saved YouTube tools and channels from Ytubetools in one place for easy access." />
+        <meta name="twitter:image" content="https://www.ytubetools.com/images/saved-channels-thumbnail.jpg" />
+        <meta name="twitter:site" content="@ytubetools" />
+        <meta name="twitter:image:alt" content="Saved YouTube Tools Thumbnail" />
+      </Head>
+
       <h2 className="text-2xl font-bold mb-5 text-center">Saved Tools</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {savedChannels.map((channel, index) => (
-          <a
-            key={index}
-            href={channel.toolUrl}
-            className="flex items-center border rounded-lg p-4 bg-gray-100 transition"
-          >
-            {channel.toolImage && (
-              <Image
-                src={channel.toolImage}
-                alt={`${channel.toolName} Icon`}
-                width={64}
-                height={64}
-                className="mr-4"
-              />
-            )}
-            <span className="text-blue-600 font-medium">{channel.toolName}</span>
-          </a>
-        ))}
+        {savedChannels.length > 0 ? (
+          savedChannels.map((channel, index) => (
+            <a
+              key={index}
+              href={channel.toolUrl}
+              className="flex items-center border rounded-lg p-4 bg-gray-100 transition"
+            >
+              {channel.toolImage && (
+                <Image
+                  src={channel.toolImage}
+                  alt={`${channel.toolName} Icon`}
+                  width={64}
+                  height={64}
+                  className="mr-4"
+                />
+              )}
+              <span className="text-blue-600 font-medium">{channel.toolName}</span>
+            </a>
+          ))
+        ) : (
+          <p>No channels saved.</p>
+        )}
       </div>
     </div>
   );

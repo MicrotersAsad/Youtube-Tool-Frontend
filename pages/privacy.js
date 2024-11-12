@@ -1,99 +1,108 @@
-/* eslint-disable react/no-unescaped-entities */
-import { i18n } from 'next-i18next';
+
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import React, { useCallback, useEffect, useState } from 'react';
 import Head from 'next/head';
+import React from 'react';
+import { i18n } from '../next-i18next.config'; // Adjust this import path based on your project structure
 
-const Privacy = ({ existingContent, meta }) => {
-  const [quillContent, setQuillContent] = useState(existingContent || '');
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [title, setTitle] = useState(existingContent || '');
-  const [description, setDescription] = useState(existingContent || '');
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const language = i18n.language;
-        const response = await fetch(`/api/privacy?lang=${language}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch content');
-        }
-        const data = await response.json();
-        setQuillContent(data?.content || '');
-        setTitle(data?.metaTitle || '');
-        setDescription(data?.metaDescription || '')
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching content:', error.message);
-        setError(error.message);
-        setLoading(false);
-      }
-    };
-
-    fetchContent();
-  }, [i18n.language]);
-
-
-
+function Privacy({ existingContent, metaTitle, metaDescription, metaUrl, hreflangs }) {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
       <Head>
-        <title>{title || 'Privacy & Policy'}</title>
-        <meta name="description" content={description || 'Privacy & Policy'} />
-        <meta property="og:url" content="https://ytubetools.com/privacy" />
-        <meta property="og:description" content={description || 'Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel\'s performance with advanced features and insights.'} />
+        {/* SEO Meta Tags */}
+        <title>{metaTitle}</title>
+        <meta name="description" content={metaDescription} />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="index, follow" />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href={metaUrl} />
+
+        {/* Open Graph Meta Tags */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={metaUrl} />
+        <meta property="og:title" content={metaTitle} />
+        <meta property="og:description" content={metaDescription} />
+        <meta property="og:image" content="/path/to/your/image.jpg" />
+        <meta property="og:image:secure_url" content="/path/to/your/image.jpg" />
+        <meta property="og:site_name" content="Ytubetools" />
+        <meta property="og:locale" content="en_US" />
+
+        {/* Twitter Meta Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:domain" content={metaUrl
+                .replace("/privacy", "")}
+            />
+        <meta property="twitter:url" content={metaUrl} />
+        <meta name="twitter:title" content={metaTitle} />
+        <meta name="twitter:description" content={metaDescription} />
+        <meta name="twitter:image" content="/path/to/your/image.jpg" />
+        <meta name="twitter:site" content="@ytubetools" />
+        <meta name="twitter:image:alt" content="Description of the image" />
+
+        {/* Alternate hreflang Tags for SEO */}
+        {hreflangs.map((hreflang, index) => (
+          <link
+            key={index}
+            rel="alternate"
+            hreflang={hreflang.hreflang}
+            href={hreflang.href}
+          />
+        ))}
       </Head>
-      <div className="content pt-6 pb-5">
-        {error && <div className="text-red-500">Error: {error}</div>}
-        <div dangerouslySetInnerHTML={{ __html: quillContent }}></div>
+      <div className="mt-10">
+        <h1 className="text-center">Privacy & Policy</h1>
+        <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
       </div>
     </div>
   );
-};
+}
+
 
 export async function getServerSideProps({ req, locale }) {
-  const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] === 'https' ? 'https' : "http";
-  const apiUrl = `${protocol}://${host}/api/privacy?language=${locale}`;
+  const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+  const host = req.headers.host || 'your-default-domain.com';
+  const baseUrl = `${protocol}://${host}`;
+  const privacyApiUrl = `${baseUrl}/api/privacy`;
 
-  try {
-    const contentResponse = await fetch(apiUrl);
+  // Prepare hreflangs based on actual content availability
+  const hreflangs = [];
 
-    if (!contentResponse.ok) {
-      throw new Error("Failed to fetch content");
+  for (const lang of i18n.locales) {
+    const url = `${privacyApiUrl}?lang=${lang}`;
+    const response = await fetch(url);
+    
+    if (response.ok) {
+      // If content exists for this language, add to hreflangs
+      hreflangs.push({
+        rel: "alternate",
+        hreflang: lang,
+        href: `${baseUrl}${lang === 'en' ? '/privacy' : `/${lang}/privacy`}`,
+      });
     }
-
-    const contentData = await contentResponse.json();
-
-    const meta = {
-      title: "Privacy Policy - YouTube Tools",
-      description: "This is the privacy policy page for YouTube Tools.",
-      image: "https://your-site.com/path-to-your-image.jpg",
-      url: `${protocol}://${host}/privacy`
-    };
-
-    return {
-      props: {
-        meta,
-        existingContent: contentData.content || '',
-        ...(await serverSideTranslations(locale, ['footer', 'navbar'])),
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    return {
-      props: {
-        meta: {
-          title: "Privacy Policy - YouTube Tools",
-          description: "This is the privacy policy page for YouTube Tools.",
-          image: "https://your-site.com/path-to-your-image.jpg",
-          url: `${protocol}://${host}/privacy`
-        },
-        existingContent: '',
-        ...(await serverSideTranslations(locale, ['footer', 'navbar'])),
-      },
-    };
   }
+
+  // Add x-default hreflang tag as a fallback
+  hreflangs.unshift({
+    rel: "alternate",
+    hreflang: "x-default",
+    href: `${baseUrl}/privacy`,
+  });
+
+  // Fetch the content for the requested locale
+  const currentLocaleUrl = `${privacyApiUrl}?lang=${locale}`;
+  const contentResponse = await fetch(currentLocaleUrl);
+  const contentData = contentResponse.ok ? await contentResponse.json() : {};
+
+  return {
+    props: {
+      existingContent: contentData.content || '',
+      metaTitle: contentData.metaTitle || 'Default Title',
+      metaDescription: contentData.metaDescription || 'Default description',
+      metaUrl: `${baseUrl}${locale === 'en' ? '/privacy' : `/${locale}/privacy`}`,
+      hreflangs,
+      ...(await serverSideTranslations(locale, ['privacy', 'navbar', 'footer'])),
+    },
+  };
 }
 
 export default Privacy;

@@ -117,11 +117,36 @@ function LoginOrResetPassword() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <Head>
-      <title>Login To YtubeTools</title>
-            <meta name="description" content='Login To YtubeTools' />
-            <meta property="og:url" content='https://ytubetools.com/register'/>
-           
-      </Head>
+  {/* SEO Meta Tags for Login Page */}
+  <title>Login | Ytubetools</title>
+  <meta name="description" content="Log in to Ytubetools to access your account and manage your YouTube tools. Enhance your YouTube experience with our suite of tools designed for creators and viewers alike." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="index, follow" /> 
+  {/* Canonical URL */}
+  <link rel="canonical" href="https://ytubetools.com/login" />
+
+  {/* Open Graph Meta Tags */}
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://ytubetools.com/login" />
+  <meta property="og:title" content="Login | Ytubetools" />
+  <meta property="og:description" content="Log in to Ytubetools to access your account and manage your YouTube tools. Join now to get started with exclusive features for creators and viewers." />
+  <meta property="og:image" content="https://ytubetools.com/static/images/login-og-image.jpg" />
+  <meta property="og:image:secure_url" content="https://ytubetools.com/static/images/login-og-image.jpg" />
+  <meta property="og:site_name" content="Ytubetools" />
+  <meta property="og:locale" content="en_US" />
+
+  {/* Twitter Meta Tags */}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:domain" content="ytubetools.com" />
+  <meta property="twitter:url" content="https://ytubetools.com/login" />
+  <meta name="twitter:title" content="Login | Ytubetools" />
+  <meta name="twitter:description" content="Log in to Ytubetools and unlock features to enhance your YouTube experience. Manage your account, access tools, and more." />
+  <meta name="twitter:image" content="https://ytubetools.com/static/images/login-twitter-image.jpg" />
+  <meta name="twitter:site" content="@ytubetools" />
+  <meta name="twitter:image:alt" content="Ytubetools Login" />
+</Head>
+
+      
       <div className="min-h-screen flex flex-col md:flex-row items-stretch">
         <ToastContainer />
         {/* Illustration Section */}

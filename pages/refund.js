@@ -1,11 +1,10 @@
-// /* eslint-disable react/no-unescaped-entities */
-// pages/terms.js
+
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Head from 'next/head';
 import React from 'react';
 import { i18n } from '../next-i18next.config'; // Adjust this import path based on your project structure
 
-function Terms({ existingContent, metaTitle, metaDescription, metaUrl, hreflangs }) {
+function Refund({ existingContent, metaTitle, metaDescription, metaUrl, hreflangs }) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-5">
       <Head>
@@ -31,7 +30,7 @@ function Terms({ existingContent, metaTitle, metaDescription, metaUrl, hreflangs
         {/* Twitter Meta Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:domain" content={metaUrl
-                .replace("/terms", "")}
+                .replace("/refund", "")}
             />
         <meta property="twitter:url" content={metaUrl} />
         <meta name="twitter:title" content={metaTitle} />
@@ -51,7 +50,7 @@ function Terms({ existingContent, metaTitle, metaDescription, metaUrl, hreflangs
         ))}
       </Head>
       <div className="mt-10">
-        <h1 className="text-center">Terms Of Service</h1>
+        <h1 className="text-center">Refund & Policy</h1>
         <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
       </div>
     </div>
@@ -63,13 +62,13 @@ export async function getServerSideProps({ req, locale }) {
   const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
   const host = req.headers.host || 'your-default-domain.com';
   const baseUrl = `${protocol}://${host}`;
-  const termsApiUrl = `${baseUrl}/api/terms`;
+  const refundApiUrl = `${baseUrl}/api/refund`;
 
   // Prepare hreflangs based on actual content availability
   const hreflangs = [];
 
   for (const lang of i18n.locales) {
-    const url = `${termsApiUrl}?lang=${lang}`;
+    const url = `${refundApiUrl}?lang=${lang}`;
     const response = await fetch(url);
     
     if (response.ok) {
@@ -77,7 +76,7 @@ export async function getServerSideProps({ req, locale }) {
       hreflangs.push({
         rel: "alternate",
         hreflang: lang,
-        href: `${baseUrl}${lang === 'en' ? '/terms' : `/${lang}/terms`}`,
+        href: `${baseUrl}${lang === 'en' ? '/refund' : `/${lang}/refund`}`,
       });
     }
   }
@@ -86,11 +85,11 @@ export async function getServerSideProps({ req, locale }) {
   hreflangs.unshift({
     rel: "alternate",
     hreflang: "x-default",
-    href: `${baseUrl}/terms`,
+    href: `${baseUrl}/refund`,
   });
 
   // Fetch the content for the requested locale
-  const currentLocaleUrl = `${termsApiUrl}?lang=${locale}`;
+  const currentLocaleUrl = `${refundApiUrl}?lang=${locale}`;
   const contentResponse = await fetch(currentLocaleUrl);
   const contentData = contentResponse.ok ? await contentResponse.json() : {};
 
@@ -99,11 +98,11 @@ export async function getServerSideProps({ req, locale }) {
       existingContent: contentData.content || '',
       metaTitle: contentData.metaTitle || 'Default Title',
       metaDescription: contentData.metaDescription || 'Default description',
-      metaUrl: `${baseUrl}${locale === 'en' ? '/terms' : `/${locale}/terms`}`,
+      metaUrl: `${baseUrl}${locale === 'en' ? '/refund' : `/${locale}/refund`}`,
       hreflangs,
-      ...(await serverSideTranslations(locale, ['terms', 'navbar', 'footer'])),
+      ...(await serverSideTranslations(locale, ['refund', 'navbar', 'footer'])),
     },
   };
 }
 
-export default Terms;
+export default Refund;

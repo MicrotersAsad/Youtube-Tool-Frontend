@@ -57,26 +57,46 @@ export default function Contact() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-       <Head>
-            <title>Contact Us</title>
-            <meta
-              name="description"
-              content="Pricing Page"
-            />
-            <meta
-              property="og:url"
-              content="https://ytubetools.com/contact"
-            />
-         
-            <meta
-              property="og:description"
-              content={
-                "Enhance your YouTube experience with our comprehensive suite of tools designed for creators and viewers alike. Extract video summaries, titles, descriptions, and more. Boost your channel's performance with advanced features and insights"
-              }
-            />
-          
-          
-            </Head>
+   <Head>
+  {/* SEO Meta Tags for Contact Us Page */}
+  <title>Contact Us | Ytubetools</title>
+  <meta
+    name="description"
+    content="Get in touch with the Ytubetools team. Whether you need support, have questions, or want to learn more about our YouTube tools, we're here to help!"
+  />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="index, follow" /> 
+
+  {/* Canonical URL */}
+  <link rel="canonical" href="https://ytubetools.com/contact" />
+
+  {/* Open Graph Meta Tags */}
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://ytubetools.com/contact" />
+  <meta property="og:title" content="Contact Us | Ytubetools" />
+  <meta
+    property="og:description"
+    content="Have questions or need assistance? Contact Ytubetools for support, inquiries, and more information about our suite of tools designed for YouTube creators and viewers."
+  />
+  <meta property="og:image" content="https://ytubetools.com/static/images/contact-og-image.jpg" />
+  <meta property="og:image:secure_url" content="https://ytubetools.com/static/images/contact-og-image.jpg" />
+  <meta property="og:site_name" content="Ytubetools" />
+  <meta property="og:locale" content="en_US" />
+
+  {/* Twitter Meta Tags */}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:domain" content="ytubetools.com" />
+  <meta property="twitter:url" content="https://ytubetools.com/contact" />
+  <meta name="twitter:title" content="Contact Us | Ytubetools" />
+  <meta
+    name="twitter:description"
+    content="Reach out to Ytubetools for help, support, and more information about our YouTube tools tailored for creators and viewers."
+  />
+  <meta name="twitter:image" content="https://ytubetools.com/static/images/contact-twitter-image.jpg" />
+  <meta name="twitter:site" content="@ytubetools" />
+  <meta name="twitter:image:alt" content="Contact Ytubetools" />
+</Head>
+
       <div className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-lg flex">
         <div className="w-1/2 pr-6 hidden md:block">
           <Image src={contact} alt="Contact Us" className="w-full h-full object-cover rounded-lg" />

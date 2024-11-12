@@ -1,4 +1,3 @@
-// BlogPost.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/router";
@@ -13,7 +12,7 @@ import ReactDOMServer from "react-dom/server";
 import { format } from "date-fns";
 import AuthorInfo from "../../components/AuthorCard";
 import { useTranslation } from "react-i18next";
-import { ReplaceShortcodes } from "../../components/replaceShortcodes"; // Updated import for ReplaceShortcodes
+import { ReplaceShortcodes } from "../../components/replaceShortcodes";
 import { FaFacebook, FaLinkedin, FaTwitter } from "react-icons/fa";
 import Image from "next/image";
 
@@ -31,7 +30,7 @@ const insertTocBeforeFirstHeading = (content, tocHtml) => {
   return `${beforeFirstHeading}${tocHtml}${afterFirstHeading}`;
 };
 
-const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) => {
+const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes, metaUrl, hreflangs }) => {
   const { t } = useTranslation("blog");
   const router = useRouter();
   const { slug } = router.query;
@@ -77,13 +76,11 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
   const tocHtml = toc ? ReactDOMServer.renderToStaticMarkup(<TableOfContents headings={toc} />) : "";
   const contentWithToc = insertTocBeforeFirstHeading(updatedContent, tocHtml);
 
-  // Update to use ReplaceShortcodes component for rendering shortcodes in content
   const contentWithShortcodes = (
     <ReplaceShortcodes content={contentWithToc} shortcodes={shortcodes} />
   );
 
   const categoryName = translation.category || "Blog";
-
   const publicationDate = blog?.createdAt ? format(new Date(blog.createdAt), "MMMM dd, yyyy") : "";
 
   if (loading) {
@@ -101,8 +98,34 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
   return (
     <div className="relative">
       <Head>
-        <title>{getMetaTitle(translation)}|ytubetools</title>
+        <title>{getMetaTitle(translation)} | YtubeTools</title>
         <meta name="description" content={getMetaDescription(translation) || ""} />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="index, follow" />
+        
+        {/* Canonical URL */}
+        <link rel="canonical" href={metaUrl} />
+
+        {/* Open Graph Meta Tags */}
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={metaUrl} />
+        <meta property="og:title" content={getMetaTitle(translation)} />
+        <meta property="og:description" content={getMetaDescription(translation)} />
+        <meta property="og:image" content={translation.image || "/default-image.jpg"} />
+        <meta property="og:site_name" content="YtubeTools" />
+        <meta property="og:locale" content={locale} />
+
+        {/* Twitter Meta Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@ytubetools" />
+        <meta name="twitter:title" content={getMetaTitle(translation)} />
+        <meta name="twitter:description" content={getMetaDescription(translation)} />
+        <meta name="twitter:image" content={translation.image || "/default-image.jpg"} />
+        
+        {/* hreflang Links */}
+        {hreflangs.map((hreflang, index) => (
+          <link key={index} rel={hreflang.rel} hreflang={hreflang.hreflang} href={hreflang.href} />
+        ))}
       </Head>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
@@ -115,10 +138,7 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
 
             <div className=" overflow-hidden sm:rounded-lg mb-8">
               <div className="border-b border-gray-200">
-                {/* Render processed content with shortcodes */}
-             
-<div className="my-4 result-content">{contentWithShortcodes}</div>
-
+                <div className="my-4 result-content">{contentWithShortcodes}</div>
 
                 {/* Author Information */}
                 <div className="p-6 mb-3 bg-blue-50 md:w-full rounded-lg shadow-md">
@@ -213,6 +233,7 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes }) 
   );
 };
 
+
 export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
@@ -250,6 +271,22 @@ export async function getServerSideProps({ locale, params, req }) {
       };
     }
 
+    // Define meta URL
+    const metaUrl = `${protocol}://${host}/${locale === "en" ? "" : `${locale}/`}blog/${slug}`;
+
+    // Define available languages for hreflang tags
+    const availableLanguages = Object.keys(blog.translations);
+
+    // Construct hreflang tags
+    const hreflangs = [
+      { rel: "alternate", hreflang: "x-default", href: metaUrl },
+      ...availableLanguages.map((lang) => ({
+        rel: "alternate",
+        hreflang: lang,
+        href: lang === "en" ? metaUrl : `${protocol}://${host}/${lang}/blog/${slug}`,
+      })),
+    ];
+
     const authorResponse = await axios.get(`${protocol}://${host}/api/authors`);
     const authors = authorResponse.data;
 
@@ -275,8 +312,6 @@ export async function getServerSideProps({ locale, params, req }) {
 
     const shortcodesResponse = await axios.get(`${protocol}://${host}/api/shortcodes-tools`);
     const initialShortcodes = shortcodesResponse.data;
-    console.log(initialShortcodes);
-    
 
     return {
       props: {
@@ -288,6 +323,8 @@ export async function getServerSideProps({ locale, params, req }) {
         },
         relatedBlogs: categoryBlogs,
         initialShortcodes,
+        metaUrl, // Pass meta URL to component
+        hreflangs, // Pass hreflangs to component
         ...(await serverSideTranslations(locale, ["blog", "navbar", "footer"])),
       },
     };
@@ -298,5 +335,6 @@ export async function getServerSideProps({ locale, params, req }) {
     };
   }
 }
+
 
 export default BlogPost;
