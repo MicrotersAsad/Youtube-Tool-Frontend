@@ -27,7 +27,24 @@ export const config = {
   },
 };
 
+// CORS Middleware
+function corsMiddleware(req, res) {
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', '*'); // Update '*' to a specific origin if needed
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Handle OPTIONS preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return true;
+  }
+  return false;
+}
+
 const handler = async (req, res) => {
+  if (corsMiddleware(req, res)) return; // Apply CORS middleware and handle OPTIONS preflight
+
   const { method } = req;
 
   switch (method) {
@@ -52,27 +69,10 @@ const handler = async (req, res) => {
 // Multer middleware to handle file upload
 const uploadMiddleware = upload.single('image');
 
-// const handleGet = async (req, res) => {
-//   const { category, language } = req.query;
-//   const { db } = await connectToDatabase();
-
-//   if (!category || !language) {
-//     return res.status(400).json({ message: 'Category and language are required' });
-//   }
-
-//   const result = await db.collection('content').findOne({ category, [`translations.${language}`]: { $exists: true } });
-
-//   if (!result) {
-//     return res.status(404).json({ message: 'Content not found' });
-//   }
-
-//   res.status(200).json(result);
-// };
 const handleGet = async (req, res) => {
   const { category, language } = req.query;
   const { db } = await connectToDatabase();
 
-  // If no category and language provided, return count of all documents
   if (!category && !language) {
     try {
       const count = await db.collection('content').countDocuments();
