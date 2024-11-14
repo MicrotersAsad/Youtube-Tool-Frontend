@@ -26,18 +26,22 @@ export default async function handler(req, res) {
         return res.status(429).json({ message: 'Too many failed attempts. Try again later.' });
       }
 
-      // Verify reCAPTCHA
-      const reCaptchaResponse = await fetch(`https://www.google.com/recaptcha/api/siteverify`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: `secret=${process.env.GOOGLE_RECAPTCHA_SECRET}&response=${recaptchaToken}`
-      });
-      const reCaptchaData = await reCaptchaResponse.json();
+      // Check if request is from localhost and skip reCAPTCHA verification if it is
+      const isLocalhost = ipAddress === '127.0.0.1' || ipAddress === '::1';
+      if (!isLocalhost) {
+        // Verify reCAPTCHA for non-localhost requests
+        const reCaptchaResponse = await fetch(`https://www.google.com/recaptcha/api/siteverify`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: `secret=${process.env.GOOGLE_RECAPTCHA_SECRET}&response=${recaptchaToken}`
+        });
+        const reCaptchaData = await reCaptchaResponse.json();
 
-      if (!reCaptchaData.success) {
-        return res.status(400).json({ message: 'reCAPTCHA verification failed' });
+        if (!reCaptchaData.success) {
+          return res.status(400).json({ message: 'reCAPTCHA verification failed' });
+        }
       }
 
       const user = await db.collection('user').findOne({ email });
@@ -67,12 +71,15 @@ export default async function handler(req, res) {
 
       // IP Location using ipinfo.io
       let country = 'Unknown';
-      if (ipAddress && ipAddress !== '::1' && ipAddress !== '127.0.0.1') {
+      let city = 'Unknown';
+      if (!isLocalhost) {
         const geoResponse = await fetch(`https://ipinfo.io/${ipAddress}?token=${process.env.IPINFO_API_TOKEN}`);
         const geoData = await geoResponse.json();
         country = geoData.country || 'Unknown';
+        city = geoData.city || 'Unknown';
       } else {
         country = 'Localhost';
+        city = 'Localhost';
       }
 
       await db.collection('login_logs').insertOne({
@@ -81,6 +88,7 @@ export default async function handler(req, res) {
         ipAddress,
         browser,
         os,
+        city,
         country,
         timestamp: new Date(),
       });
@@ -92,6 +100,7 @@ export default async function handler(req, res) {
           ipAddress,
           browser,
           os,
+          city,
           country,
         },
       });

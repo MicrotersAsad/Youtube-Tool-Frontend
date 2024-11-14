@@ -61,8 +61,8 @@ const UserLog = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-        <div className=" p-6 rounded-lg">
-          <h2 className="text-2xl font-normal text-gray-800 mb-6 text-center">
+        <div className=" p-6 rounded-lg shadow-lg bg-white">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
             User Login History
           </h2>
           <div className="flex justify-end mb-4">
@@ -87,20 +87,20 @@ const UserLog = () => {
             <div className="text-center py-10 text-gray-500">Loading...</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full  overflow-hidden">
+              <table className="min-w-full bg-white border border-gray-200">
                 <thead className="bg-gradient-to-r from-blue-500 to-blue-700 text-white">
                   <tr>
                     <th className="py-3 px-4 text-left text-xs font-normal uppercase tracking-wider">
                       User
                     </th>
                     <th className="py-3 px-4 text-left text-xs font-normal uppercase tracking-wider">
-                      Login at
+                      Login At
                     </th>
                     <th className="py-3 px-4 text-left text-xs font-normal uppercase tracking-wider">
                       IP
                     </th>
                     <th className="py-3 px-4 text-left text-xs font-normal uppercase tracking-wider">
-                      Location
+                      Location (City | Country)
                     </th>
                     <th className="py-3 px-4 text-left text-xs font-normal uppercase tracking-wider">
                       Browser | OS
@@ -114,13 +114,13 @@ const UserLog = () => {
                         key={user._id}
                         className="bg-white border-b transition duration-300 ease-in-out hover:bg-blue-50"
                       >
-                        <td className="text-gray-900 font-medium">
+                        <td className="text-gray-900 font-medium py-3 px-4">
                           <div className="flex flex-col items-start">
                             <span className="font-normal">{user.userName}</span>
-                            <span className="text-blue-600 text-sm">@username</span>
+                            <span className="text-blue-600 text-sm">@{user.userName}</span>
                           </div>
                         </td>
-                        <td className="text-gray-800">
+                        <td className="text-gray-800 py-3 px-4">
                           {new Date(user.timestamp).toLocaleDateString()}{' '}
                           {new Date(user.timestamp).toLocaleTimeString('en-US', {
                             hour: '2-digit',
@@ -132,17 +132,17 @@ const UserLog = () => {
                             {formatDistanceToNow(new Date(user.timestamp), { addSuffix: true })}
                           </span>
                         </td>
-                        <td className="text-blue-600 font-normal">
+                        <td className="text-blue-600 font-normal py-3 px-4">
                           <a href={`http://ipinfo.io/${user.ipAddress}`} target="_blank" rel="noopener noreferrer">
                             {user.ipAddress}
                           </a>
                         </td>
-                        <td className="text-gray-800">
+                        <td className="text-gray-800 py-3 px-4">
                           <div className="flex flex-col">
-                            <span>{user.country}</span>
+                            <span>{user.city || 'Unknown'}, {user.country || 'Unknown'}</span>
                           </div>
                         </td>
-                        <td className="text-gray-800">
+                        <td className="text-gray-800 py-3 px-4">
                           <div className="flex flex-col items-start">
                             <span className="font-normal">{user.browser}</span>
                             <span className="text-gray-500">{user.os}</span>
