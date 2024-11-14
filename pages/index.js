@@ -1247,44 +1247,35 @@ export default function Home({
 }
 
 export async function getServerSideProps({ req, locale }) {
-  // Determine protocol
   const protocol =
     req.headers["x-forwarded-proto"]?.split(",")[0] ||
-    (req.connection.encrypted ? "https" : "http");
+    (req.connection?.encrypted ? "https" : "http") ||
+    "https"; // fallback to https
   const host = req.headers.host || "your-default-domain.com";
-  const baseUrl = `${protocol}://${host}`;
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || `${protocol}://${host}`;
   const contentApiUrl = `${baseUrl}/api/content?category=tagGenerator&language=${locale}`;
   const headerApiUrl = `${baseUrl}/api/heading`;
 
   try {
-    // Fetch content and header data in parallel
     const [contentResponse, headerResponse] = await Promise.all([
       fetch(contentApiUrl),
       fetch(headerApiUrl),
     ]);
 
-    if (!contentResponse.ok || !headerResponse.ok) {
-      throw new Error("Failed to fetch data from APIs");
-    }
-
-    const contentData = await contentResponse.json();
-    const headerData = await headerResponse.json();
-
-    // Extract header content and localized data with fallbacks
+    // Fetching content and header data with fallback
+    const contentData = contentResponse.ok ? await contentResponse.json() : { translations: {} };
+    const headerData = headerResponse.ok ? await headerResponse.json() : [{ content: "" }];
+    
     const headerContent = headerData[0]?.content || "";
     const localeData = contentData.translations?.[locale] || {};
-
-    // Extract translations
     const translations = contentData.translations || {};
 
-    // Meta information with fallback defaults
     const meta = {
       title: localeData.title || "Default Title",
       description: localeData.description || "Default description",
-      url: `${baseUrl}${locale === "en" ? "" : `/${locale}`}`, // Adjust canonical URL to include language dynamically
+      url: `${baseUrl}${locale === "en" ? "" : `/${locale}`}`,
     };
 
-    // Generate hreflang links
     const hreflangs = [
       { rel: "alternate", hreflang: "x-default", href: baseUrl },
       { rel: "alternate", hreflang: "en", href: baseUrl },
@@ -1297,7 +1288,6 @@ export async function getServerSideProps({ req, locale }) {
         })),
     ];
 
-    // Return all props for the page
     return {
       props: {
         initialMeta: meta,
@@ -1310,42 +1300,33 @@ export async function getServerSideProps({ req, locale }) {
         content: localeData.content || "",
         faqList: localeData.faqs || [],
         tools: localeData.relatedTools || [],
-        headerContent, // Pass header content to props
-        translations, // Include translations in props
-        hreflangs, // Pass hreflang links to props
-        ...(await serverSideTranslations(locale, [
-          "common",
-          "navbar",
-          "footer",
-        ])),
+        headerContent,
+        translations,
+        hreflangs,
+        ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
       },
     };
   } catch (error) {
     console.error("Error fetching data:", error);
 
-    // Fallback props in case of error
     return {
       props: {
         initialMeta: {
           title: "Default Title",
           description: "Default description",
-          url: `${baseUrl}${locale === "en" ? "" : `/${locale}`}`, // Adjust canonical URL to include language dynamically
+          url: `${baseUrl}${locale === "en" ? "" : `/${locale}`}`,
         },
         reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
         content: "",
         faqList: [],
         tools: [],
-        headerContent: "", // Empty header content as fallback
-        translations: {}, // Empty translations as fallback
+        headerContent: "",
+        translations: {},
         hreflangs: [
           { rel: "alternate", hreflang: "x-default", href: baseUrl },
           { rel: "alternate", hreflang: "en", href: baseUrl },
         ],
-        ...(await serverSideTranslations(locale, [
-          "common",
-          "navbar",
-          "footer",
-        ])),
+        ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
       },
     };
   }
