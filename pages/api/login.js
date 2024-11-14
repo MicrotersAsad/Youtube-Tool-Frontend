@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import geoip from 'geoip-lite';
+import fetch from 'node-fetch'; // Node.js environment for fetch
 import { connectToDatabase } from '../../utils/mongodb';
 
 export default async function handler(req, res) {
@@ -11,13 +11,13 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    if (!process.env.NEXT_PUBLIC_JWT_SECRET || !process.env.GOOGLE_RECAPTCHA_SECRET) {
+    if (!process.env.NEXT_PUBLIC_JWT_SECRET || !process.env.GOOGLE_RECAPTCHA_SECRET || !process.env.IPINFO_API_TOKEN) {
       return res.status(500).json({ message: 'Server configuration error' });
     }
 
     try {
       const { db } = await connectToDatabase();
-      const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+      const ipAddress = req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress;
 
       // Check failed login attempts
       const attemptRecord = await db.collection('failed_logins').findOne({ ipAddress });
@@ -65,10 +65,12 @@ export default async function handler(req, res) {
       const browser = userAgent.includes("Chrome") ? "Chrome" : userAgent.includes("Firefox") ? "Firefox" : "Other";
       const os = userAgent.includes("Windows") ? "Windows" : userAgent.includes("Mac") ? "MacOS" : "Other";
 
+      // IP Location using ipinfo.io
       let country = 'Unknown';
       if (ipAddress && ipAddress !== '::1' && ipAddress !== '127.0.0.1') {
-        const geo = geoip.lookup(ipAddress);
-        country = geo && geo.country ? geo.country : 'Unknown';
+        const geoResponse = await fetch(`https://ipinfo.io/${ipAddress}?token=${process.env.IPINFO_API_TOKEN}`);
+        const geoData = await geoResponse.json();
+        country = geoData.country || 'Unknown';
       } else {
         country = 'Localhost';
       }
