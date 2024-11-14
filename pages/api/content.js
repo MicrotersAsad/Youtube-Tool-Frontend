@@ -1,40 +1,26 @@
 import { connectToDatabase } from '../../utils/mongodb';
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
+import AWS from 'aws-sdk';
 
-// Create the 'uploads' folder if it doesn't exist
-const uploadFolder = path.join(process.cwd(), 'public', 'uploads');
-if (!fs.existsSync(uploadFolder)) {
-  fs.mkdirSync(uploadFolder, { recursive: true });
-}
-
-// Set up multer storage to save files to the 'uploads' directory
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'public/uploads/');
-  },
-  filename: function (req, file, cb) {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
+// AWS S3 কনফিগারেশন
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION,
 });
-
-const upload = multer({ storage });
 
 export const config = {
   api: {
-    bodyParser: false, // Disallow body parsing, let multer handle it
+    bodyParser: false,
   },
 };
 
 // CORS Middleware
 function corsMiddleware(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*'); // Update '*' to a specific origin if needed
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  // Handle OPTIONS preflight requests
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return true;
@@ -43,7 +29,7 @@ function corsMiddleware(req, res) {
 }
 
 const handler = async (req, res) => {
-  if (corsMiddleware(req, res)) return; // Apply CORS middleware and handle OPTIONS preflight
+  if (corsMiddleware(req, res)) return;
 
   const { method } = req;
 
@@ -58,7 +44,7 @@ const handler = async (req, res) => {
       await handlePut(req, res);
       break;
     case 'PATCH':
-      await handlePatch(req, res); // Use PATCH for reaction updates
+      await handlePatch(req, res);
       break;
     default:
       res.setHeader('Allow', ['GET', 'POST', 'PUT', 'PATCH']);
@@ -66,8 +52,16 @@ const handler = async (req, res) => {
   }
 };
 
-// Multer middleware to handle file upload
-const uploadMiddleware = upload.single('image');
+// S3 এ ফাইল আপলোডের জন্য ফাংশন
+const uploadFileToS3 = async (file) => {
+  const params = {
+    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Key: `uploads/${Date.now()}-${file.originalname}`,
+    Body: file.buffer,
+    ContentType: file.mimetype,
+  };
+  return s3.upload(params).promise();
+};
 
 const handleGet = async (req, res) => {
   const { category, language } = req.query;
@@ -98,11 +92,7 @@ const handleGet = async (req, res) => {
 };
 
 const handlePost = async (req, res) => {
-  uploadMiddleware(req, res, async (err) => {
-    if (err) {
-      return res.status(500).json({ message: 'File upload failed', error: err.message });
-    }
-
+  try {
     const { category, language } = req.query;
     const { content, title, description } = req.body;
     const faqs = req.body.faqs ? JSON.parse(req.body.faqs) : [];
@@ -112,7 +102,8 @@ const handlePost = async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    // Assuming req.file contains the file to upload
+    const imageUrl = req.file ? (await uploadFileToS3(req.file)).Location : null;
 
     const translation = {
       content,
@@ -135,15 +126,13 @@ const handlePost = async (req, res) => {
     }
 
     res.status(201).json({ message: 'Document inserted/updated successfully' });
-  });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to handle POST request', error: error.message });
+  }
 };
 
 const handlePut = async (req, res) => {
-  uploadMiddleware(req, res, async (err) => {
-    if (err) {
-      return res.status(500).json({ message: 'File upload failed', error: err.message });
-    }
-
+  try {
     const { category, language } = req.query;
     const { content, title, description } = req.body;
     const faqs = req.body.faqs ? JSON.parse(req.body.faqs) : [];
@@ -153,7 +142,7 @@ const handlePut = async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
+    const imageUrl = req.file ? (await uploadFileToS3(req.file)).Location : undefined;
 
     const translation = {
       content,
@@ -175,7 +164,9 @@ const handlePut = async (req, res) => {
     }
 
     res.status(200).json({ message: 'Document updated successfully' });
-  });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to handle PUT request', error: error.message });
+  }
 };
 
 export default handler;
