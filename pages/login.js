@@ -177,7 +177,7 @@ function LoginOrResetPassword() {
                     </span>
                   </div>
                   {!isLocalhost && (
-                    <ReCAPTCHA sitekey="YOUR_RECAPTCHA_SITE_KEY" onChange={onRecaptchaChange} />
+                    <ReCAPTCHA sitekey="6LfAPX4qAAAAAIO7NZ2OxvSL2V05TLXckrzdn_OQ" onChange={onRecaptchaChange} />
                   )}
                   <div className="text-right mb-4">
                     <a href="#" className="text-sm text-red-500 hover:underline" onClick={() => setIsResettingPassword(true)}>
