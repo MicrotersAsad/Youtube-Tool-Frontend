@@ -8,9 +8,10 @@ import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import Head from "next/head";
-
+import ReCAPTCHA from "react-google-recaptcha"; // Import Google reCAPTCHA
 function LoginOrResetPassword() {
   const { login, isAuthenticated,user } = useAuth(); // Assume this hook provides login method and isAuthenticated status
+  const [recaptchaToken, setRecaptchaToken] = useState(""); // New state for reCAPTCHA
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,8 +31,16 @@ function LoginOrResetPassword() {
       router.push("/");
     }
   }, [user, router]);
+  // Handle reCAPTCHA response
+  const onRecaptchaChange = (token) => {
+    setRecaptchaToken(token);
+  };
   const handleSubmitLogin = async (event) => {
     event.preventDefault();
+    if (!recaptchaToken) {
+      toast.error("Please complete the reCAPTCHA");
+      return;
+    }
     setError("");
     setIsLoading(true);
 
@@ -41,7 +50,7 @@ function LoginOrResetPassword() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, recaptchaToken }),
       });
 
       const data = await response.json();
@@ -49,12 +58,12 @@ function LoginOrResetPassword() {
         throw new Error(data.message || "Error logging in");
       }
 
-      login(data.token); // Assuming login method from context sets the token and updates auth status
-      localStorage.setItem("token", data.token); // Optionally store the token in localStorage
+      login(data.token);
+      localStorage.setItem("token", data.token);
       toast.success("Login successful!");
-      router.push("/"); // Redirect to the home page or dashboard
+      router.push("/");
     } catch (error) {
-      toast.error("Login error:", error.message);
+      toast.error("Login error: " + error.message);
       setError(error.message);
     } finally {
       setIsLoading(false);
@@ -223,6 +232,10 @@ function LoginOrResetPassword() {
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </span>
                 </div>
+                <ReCAPTCHA
+        sitekey="6LfAPX4qAAAAAIO7NZ2OxvSL2V05TLXckrzdn_OQ"
+        onChange={onRecaptchaChange}
+      />
                 <div className="text-right mb-4">
                   <a
                     href="#"
