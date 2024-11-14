@@ -144,6 +144,16 @@ function LoginOrResetPassword() {
   <meta name="twitter:image" content="https://ytubetools.com/static/images/login-twitter-image.jpg" />
   <meta name="twitter:site" content="@ytubetools" />
   <meta name="twitter:image:alt" content="Ytubetools Login" />
+   {/* JSON-LD Schema Markup */}
+   <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "http://schema.org",
+            "@type": "WebPage",
+            "name": "Login | Ytubetools",
+            "description": "Log in to Ytubetools to access your account and manage your YouTube tools. Join now to get started with exclusive features for creators and viewers.",
+            "url": "https://ytubetools.com/login",
+          })}
+        </script>
 </Head>
 
       
