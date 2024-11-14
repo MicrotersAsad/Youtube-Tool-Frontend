@@ -6,14 +6,15 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 module.exports = withBundleAnalyzer({
   reactStrictMode: true,
   i18n,
-  swcMinify: true, // Enable SWC-based minification
+  swcMinify: true,
   trailingSlash: false,
 
   async rewrites() {
+    // Rewrites API routes only if Amplify supports this configuration
     return [
       {
         source: '/uploads/:path*',
-        destination: '/public/uploads/:path*',
+        destination: '/uploads/:path*', // সরাসরি public ফোল্ডার থেকে পরিবেশন করবে
       },
     ];
   },
@@ -23,12 +24,12 @@ module.exports = withBundleAnalyzer({
       'yt3.ggpht.com',
       'yt3.googleusercontent.com',
       'i.ytimg.com',
-      'ytubetools.s3.eu-north-1.amazonaws.com'
+      'ytubetools.s3.eu-north-1.amazonaws.com',
     ],
   },
 
   webpack: (config, { isServer }) => {
-    // Enable filesystem caching for webpack builds
+    // Disable filesystem caching on serverless environments
     if (!isServer) {
       config.cache = {
         type: 'filesystem',
@@ -36,7 +37,10 @@ module.exports = withBundleAnalyzer({
           config: [__filename],
         },
       };
+    } else {
+      config.cache = false; // serverless environment এর জন্য caching off
     }
+
     return config;
   },
 });
