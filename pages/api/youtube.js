@@ -207,43 +207,76 @@ const handlePostRequest = async (req, res, youtube) => {
 
 const handleGetRequest = async (req, res, youtube, query) => {
   try {
-    if (query.id) {
-      const id = query.id;
+    const { id, slug, name, role, page = 1, limit = 10 } = query;
+
+    // Handle fetching by ID
+    if (id) {
       const result = await youtube.findOne({ _id: new ObjectId(id) });
 
       if (!result) {
         return res.status(404).json({ message: 'Resource not found' });
       }
 
-      res.status(200).json(result);
-    } else if (query.slug) {
-      const slug = query.slug;
+      return res.status(200).json(result);
+    }
+
+    // Handle fetching by slug
+    if (slug) {
       const result = await youtube.findOne({ 'translations.slug': slug });
 
       if (!result) {
         return res.status(404).json({ message: 'Resource not found' });
       }
 
-      res.status(200).json(result);
-    } else if (query.name && query.role) {
-      const filter = { [query.role]: query.name };
-      const filteredyoutube = await youtube.find(filter).toArray();
+      return res.status(200).json(result);
+    }
 
-      if (filteredyoutube.length === 0) {
+    // Handle filtering by name and role
+    if (name && role) {
+      const filter = { [role]: name };
+      const filteredResults = await youtube.find(filter).toArray();
+
+      if (filteredResults.length === 0) {
         return res.status(404).json({ message: 'No posts found for this person' });
       }
 
-      res.status(200).json(filteredyoutube);
-    } else {
-      const youtubeArray = await youtube.find({}).toArray();
-
-      res.status(200).json(youtubeArray);
+      return res.status(200).json(filteredResults);
     }
+
+    // Handle pagination for general data retrieval
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+
+    if (isNaN(pageNumber) || isNaN(limitNumber) || pageNumber <= 0 || limitNumber <= 0) {
+      return res.status(400).json({ message: 'Invalid pagination parameters' });
+    }
+
+    const offset = (pageNumber - 1) * limitNumber;
+
+    // Fetch paginated data and total count concurrently
+    const [data, total] = await Promise.all([
+      youtube.find({}).sort({ createdAt: -1 }).skip(offset).limit(limitNumber).toArray(),
+      youtube.countDocuments(),
+    ]);
+
+    const totalPages = Math.ceil(total / limitNumber);
+
+    // Return paginated response with metadata
+    res.status(200).json({
+      data,
+      meta: {
+        totalBlogs: total,
+        totalPages,
+        currentPage: pageNumber,
+      },
+    });
   } catch (error) {
     console.error('GET error:', error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
+
+
 
 const handlePutRequest = async (req, res, youtube, query) => {
   try {

@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 import Head from 'next/head';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
-import oops from "../public/opps.png";
+import oops from '../public/opps.png';
 
 const createSlug = (title) => {
   return title
@@ -32,11 +32,13 @@ const extractFirstImage = (content) => {
 const Pagination = ({ totalPages, currentPage, setCurrentPage }) => {
   const [pageGroup, setPageGroup] = useState(0);
   const pagesPerGroup = 5;
-  
+
   const paginationGroup = useMemo(() => {
     const start = pageGroup * pagesPerGroup;
-    return Array.from({ length: pagesPerGroup }, (_, i) => start + i + 1).filter(page => page <= totalPages);
-  }, [pageGroup, totalPages, pagesPerGroup]);
+    return Array.from({ length: pagesPerGroup }, (_, i) => start + i + 1).filter(
+      (page) => page <= totalPages
+    );
+  }, [pageGroup, totalPages]);
 
   const handleNextGroup = () => {
     if ((pageGroup + 1) * pagesPerGroup < totalPages) {
@@ -59,17 +61,17 @@ const Pagination = ({ totalPages, currentPage, setCurrentPage }) => {
       >
         Previous
       </button>
-      
       {paginationGroup.map((page) => (
         <button
           key={page}
           onClick={() => setCurrentPage(page)}
-          className={`px-4 py-2 rounded ${currentPage === page ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}
+          className={`px-4 py-2 rounded ${
+            currentPage === page ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'
+          }`}
         >
           {page}
         </button>
       ))}
-      
       <button
         onClick={handleNextGroup}
         disabled={(pageGroup + 1) * pagesPerGroup >= totalPages}
@@ -81,11 +83,12 @@ const Pagination = ({ totalPages, currentPage, setCurrentPage }) => {
   );
 };
 
-const BlogSection = ({ initialBlogs = [],availableLanguages, metaUrl  }) => {
+const BlogSection = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) => {
   const router = useRouter();
   const { category: selectedCategory } = router.query;
   const [loading, setLoading] = useState(!initialBlogs.length);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(meta?.currentPage || 1);
+  const [totalPages, setTotalPages] = useState(meta?.totalPages || 1);
   const [error, setError] = useState('');
   const [blogsData, setBlogsData] = useState(initialBlogs);
   const [categories, setCategories] = useState([]);
@@ -94,15 +97,7 @@ const BlogSection = ({ initialBlogs = [],availableLanguages, metaUrl  }) => {
 
   const blogsPerPage = 9;
   const currentLanguage = i18n.language || 'en';
-  const hreflangs = [
-    { rel: "alternate", hreflang: "x-default", href: metaUrl }, // x-default for fallback
-    ...availableLanguages.map((lang) => ({
-      rel: "alternate",
-      hreflang: lang,
-      href: lang === 'en' ? metaUrl : `${metaUrl.replace(/\/$/, '')}/${lang}/youtube`,
-    })),
-  ];
-  
+
   const fetchCategories = useCallback(async () => {
     try {
       const response = await axios.get('/api/yt-categories');
@@ -124,78 +119,31 @@ const BlogSection = ({ initialBlogs = [],availableLanguages, metaUrl  }) => {
     fetchCategories();
   }, [fetchCategories]);
 
-  const processedBlogs = useMemo(() => {
-    return blogsData
-      .map((blog) => {
-        const translation = blog.translations[currentLanguage];
-        if (!translation) {
-          return null;
-        }
-        const title = translation.title || '';
-        if (!translation.slug && title) {
-          translation.slug = createSlug(title);
-        }
-        if (!translation.image && translation.content) {
-          translation.image = extractFirstImage(translation.content);
-        }
-        return {
-          _id: blog._id,
-          createdAt: blog.createdAt,
-          author: blog.author,
-          ...blog,
-          translations: {
-            ...blog.translations,
-            [currentLanguage]: translation,
-          },
-        };
-      })
-      .filter((blog) => blog);
-  }, [blogsData, currentLanguage]);
+  const fetchBlogs = useCallback(
+    async (page = 1, category = '') => {
+      setLoading(true);
+      try {
+        const response = await axios.get(`/api/youtube`, {
+          params: { page, limit: blogsPerPage, category },
+        });
 
-  const categoryBlogs = useMemo(() => {
-    let blogs = processedBlogs;
-    if (currentCategory) {
-      blogs = blogs.filter(
-        (blog) =>
-          blog.translations[currentLanguage].category &&
-          createSlug(blog.translations[currentLanguage].category) === currentCategory
-      );
-    }
-    if (searchQuery) {
-      blogs = blogs.filter((blog) =>
-        (blog.translations[currentLanguage].title || '')
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase())
-      );
-    }
-    return blogs;
-  }, [currentCategory, processedBlogs, currentLanguage, searchQuery]);
+        const { data: blogs, meta } = response.data;
+        setBlogsData(blogs);
+        setCurrentPage(meta.currentPage);
+        setTotalPages(meta.totalPages);
+      } catch (error) {
+        console.error('Error fetching blogs:', error);
+        setError('Failed to fetch blogs.');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [blogsPerPage]
+  );
 
-  const currentBlogs = useMemo(() => {
-    return categoryBlogs.slice((currentPage - 1) * blogsPerPage, currentPage * blogsPerPage);
-  }, [categoryBlogs, currentPage, blogsPerPage]);
-
-  const totalPages = Math.ceil(categoryBlogs.length / blogsPerPage);
-
-  const fetchBlogs = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get('/api/youtube');
-      const sortedData = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      setBlogsData(sortedData);
-    } catch (error) {
-      console.error('Error fetching blogs:', error);
-      setError('Failed to fetch blogs.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-  
   useEffect(() => {
-    if (!initialBlogs.length) {
-      fetchBlogs();
-    }
-  }, [fetchBlogs, initialBlogs]);
+    fetchBlogs(currentPage, currentCategory);
+  }, [currentPage, currentCategory, fetchBlogs]);
 
   const handleCategoryChange = (categorySlug) => {
     setCurrentCategory(categorySlug);
@@ -209,6 +157,45 @@ const BlogSection = ({ initialBlogs = [],availableLanguages, metaUrl  }) => {
       { shallow: true }
     );
   };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
+    fetchBlogs(1, currentCategory, e.target.value);
+  };
+  const hreflangs = [
+    { rel: "alternate", hreflang: "x-default", href: metaUrl }, // x-default for fallback
+    ...availableLanguages.map((lang) => ({
+      rel: "alternate",
+      hreflang: lang,
+      href: lang === 'en' ? metaUrl : `${metaUrl.replace(/\/$/, '')}/${lang}/youtube`,
+    })),
+  ];
+  const processedBlogs = useMemo(() => {
+    return blogsData.map((blog) => {
+      const translation = blog.translations[currentLanguage];
+      if (!translation) {
+        return null;
+      }
+      const title = translation.title || '';
+      if (!translation.slug && title) {
+        translation.slug = createSlug(title);
+      }
+      if (!translation.image && translation.content) {
+        translation.image = extractFirstImage(translation.content);
+      }
+      return {
+        _id: blog._id,
+        createdAt: blog.createdAt,
+        author: blog.author,
+        ...blog,
+        translations: {
+          ...blog.translations,
+          [currentLanguage]: translation,
+        },
+      };
+    }).filter((blog) => blog);
+  }, [blogsData, currentLanguage]);
 
   if (error) {
     return <p className="text-red-500 text-center">{error}</p>;
@@ -257,26 +244,7 @@ const BlogSection = ({ initialBlogs = [],availableLanguages, metaUrl  }) => {
       </Head>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-          {Array(9).fill(0).map((_, i) => (
-            <div key={i} className="bg-white shadow-md rounded-lg p-4">
-              <Skeleton height={180} className="mb-4" />
-              <Skeleton height={20} width="60%" className="mb-2" />
-              <Skeleton height={15} width="80%" className="mb-2" />
-              <Skeleton height={15} width="40%" />
-            </div>
-          ))}
-        </div>
-      ) : currentBlogs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <Image src={oops} alt="No Blogs Available" width={200} height={200} />
-          <h2 className="text-2xl font-semibold text-gray-700 mt-6">
-            Oops! No Blogs Available
-          </h2>
-          <p className="text-gray-500 mt-4">
-            It seems like we don't have any articles in this language or category.
-          </p>
-        </div>
+        <Skeleton count={5} />
       ) : (
         <>
           <div className="flex justify-center mb-6 mt-6">
@@ -313,7 +281,7 @@ const BlogSection = ({ initialBlogs = [],availableLanguages, metaUrl  }) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-            {currentBlogs.map((blog) => {
+            {processedBlogs.map((blog) => {
               const content = blog.translations[currentLanguage];
               return (
                 <div key={blog._id} className="bg-white shadow-md rounded-lg overflow-hidden relative">
@@ -346,10 +314,10 @@ const BlogSection = ({ initialBlogs = [],availableLanguages, metaUrl  }) => {
             })}
           </div>
 
-          <Pagination 
-            totalPages={totalPages} 
-            currentPage={currentPage} 
-            setCurrentPage={setCurrentPage} 
+          <Pagination
+            totalPages={totalPages}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
           />
         </>
       )}
@@ -357,78 +325,38 @@ const BlogSection = ({ initialBlogs = [],availableLanguages, metaUrl  }) => {
   );
 };
 
-// export async function getServerSideProps({ locale, req }) {
-//   try {
-//     const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
-//     const host = req.headers.host;
-//     const apiUrl = `${protocol}://${host}/api/youtube`;
-//     const { data } = await axios.get(apiUrl);
+export async function getServerSideProps({ locale, req, query }) {
+  const { page = 1, category = '' } = query;
 
-//     const sortedData = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+  const host = req.headers.host;
+  const baseUrl = `${protocol}://${host}`;
 
-//     return {
-//       props: {
-//         initialBlogs: sortedData,
-//         ...(await serverSideTranslations(locale, ['blog', 'navbar', 'footer'])),
-//       },
-//     };
-//   } catch (error) {
-//     console.error('Error in getServerSideProps:', error);
-//     return {
-//       props: {
-//         initialBlogs: [],
-//         ...(await serverSideTranslations(locale, ['blog', 'navbar', 'footer'])),
-//       },
-//     };
-//   }
-// }
-export async function getServerSideProps({ locale, req }) {
   try {
-    // Determine protocol and host to build the base URL
-    const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
-    const host = req.headers.host;
-    const baseUrl = `${protocol}://${host}`;
-
-    // Construct the active URL based on locale and request URL
-    // Exclude 'en' from the URL path to avoid "/en" in the meta URL
-    const metaUrl = locale === 'en' ? `${baseUrl}${req.url}` : `${baseUrl}/${locale}${req.url}`;
-
-    // Fetch blog data from API
-    const apiUrl = `${baseUrl}/api/youtube`;
-    const { data } = await axios.get(apiUrl);
-
-    // Sort blogs by creation date
-    const sortedData = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-    // Determine available languages for blogs
-    const availableLanguages = Array.from(
-      new Set(
-        sortedData.flatMap((blog) => Object.keys(blog.translations || {}))
-      )
-    );
+    const { data } = await axios.get(`${baseUrl}/api/youtube`, {
+      params: { page, limit: 9, category },
+    });
 
     return {
       props: {
-        initialBlogs: sortedData,
-        availableLanguages, // Pass available languages as prop
-        metaUrl, // Pass the active URL as metaUrl
+        initialBlogs: data.data,
+        meta: data.meta,
+        availableLanguages: ['en', 'es'],
+        metaUrl: `${baseUrl}${req.url}`,
         ...(await serverSideTranslations(locale, ['blog', 'navbar', 'footer'])),
       },
     };
   } catch (error) {
     console.error('Error in getServerSideProps:', error);
-
     return {
       props: {
         initialBlogs: [],
+        meta: { currentPage: 1, totalPages: 0 },
         availableLanguages: [],
-        metaUrl: locale === 'en' ? `${protocol}://${host}${req.url}` : `${protocol}://${host}/${locale}${req.url}`, // Fallback meta URL
-        ...(await serverSideTranslations(locale, ['blog', 'navbar', 'footer'])),
+        metaUrl: `${baseUrl}${req.url}`,
       },
     };
   }
 }
-
-
 
 export default BlogSection;

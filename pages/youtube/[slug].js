@@ -1,4 +1,3 @@
-// BlogPost.jsx
 import React, { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/router";
@@ -10,17 +9,6 @@ import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { ReplaceShortcodes } from "../../components/replaceShortcodes";
 import { FaCheckCircle } from "react-icons/fa";
-import Skeleton from "react-loading-skeleton";
-import "react-loading-skeleton/dist/skeleton.css";
-
-const getImage = (translation) => translation.image || "";
-const getTitle = (translation) => translation.title || "Untitled Post";
-const getDescription = (translation) =>
-  translation.description || "Description not available.";
-const getMetaTitle = (translation) => translation.metaTitle || "Blog Post";
-const getMetaDescription = (translation) => translation.metaDescription || "";
-const getContent = (translation) =>
-  translation.content || "Content not available in this language.";
 
 const BlogPost = ({
   initialBlog,
@@ -34,64 +22,63 @@ const BlogPost = ({
   const { slug } = router.query;
   const { locale } = router;
 
-  const [blog, setBlog] = useState(initialBlog);
-  const [author, setAuthor] = useState(authorData?.author);
-  const [loading, setLoading] = useState(!initialBlog);
-  const [shortcodes, setShortcodes] = useState(initialShortcodes || []);
+  const [blog] = useState(initialBlog);
+  const [author] = useState(authorData?.author);
+  const [shortcodes] = useState(initialShortcodes || []);
 
-  const translation = blog?.translations ? blog.translations[locale] : null;
+  const translation = blog?.translations?.[locale];
 
   if (!translation) {
     return (
-      <p className="text-red-500">
-        {t("No content available for this language.")}
-      </p>
+      <div className="flex justify-center items-center h-64">
+        <p className="text-red-500">{t("No content available for this language.")}</p>
+      </div>
     );
   }
 
-  const content = getContent(translation);
-  const contentWithShortcodes = (
-    <ReplaceShortcodes content={content} shortcodes={shortcodes} />
-  );
+  const metaUrl = `https://${router.host || "localhost:3000"}/youtube/${slug}`;
 
-  const categoryName = translation.category || "Blog";
-  const publicationDate = blog?.createdAt
-    ? format(new Date(blog.createdAt), "MMMM dd, yyyy")
-    : "";
-  const metaUrl = `https://${
-    typeof window !== "undefined" ? window.location.host : "localhost:3000"
-  }/youtube/${slug}`;
-
-  // Generate hreflang URLs
   const hreflangs = availableLanguages.map((lang) => ({
     rel: "alternate",
     hreflang: lang,
     href: lang === "en" ? metaUrl : `${metaUrl.replace(/\/$/, "")}/${lang}`,
   }));
 
+  const content = translation.content || t("Content not available.");
+  const categoryName = translation.category || t("Blog");
+  const publicationDate = blog?.createdAt
+    ? format(new Date(blog.createdAt), "MMMM dd, yyyy")
+    : "";
+
+  const renderMetaTitle = () => translation.title || t("Blog Post");
+  const renderMetaDescription = () => translation.description || t("Read this amazing blog post.");
+  const renderMetaImage = () => translation.image || "/default.jpg";
+
+  const renderContentWithShortcodes = () => {
+    return <ReplaceShortcodes content={content} shortcodes={shortcodes} />;
+  };
 
   return (
     <div className="relative">
       <Head>
-        <title>{getMetaTitle(translation)}</title>
-        <meta name="description" content={getMetaDescription(translation)} />
+        <title>{renderMetaTitle()}</title>
+        <meta name="description" content={renderMetaDescription()} />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="robots" content="index, follow" />
 
         {/* Canonical URL */}
         <link rel="canonical" href={metaUrl} />
         <meta property="og:type" content="article" />
-        <meta property="og:title" content={getMetaTitle(translation)} />
-        <meta property="og:description" content={getMetaDescription(translation)} />
-        <meta property="og:image" content={getImage(translation)} />
+        <meta property="og:title" content={renderMetaTitle()} />
+        <meta property="og:description" content={renderMetaDescription()} />
+        <meta property="og:image" content={renderMetaImage()} />
         <meta property="og:url" content={metaUrl} />
         <meta property="og:site_name" content="ytubetools" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={getMetaTitle(translation)} />
-        <meta name="twitter:domain" content="ytubetools.com" />
+        <meta name="twitter:title" content={renderMetaTitle()} />
         <meta property="twitter:url" content={metaUrl} />
-        <meta name="twitter:description" content={getMetaDescription(translation)} />
-        <meta name="twitter:image" content={getImage(translation)} />
+        <meta name="twitter:description" content={renderMetaDescription()} />
+        <meta name="twitter:image" content={renderMetaImage()} />
         <meta name="author" content={author?.name || "ytubetools"} />
         <meta property="article:published_time" content={blog?.createdAt || ""} />
         <meta property="article:author" content={author?.name || ""} />
@@ -104,58 +91,48 @@ const BlogPost = ({
         ))}
       </Head>
 
-      {/* Render loading or error state if applicable */}
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <ClipLoader size={50} color={"#123abc"} loading={loading} />
-        </div>
-      ) : !blog ? (
-        <p className="text-red-500">{t("No content available for this language.")}</p>
-      ) : (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
-          <h1 className="md:text-5xl text-xl font-bold mb-2">
-            {getTitle(translation)}
-          </h1>
-          <p className="text-gray-600 mb-4">
-            {getDescription(translation)}
-          </p>
-          <h6>{t("Updated on")} {publicationDate}</h6>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
+        <h1 className="md:text-5xl text-xl font-bold mb-2">{translation.title}</h1>
+        <p className="text-gray-600 mb-4">{translation.description}</p>
+        <h6>{t("Updated on")} {publicationDate}</h6>
 
-          <div className="overflow-hidden sm:rounded-lg mb-8">
-            <div className="border-b border-gray-200">
-              <div className="my-4 result-content">
-                {contentWithShortcodes}
-              </div>
-
-              <div className="my-8">
-                <h2 className="text-2xl font-bold mb-4">
-                  {t("Other Countries Highest Earning Youtubers")}
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3">
-                  {relatedBlogs.map((relatedBlog, index) => {
-                    const relatedTranslation = relatedBlog.translations[locale];
-                    if (!relatedTranslation) return null; // Skip if translation is missing
-
-                    return (
-                      <div key={index}>
-                        <a href={`/youtube/${relatedTranslation.slug}`} className="flex items-center space-x-3">
-                          <FaCheckCircle className="text-green-600 text-lg mb-2" />
-                          <h5 className="text-lg font-semibold text-blue-600 hover:underline truncate whitespace-nowrap overflow-hidden">
-                            {getTitle(relatedTranslation)}
-                          </h5>
-                        </a>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <Comments slug={slug} />
+        <div className="overflow-hidden sm:rounded-lg mb-8">
+          <div className="border-b border-gray-200">
+            <div className="my-4 result-content">
+              {renderContentWithShortcodes()}
             </div>
+
+            <div className="my-8">
+              <h2 className="text-2xl font-bold mb-4">
+                {t("Other Countries Highest Earning Youtubers")}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {relatedBlogs.map((relatedBlog, index) => {
+                  const relatedTranslation = relatedBlog.translations[locale];
+                  if (!relatedTranslation) return null;
+
+                  return (
+                    <div key={index}>
+                      <a
+                        href={`/youtube/${relatedTranslation.slug}`}
+                        className="flex items-center space-x-3"
+                      >
+                        <FaCheckCircle className="text-green-600 text-lg mb-2" />
+                        <h5 className="text-lg font-semibold text-blue-600 hover:underline truncate">
+                          {relatedTranslation.title}
+                        </h5>
+                      </a>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <Comments slug={slug} />
           </div>
         </div>
-      )}
-        <style jsx global>{`
+      </div>
+      <style jsx global>{`
           .result-content h2 {
             padding-top: 12px !important;
           }
@@ -218,66 +195,59 @@ const BlogPost = ({
             }
           }
         `}</style>
-      </div>
-    
+    </div>
   );
 };
-
 
 export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
-    const protocol =
-      req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
+    const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
     const host = req.headers.host || "localhost:3000";
     const apiUrl = `${protocol}://${host}/api/youtube`;
 
-    const { data } = await axios.get(apiUrl);
-    const blogs = data;
+    const response = await axios.get(apiUrl);
+    const blogs = response.data.data;
 
-    const blog = blogs.find((blog) =>
-      Object.values(blog.translations).some(
-        (translation) => translation.slug === slug
-      )
-    );
-
-    if (!blog || !blog.translations[locale]) {
+    if (!Array.isArray(blogs)) {
+      console.error("Blogs is not an array:", blogs);
       return { notFound: true };
     }
 
-    // Determine available languages from translations
-    const availableLanguages = Object.keys(blog.translations);
+    const blog = blogs.find((b) =>
+      Object.values(b.translations || {}).some((translation) => translation.slug === slug)
+    );
 
+    if (!blog) return { notFound: true };
+
+    const availableLanguages = Object.keys(blog.translations || {});
     const authorResponse = await axios.get(`${protocol}://${host}/api/authors`);
     const authors = authorResponse.data;
-    const author = authors.find((author) => author.name === blog.author);
+    const author = authors.find((a) => a.name === blog.author);
 
-    const categoryBlogs = blogs.filter(
+    const relatedBlogs = blogs.filter(
       (b) =>
-        b !== blog &&
-        Object.values(b.translations).some(
-          (translation) =>
-            translation.category === blog.translations[locale]?.category
+        b._id !== blog._id &&
+        Object.values(b.translations || {}).some(
+          (translation) => translation.category === blog.translations[locale]?.category
         )
     );
 
-    const shortcodesResponse = await axios.get(
-      `${protocol}://${host}/api/shortcodes-tools`
-    );
+    const shortcodesResponse = await axios.get(`${protocol}://${host}/api/shortcodes-tools`);
     const initialShortcodes = shortcodesResponse.data;
 
     return {
       props: {
         initialBlog: blog,
         authorData: { author: author || null },
-        relatedBlogs: categoryBlogs,
+        relatedBlogs,
         initialShortcodes,
-        availableLanguages, // Pass available languages
+        availableLanguages,
         ...(await serverSideTranslations(locale, ["blog", "navbar", "footer"])),
       },
     };
   } catch (error) {
-    console.error("Error fetching blogs or authors:", error.message);
+    console.error("Error in getServerSideProps:", error.message);
     return { notFound: true };
   }
 }

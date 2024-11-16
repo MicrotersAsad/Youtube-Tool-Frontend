@@ -49,6 +49,8 @@ function Allarticle() {
         throw new Error('Failed to fetch article');
       }
       const data = await response.json();
+      console.log(data);
+      
       setarticle(data);
     } catch (error) {
       console.error('Error fetching article:', error.message);
@@ -212,7 +214,7 @@ function Allarticle() {
                   <th className="py-2 px-4 border-b">Title</th>
                   <th className="py-2 px-4 border-b">Category</th>
                   <th className="py-2 px-4 border-b">Languages</th>
-                  <th className="py-2 px-4 border-b">Views</th>
+                  <th className="py-2 px-4 border-b">View</th>
                   <th className="py-2 px-4 border-b">Actions</th>
                 </tr>
               </thead>
@@ -234,9 +236,9 @@ function Allarticle() {
                       {youtube.languages}
                     </td>
                     <td className="py-2 px-4 border-b">
-                      <span className="flex items-center">
-                        <FaEye className="mr-1" /> {youtube.viewCount}
-                      </span>
+                      <Link target='_blank' href={`/youtube/${youtube.slug}`}className="flex items-center">
+                        <FaEye className="mr-1" /> 
+                      </Link>
                     </td>
                     <td className="py-2 px-4 border-b flex items-center justify-center">
                       <Link href={`/dashboard/edit-article?id=${youtube._id}`}>
