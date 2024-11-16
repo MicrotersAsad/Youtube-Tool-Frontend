@@ -94,10 +94,12 @@ const BlogSection = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) =
   const [categories, setCategories] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentCategory, setCurrentCategory] = useState(selectedCategory || '');
-
+  const [search, setSearch] = useState('');
   const blogsPerPage = 9;
   const currentLanguage = i18n.language || 'en';
-
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+  };
   const fetchCategories = useCallback(async () => {
     try {
       const response = await axios.get('/api/yt-categories');
@@ -113,7 +115,7 @@ const BlogSection = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) =
     } catch (error) {
       console.error('Error fetching categories:', error.message);
     }
-  }, [currentLanguage]);
+  }, [currentLanguage]);;
 
   useEffect(() => {
     fetchCategories();
@@ -146,7 +148,7 @@ const BlogSection = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) =
   }, [currentPage, currentCategory, fetchBlogs]);
 
   const handleCategoryChange = (categorySlug) => {
-    setCurrentCategory(categorySlug);
+    setCurrentCategory(categorySlug || ''); // Default to empty string if "All" is selected
     setCurrentPage(1);
     router.push(
       {
@@ -157,12 +159,8 @@ const BlogSection = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) =
       { shallow: true }
     );
   };
-
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1);
-    fetchBlogs(1, currentCategory, e.target.value);
-  };
+  
+ 
   const hreflangs = [
     { rel: "alternate", hreflang: "x-default", href: metaUrl }, // x-default for fallback
     ...availableLanguages.map((lang) => ({
@@ -172,31 +170,55 @@ const BlogSection = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) =
     })),
   ];
   const processedBlogs = useMemo(() => {
-    return blogsData.map((blog) => {
-      const translation = blog.translations[currentLanguage];
-      if (!translation) {
-        return null;
-      }
-      const title = translation.title || '';
-      if (!translation.slug && title) {
-        translation.slug = createSlug(title);
-      }
-      if (!translation.image && translation.content) {
-        translation.image = extractFirstImage(translation.content);
-      }
-      return {
-        _id: blog._id,
-        createdAt: blog.createdAt,
-        author: blog.author,
-        ...blog,
-        translations: {
-          ...blog.translations,
-          [currentLanguage]: translation,
-        },
-      };
-    }).filter((blog) => blog);
-  }, [blogsData, currentLanguage]);
-
+    return blogsData
+      .map((blog) => {
+        const translation = blog.translations[currentLanguage];
+        if (!translation) return null;
+  
+        const { title, category } = translation;
+  
+        // Normalize category and currentCategory for comparison
+        const normalizedCategory = category ? category.toLowerCase().replace(/\s+/g, '-') : '';
+        const normalizedCurrentCategory = currentCategory ? currentCategory.toLowerCase() : '';
+  
+        // Generate slug if it doesn't exist
+        if (!translation.slug && title) {
+          translation.slug = createSlug(title);
+        }
+  
+        // Extract first image if it doesn't exist
+        if (!translation.image && translation.content) {
+          translation.image = extractFirstImage(translation.content);
+        }
+  
+        // Filter by search query
+        const searchMatch =
+          !search || (title && title.toLowerCase().includes(search.toLowerCase()));
+  
+        // Filter by category
+        const categoryMatch =
+          !currentCategory || normalizedCategory === normalizedCurrentCategory;
+  
+        // Exclude blogs that don't match search or category
+        if (!searchMatch || !categoryMatch) return null;
+  
+        return {
+          _id: blog._id,
+          createdAt: blog.createdAt,
+          author: blog.author,
+          ...blog,
+          translations: {
+            ...blog.translations,
+            [currentLanguage]: translation,
+          },
+        };
+      })
+      .filter((blog) => blog); // Remove null entries after filtering
+  }, [blogsData, currentLanguage, search, currentCategory]);
+  
+  
+ 
+  
   if (error) {
     return <p className="text-red-500 text-center">{error}</p>;
   }
@@ -249,13 +271,13 @@ const BlogSection = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) =
         <>
           <div className="flex justify-center mb-6 mt-6">
             <div className="relative w-full max-w-lg">
-              <input
-                type="text"
-                placeholder="Search blogs by title..."
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+            <input
+            type="text"
+            placeholder="Search by title"
+            value={search}
+            onChange={handleSearchChange}
+            className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-2 px-4 text-sm leading-tight focus:outline-none focus:border-blue-500 mb-3 md:mb-0"
+          />
               <FaSearch className="absolute top-3 right-3 text-gray-400" />
             </div>
           </div>
@@ -263,7 +285,9 @@ const BlogSection = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) =
           <div className="flex justify-center mb-4">
             <ul className="flex flex-wrap justify-center space-x-2">
               <li
-                className={`px-4 py-2 list-none rounded-full text-sm font-medium border ${!currentCategory ? 'bg-purple-700 text-white' : 'bg-white text-gray-700'}`}
+                className={`px-4 py-2 list-none rounded-full text-sm font-medium border ${
+                  !currentCategory ? 'bg-purple-700 text-white' : 'bg-white text-gray-700'
+                }`}
                 onClick={() => handleCategoryChange('')}
               >
                 <span className="cursor-pointer">All Posts</span>
@@ -271,7 +295,9 @@ const BlogSection = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) =
               {categories.map((category) => (
                 <li
                   key={category.slug}
-                  className={`px-4 py-2 list-none rounded-full text-sm font-medium border ${currentCategory === category.slug ? 'bg-purple-700 text-white' : 'bg-white text-gray-700'}`}
+                  className={`px-4 py-2 list-none rounded-full text-sm font-medium border ${
+                    currentCategory === category.slug ? 'bg-purple-700 text-white' : 'bg-white text-gray-700'
+                  }`}
                   onClick={() => handleCategoryChange(category.slug)}
                 >
                   <span className="cursor-pointer">{category.name}</span>
@@ -279,6 +305,7 @@ const BlogSection = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) =
               ))}
             </ul>
           </div>
+
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
             {processedBlogs.map((blog) => {

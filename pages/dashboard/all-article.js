@@ -1,29 +1,27 @@
-// pages/dashboard/all-article.js
 import React, { useState, useEffect } from 'react';
 import Layout from './layout';
 import Link from 'next/link';
 import { FaEdit, FaTrash, FaEye } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 function Allarticle() {
-  const [article, setarticle] = useState([]);
+  const [articles, setArticles] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(''); // Single select
-  const [selectedLanguage, setSelectedLanguage] = useState(''); // Single select
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState('');
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [articlePerPage] = useState(10);
+  const [articlesPerPage] = useState(10);
   const [loading, setLoading] = useState(false);
   const [showDrafts, setShowDrafts] = useState(false);
-  const [selectedarticle, setSelectedarticle] = useState([]);
+  const [selectedArticles, setSelectedArticles] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    fetcharticle();
+    fetchArticles(currentPage);
   }, [showDrafts]);
 
   const fetchCategories = async () => {
@@ -34,114 +32,134 @@ function Allarticle() {
         throw new Error('Failed to fetch categories');
       }
       const data = await response.json();
-      setCategories(data);
+      
+      // Map categories to include their translations
+      const formattedCategories = data.map((category) => {
+        const translation = category.translations.en || {}; // Adjust for the desired language
+        return {
+          _id: category._id,
+          name: translation.name || 'Unnamed Category',
+          slug: translation.slug || '',
+          description: translation.description || '',
+        };
+      });
+      setCategories(formattedCategories);
     } catch (error) {
       console.error('Error fetching categories:', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchArticles = async (page = 1) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/youtube?page=${page}&limit=${articlesPerPage}`);
+      if (!response.ok) throw new Error('Failed to fetch articles');
+      const responseData = await response.json();
+      if (Array.isArray(responseData.data)) {
+        setArticles(responseData.data);
+        setTotalPages(responseData.meta.totalPages);
+      } else {
+        setArticles([]);
+        setTotalPages(1);
+      }
+    } catch (error) {
+      console.error('Error fetching articles:', error.message);
+      setArticles([]);
+      setTotalPages(1);
     }
     setLoading(false);
   };
 
-  const fetcharticle = async () => {
-    setLoading(true);
+  const getCategoriesArray = (categories) => {
+    if (!categories) return [];
+    if (Array.isArray(categories)) return categories;
     try {
-      const response = await fetch('/api/youtube');
-      if (!response.ok) {
-        throw new Error('Failed to fetch article');
-      }
-      const data = await response.json();
-      console.log(data);
-      
-      setarticle(data);
-    } catch (error) {
-      console.error('Error fetching article:', error.message);
+      return JSON.parse(categories);
+    } catch {
+      return String(categories)
+        .split(',')
+        .map((cat) => cat.trim());
     }
-    setLoading(false);
   };
+
+  const filteredArticles = Array.isArray(articles)
+    ? articles.flatMap((article) => {
+        const translations = article.translations || {};
+        return Object.entries(translations).map(([language, translation]) => {
+          const categoryArray = getCategoriesArray(translation.category);
+          const categoryMatch =
+            !selectedCategory || selectedCategory === 'All' || categoryArray.includes(selectedCategory);
+          const languageMatch =
+            !selectedLanguage || selectedLanguage === 'All' || selectedLanguage === language;
+          const searchMatch =
+            !search || (translation.title && translation.title.toLowerCase().includes(search.toLowerCase()));
+          const draftMatch = showDrafts ? translation.isDraft : !translation.isDraft;
+
+          return categoryMatch && languageMatch && searchMatch && draftMatch
+            ? {
+                ...translation,
+                _id: article._id,
+                language,
+                author: article.author,
+                createdAt: article.createdAt,
+                developer: article.developer,
+                editor: article.editor,
+              }
+            : null;
+        });
+      }).filter((article) => article !== null)
+    : [];
 
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
   };
 
+
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
+    setCurrentPage(1);
   };
 
   const handleLanguageChange = (e) => {
     setSelectedLanguage(e.target.value);
+    setCurrentPage(1);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this youtube?')) {
+    if (window.confirm('Are you sure you want to delete this article?')) {
       try {
         const response = await fetch(`/api/youtube?id=${id}`, {
           method: 'DELETE',
         });
-        if (!response.ok) {
-          throw new Error('Failed to delete youtube');
-        }
-        setarticle(article.filter((youtube) => youtube._id !== id));
-        toast.success('youtube deleted successfully!');
+        if (!response.ok) throw new Error('Failed to delete article');
+        setArticles(articles.filter((article) => article._id !== id));
+        toast.success('Article deleted successfully!');
       } catch (error) {
-        console.error('Error deleting youtube:', error.message);
-        toast.error('Failed to delete youtube');
+        console.error('Error deleting article:', error.message);
+        toast.error('Failed to delete article');
       }
     }
   };
-  
-  const getCategoriesArray = (categories) => {
-    if (!categories) return [];
-    if (Array.isArray(categories)) {
-      return categories;
-    }
-    try {
-      return JSON.parse(categories);
-    } catch (e) {
-      return categories.split(',').map(cat => cat.trim());
+
+  const handleSelectAllArticles = () => {
+    if (selectedArticles.length === filteredArticles.length) {
+      setSelectedArticles([]);
+    } else {
+      setSelectedArticles(filteredArticles.map((article) => article._id));
     }
   };
 
-  const filteredarticle = article.flatMap((youtube) => {
-    const translations = youtube.translations || {};
-    return Object.entries(translations).map(([language, translation]) => {
-      const categoryArray = getCategoriesArray(translation.category);
-      const categoryMatch = !selectedCategory || selectedCategory === 'All' || categoryArray.includes(selectedCategory);
-      const languageMatch = !selectedLanguage || selectedLanguage === 'All' || selectedLanguage === language;
-      const searchMatch = !search || translation.title.toLowerCase().includes(search.toLowerCase());
-      const draftMatch = showDrafts ? translation.isDraft : !translation.isDraft;
-      return categoryMatch && languageMatch && searchMatch && draftMatch ? { ...translation, _id: youtube._id, language, languages: Object.keys(translations).join(', ') } : null;
-    }).filter(youtube => youtube !== null);
-  });
-
-  const indexOfLastyoutube = currentPage * articlePerPage;
-  const indexOfFirstyoutube = indexOfLastyoutube - articlePerPage;
-  const currentarticle = filteredarticle.slice(indexOfFirstyoutube, indexOfLastyoutube);
-  const totalPages = Math.ceil(filteredarticle.length / articlePerPage);
-
-  const handleClick = (event, pageNumber) => {
-    event.preventDefault();
+  const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
-  };
-
-  const handleSelectyoutube = (youtubeId) => {
-    if (selectedarticle.includes(youtubeId)) {
-      setSelectedarticle(selectedarticle.filter(id => id !== youtubeId));
-    } else {
-      setSelectedarticle([...selectedarticle, youtubeId]);
-    }
-  };
-
-  const handleSelectAllarticle = () => {
-    if (selectedarticle.length === currentarticle.length) {
-      setSelectedarticle([]);
-    } else {
-      setSelectedarticle(currentarticle.map(youtube => youtube._id));
-    }
+    fetchArticles(pageNumber);
   };
 
   return (
     <Layout>
       <div className="container mx-auto p-5">
-        <h2 className="text-3xl font-semibold mb-6">All article</h2>
+        <h2 className="text-3xl font-semibold mb-6">All Articles</h2>
         <div className="mb-3 flex flex-wrap items-center">
           <input
             type="text"
@@ -196,9 +214,7 @@ function Allarticle() {
           </div>
         </div>
         {loading ? (
-          <div className="flex justify-center items-center">
-            <div className="loader"></div>
-          </div>
+         <Skeleton count={5} height={20} />
         ) : (
           <>
             <table className="min-w-full bg-white border border-gray-300">
@@ -207,46 +223,44 @@ function Allarticle() {
                   <th className="py-2 px-4 border-b">
                     <input
                       type="checkbox"
-                      checked={selectedarticle.length === currentarticle.length}
-                      onChange={handleSelectAllarticle}
+                      checked={selectedArticles.length === filteredArticles.length}
+                      onChange={handleSelectAllArticles}
                     />
                   </th>
                   <th className="py-2 px-4 border-b">Title</th>
                   <th className="py-2 px-4 border-b">Category</th>
-                  <th className="py-2 px-4 border-b">Languages</th>
+                  <th className="py-2 px-4 border-b">Language</th>
                   <th className="py-2 px-4 border-b">View</th>
                   <th className="py-2 px-4 border-b">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentarticle.map((youtube) => (
-                  <tr key={youtube._id}>
+                {filteredArticles.map((article) => (
+                  <tr key={article._id}>
                     <td className="py-2 px-4 border-b">
                       <input
                         type="checkbox"
-                        checked={selectedarticle.includes(youtube._id)}
-                        onChange={() => handleSelectyoutube(youtube._id)}
+                        checked={selectedArticles.includes(article._id)}
+                        onChange={() => handleSelectAllArticles(article._id)}
                       />
                     </td>
-                    <td className="py-2 px-4 border-b">{youtube.title}</td>
+                    <td className="py-2 px-4 border-b">{article.title}</td>
+                    <td className="py-2 px-4 border-b">{article.category || 'Uncategorized'}</td>
+                    <td className="py-2 px-4 border-b">{article.language}</td>
                     <td className="py-2 px-4 border-b">
-                      {Array.isArray(youtube.category) ? youtube.category.join(', ') : youtube.category}
-                    </td>
-                    <td className="py-2 px-4 border-b">
-                      {youtube.languages}
-                    </td>
-                    <td className="py-2 px-4 border-b">
-                      <Link target='_blank' href={`/youtube/${youtube.slug}`}className="flex items-center">
+                      <Link target='_blank' href={`/youtube/${article.slug}`}className="flex items-center">
                         <FaEye className="mr-1" /> 
                       </Link>
                     </td>
-                    <td className="py-2 px-4 border-b flex items-center justify-center">
-                      <Link href={`/dashboard/edit-article?id=${youtube._id}`}>
-                        <button className="mr-3 text-blue-500 hover:text-blue-700">
-                          <FaEdit />
-                        </button>
+                    <td className="py-2 px-4 border-b">
+                      
+                      <Link href={`/dashboard/edit-article?id=${article._id}`}>
+                        <FaEdit className="ml-3 text-blue-500 hover:text-blue-700" />
                       </Link>
-                      <button onClick={() => handleDelete(youtube._id)} className="text-red-500 hover:text-red-700">
+                      <button
+                        onClick={() => handleDelete(article._id)}
+                        className="ml-3 text-red-500 hover:text-red-700"
+                      >
                         <FaTrash />
                       </button>
                     </td>
@@ -258,8 +272,12 @@ function Allarticle() {
               {Array.from({ length: totalPages }, (_, index) => (
                 <button
                   key={index}
-                  onClick={(event) => handleClick(event, index + 1)}
-                  className={`mx-1 px-3 py-1 border rounded ${index + 1 === currentPage ? 'bg-blue-500 text-white' : 'bg-white text-blue-500 hover:bg-blue-100'}`}
+                  onClick={() => handlePageChange(index + 1)}
+                  className={`mx-1 px-3 py-1 border rounded ${
+                    currentPage === index + 1
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-white text-blue-500 hover:bg-blue-100'
+                  }`}
                 >
                   {index + 1}
                 </button>
@@ -267,8 +285,8 @@ function Allarticle() {
             </div>
           </>
         )}
+        <ToastContainer />
       </div>
-      <ToastContainer />
     </Layout>
   );
 }
