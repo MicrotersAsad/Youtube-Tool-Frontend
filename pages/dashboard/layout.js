@@ -354,13 +354,15 @@ const Layout = React.memo(({ children }) => {
                 {!isCollapsed && <span className="ml-3">Dashboard</span>}
               </Link>
             </div>
-            <>
+           
   {/* Blog Main Menu Item with 0.3s Transition */}
+  {user && (user.role === "admin" || user.role === "super_admin") && (
   <div className="mt-2">
     <p
       className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
         isActiveRoute("/dashboard/categories") ||
         isActiveRoute("/dashboard/all-blogs") ||
+        isActiveRoute("/dashboard/authors") ||
         isActiveRoute("/dashboard/blogs")
           ? "bg-[#4634ff] text-white"
           : menuOpen === "blog"
@@ -368,7 +370,7 @@ const Layout = React.memo(({ children }) => {
           : "hover:bg-[#1d1e8e] hover:text-white"
       }`}
       onClick={() => toggleMenu("blog")}
-      style={{ transition: "all 0.3s ease" }} // Main menu item transition
+      style={{ transition: "all 0.3s ease" }}
     >
       <FaBlog className="mr-3 text-white" />
       {!isCollapsed && <span>Blog</span>}
@@ -383,57 +385,36 @@ const Layout = React.memo(({ children }) => {
       )}
     </p>
 
-    {/* Submenu without Animation */}
+    {/* Submenu */}
     {menuOpen === "blog" && (
       <div className="ml-6 mt-2 mb-1 overflow-hidden">
-        <Link href="/dashboard/categories" passHref>
-          <p
-            className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-              isActiveRoute("/dashboard/categories")
-                ? "bg-[#1d1e8e] text-white"
-                : "hover:bg-[#1d1e8e] hover:text-white"
-            }`}
-          >
-            <FaCircle className="mr-2 text-xs" />
-            Categories
-          </p>
-        </Link>
-        <Link href="/dashboard/all-blogs" passHref>
-          <p
-            className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-              isActiveRoute("/dashboard/all-blogs")
-                ? "bg-[#1d1e8e] text-white"
-                : "hover:bg-[#1d1e8e] hover:text-white"
-            }`}
-          >
-            <FaCircle className="mr-2 text-xs" />
-            All Posts
-          </p>
-        </Link>
-        <Link href="/dashboard/blogs" passHref>
-          <p
-            className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-              isActiveRoute("/dashboard/blogs")
-                ? "bg-[#1d1e8e] text-white"
-                : "hover:bg-[#1d1e8e] hover:text-white"
-            }`}
-          >
-            <FaCircle className="mr-2 text-xs" />
-            Add Post
-          </p>
-        </Link>
+        {[
+          { href: "/dashboard/categories", label: "Categories" },
+          { href: "/dashboard/all-blogs", label: "All Posts" },
+          { href: "/dashboard/blogs", label: "Add Post" },
+          { href: "/dashboard/authors", label: "Add Authors" },
+        ].map(({ href, label }, index) => (
+          <Link href={href} passHref key={index}>
+            <p
+              className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                isActiveRoute(href)
+                  ? "bg-[#1d1e8e] text-white"
+                  : "hover:bg-[#1d1e8e] hover:text-white"
+              }`}
+            >
+              <FaCircle className="mr-2 text-xs" />
+              {label}
+            </p>
+          </Link>
+        ))}
       </div>
     )}
   </div>
-  
-</>
+)}
 
 
 
-
-  
-
-            {user && (user.role === "admin" || user.role === "super_admin") ? (
+{user && (user.role === "admin" || user.role === "super_admin") ? (
               <>
                 {/* Blog */}
                 <div className="mt-2">
@@ -527,6 +508,11 @@ const Layout = React.memo(({ children }) => {
                 </div>
               </>
             ) : null}
+
+
+  
+
+         
             {user && (user.role === "admin" || user.role === "super_admin") ? (
               <>
                 {/* Pages */}
