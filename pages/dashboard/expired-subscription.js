@@ -148,71 +148,71 @@ const ExpiredSubs = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full bg-white rounded-lg overflow-hidden">
-                <thead className="bg-red-400 text-black">
-                  <tr>
-                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
-                      Username
-                    </th>
-                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
-                      Payment Status
-                    </th>
-                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
-                      Subscription Valid Until
-                    </th>
-                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.length > 0 ? (
-                    orders.map((user) => (
-                      <tr
-                        key={user._id}
-                        className="bg-white border-b transition duration-300 ease-in-out hover:bg-gray-100"
-                      >
-                        <td className=" whitespace-nowrap text-gray-800 font-medium">
-                          {user.username}
-                        </td>
-                        <td className=" text-gray-600">
-                          {user.email}
-                        </td>
-                        <td className=" text-red-500 font-semibold">
-                          Expired
-                        </td>
-                        <td className=" text-blue-500">
-                          {new Date(user.subscriptionValidUntil).toLocaleDateString()}
-                        </td>
-                        <td className=" space-x-2">
-                          <button
-                            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"
-                            onClick={() => openOrderDetails(user)}
-                          >
-                            Details
-                          </button>
-                          <button
-                            className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-200"
-                            onClick={() => openEmailModal(user)}
-                          >
-                            <FaEnvelope className="inline mr-1" /> Send Email
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="5" className="py-5 text-center text-gray-500">
-                        No expired orders found.
+            <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+              <thead className="bg-gradient-to-r from-red-500 to-red-400 text-white">
+                <tr>
+                  <th className="py-2 px-6 text-left text-xs font-bold uppercase tracking-wider border-b border-gray-200">
+                    Username
+                  </th>
+                  <th className="py-2 px-6 text-left text-xs font-bold uppercase tracking-wider border-b border-gray-200">
+                    Email
+                  </th>
+                  <th className="py-2 px-6 text-left text-xs font-bold uppercase tracking-wider border-b border-gray-200">
+                    Payment Status
+                  </th>
+                  <th className="py-2 px-6 text-left text-xs font-bold uppercase tracking-wider border-b border-gray-200">
+                    Subscription Valid Until
+                  </th>
+                  <th className="py-2 px-6 text-left text-xs font-bold uppercase tracking-wider border-b border-gray-200">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.length > 0 ? (
+                  orders.map((user) => (
+                    <tr
+                      key={user._id}
+                      className="bg-white hover:bg-gray-50 transition duration-300 ease-in-out border-b"
+                    >
+                      <td className="py-2 px-6 text-gray-800 font-medium whitespace-nowrap">
+                        {user.username}
+                      </td>
+                      <td className="py-2 px-6 text-gray-600 truncate">{user.email}</td>
+                      <td className="py-2 px-6 text-red-500 font-semibold">Expired</td>
+                      <td className="py-2 px-6 text-blue-500">
+                        {new Date(user.subscriptionValidUntil).toLocaleDateString()}
+                      </td>
+                      <td className="py-2 px-6 flex space-x-3">
+                        <button
+                          className="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition duration-200 text-xs font-semibold shadow"
+                          onClick={() => openOrderDetails(user)}
+                        >
+                          Details
+                        </button>
+                        <button
+                          className="bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 transition duration-200 text-xs font-semibold shadow flex items-center"
+                          onClick={() => openEmailModal(user)}
+                        >
+                          <FaEnvelope className="mr-2" /> Email
+                        </button>
                       </td>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="5"
+                      className="py-6 text-center text-gray-500 text-xs font-medium"
+                    >
+                      No expired orders found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          
           )}
         </div>
       </div>
@@ -233,19 +233,19 @@ const ExpiredSubs = () => {
             <h2 className="text-2xl font-semibold mb-4 text-center">Order Details for {selectedOrder.username}</h2>
 
             <div className="flex flex-col space-y-4">
-              <div className="p-4 border rounded-lg shadow-sm bg-gray-50">
+              <div className="p-4 border rounded-lg shadow-xs bg-gray-50">
                 <strong>Email:</strong> {selectedOrder.email}
               </div>
-              <div className="p-4 border rounded-lg shadow-sm bg-gray-50">
+              <div className="p-4 border rounded-lg shadow-xs bg-gray-50">
                 <strong>Payment Status:</strong> Expired
               </div>
-              <div className="p-4 border rounded-lg shadow-sm bg-gray-50">
+              <div className="p-4 border rounded-lg shadow-xs bg-gray-50">
                 <strong>Subscription Plan:</strong> {selectedOrder.subscriptionPlan}
               </div>
-              <div className="p-4 border rounded-lg shadow-sm bg-gray-50">
+              <div className="p-4 border rounded-lg shadow-xs bg-gray-50">
                 <strong>Subscription Valid Until:</strong> {new Date(selectedOrder.subscriptionValidUntil).toLocaleDateString()}
               </div>
-              <div className="p-4 border rounded-lg shadow-sm bg-gray-50">
+              <div className="p-4 border rounded-lg shadow-xs bg-gray-50">
                 <strong>Role:</strong> {selectedOrder.role}
               </div>
 
@@ -253,19 +253,19 @@ const ExpiredSubs = () => {
               {selectedOrder.paymentDetails && (
                 <>
                   <h3 className="text-xl font-semibold mt-6 text-center">Payment Details</h3>
-                  <div className="p-4 border rounded-lg shadow-sm bg-gray-50">
+                  <div className="p-4 border rounded-lg shadow-xs bg-gray-50">
                     <strong>Amount Paid:</strong> ${selectedOrder.paymentDetails.amountPaid}
                   </div>
-                  <div className="p-4 border rounded-lg shadow-sm bg-gray-50">
+                  <div className="p-4 border rounded-lg shadow-xs bg-gray-50">
                     <strong>Currency:</strong> {selectedOrder.paymentDetails.currency}
                   </div>
-                  <div className="p-4 border rounded-lg shadow-sm bg-gray-50">
+                  <div className="p-4 border rounded-lg shadow-xs bg-gray-50">
                     <strong>Payment Method:</strong> {selectedOrder.paymentDetails.paymentMethod}
                   </div>
-                  <div className="p-4 border rounded-lg shadow-sm bg-gray-50">
+                  <div className="p-4 border rounded-lg shadow-xs bg-gray-50">
                     <strong>Stripe Customer ID:</strong> {selectedOrder.stripeCustomerId}
                   </div>
-                  <div className="p-4 border rounded-lg shadow-sm bg-gray-50">
+                  <div className="p-4 border rounded-lg shadow-xs bg-gray-50">
                     <strong>Stripe Session ID:</strong> {selectedOrder.stripeSessionId}
                   </div>
                 </>
@@ -298,14 +298,14 @@ const ExpiredSubs = () => {
               type="text"
               value={emailSubject}
               onChange={(e) => setEmailSubject(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-3 shadow-sm mb-4"
+              className="w-full border border-gray-300 rounded-lg p-3 shadow-xs mb-4"
               placeholder="Enter subject"
             />
             <label>Your Message</label>
             <textarea
               value={emailMessage}
               onChange={(e) => setEmailMessage(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-3 shadow-sm mb-4"
+              className="w-full border border-gray-300 rounded-lg p-3 shadow-xs mb-4"
               placeholder="Enter message"
               rows="4"
             />

@@ -582,71 +582,71 @@ const Layout = React.memo(({ children }) => {
             ) : null}
 
             {/* Content */}
-            {user && (user.role === "admin" || user.role === "super_admin") ? (
-              <>
-                <div className="">
-                  <p
+{user && (user.role === "admin" || user.role === "super_admin") ? (
+  <>
+    <div className="">
+    <p
                     className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
                       isActiveRoute("/dashboard/content") ||
                       isActiveRoute("/dashboard/review")
                         ? "bg-[#4634ff] text-white"
-                        : menuOpen === "tools"
-                        ? "bg-[#dedefa] text-white"
+                        : menuOpen === "pages"
+                        ? "bg-[#1d1e8e] text-white"
                         : "hover:bg-[#1d1e8e] hover:text-white"
                     }`}
-                    onClick={() => toggleMenu("tools")}
-                  >
-                    <FaFileAlt className="mr-3 text-white" />
-                    {!isCollapsed && <span>Content</span>}
-                    {!isCollapsed && (
-                      <span className="ml-auto">
-                        {menuOpen === "tools" ? (
-                          <FiChevronUp className="w-6 h-6" />
-                        ) : (
-                          <FiChevronDown className="w-6 h-6" />
-                        )}
-                      </span>
-                    )}
-                  </p>
+        onClick={() => toggleMenu("tools")}
+      >
+        <FaFileAlt className="mr-3 text-white" />
+        {!isCollapsed && <span>Content</span>}
+        {!isCollapsed && (
+          <span className="ml-auto">
+            {menuOpen === "tools" ? (
+              <FiChevronUp className="w-6 h-6" />
+            ) : (
+              <FiChevronDown className="w-6 h-6" />
+            )}
+          </span>
+        )}
+      </p>
 
-                  {/* Dropdown Content with Smooth Opening and Closing Animation */}
-                  <div
-                    className={`ml-6 mt-2  mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
-                      (menuOpen === "tools" ||
-                        isActiveRoute("/dashboard/content")) &&
-                      !isCollapsed
-                        ? "max-h-screen opacity-100 scale-y-100"
-                        : "max-h-0 opacity-0 scale-y-0"
-                    }`}
-                  >
-                    <Link href="/dashboard/content" passHref>
-                      <p
-                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/content")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Tools Content
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/review" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/review")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Tools Review
-                      </p>
-                    </Link>
-                  </div>
-                </div>
-              </>
-            ) : null}
+      {/* Dropdown Content */}
+      <div
+        className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
+          (menuOpen === "tools" || isActiveRoute("/dashboard/content")) &&
+          !isCollapsed
+            ? "max-h-screen opacity-100 scale-y-100"
+            : "max-h-0 opacity-0 scale-y-0"
+        }`}
+      >
+        <Link href="/dashboard/content" passHref>
+          <p
+            className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+              isActiveRoute("/dashboard/content")
+                ? "bg-[#1d1e8e] text-white"
+                : "bg-transparent text-white"
+            }`}
+          >
+            <FaCircle className="mr-2 text-xs" />
+            Tools Content
+          </p>
+        </Link>
+        <Link href="/dashboard/review" passHref>
+          <p
+            className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+              isActiveRoute("/dashboard/review")
+                ? "bg-[#1d1e8e] text-white"
+                : "bg-transparent text-white"
+            }`}
+          >
+            <FaCircle className="mr-2 text-xs" />
+            Tools Review
+          </p>
+        </Link>
+      </div>
+    </div>
+  </>
+) : null}
+
             {/* Manage Users */}
             {user && (user.role === "admin" || user.role === "super_admin") ? (
               <>
@@ -844,7 +844,7 @@ const Layout = React.memo(({ children }) => {
                         Expired Subscription
                       </p>
                     </Link>
-                    <Link href="/dashboard/cancel-subscription" passHref>
+                    <Link href="#" passHref>
                       <p
                         className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
                           isActiveRoute("/dashboard/cancel-subscription")

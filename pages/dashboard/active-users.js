@@ -60,7 +60,29 @@ const Users = () => {
       setLoading(false);
     }
   };
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/user?id=${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
 
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText);
+        }
+
+        setUsers(users.filter((user) => user._id !== id));
+        toast.success('User deleted successfully!');
+      } catch (error) {
+        toast.error('Failed to delete user');
+      }
+    }
+  };
   const handleSearch = (term) => {
     if (term.trim() === '') {
       setFilteredUsers(users);
@@ -197,110 +219,132 @@ const Users = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full bg-white">
-                <thead>
-                  <tr className="bg-[#4634ff] text-white">
-                    <th className="pt-3 pb-3 px-4 border-b text-sm">
-                      <input type="checkbox" onChange={handleSelectAllUsers} checked={selectedUsers.length === filteredUsers.length} />
-                    </th>
-                    <th className="py-2 px-4 border-b text-sm">Email</th>
-                    <th className="py-2 px-4 border-b text-sm">Profile Image</th>
-                    <th className="py-2 px-4 border-b text-sm">Payment Info</th>
-                    <th className="py-2 px-4 border-b text-sm">Subscription Plan</th>
-                    <th className="py-2 px-4 border-b text-sm">Subscription Valid</th>
-                    <th className="py-2 px-4 border-b text-sm">Actions</th>
+            <table className="min-w-full bg-white shadow-lg rounded-lg overflow-hidden">
+              <thead className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                <tr>
+                  <th className="pt-3 pb-3 px-4 border-b text-sm">
+                    <input
+                      type="checkbox"
+                      onChange={handleSelectAllUsers}
+                      checked={selectedUsers.length === filteredUsers.length}
+                    />
+                  </th>
+                  <th className="py-2 px-4 border-b text-sm">Email</th>
+                  <th className="py-2 px-4 border-b text-sm">Profile Image</th>
+                  <th className="py-2 px-4 border-b text-sm">Payment Info</th>
+                  <th className="py-2 px-4 border-b text-sm">Subscription Plan</th>
+                  <th className="py-2 px-4 border-b text-sm">Subscription Valid</th>
+                  <th className="py-2 px-4 border-b text-sm">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedUsers.map((user) => (
+                  <tr
+                    key={user._id}
+                    className="hover:bg-gray-100 transition duration-200"
+                  >
+                    <td className="py-2 px-4 border-b">
+                      <input
+                        type="checkbox"
+                        onChange={() => handleSelectUser(user.email)}
+                        checked={selectedUsers.includes(user.email)}
+                      />
+                    </td>
+                    <td className="py-2 px-4 border-b">{user.email}</td>
+                    <td className="py-2 px-4 border-b">
+                      {user.profileImage ? (
+                        <img
+                          src={
+                            user.profileImage.startsWith('data:image')
+                              ? user.profileImage
+                              : `${user.profileImage}`
+                          }
+                          alt="Profile"
+                          className="w-16 h-16 rounded-full mx-auto shadow"
+                        />
+                      ) : (
+                        <span className="text-gray-500">No Image</span>
+                      )}
+                    </td>
+                    <td className="py-2 px-4 border-b">{user.paymentStatus || 'N/A'}</td>
+                    <td className="py-2 px-4 border-b">
+                      {user.subscriptionPlan || 'N/A'}
+                    </td>
+                    <td className="py-2 px-4 border-b">
+                      {user.subscriptionValidUntil
+                        ? `${user.subscriptionValidUntil} (${calculateRemainingDays(
+                            user.subscriptionValidUntil
+                          )} days left)`
+                        : 'N/A'}
+                    </td>
+                    <td className="py-2 px-4 text-center flex space-x-2">
+                      {user.role !== 'admin' && (
+                        <>
+                          <button
+                            className="text-red-500 p-2 rounded-full hover:text-red-600 transition duration-200"
+                            onClick={() => handleDelete(user._id)}
+                          >
+                            <FaTrashAlt />
+                          </button>
+                          <button
+                            className="text-green-500  p-2 rounded-full hover:text-green-600 transition duration-200"
+                            onClick={() => openEmailModal(user)}
+                          >
+                            <FaEnvelope />
+                          </button>
+                        </>
+                      )}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {paginatedUsers.map((user) => (
-                    <tr key={user._id} className="hover:bg-gray-100">
-                      <td className="py-2 px-4 border-b">
-                        <input type="checkbox" onChange={() => handleSelectUser(user.email)} checked={selectedUsers.includes(user.email)} />
-                      </td>
-                      <td className="py-2 px-4 border-b">{user.email}</td>
-                      <td className="py-2 px-4 border-b">
-  {user.profileImage ? (
-    user.profileImage.startsWith('data:image') ? (
-      // Base64 Image
-      <img
-        src={user.profileImage}
-        alt="Profile"
-        className="w-16 h-16 rounded-full mx-auto"
-      />
-    ) : (
-      // Regular Image URL
-      <img
-        src={`${user.profileImage.startsWith('http') ? '' : ''}${user.profileImage}`}
-        alt="Profile"
-        className="w-16 h-16 rounded-full mx-auto"
-      />
-    )
-  ) : (
-    <span className="text-gray-500">No Image</span>
-  )}
-</td>
-
-
-
-
-                      <td className="py-2 px-4 border-b">{user.paymentStatus || 'N/A'}</td>
-                      <td className="py-2 px-4 border-b">{user.subscriptionPlan || 'N/A'}</td>
-                      <td className="py-2 px-4 border-b">
-                        {user.subscriptionValidUntil
-                          ? `${user.subscriptionValidUntil} (${calculateRemainingDays(user.subscriptionValidUntil)} days left)`
-                          : 'N/A'}
-                      </td>
-                      <td className="py-2 px-4 mt-3 text-center d-flex">
-                        {user.role !== 'admin' && (
-                          <>
-                            <button
-                              className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-200"
-                              onClick={() => handleDelete(user._id)}
-                            >
-                              <FaTrashAlt />
-                            </button>
-                            <button
-                              className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-200 ml-2"
-                              onClick={() => openEmailModal(user)}
-                            >
-                              <FaEnvelope />
-                            </button>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
           )}
 
-          {/* Pagination controls */}
-          <div className="flex justify-center items-center mt-6 space-x-2">
-            <button
-              onClick={handlePreviousGroup}
-              className={`bg-gray-300 px-4 py-2 rounded-md ${pageGroup === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={pageGroup === 0}
-            >
-              «
-            </button>
-            {paginationGroup.map((page) => (
-              <button
-                key={page}
-                onClick={() => handlePageChange(page)}
-                className={`px-3 py-1 rounded ${currentPage === page ? 'bg-red-500 text-white' : ''}`}
-              >
-                {page}
-              </button>
-            ))}
-            <button
-              onClick={handleNextGroup}
-              className={`bg-gray-300 px-4 py-2 rounded-md ${(pageGroup + 1) * pagesPerGroup >= totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={(pageGroup + 1) * pagesPerGroup >= totalPages}
-            >
-              »
-            </button>
-          </div>
+        {/* Pagination controls */}
+<div className="flex justify-center items-center mt-6 space-x-2">
+  {/* Previous Group Button */}
+  <button
+    onClick={handlePreviousGroup}
+    className={`bg-gradient-to-r from-gray-300 to-gray-400 px-4 py-2 rounded-full ${
+      pageGroup === 0 ? 'opacity-50 cursor-not-allowed' : ''
+    }`}
+    disabled={pageGroup === 0}
+  >
+    «
+  </button>
+
+  {/* Dynamic Pagination Numbers */}
+  {paginationGroup.map((page) => (
+    <button
+      key={page}
+      onClick={() => handlePageChange(page)}
+      className={`px-4 py-2 rounded-full transition duration-200 ${
+        currentPage === page
+          ? 'bg-red-500 text-white font-bold shadow-md'
+          : 'bg-gray-200 hover:bg-gray-300'
+      }`}
+    >
+      {page}
+    </button>
+  ))}
+
+  {/* Next Group Button */}
+  <button
+    onClick={handleNextGroup}
+    className={`bg-gradient-to-r from-gray-300 to-gray-400 px-4 py-2 rounded-full ${
+      (pageGroup + 1) * pagesPerGroup >= totalPages
+        ? 'opacity-50 cursor-not-allowed'
+        : ''
+    }`}
+    disabled={(pageGroup + 1) * pagesPerGroup >= totalPages}
+  >
+    »
+  </button>
+</div>
+
         </div>
 
         {selectedUsers.length > 0 && (

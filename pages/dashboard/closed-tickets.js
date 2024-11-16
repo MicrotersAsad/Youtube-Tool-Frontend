@@ -114,10 +114,10 @@ const ClosedTicketsPage = () => {
       <style jsx global>{`
         .container {
           padding: 20px;
-          background-color: #f9f9f9;
+         
         }
         .heading {
-          font-size: 2rem;
+          font-size: 1rem;
           font-weight: bold;
           margin-bottom: 20px;
           color: #333;
@@ -147,7 +147,7 @@ const ClosedTicketsPage = () => {
           color: white;
         }
         .table-header-cell {
-          padding: 15px;
+          padding: 3px 15px;
           font-weight: bold;
           text-align: left;
         }
@@ -155,7 +155,7 @@ const ClosedTicketsPage = () => {
           border-bottom: 1px solid #e1e1e1;
         }
         .table-cell {
-          padding: 15px;
+        padding: 3px 15px;
           text-align: left;
           color: #333;
         }

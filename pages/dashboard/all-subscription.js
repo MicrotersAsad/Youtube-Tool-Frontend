@@ -34,8 +34,9 @@ const AllOrder = () => {
       const result = await response.json();
 
       if (result.success && Array.isArray(result.data)) {
-        // Filter users with successful payment status
-        const premiumUsers = result.data.filter(user => user?.paymentStatus === "success");
+        const premiumUsers = result.data.filter(
+          (user) => user?.paymentStatus === 'success'
+        );
         setOrders(premiumUsers);
       }
       setLoading(false);
@@ -56,14 +57,14 @@ const AllOrder = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-100 p-4 md:p-8">
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-3xl font-semibold text-gray-800 mb-6 text-center">
+      <div className="min-h-screen bg-gray-100 p-6 md:p-10">
+        <div className="bg-white p-8 rounded-lg shadow-md">
+          <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
             All Successful Orders
           </h2>
-          
+
           {error && (
-            <div className="bg-red-100 text-red-600 p-4 rounded-md mb-4">
+            <div className="bg-red-100 text-red-700 p-4 rounded-md mb-4 text-center font-semibold">
               {error}
             </div>
           )}
@@ -74,22 +75,22 @@ const AllOrder = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full bg-white rounded-lg overflow-hidden">
-                <thead className="bg-blue-400 text-black">
+              <table className="min-w-full bg-gray-50 rounded-lg overflow-hidden">
+                <thead className="bg-blue-500 text-white">
                   <tr>
-                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
+                    <th className="py-2 px-5 text-left text-xs font-semibold">
                       Username
                     </th>
-                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
+                    <th className="py-2 px-5 text-left text-xs font-semibold">
                       Email
                     </th>
-                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
+                    <th className="py-2 px-5 text-left text-xs font-semibold">
                       Payment Status
                     </th>
-                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
+                    <th className="py-2 px-5 text-left text-xs font-semibold">
                       Subscription Valid
                     </th>
-                    <th className=" text-left text-sm font-semibold uppercase tracking-wider">
+                    <th className="py-2 px-5 text-left text-xs font-semibold">
                       Details
                     </th>
                   </tr>
@@ -99,33 +100,36 @@ const AllOrder = () => {
                     orders.map((user) => (
                       <tr
                         key={user._id}
-                        className="bg-white border-b transition duration-300 ease-in-out hover:bg-gray-100"
+                        className="border-b bg-white hover:bg-blue-50 transition duration-300"
                       >
-                        <td className=" whitespace-nowrap text-gray-800 font-medium">
+                        <td className="py-2 px-5 text-gray-700 font-medium">
                           {user.username}
                         </td>
-                        <td className=" text-gray-600">
+                        <td className="py-2 px-5 text-gray-600">
                           {user.email}
                         </td>
-                        <td className=" text-green-500 font-semibold">
+                        <td className="py-2 px-5 text-green-600 font-semibold">
                           {user.paymentStatus}
                         </td>
-                        <td className=" text-blue-500">
+                        <td className="py-2 px-5 text-blue-600">
                           {new Date(user.subscriptionValidUntil).toLocaleDateString()}
                         </td>
-                        <td className="">
+                        <td className="py-2 px-5">
                           <button
-                            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"
+                            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200 shadow-xs"
                             onClick={() => openOrderDetails(user)}
                           >
-                            Details
+                            View
                           </button>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="5" className="py-5 text-center text-gray-500">
+                      <td
+                        colSpan="5"
+                        className="py-5 text-center text-gray-500 font-medium"
+                      >
                         No successful orders found.
                       </td>
                     </tr>
@@ -137,50 +141,60 @@ const AllOrder = () => {
         </div>
       </div>
 
-      {/* Modal for order details */}
       {selectedOrder && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-3/4 max-h-[80vh] overflow-y-auto relative">
-            <button className="absolute top-2 right-2 text-gray-600 hover:text-gray-800" onClick={closeOrderDetails}>
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto relative">
+            <button
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
+              onClick={closeOrderDetails}
+            >
               <FaTimes size={24} />
             </button>
-            <h2 className="text-xl font-semibold mb-4">Order Details for {selectedOrder.username}</h2>
-            <div className="flex flex-col space-y-2">
+            <h2 className="text-2xl font-bold mb-6">
+              Order Details for {selectedOrder.username}
+            </h2>
+            <div className="space-y-4">
               <div>
                 <strong>Email:</strong> {selectedOrder.email}
               </div>
               <div>
-                <strong>Payment Status:</strong> {selectedOrder.paymentStatus}
+                <strong>Payment Status:</strong>{' '}
+                <span className="text-green-600">{selectedOrder.paymentStatus}</span>
               </div>
               <div>
                 <strong>Subscription Plan:</strong> {selectedOrder.subscriptionPlan}
               </div>
               <div>
-                <strong>Subscription Valid Until:</strong> {new Date(selectedOrder.subscriptionValidUntil).toLocaleDateString()}
+                <strong>Valid Until:</strong>{' '}
+                {new Date(selectedOrder.subscriptionValidUntil).toLocaleDateString()}
               </div>
               <div>
                 <strong>Role:</strong> {selectedOrder.role}
               </div>
-              {/* Payment Details */}
               {selectedOrder.paymentDetails && (
-                <>
-                  <h3 className="text-lg font-semibold mt-4">Payment Details</h3>
+                <div className="mt-6">
+                  <h3 className="text-xl font-semibold mb-4">Payment Details</h3>
                   <div>
-                    <strong>Amount Paid:</strong> ${selectedOrder.paymentDetails.amountPaid}
+                    <strong>Amount Paid:</strong> $
+                    {selectedOrder.paymentDetails.amountPaid}
                   </div>
                   <div>
-                    <strong>Currency:</strong> {selectedOrder.paymentDetails.currency}
+                    <strong>Currency:</strong>{' '}
+                    {selectedOrder.paymentDetails.currency}
                   </div>
                   <div>
-                    <strong>Payment Method:</strong> {selectedOrder.paymentDetails.paymentMethod}
+                    <strong>Payment Method:</strong>{' '}
+                    {selectedOrder.paymentDetails.paymentMethod}
                   </div>
                   <div>
-                    <strong>Stripe Customer ID:</strong> {selectedOrder.stripeCustomerId}
+                    <strong>Stripe Customer ID:</strong>{' '}
+                    {selectedOrder.paymentDetails.stripeCustomerId}
                   </div>
                   <div>
-                    <strong>Stripe Session ID:</strong> {selectedOrder.stripeSessionId}
+                    <strong>Stripe Session ID:</strong>{' '}
+                    {selectedOrder.paymentDetails.stripeSessionId}
                   </div>
-                </>
+                </div>
               )}
             </div>
           </div>
