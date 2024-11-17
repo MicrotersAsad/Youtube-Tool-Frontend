@@ -196,7 +196,7 @@ const Users = () => {
       <div className="min-h-screen bg-gray-100 p-4 md:p-8">
         <ToastContainer />
         <div className="bg-white p-4 md:p-8 rounded-lg shadow-lg">
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4 md:mb-6 text-center">All Users</h2>
+          <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4 md:mb-6 text-center">Active Users</h2>
 
           {/* Search Bar */}
           <div className="flex justify-end mb-4">

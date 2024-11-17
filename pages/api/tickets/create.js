@@ -1,105 +1,128 @@
-// /pages/api/tickets/create.js
-import { connectToDatabase, ObjectId } from '../../../utils/mongodb';
+import { connectToDatabase } from '../../../utils/mongodb';
+import { firestore } from '../../../lib/firebase'; 
+import { collection, addDoc } from 'firebase/firestore';
+import { v4 as uuidv4 } from 'uuid';
 
-/**
- * API route to create and fetch a ticket in the "tickets" collection.
- */
 export default async function handler(req, res) {
   const { db } = await connectToDatabase();
 
   if (req.method === 'POST') {
-    // Create a new ticket
-    try {
-      const { userId,userName, subject, description, attachments, priority } = req.body;
-
-      const newTicket = {
-        ticketId: generateUniqueId(),
-        userId,
-        userName,
-        subject,
-        description,
-        attachments: attachments || [],
-        priority: priority || 'medium', // Default to "medium" if not provided
-        status: 'open',
-        comments: [],
-        createdAt: new Date(),
-      };
-
-      const result = await db.collection('tickets').insertOne(newTicket);
-      res.status(201).json({ success: true, ticket: result.ops[0] });
-    } catch (error) {
-      console.error('Failed to create ticket:', error);
-      res.status(500).json({ success: false, message: 'Failed to create ticket' });
-    }
+    await handleCreateTicket(req, res, db);
   } else if (req.method === 'GET') {
-    // Fetch a specific ticket or all tickets for a user
-    try {
-      const { ticketId, userId } = req.query;
-      let query = {};
-
-      // Filter by ticket ID if provided
-      if (ticketId) {
-        query.ticketId = ticketId;
-      }
-
-      // Filter by user ID if provided
-      if (userId) {
-        query.userId = userId;
-      }
-      // Filter by user ID if provided
-    
-
-      // Fetch the ticket or tickets
-      const tickets = await db.collection('tickets').find(query).toArray();
-
-      if (tickets.length === 0) {
-        return res.status(404).json({ success: false, message: 'No tickets found' });
-      }
-
-      res.status(200).json({ success: true, tickets });
-    } catch (error) {
-      console.error('Failed to fetch ticket(s):', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch ticket(s)' });
-    }
+    await handleGetTickets(req, res, db);
   } else if (req.method === 'PATCH') {
-    // Update ticket's status or add a comment
-    try {
-      const { ticketId } = req.query;
-      const { status, comment } = req.body;
-
-      let updateFields = {};
-
-      if (status) {
-        updateFields.status = status;
-      }
-
-      if (comment) {
-        updateFields.status = 'pending'; // Set status to "pending" when a new comment is added
-        updateFields.$push = { comments: { ...comment, createdAt: new Date() } };
-      }
-
-      const result = await db.collection('tickets').updateOne(
-        { ticketId: ticketId },
-        { $set: updateFields, ...(comment && { $push: { comments: { ...comment, createdAt: new Date() } } }) }
-      );
-
-      if (result.modifiedCount === 0) {
-        return res.status(404).json({ success: false, message: 'Failed to update ticket' });
-      }
-
-      res.status(200).json({ success: true, message: 'Ticket updated successfully' });
-    } catch (error) {
-      console.error('Failed to update ticket:', error);
-      res.status(500).json({ success: false, message: 'Failed to update ticket' });
-    }
+    await handleUpdateTicket(req, res, db);
   } else {
-    // Handle unsupported methods
     res.setHeader('Allow', ['POST', 'GET', 'PATCH']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+    res.status(405).json({ success: false, message: `Method ${req.method} Not Allowed` });
   }
 }
 
-// Helper function to generate unique IDs (using a random method, you can choose another)
-function generateUniqueId() {
-  return Math.random().toString(36).substr(2, 10);
+// Create Ticket
+async function handleCreateTicket(req, res, db) {
+  try {
+    const { userId, userName, subject, description, attachments, priority } = req.body;
+
+    if (!userId || !userName || !subject || !description) {
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    const newTicket = {
+      ticketId: uuidv4(),
+      userId,
+      userName,
+      subject,
+      description,
+      attachments: attachments || [],
+      priority: priority || 'medium',
+      status: 'open',
+      comments: [],
+      createdAt: new Date(),
+    };
+
+    // Insert the ticket into MongoDB
+    const result = await db.collection('tickets').insertOne(newTicket);
+    console.log("MongoDB result: ", result);
+
+    if (result.acknowledged) {
+      const notificationRef = collection(firestore, 'notifications');
+      await addDoc(notificationRef, {
+        type: 'ticket_created',
+        message: `${userName} created a new ticket: ${subject}`,
+        ticketId: newTicket.ticketId,
+        createdAt: new Date(),
+      });
+
+      res.status(201).json({ success: true, ticket: newTicket });
+    } else {
+      console.error('MongoDB insert failed');
+      res.status(500).json({ success: false, message: 'Failed to create ticket' });
+    }
+  } catch (error) {
+    console.error('Error during ticket creation: ', error);
+    res.status(500).json({ success: false, message: 'Failed to create ticket due to server error' });
+  }
+}
+
+// Get Tickets
+async function handleGetTickets(req, res, db) {
+  try {
+    const { ticketId, userId } = req.query;
+    const query = {};
+
+    if (ticketId) query.ticketId = ticketId;
+    if (userId) query.userId = userId;
+
+    const tickets = await db.collection('tickets').find(query).toArray();
+
+    if (tickets.length === 0) {
+      return res.status(404).json({ success: false, message: 'No tickets found' });
+    }
+
+    res.status(200).json({ success: true, tickets });
+  } catch (error) {
+    console.error('Error fetching tickets: ', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch tickets' });
+  }
+}
+
+// Update Ticket
+async function handleUpdateTicket(req, res, db) {
+  try {
+    const { ticketId } = req.query;
+    const { status, comment } = req.body;
+
+    if (!ticketId) {
+      return res.status(400).json({ success: false, message: 'Ticket ID is required' });
+    }
+
+    const updateFields = {};
+    if (status) updateFields.status = status;
+    if (comment) {
+      updateFields.$push = { comments: { text: comment, createdAt: new Date() } };
+    }
+
+    const result = await db.collection('tickets').updateOne(
+      { ticketId },
+      { $set: updateFields, ...(comment && updateFields.$push) }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ success: false, message: 'Ticket not found or no changes made' });
+    }
+
+    // Add a notification for the update
+    const notificationRef = collection(firestore, 'notifications');
+    await addDoc(notificationRef, {
+      type: 'ticket_updated',
+      message: `Ticket ${ticketId} was updated: ${status || 'Comment added'}`,
+      ticketId,
+      createdAt: new Date(),
+    });
+
+    res.status(200).json({ success: true, message: 'Ticket updated successfully' });
+  } catch (error) {
+    console.error('Error updating ticket: ', error);
+    res.status(500).json({ success: false, message: 'Failed to update ticket' });
+  }
 }

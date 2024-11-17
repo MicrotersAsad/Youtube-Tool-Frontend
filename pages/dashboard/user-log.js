@@ -11,6 +11,10 @@ const UserLog = () => {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   useEffect(() => {
     fetchlogUsers();
   }, []);
@@ -58,10 +62,23 @@ const UserLog = () => {
     setSearchTerm(event.target.value);
   };
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (pageNumber) => {
+    if (pageNumber > 0 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
+
   return (
     <Layout>
       <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-        <div className=" p-6 rounded-lg shadow-lg bg-white">
+        <div className="p-6 rounded-lg shadow-lg bg-white">
           <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
             User Login History
           </h2>
@@ -86,83 +103,132 @@ const UserLog = () => {
           {loading ? (
             <div className="text-center py-10 text-gray-500">Loading...</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white border border-gray-200">
-                <thead className="bg-gradient-to-r from-blue-500 to-blue-700 text-white">
-                  <tr>
-                    <th className="py-3 px-4 text-left text-xs font-normal uppercase tracking-wider">
-                      User
-                    </th>
-                    <th className="py-3 px-4 text-left text-xs font-normal uppercase tracking-wider">
-                      Login At
-                    </th>
-                    <th className="py-3 px-4 text-left text-xs font-normal uppercase tracking-wider">
-                      IP
-                    </th>
-                    <th className="py-3 px-4 text-left text-xs font-normal uppercase tracking-wider">
-                      Location (City | Country)
-                    </th>
-                    <th className="py-3 px-4 text-left text-xs font-normal uppercase tracking-wider">
-                      Browser | OS
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.length > 0 ? (
-                    filteredUsers.map((user) => (
-                      <tr
-                        key={user._id}
-                        className="bg-white border-b transition duration-300 ease-in-out hover:bg-blue-50"
-                      >
-                        <td className="text-gray-900 font-medium py-3 px-4">
-                          <div className="flex flex-col items-start">
-                            <span className="font-normal">{user.userName}</span>
-                            <span className="text-blue-600 text-sm">@{user.userName}</span>
-                          </div>
-                        </td>
-                        <td className="text-gray-800 py-3 px-4">
-                          {new Date(user.timestamp).toLocaleDateString()}{' '}
-                          {new Date(user.timestamp).toLocaleTimeString('en-US', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: true,
-                          })}
-                          <br />
-                          <span className="text-gray-500 text-sm">
-                            {formatDistanceToNow(new Date(user.timestamp), { addSuffix: true })}
-                          </span>
-                        </td>
-                        <td className="text-blue-600 font-normal py-3 px-4">
-                          <a href={`http://ipinfo.io/${user.ipAddress}`} target="_blank" rel="noopener noreferrer">
-                            {user.ipAddress}
-                          </a>
-                        </td>
-                        <td className="text-gray-800 py-3 px-4">
-                          <div className="flex flex-col">
-                            <span>{user.city || 'Unknown'}, {user.country || 'Unknown'}</span>
-                          </div>
-                        </td>
-                        <td className="text-gray-800 py-3 px-4">
-                          <div className="flex flex-col items-start">
-                            <span className="font-normal">{user.browser}</span>
-                            <span className="text-gray-500">{user.os}</span>
-                          </div>
+            <div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border border-gray-200">
+                  <thead className="bg-gradient-to-r from-blue-500 to-blue-700 text-white">
+                    <tr>
+                      <th className="py-3 px-4 text-left text-xs font-normal uppercase tracking-wider">
+                        User
+                      </th>
+                      <th className="py-3 px-4 text-left text-xs font-normal uppercase tracking-wider">
+                        Login At
+                      </th>
+                      <th className="py-3 px-4 text-left text-xs font-normal uppercase tracking-wider">
+                        IP
+                      </th>
+                      <th className="py-3 px-4 text-left text-xs font-normal uppercase tracking-wider">
+                        Location (City | Country)
+                      </th>
+                      <th className="py-3 px-4 text-left text-xs font-normal uppercase tracking-wider">
+                        Browser | OS
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedUsers.length > 0 ? (
+                      paginatedUsers.map((user) => (
+                        <tr
+                          key={user._id}
+                          className="bg-white border-b transition duration-300 ease-in-out hover:bg-blue-50"
+                        >
+                          <td className="text-gray-900 font-medium py-3 px-4">
+                            <div className="flex flex-col items-start">
+                              <span className="font-normal">{user.userName}</span>
+                              <span className="text-blue-600 text-sm">@{user.userName}</span>
+                            </div>
+                          </td>
+                          <td className="text-gray-800 py-3 px-4">
+                            {new Date(user.timestamp).toLocaleDateString()}{' '}
+                            {new Date(user.timestamp).toLocaleTimeString('en-US', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: true,
+                            })}
+                            <br />
+                            <span className="text-gray-500 text-sm">
+                              {formatDistanceToNow(new Date(user.timestamp), { addSuffix: true })}
+                            </span>
+                          </td>
+                          <td className="text-blue-600 font-normal py-3 px-4">
+                            <a
+                              href={`http://ipinfo.io/${user.ipAddress}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {user.ipAddress}
+                            </a>
+                          </td>
+                          <td className="text-gray-800 py-3 px-4">
+                            <div className="flex flex-col">
+                              <span>
+                                {user.city || 'Unknown'}, {user.country || 'Unknown'}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="text-gray-800 py-3 px-4">
+                            <div className="flex flex-col items-start">
+                              <span className="font-normal">{user.browser}</span>
+                              <span className="text-gray-500">{user.os}</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="5" className="py-5 text-center text-gray-500">
+                          No log users found.
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="5" className="py-5 text-center text-gray-500">
-                        No log users found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination Controls */}
+              <div className="flex justify-center mt-6 space-x-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  className={`px-4 py-2 rounded-md ${
+                    currentPage === 1
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-500 text-white hover:bg-blue-600'
+                  }`}
+                  disabled={currentPage === 1}
+                >
+                  « Prev
+                </button>
+                {Array.from({ length: totalPages }, (_, index) => (
+                  <button
+                    key={index}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === index + 1
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                    onClick={() => handlePageChange(index + 1)}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className={`px-4 py-2 rounded-md ${
+                    currentPage === totalPages
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-500 text-white hover:bg-blue-600'
+                  }`}
+                  disabled={currentPage === totalPages}
+                >
+                  Next »
+                </button>
+              </div>
             </div>
           )}
         </div>
       </div>
+   
+
 
       <style jsx>{`
         table {

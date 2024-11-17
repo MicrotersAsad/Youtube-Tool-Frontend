@@ -176,58 +176,93 @@ const Users = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full bg-white">
-                <thead>
-                  <tr className="bg-gray-200">
-                    <th className="py-2 px-4 border-b">
-                      <input type="checkbox" onChange={handleSelectAllUsers} checked={selectedUsers.length === users.length} />
-                    </th>
-                    <th className="py-2 px-4 border-b">Email</th>
-                    <th className="py-2 px-4 border-b">Profile Image</th>
-                    <th className="py-2 px-4 border-b">Payment Info</th>
-                    <th className="py-2 px-4 border-b">Subscription Plan</th>
-                    <th className="py-2 px-4 border-b">Subscription Valid</th>
-                    <th className="py-2 px-4 border-b">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedUsers.map((user) => (
-                    <tr key={user._id} className="hover:bg-gray-100">
+            <table className="min-w-full bg-gradient-to-r from-gray-100 to-gray-50 rounded-lg shadow-lg border border-gray-200">
+              <thead>
+                <tr className="bg-gradient-to-r from-blue-600 via-blue-500 to-purple-500 text-white">
+                  <th className="py-2 px-4 border-b">
+                    <input
+                      type="checkbox"
+                      onChange={handleSelectAllUsers}
+                      checked={selectedUsers.length === users.length}
+                      aria-label="Select all users"
+                      className="w-4 h-4 rounded"
+                    />
+                  </th>
+                  <th className="py-2 px-4 border-b text-xs">Email</th>
+                  <th className="py-2 px-4 border-b text-xs">Profile Image</th>
+                  <th className="py-2 px-4 border-b text-xs">Payment Info</th>
+                  <th className="py-2 px-4 border-b text-xs">Subscription Plan</th>
+                  <th className="py-2 px-4 border-b text-xs">Subscription Valid</th>
+                  <th className="py-2 px-4 border-b text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedUsers.map((user) => {
+                  const isExpired =
+                    user.subscriptionValidUntil &&
+                    new Date(user.subscriptionValidUntil) < new Date();
+          
+                  return (
+                    <tr
+                      key={user._id}
+                      className="hover:bg-gradient-to-r from-gray-50 via-gray-100 to-gray-200 transition duration-200"
+                    >
                       <td className="py-2 px-4 border-b">
-                        <input type="checkbox" onChange={() => handleSelectUser(user.email)} checked={selectedUsers.includes(user.email)} />
+                        <input
+                          type="checkbox"
+                          onChange={() => handleSelectUser(user.email)}
+                          checked={selectedUsers.includes(user.email)}
+                          aria-label={`Select user ${user.email}`}
+                          className="w-4 h-4 rounded"
+                        />
                       </td>
                       <td className="py-2 px-4 border-b">{user.email}</td>
                       <td className="py-2 px-4 border-b">
                         {user.profileImage ? (
                           <img
-                            src={`data:image/jpeg;base64,${user.profileImage}`}
-                            alt="Profile"
-                            className="w-16 h-16 rounded-full mx-auto"
+                            src={user.profileImage}
+                            alt={`Profile of ${user.email}`}
+                            className="w-12 h-12 rounded-full object-cover shadow-md mx-auto"
                           />
                         ) : (
-                          <span className="text-gray-500">No Image</span>
+                          <span className="text-gray-500 italic">No Image</span>
                         )}
                       </td>
                       <td className="py-2 px-4 border-b">{user.paymentStatus || 'N/A'}</td>
                       <td className="py-2 px-4 border-b">{user.subscriptionPlan || 'N/A'}</td>
                       <td className="py-2 px-4 border-b">
-                        {user.subscriptionValidUntil
-                          ? `${user.subscriptionValidUntil} (${calculateRemainingDays(user.subscriptionValidUntil)} days left)`
-                          : 'N/A'}
+                        {user.subscriptionValidUntil ? (
+                          <span
+                            className={`${
+                              isExpired
+                                ? 'text-red-500 font-semibold'
+                                : 'text-gray-700'
+                            }`}
+                          >
+                            {isExpired
+                              ? 'Expired'
+                              : `${user.subscriptionValidUntil} (${calculateRemainingDays(
+                                  user.subscriptionValidUntil
+                                )} days xs)`}
+                          </span>
+                        ) : (
+                          'N/A'
+                        )}
                       </td>
-                      <td className="py-2 px-4 mt-3 text-center d-flex">
+                      <td className="py-2 px-4 border-b text-center flex items-center justify-center space-x-2">
                         {user.role !== 'admin' && (
                           <>
                             <button
-                              className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-200"
+                              className="bg-gradient-to-r from-red-500 via-red-600 to-red-700 text-white px-3 py-1 rounded-md shadow hover:from-red-600 hover:via-red-700 hover:to-red-800 transition duration-200"
                               onClick={() => handleDelete(user._id)}
+                              aria-label={`Delete user ${user.email}`}
                             >
                               <FaTrashAlt />
                             </button>
-
                             <button
-                              className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-200 ml-2"
+                              className="bg-gradient-to-r from-green-500 via-green-600 to-green-700 text-white px-3 py-1 rounded-md shadow hover:from-green-600 hover:via-green-700 hover:to-green-800 transition duration-200"
                               onClick={() => openEmailModal(user)}
+                              aria-label={`Send email to ${user.email}`}
                             >
                               <FaEnvelope />
                             </button>
@@ -235,10 +270,15 @@ const Users = () => {
                         )}
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          
+          
+          
+          
           )}
           {/* Pagination controls */}
           <div className="flex justify-center items-center mt-6 space-x-2">

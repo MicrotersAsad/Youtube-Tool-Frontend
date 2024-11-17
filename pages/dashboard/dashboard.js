@@ -18,6 +18,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import NotificationList from '../../components/NotificationList';
 
 ChartJS.register(
   CategoryScale,
@@ -350,7 +351,7 @@ const Dashboard = () => {
   </div>
 </Link>
 </div>
-
+<NotificationList />
 
         {/* Filter and Chart Section */}
        

@@ -22,9 +22,11 @@ import {
   FaListAlt,
   FaCheckCircle,
   FaTimesCircle,
+  FaBell,
 } from "react-icons/fa";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
-
+import { collection, query, orderBy, onSnapshot, writeBatch, doc, where } from "firebase/firestore";
+import { firestore } from "../../lib/firebase"; // Firestore setup
 import Image from "next/image";
 
 const Layout = React.memo(({ children }) => {
@@ -38,54 +40,127 @@ const Layout = React.memo(({ children }) => {
   const { user, logout } = useAuth();
   const [pendingCount, setPendingCount] = useState([]);
   const [openCount, setOpenCount] = useState([]);
-  const [loading, setLoading ] = useState(false);
-
+  const [loading, setLoading] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotificationDropdown, setShowNotificationDropdown] =
+    useState(false);
 
   const router = useRouter();
   useEffect(() => {
     fetchPendingTickets(); // Fetch pending tickets when the component mounts or updates
     fetchOpenTickets();
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const notificationCollection = collection(firestore, 'notifications');
+    let notificationQuery;
+
+    // রোল অনুযায়ী নোটিফিকেশন ফিল্টার
+    if (user.role === 'admin' || user.role === 'super_admin') {
+      // এডমিন বা সুপার এডমিন সব নোটিফিকেশন দেখতে পারবে
+      notificationQuery = query(notificationCollection, orderBy('createdAt', 'desc'));
+    } else {
+      // সাধারণ ইউজার শুধু তার নিজের নোটিফিকেশন দেখতে পারবে
+      notificationQuery = query(
+        notificationCollection,
+        where('recipientUserId', '==', user.id), // নিজের ইউজার আইডি অনুযায়ী ফিল্টার
+        orderBy('createdAt', 'desc')
+      );
+    }
+
+    const unsubscribe = onSnapshot(notificationQuery, (snapshot) => {
+      const fetchedNotifications = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setNotifications(fetchedNotifications);
+
+      // unread নোটিফিকেশনের সংখ্যা আপডেট করা
+      const unreadCount = fetchedNotifications.filter((n) => !n.read).length;
+      setUnreadCount(unreadCount);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+  
+  const toggleNotificationDropdown = () => {
+    setShowNotificationDropdown((prev) => !prev);
+  };
+  const markAllAsRead = async () => {
+    try {
+      const unreadNotifications = notifications.filter((n) => !n.read);
+  
+      if (unreadNotifications.length === 0) return;
+  
+      const batch = writeBatch(firestore);
+  
+      unreadNotifications.forEach((notification) => {
+        const docRef = doc(firestore, "notifications", notification.id);
+        batch.update(docRef, { read: true });
+      });
+  
+      await batch.commit();
+  
+      setNotifications((prev) =>
+        prev.map((n) => ({
+          ...n,
+          read: true,
+        }))
+      );
+  
+      setUnreadCount(0);
+    } catch (error) {
+      console.error("Error marking notifications as read:", error);
+    }
+  };
+  
+
+  
   
   const fetchPendingTickets = async () => {
     try {
-      const response = await fetch('/api/tickets/create');
+      const response = await fetch("/api/tickets/create");
       const result = await response.json();
-  
+
       if (result.success) {
-        const pendingTickets = result.tickets.filter((ticket) => ticket.status === 'pending');
-   
-      
+        const pendingTickets = result.tickets.filter(
+          (ticket) => ticket.status === "pending"
+        );
+
         setPendingCount(pendingTickets); // Set the count of pending tickets
       } else {
-        console.error('Failed to fetch tickets:', result.message);
+        console.error("Failed to fetch tickets:", result.message);
       }
     } catch (error) {
-      console.error('Error fetching tickets:', error);
+      console.error("Error fetching tickets:", error);
     } finally {
       setLoading(false);
     }
   };
   const fetchOpenTickets = async () => {
     try {
-      const response = await fetch('/api/tickets/create');
+      const response = await fetch("/api/tickets/create");
       const result = await response.json();
-  
+
       if (result.success) {
-        const openTickets = result.tickets.filter((ticket) => ticket.status === 'open');
-     
-      
+        const openTickets = result.tickets.filter(
+          (ticket) => ticket.status === "open"
+        );
+
         setOpenCount(openTickets); // Set the count of pending tickets
       } else {
-        console.error('Failed to fetch tickets:', result.message);
+        console.error("Failed to fetch tickets:", result.message);
       }
     } catch (error) {
-      console.error('Error fetching tickets:', error);
+      console.error("Error fetching tickets:", error);
     } finally {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     const savedMenu = localStorage.getItem("activeMenu");
     if (savedMenu) setMenuOpen(savedMenu);
@@ -317,11 +392,13 @@ const Layout = React.memo(({ children }) => {
 
       {/* Sidebar */}
       <div
-  className={`fixed inset-y-0 left-0 z-40 transform transition-all duration-300 bg-[#071251] text-white shadow-lg ${
-    isCollapsed ? "w-24" : "w-72"
-  } ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static lg:inset-0 h-full flex flex-col`}
-// Removed onMouseEnter and onMouseLeave
->
+        className={`fixed inset-y-0 left-0 z-40 transform transition-all duration-300 bg-[#071251] text-white shadow-lg ${
+          isCollapsed ? "w-24" : "w-72"
+        } ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0 lg:static lg:inset-0 h-full flex flex-col`}
+        // Removed onMouseEnter and onMouseLeave
+      >
         <div className="sticky top-0 bg-[#071251] z-50">
           {/* Logo */}
           <div className="flex items-center text-white justify-center mt-8">
@@ -354,67 +431,65 @@ const Layout = React.memo(({ children }) => {
                 {!isCollapsed && <span className="ml-3">Dashboard</span>}
               </Link>
             </div>
-           
-  {/* Blog Main Menu Item with 0.3s Transition */}
-  {user && (user.role === "admin" || user.role === "super_admin") && (
-  <div className="mt-2">
-    <p
-      className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-        isActiveRoute("/dashboard/categories") ||
-        isActiveRoute("/dashboard/all-blogs") ||
-        isActiveRoute("/dashboard/authors") ||
-        isActiveRoute("/dashboard/blogs")
-          ? "bg-[#4634ff] text-white"
-          : menuOpen === "blog"
-          ? "bg-[#1d1e8e] text-white"
-          : "hover:bg-[#1d1e8e] hover:text-white"
-      }`}
-      onClick={() => toggleMenu("blog")}
-      style={{ transition: "all 0.3s ease" }}
-    >
-      <FaBlog className="mr-3 text-white" />
-      {!isCollapsed && <span>Blog</span>}
-      {!isCollapsed && (
-        <span className="ml-auto">
-          {menuOpen === "blog" ? (
-            <FiChevronUp className="w-6 h-6" />
-          ) : (
-            <FiChevronDown className="w-6 h-6" />
-          )}
-        </span>
-      )}
-    </p>
 
-    {/* Submenu */}
-    {menuOpen === "blog" && (
-      <div className="ml-6 mt-2 mb-1 overflow-hidden">
-        {[
-          { href: "/dashboard/categories", label: "Categories" },
-          { href: "/dashboard/all-blogs", label: "All Posts" },
-          { href: "/dashboard/blogs", label: "Add Post" },
-          { href: "/dashboard/authors", label: "Add Authors" },
-        ].map(({ href, label }, index) => (
-          <Link href={href} passHref key={index}>
-            <p
-              className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                isActiveRoute(href)
-                  ? "bg-[#1d1e8e] text-white"
-                  : "hover:bg-[#1d1e8e] hover:text-white"
-              }`}
-            >
-              <FaCircle className="mr-2 text-xs" />
-              {label}
-            </p>
-          </Link>
-        ))}
-      </div>
-    )}
-  </div>
-)}
+            {/* Blog Main Menu Item with 0.3s Transition */}
+            {user && (user.role === "admin" || user.role === "super_admin") && (
+              <div className="mt-2">
+                <p
+                  className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
+                    isActiveRoute("/dashboard/categories") ||
+                    isActiveRoute("/dashboard/all-blogs") ||
+                    isActiveRoute("/dashboard/authors") ||
+                    isActiveRoute("/dashboard/blogs")
+                      ? "bg-[#4634ff] text-white"
+                      : menuOpen === "blog"
+                      ? "bg-[#1d1e8e] text-white"
+                      : "hover:bg-[#1d1e8e] hover:text-white"
+                  }`}
+                  onClick={() => toggleMenu("blog")}
+                  style={{ transition: "all 0.3s ease" }}
+                >
+                  <FaBlog className="mr-3 text-white" />
+                  {!isCollapsed && <span>Blog</span>}
+                  {!isCollapsed && (
+                    <span className="ml-auto">
+                      {menuOpen === "blog" ? (
+                        <FiChevronUp className="w-6 h-6" />
+                      ) : (
+                        <FiChevronDown className="w-6 h-6" />
+                      )}
+                    </span>
+                  )}
+                </p>
 
+                {/* Submenu */}
+                {menuOpen === "blog" && (
+                  <div className="ml-6 mt-2 mb-1 overflow-hidden">
+                    {[
+                      { href: "/dashboard/categories", label: "Categories" },
+                      { href: "/dashboard/all-blogs", label: "All Posts" },
+                      { href: "/dashboard/blogs", label: "Add Post" },
+                      { href: "/dashboard/authors", label: "Add Authors" },
+                    ].map(({ href, label }, index) => (
+                      <Link href={href} passHref key={index}>
+                        <p
+                          className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                            isActiveRoute(href)
+                              ? "bg-[#1d1e8e] text-white"
+                              : "hover:bg-[#1d1e8e] hover:text-white"
+                          }`}
+                        >
+                          <FaCircle className="mr-2 text-xs" />
+                          {label}
+                        </p>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
-
-{user && (user.role === "admin" || user.role === "super_admin") ? (
+            {user && (user.role === "admin" || user.role === "super_admin") ? (
               <>
                 {/* Blog */}
                 <div className="mt-2">
@@ -422,7 +497,7 @@ const Layout = React.memo(({ children }) => {
                     className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
                       isActiveRoute("/dashboard/yt-categories") ||
                       isActiveRoute("/dashboard/all-article") ||
-                      isActiveRoute("/dashboard/article")||
+                      isActiveRoute("/dashboard/article") ||
                       isActiveRoute("/dashboard/create-shortcode")
                         ? "bg-[#4634ff] text-white"
                         : menuOpen === "blog"
@@ -509,10 +584,6 @@ const Layout = React.memo(({ children }) => {
               </>
             ) : null}
 
-
-  
-
-         
             {user && (user.role === "admin" || user.role === "super_admin") ? (
               <>
                 {/* Pages */}
@@ -582,10 +653,10 @@ const Layout = React.memo(({ children }) => {
             ) : null}
 
             {/* Content */}
-{user && (user.role === "admin" || user.role === "super_admin") ? (
-  <>
-    <div className="">
-    <p
+            {user && (user.role === "admin" || user.role === "super_admin") ? (
+              <>
+                <div className="">
+                  <p
                     className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
                       isActiveRoute("/dashboard/content") ||
                       isActiveRoute("/dashboard/review")
@@ -594,58 +665,59 @@ const Layout = React.memo(({ children }) => {
                         ? "bg-[#1d1e8e] text-white"
                         : "hover:bg-[#1d1e8e] hover:text-white"
                     }`}
-        onClick={() => toggleMenu("tools")}
-      >
-        <FaFileAlt className="mr-3 text-white" />
-        {!isCollapsed && <span>Content</span>}
-        {!isCollapsed && (
-          <span className="ml-auto">
-            {menuOpen === "tools" ? (
-              <FiChevronUp className="w-6 h-6" />
-            ) : (
-              <FiChevronDown className="w-6 h-6" />
-            )}
-          </span>
-        )}
-      </p>
+                    onClick={() => toggleMenu("tools")}
+                  >
+                    <FaFileAlt className="mr-3 text-white" />
+                    {!isCollapsed && <span>Content</span>}
+                    {!isCollapsed && (
+                      <span className="ml-auto">
+                        {menuOpen === "tools" ? (
+                          <FiChevronUp className="w-6 h-6" />
+                        ) : (
+                          <FiChevronDown className="w-6 h-6" />
+                        )}
+                      </span>
+                    )}
+                  </p>
 
-      {/* Dropdown Content */}
-      <div
-        className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
-          (menuOpen === "tools" || isActiveRoute("/dashboard/content")) &&
-          !isCollapsed
-            ? "max-h-screen opacity-100 scale-y-100"
-            : "max-h-0 opacity-0 scale-y-0"
-        }`}
-      >
-        <Link href="/dashboard/content" passHref>
-          <p
-            className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-              isActiveRoute("/dashboard/content")
-                ? "bg-[#1d1e8e] text-white"
-                : "bg-transparent text-white"
-            }`}
-          >
-            <FaCircle className="mr-2 text-xs" />
-            Tools Content
-          </p>
-        </Link>
-        <Link href="/dashboard/review" passHref>
-          <p
-            className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-              isActiveRoute("/dashboard/review")
-                ? "bg-[#1d1e8e] text-white"
-                : "bg-transparent text-white"
-            }`}
-          >
-            <FaCircle className="mr-2 text-xs" />
-            Tools Review
-          </p>
-        </Link>
-      </div>
-    </div>
-  </>
-) : null}
+                  {/* Dropdown Content */}
+                  <div
+                    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
+                      (menuOpen === "tools" ||
+                        isActiveRoute("/dashboard/content")) &&
+                      !isCollapsed
+                        ? "max-h-screen opacity-100 scale-y-100"
+                        : "max-h-0 opacity-0 scale-y-0"
+                    }`}
+                  >
+                    <Link href="/dashboard/content" passHref>
+                      <p
+                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                          isActiveRoute("/dashboard/content")
+                            ? "bg-[#1d1e8e] text-white"
+                            : "bg-transparent text-white"
+                        }`}
+                      >
+                        <FaCircle className="mr-2 text-xs" />
+                        Tools Content
+                      </p>
+                    </Link>
+                    <Link href="/dashboard/review" passHref>
+                      <p
+                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                          isActiveRoute("/dashboard/review")
+                            ? "bg-[#1d1e8e] text-white"
+                            : "bg-transparent text-white"
+                        }`}
+                      >
+                        <FaCircle className="mr-2 text-xs" />
+                        Tools Review
+                      </p>
+                    </Link>
+                  </div>
+                </div>
+              </>
+            ) : null}
 
             {/* Manage Users */}
             {user && (user.role === "admin" || user.role === "super_admin") ? (
@@ -860,140 +932,139 @@ const Layout = React.memo(({ children }) => {
                 </div>
               </>
             ) : null}
-          
-          {/* Support Section */}
-{user && ( // Only render the support section if the user is logged in
-  <div className="">
-    <p
-      className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-        isActiveRoute("/dashboard/create-ticket") ||
-        isActiveRoute("/dashboard/my-tickets") ||
-        isActiveRoute("/dashboard/pending-tickets") ||
-        isActiveRoute("/dashboard/closed-tickets") ||
-        isActiveRoute("/dashboard/open-tickets") ||
-        isActiveRoute("/dashboard/all-tickets") ||
-        isActiveRoute("/dashboard/")
-          ? "bg-[#4634ff] text-white"
-          : menuOpen === "support"
-          ? "bg-[#1d1e8e] text-white"
-          : "hover:bg-[#1d1e8e] hover:text-white"
-      }`}
-      onClick={() => toggleMenu("support")}
-    >
-      <FaListAlt className="mr-3 text-white" />
-      {!isCollapsed && <span>Support</span>}
-      {!isCollapsed && (
-        <span className="ml-auto">
-          {menuOpen === "support" ? (
-            <FiChevronUp className="w-6 h-6" />
-          ) : (
-            <FiChevronDown className="w-6 h-6" />
-          )}
-        </span>
-      )}
-    </p>
 
-    {/* Dropdown Content with Smooth Opening and Closing Animation */}
-    <div
-      className={`ml-6 mt-2 mb-1 overflow-hidden transition-all duration-700 ease-in-out origin-top ${
-        menuOpen === "support" && !isCollapsed
-          ? "max-h-screen opacity-100 scale-y-100"
-          : "max-h-0 opacity-0 scale-y-0"
-      }`}
-    >
-      {/* Role-Based Menu Items */}
-      {user.role === "user" && (
-        <>
-          <Link href="/dashboard/create-ticket" passHref>
-            <p
-              className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                isActiveRoute("/dashboard/create-ticket")
-                  ? "bg-[#1d1e8e] text-white"
-                  : "hover:bg-[#1d1e8e] hover:text-white"
-              }`}
-            >
-              <FaCircle className="mr-2 text-xs" />
-              Create New Ticket
-            </p>
-          </Link>
-          <Link href="/dashboard/my-tickets" passHref>
-            <p
-              className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                isActiveRoute("/dashboard/my-tickets")
-                  ? "bg-[#1d1e8e] text-white"
-                  : "hover:bg-[#1d1e8e] hover:text-white"
-              }`}
-            >
-              <FaCircle className="mr-2 text-xs" />
-              My Tickets
-            </p>
-          </Link>
-        </>
-      )}
+            {/* Support Section */}
+            {user && ( // Only render the support section if the user is logged in
+              <div className="">
+                <p
+                  className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
+                    isActiveRoute("/dashboard/create-ticket") ||
+                    isActiveRoute("/dashboard/my-tickets") ||
+                    isActiveRoute("/dashboard/pending-tickets") ||
+                    isActiveRoute("/dashboard/closed-tickets") ||
+                    isActiveRoute("/dashboard/open-tickets") ||
+                    isActiveRoute("/dashboard/all-tickets") ||
+                    isActiveRoute("/dashboard/")
+                      ? "bg-[#4634ff] text-white"
+                      : menuOpen === "support"
+                      ? "bg-[#1d1e8e] text-white"
+                      : "hover:bg-[#1d1e8e] hover:text-white"
+                  }`}
+                  onClick={() => toggleMenu("support")}
+                >
+                  <FaListAlt className="mr-3 text-white" />
+                  {!isCollapsed && <span>Support</span>}
+                  {!isCollapsed && (
+                    <span className="ml-auto">
+                      {menuOpen === "support" ? (
+                        <FiChevronUp className="w-6 h-6" />
+                      ) : (
+                        <FiChevronDown className="w-6 h-6" />
+                      )}
+                    </span>
+                  )}
+                </p>
 
-      {user.role === "admin" && (
-        <>
-          <Link href="/dashboard/pending-tickets" passHref>
-  <p
-    className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-      isActiveRoute("/dashboard/pending-tickets")
-        ? "bg-[#1d1e8e] text-white"
-        : "hover:bg-[#1d1e8e] hover:text-white"
-    }`}
-  >
-    <FaCircle className="mr-2 text-xs" />
-    Pending Ticket
-    <span className="ml-auto bg-blue-600 text-white text-xs rounded-full px-2 py-1">
-      {pendingCount.length}
-    </span>
-  </p>
-</Link>
+                {/* Dropdown Content with Smooth Opening and Closing Animation */}
+                <div
+                  className={`ml-6 mt-2 mb-1 overflow-hidden transition-all duration-700 ease-in-out origin-top ${
+                    menuOpen === "support" && !isCollapsed
+                      ? "max-h-screen opacity-100 scale-y-100"
+                      : "max-h-0 opacity-0 scale-y-0"
+                  }`}
+                >
+                  {/* Role-Based Menu Items */}
+                  {user.role === "user" && (
+                    <>
+                      <Link href="/dashboard/create-ticket" passHref>
+                        <p
+                          className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                            isActiveRoute("/dashboard/create-ticket")
+                              ? "bg-[#1d1e8e] text-white"
+                              : "hover:bg-[#1d1e8e] hover:text-white"
+                          }`}
+                        >
+                          <FaCircle className="mr-2 text-xs" />
+                          Create New Ticket
+                        </p>
+                      </Link>
+                      <Link href="/dashboard/my-tickets" passHref>
+                        <p
+                          className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                            isActiveRoute("/dashboard/my-tickets")
+                              ? "bg-[#1d1e8e] text-white"
+                              : "hover:bg-[#1d1e8e] hover:text-white"
+                          }`}
+                        >
+                          <FaCircle className="mr-2 text-xs" />
+                          My Tickets
+                        </p>
+                      </Link>
+                    </>
+                  )}
 
-          <Link href="/dashboard/closed-tickets" passHref>
-            <p
-              className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                isActiveRoute("/dashboard/closed-tickets")
-                  ? "bg-[#1d1e8e] text-white"
-                  : "hover:bg-[#1d1e8e] hover:text-white"
-              }`}
-            >
-              <FaCircle className="mr-2 text-xs" />
-              Closed Ticket
-            </p>
-          </Link>
-          <Link href="/dashboard/open-tickets" passHref>
-            <p
-              className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                isActiveRoute("/dashboard/open-tickets")
-                  ? "bg-[#1d1e8e] text-white"
-                  : "hover:bg-[#1d1e8e] hover:text-white"
-              }`}
-            >
-              <FaCircle className="mr-2 text-xs" />
-              Open Ticket
-              <span className="ml-auto bg-blue-600 text-white text-xs rounded-full px-2 py-1">
-      {openCount.length}
-    </span>
-            </p>
-          </Link>
-          <Link href="/dashboard/all-tickets" passHref>
-            <p
-              className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                isActiveRoute("/dashboard/all-tickets")
-                  ? "bg-[#1d1e8e] text-white"
-                  : "hover:bg-[#1d1e8e] hover:text-white"
-              }`}
-            >
-              <FaCircle className="mr-2 text-xs" />
-              All Ticket
-            </p>
-          </Link>
-        </>
-      )}
-    </div>
-  </div>
-)}
+                  {user.role === "admin" && (
+                    <>
+                      <Link href="/dashboard/pending-tickets" passHref>
+                        <p
+                          className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                            isActiveRoute("/dashboard/pending-tickets")
+                              ? "bg-[#1d1e8e] text-white"
+                              : "hover:bg-[#1d1e8e] hover:text-white"
+                          }`}
+                        >
+                          <FaCircle className="mr-2 text-xs" />
+                          Pending Ticket
+                          <span className="ml-auto bg-blue-600 text-white text-xs rounded-full px-2 py-1">
+                            {pendingCount.length}
+                          </span>
+                        </p>
+                      </Link>
 
+                      <Link href="/dashboard/closed-tickets" passHref>
+                        <p
+                          className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                            isActiveRoute("/dashboard/closed-tickets")
+                              ? "bg-[#1d1e8e] text-white"
+                              : "hover:bg-[#1d1e8e] hover:text-white"
+                          }`}
+                        >
+                          <FaCircle className="mr-2 text-xs" />
+                          Closed Ticket
+                        </p>
+                      </Link>
+                      <Link href="/dashboard/open-tickets" passHref>
+                        <p
+                          className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                            isActiveRoute("/dashboard/open-tickets")
+                              ? "bg-[#1d1e8e] text-white"
+                              : "hover:bg-[#1d1e8e] hover:text-white"
+                          }`}
+                        >
+                          <FaCircle className="mr-2 text-xs" />
+                          Open Ticket
+                          <span className="ml-auto bg-blue-600 text-white text-xs rounded-full px-2 py-1">
+                            {openCount.length}
+                          </span>
+                        </p>
+                      </Link>
+                      <Link href="/dashboard/all-tickets" passHref>
+                        <p
+                          className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                            isActiveRoute("/dashboard/all-tickets")
+                              ? "bg-[#1d1e8e] text-white"
+                              : "hover:bg-[#1d1e8e] hover:text-white"
+                          }`}
+                        >
+                          <FaCircle className="mr-2 text-xs" />
+                          All Ticket
+                        </p>
+                      </Link>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Report Section */}
             {user && (user.role === "admin" || user.role === "super_admin") ? (
@@ -1316,7 +1387,6 @@ const Layout = React.memo(({ children }) => {
                         : "max-h-0 opacity-0 scale-y-0"
                     }`}
                   >
-                   
                     <Link href="/dashboard/report" passHref>
                       <p
                         className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
@@ -1464,21 +1534,21 @@ const Layout = React.memo(({ children }) => {
           </nav>
         </div>
         {/* Bottom Fixed Section */}
-       {/* Footer Text */}
-  <div
-    className="text-center text-white font-bold text-xs"
-    style={{
-      position: "absolute",
-      bottom: "10px",
-      width: "100%",
-      whiteSpace: "nowrap",
-      textAlign: "center",
-      transition: "all 0.3s ease",
-      opacity: isCollapsed ? "1" : "1",
-    }}
-  >
-    {!isCollapsed ? "Ytubetools V1.0" : "Yt V1.0"}
-  </div>
+        {/* Footer Text */}
+        <div
+          className="text-center text-white font-bold text-xs"
+          style={{
+            position: "absolute",
+            bottom: "10px",
+            width: "100%",
+            whiteSpace: "nowrap",
+            textAlign: "center",
+            transition: "all 0.3s ease",
+            opacity: isCollapsed ? "1" : "1",
+          }}
+        >
+          {!isCollapsed ? "Ytubetools V1.0" : "Yt V1.0"}
+        </div>
       </div>
 
       {/* Main content area */}
@@ -1504,7 +1574,6 @@ const Layout = React.memo(({ children }) => {
                 <FaBars className="w-6 h-6" />
               </button>
 
-             
               {/* Search Input for Desktop */}
               <div className="relative hidden lg:block w-64">
                 <FaSearch className="absolute top-1/2 left-3 transform -translate-y-1/2 text-white text-lg" />
@@ -1540,7 +1609,46 @@ const Layout = React.memo(({ children }) => {
               >
                 <FaGlobe className="w-5 h-5" />
               </button>
-            
+              {/* Notification Icon */}
+              <div className="relative">
+      {/* Notification Bell Icon */}
+      <button className="relative text-white" onClick={toggleNotificationDropdown}>
+        <FaBell className="w-6 h-6" />
+        {unreadCount > 0 && (
+          <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-2">
+            {unreadCount}
+          </span>
+        )}
+      </button>
+
+      {/* Notification Dropdown */}
+      {showNotificationDropdown && (
+        <div className="absolute right-0 mt-2 w-80 bg-white shadow-lg rounded-lg z-10">
+          <div className="p-4 flex justify-between items-center">
+            <h4 className="text-lg font-bold">Notifications</h4>
+            <button onClick={markAllAsRead} className="text-sm text-blue-600 hover:underline">
+              Mark all as read
+            </button>
+          </div>
+          <ul className="max-h-64 overflow-y-auto">
+            {notifications.map((notification) => (
+              <li
+                key={notification.id}
+                className={`p-4 border-b ${notification.read ? 'bg-gray-100' : 'bg-blue-50'}`}
+              >
+                <p className="text-sm">{notification.message}</p>
+                <small className="text-gray-500">
+                  {new Date(notification.createdAt.toDate()).toLocaleString()}
+                </small>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+
+
+
               <button
                 className="flex items-center text-white"
                 onClick={() => router.push("/dashboard/system-setting")}
@@ -1604,16 +1712,23 @@ const Layout = React.memo(({ children }) => {
                         <p className="font-semibold text-blue-500">
                           {user?.username || "Username"}
                         </p>
-                        
 
-<div className="flex items-center space-x-2">
-  <p className="text-gray-500 text-sm">{user?.role || "Role"}</p>
-  {user?.verified ? (
-    <FaCheckCircle className="text-green-500" title="Verified" /> // Green checkmark for verified
-  ) : (
-    <FaTimesCircle className="text-red-500" title="Not Verified" /> // Red cross for unverified
-  )}
-</div>
+                        <div className="flex items-center space-x-2">
+                          <p className="text-gray-500 text-sm">
+                            {user?.role || "Role"}
+                          </p>
+                          {user?.verified ? (
+                            <FaCheckCircle
+                              className="text-green-500"
+                              title="Verified"
+                            /> // Green checkmark for verified
+                          ) : (
+                            <FaTimesCircle
+                              className="text-red-500"
+                              title="Not Verified"
+                            /> // Red cross for unverified
+                          )}
+                        </div>
                       </div>
                     </div>
                     <hr />
