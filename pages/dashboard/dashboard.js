@@ -351,7 +351,7 @@ const Dashboard = () => {
   </div>
 </Link>
 </div>
-<NotificationList />
+
 
         {/* Filter and Chart Section */}
        

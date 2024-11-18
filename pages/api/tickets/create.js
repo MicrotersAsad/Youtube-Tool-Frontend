@@ -23,6 +23,7 @@ async function handleCreateTicket(req, res, db) {
   try {
     const { userId, userName, subject, description, attachments, priority } = req.body;
 
+    // Validation
     if (!userId || !userName || !subject || !description) {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
@@ -42,20 +43,20 @@ async function handleCreateTicket(req, res, db) {
 
     // Insert the ticket into MongoDB
     const result = await db.collection('tickets').insertOne(newTicket);
-    console.log("MongoDB result: ", result);
 
     if (result.acknowledged) {
-      const notificationRef = collection(firestore, 'notifications');
-      await addDoc(notificationRef, {
+      // Add a notification in Firestore
+      await addDoc(collection(firestore, 'notifications'), {
         type: 'ticket_created',
         message: `${userName} created a new ticket: ${subject}`,
         ticketId: newTicket.ticketId,
+        recipientUserId: userId,
         createdAt: new Date(),
+        read: false,
       });
 
       res.status(201).json({ success: true, ticket: newTicket });
     } else {
-      console.error('MongoDB insert failed');
       res.status(500).json({ success: false, message: 'Failed to create ticket' });
     }
   } catch (error) {
@@ -87,42 +88,60 @@ async function handleGetTickets(req, res, db) {
 }
 
 // Update Ticket
+// Update Ticket
 async function handleUpdateTicket(req, res, db) {
   try {
     const { ticketId } = req.query;
-    const { status, comment } = req.body;
+    const { status, comment, userId, userName, recipientUserId } = req.body;
 
     if (!ticketId) {
       return res.status(400).json({ success: false, message: 'Ticket ID is required' });
     }
 
-    const updateFields = {};
-    if (status) updateFields.status = status;
-    if (comment) {
-      updateFields.$push = { comments: { text: comment, createdAt: new Date() } };
+    if (!comment || !userId || !userName || !recipientUserId) {
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    // MongoDB: Update the ticket with the new comment
+    const updateFields = {
+      $push: {
+        comments: {
+          userId,
+          userName,
+          message: comment,
+          createdAt: new Date(),
+        },
+      },
+    };
+
+    if (status) {
+      updateFields.$set = { status };
     }
 
     const result = await db.collection('tickets').updateOne(
       { ticketId },
-      { $set: updateFields, ...(comment && updateFields.$push) }
+      updateFields
     );
 
     if (result.modifiedCount === 0) {
       return res.status(404).json({ success: false, message: 'Ticket not found or no changes made' });
     }
 
-    // Add a notification for the update
+    // Firestore: Add a notification for the recipient
     const notificationRef = collection(firestore, 'notifications');
     await addDoc(notificationRef, {
-      type: 'ticket_updated',
-      message: `Ticket ${ticketId} was updated: ${status || 'Comment added'}`,
+      type: 'comment_added',
+      message: `${userName} commented on your ticket ${ticketId}: "${comment}".`,
       ticketId,
+      recipientUserId, // Include recipientUserId properly
       createdAt: new Date(),
+      read: false,
     });
 
-    res.status(200).json({ success: true, message: 'Ticket updated successfully' });
+    res.status(200).json({ success: true, message: 'Comment added and notification sent' });
   } catch (error) {
-    console.error('Error updating ticket: ', error);
+    console.error('Error updating ticket:', error);
     res.status(500).json({ success: false, message: 'Failed to update ticket' });
   }
 }
+

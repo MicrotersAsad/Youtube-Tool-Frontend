@@ -1115,16 +1115,16 @@ const Layout = React.memo(({ children }) => {
                         Login History
                       </p>
                     </Link>
-                    <Link href="/dashboard/addopenaiKey" passHref>
+                    <Link href="/dashboard/all-notification" passHref>
                       <p
                         className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/addopenaiKey")
+                          isActiveRoute("/dashboard/all-notification")
                             ? "bg-[#1d1e8e] text-white"
                             : "hover:bg-[#1d1e8e] hover:text-white"
                         }`}
                       >
                         <FaCircle className="mr-2 text-xs" />
-                        Add OpenAI Key
+                        All Notification
                       </p>
                     </Link>
                   </div>
