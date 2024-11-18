@@ -116,7 +116,6 @@ function Article() {
   };
   
   const handleSubmit = async () => {
-  
     if (!title) {
       toast.error('Title is required.');
       return;
@@ -153,6 +152,10 @@ function Article() {
       toast.error('Developer is required.');
       return;
     }
+    if (!selectedCategory) {
+      toast.error('Category is required.');
+      return;
+    }
   
     try {
       const method = isEditing ? 'PUT' : 'POST';
@@ -164,7 +167,7 @@ function Article() {
       formData.append('description', description);
       formData.append('metaDescription', metaDescription);
       formData.append('language', selectedLanguage);
-      formData.append('category', selectedCategory || 'unknown'); // Default to 'unknown' if category is not selected
+      formData.append('category', selectedCategory);
       if (imageFile) {
         formData.append('image', imageFile);
       }
@@ -189,7 +192,7 @@ function Article() {
       fetchContent();
       toast.success('Blog uploaded successfully!');
       localStorage.removeItem('blogFormState');
-
+  
       // Reset form state and reload page to clear everything
       setTimeout(() => {
         window.location.reload();
@@ -199,6 +202,7 @@ function Article() {
       setError(error.message);
     }
   };
+  
   
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);

@@ -122,6 +122,7 @@ const handlePostRequest = async (req, res, youtube) => {
       return res.status(400).json({ message: 'Category is required' });
     }
 
+    // Checking if all required fields are present
     if (
       !content ||
       !title ||
@@ -179,7 +180,7 @@ const handlePostRequest = async (req, res, youtube) => {
             metaTitle,
             description,
             metaDescription,
-            category,
+            category, // Set category in new document
             image,
             slug: uniqueSlug,
           },
@@ -204,6 +205,7 @@ const handlePostRequest = async (req, res, youtube) => {
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
+
 
 const handleGetRequest = async (req, res, youtube, query) => {
   try {
