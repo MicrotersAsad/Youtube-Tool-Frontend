@@ -207,53 +207,46 @@ const handlePostRequest = async (req, res, youtube) => {
 
 const handleGetRequest = async (req, res, youtube, query) => {
   try {
-    const { id, slug, name, role, page = 1, limit = 10 } = query;
+    const { id, slug, page = 1, limit = 10 } = query;
 
-    // Handle fetching by ID
+    // Case 1: Fetch by ID
     if (id) {
-      const result = await youtube.findOne({ _id: new ObjectId(id) });
-
-      if (!result) {
-        return res.status(404).json({ message: 'Resource not found' });
+      try {
+        const result = await youtube.findOne({ _id: new ObjectId(id) });
+        if (!result) {
+          return res.status(404).json({ message: 'Resource not found by ID.' });
+        }
+        return res.status(200).json(result);
+      } catch (error) {
+        return res.status(400).json({ message: 'Invalid ID format.', error: error.message });
       }
-
-      return res.status(200).json(result);
     }
 
-    // Handle fetching by slug
+    // Case 2: Fetch by Slug
     if (slug) {
-      const result = await youtube.findOne({ 'translations.slug': slug });
+      console.log("Fetching Blog for Slug:", slug);
+      const result = await youtube.findOne({
+        [`translations.en.slug`]: slug, // Match the slug within `translations`
+      });
 
+      console.log("Fetched Result by Slug:", result);
       if (!result) {
-        return res.status(404).json({ message: 'Resource not found' });
+        return res.status(404).json({ message: `Resource not found for the slug: ${slug}` });
       }
 
       return res.status(200).json(result);
     }
 
-    // Handle filtering by name and role
-    if (name && role) {
-      const filter = { [role]: name };
-      const filteredResults = await youtube.find(filter).toArray();
-
-      if (filteredResults.length === 0) {
-        return res.status(404).json({ message: 'No posts found for this person' });
-      }
-
-      return res.status(200).json(filteredResults);
-    }
-
-    // Handle pagination for general data retrieval
+    // Case 3: Pagination for General Retrieval
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
 
     if (isNaN(pageNumber) || isNaN(limitNumber) || pageNumber <= 0 || limitNumber <= 0) {
-      return res.status(400).json({ message: 'Invalid pagination parameters' });
+      return res.status(400).json({ message: 'Invalid pagination parameters.' });
     }
 
     const offset = (pageNumber - 1) * limitNumber;
 
-    // Fetch paginated data and total count concurrently
     const [data, total] = await Promise.all([
       youtube.find({}).sort({ createdAt: -1 }).skip(offset).limit(limitNumber).toArray(),
       youtube.countDocuments(),
@@ -261,8 +254,7 @@ const handleGetRequest = async (req, res, youtube, query) => {
 
     const totalPages = Math.ceil(total / limitNumber);
 
-    // Return paginated response with metadata
-    res.status(200).json({
+    return res.status(200).json({
       data,
       meta: {
         totalBlogs: total,
@@ -271,10 +263,14 @@ const handleGetRequest = async (req, res, youtube, query) => {
       },
     });
   } catch (error) {
-    console.error('GET error:', error);
-    res.status(500).json({ message: 'Internal server error', error: error.message });
+    console.error('GET error:', error.message);
+    return res.status(500).json({ message: 'Internal server error.', error: error.message });
   }
 };
+
+
+
+
 
 
 

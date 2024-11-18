@@ -30,7 +30,7 @@ const insertTocBeforeFirstHeading = (content, tocHtml) => {
   return `${beforeFirstHeading}${tocHtml}${afterFirstHeading}`;
 };
 
-const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes, metaUrl, hreflangs }) => {
+const BlogPost = ({ initialBlog, authorData, relatedyoutube, initialShortcodes, metaUrl, hreflangs }) => {
   const { t } = useTranslation("blog");
   const router = useRouter();
   const { slug } = router.query;
@@ -39,16 +39,17 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes, me
   const [author, setAuthor] = useState(authorData?.author);
   const [loading, setLoading] = useState(!initialBlog);
   const [shortcodes, setShortcodes] = useState(initialShortcodes || []);
+console.log(initialBlog);
 
   useEffect(() => {
     if (!initialBlog && slug) {
       const fetchData = async () => {
         try {
-          const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/blogs`;
+          const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/youtube`;
           const { data } = await axios.get(apiUrl);
-          const blogs = data;
+          const youtube = data;
 
-          const blog = blogs.find((blog) =>
+          const blog = youtube.find((blog) =>
             Object.values(blog.translations).some((translation) => translation.slug === slug)
           );
 
@@ -60,7 +61,7 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes, me
             }
           }
         } catch (error) {
-          console.error("Error fetching blogs:", error.message);
+          console.error("Error fetching youtube:", error.message);
         } finally {
           setLoading(false);
         }
@@ -174,12 +175,12 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes, me
                   </div>
                 </div>
 
-                {/* Related Blogs Section */}
-                {relatedBlogs?.length > 0 && (
+                {/* Related youtube Section */}
+                {relatedyoutube?.length > 0 && (
                   <div className="my-8">
-                    <h2 className="text-2xl font-bold mb-4">{t('Related Blogs')}</h2>
+                    <h2 className="text-2xl font-bold mb-4">{t('Related youtube')}</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
-                      {relatedBlogs.map((relatedBlog, index) => {
+                      {relatedyoutube.map((relatedBlog, index) => {
                         const relatedTranslation = relatedBlog.translations[locale];
                         if (!relatedTranslation) return null;
                         return (
@@ -237,32 +238,44 @@ const BlogPost = ({ initialBlog, authorData, relatedBlogs, initialShortcodes, me
 export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
+
+    if (!slug) {
+      console.error("Slug is missing in params.");
+      return { notFound: true };
+    }
+
     const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
     const host = req.headers.host || "localhost:3000";
-    const apiUrl = `${protocol}://${host}/api/blogs`;
+    const apiUrl = `${protocol}://${host}/api/youtube`;
 
+    console.log("Fetching youtube from API:", apiUrl);
+
+    // Fetch all youtube from the API
     const { data } = await axios.get(apiUrl);
-    const blogs = data;
+    const youtube = data;
 
-    const blog = blogs.find((blog) =>
+    console.log("youtube fetched:", youtube);
+
+    // Find the blog with the matching slug
+    const blog = youtube.find((blog) =>
       Object.values(blog.translations).some((translation) => translation.slug === slug)
     );
+console.log(blog);
 
     if (!blog) {
-      return {
-        notFound: true,
-      };
+      console.error("Blog not found for slug:", slug);
+      return { notFound: true };
     }
 
     const currentTranslation = blog.translations[locale];
     if (!currentTranslation) {
-      return {
-        notFound: true,
-      };
+      console.error(`Translation for locale "${locale}" not found.`);
+      return { notFound: true };
     }
 
     const currentSlug = currentTranslation.slug;
     if (currentSlug !== slug) {
+      console.log("Slug mismatch detected. Redirecting...");
       return {
         redirect: {
           destination: `/blog/${currentSlug}`,
@@ -287,6 +300,7 @@ export async function getServerSideProps({ locale, params, req }) {
       })),
     ];
 
+    // Fetch authors
     const authorResponse = await axios.get(`${protocol}://${host}/api/authors`);
     const authors = authorResponse.data;
 
@@ -300,7 +314,8 @@ export async function getServerSideProps({ locale, params, req }) {
       (author) => author.role === "Developer" && author.name === blog.developer
     );
 
-    const categoryBlogs = blogs
+    // Find related youtube in the same category
+    const categoryyoutube = youtube
       .filter(
         (b) =>
           b !== blog &&
@@ -310,6 +325,7 @@ export async function getServerSideProps({ locale, params, req }) {
       )
       .slice(0, 3);
 
+    // Fetch shortcodes
     const shortcodesResponse = await axios.get(`${protocol}://${host}/api/shortcodes-tools`);
     const initialShortcodes = shortcodesResponse.data;
 
@@ -321,7 +337,7 @@ export async function getServerSideProps({ locale, params, req }) {
           editor: editor || null,
           developer: developer || null,
         },
-        relatedBlogs: categoryBlogs,
+        relatedyoutube: categoryyoutube,
         initialShortcodes,
         metaUrl, // Pass meta URL to component
         hreflangs, // Pass hreflangs to component
@@ -329,12 +345,13 @@ export async function getServerSideProps({ locale, params, req }) {
       },
     };
   } catch (error) {
-    console.error("Error fetching blogs or authors:", error.message);
+    console.error("Error fetching youtube or authors:", error.message);
     return {
       notFound: true,
     };
   }
 }
+
 
 
 export default BlogPost;

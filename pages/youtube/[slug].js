@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/router";
 import Head from "next/head";
@@ -13,9 +13,8 @@ import { FaCheckCircle } from "react-icons/fa";
 const BlogPost = ({
   initialBlog,
   authorData,
-  relatedBlogs,
   initialShortcodes,
-  availableLanguages,
+  hreflangs,
 }) => {
   const { t } = useTranslation("blog");
   const router = useRouter();
@@ -25,8 +24,53 @@ const BlogPost = ({
   const [blog] = useState(initialBlog);
   const [author] = useState(authorData?.author);
   const [shortcodes] = useState(initialShortcodes || []);
+  const [relatedBlogs, setRelatedBlogs] = useState([]); // State for related blogs
+  const [loadingRelatedBlogs, setLoadingRelatedBlogs] = useState(true); // Loading state for related blogs
 
   const translation = blog?.translations?.[locale];
+  useEffect(() => {
+    const fetchRelatedBlogs = async () => {
+      try {
+        
+        
+        const response = await fetch('/api/youtube');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        const data = await response.json();
+        console.log("Fetched blogs data:", data);
+  
+        if (Array.isArray(data.data)) {
+          const allBlogs = data.data;
+          console.log("All blogs:", allBlogs);
+  
+          const filteredBlogs = allBlogs.filter(
+            (b) =>
+              b._id !== blog._id &&
+              Object.values(b.translations || {}).some(
+                (translation) =>
+                  translation.category === blog.translations[locale]?.category
+              )
+          );
+  
+          setRelatedBlogs(filteredBlogs);
+          console.log("Filtered related blogs:", filteredBlogs);
+        } else {
+          console.error("Blogs data is not an array:", data);
+        }
+      } catch (error) {
+        console.error("Error fetching related blogs:", error.message);
+      } finally {
+        setLoadingRelatedBlogs(false);
+      }
+    };
+  
+    if (blog) {
+      fetchRelatedBlogs();
+    }
+  }, [blog, locale]);
+  
 
   if (!translation) {
     return (
@@ -37,13 +81,6 @@ const BlogPost = ({
   }
 
   const metaUrl = `https://${router.host || "localhost:3000"}/youtube/${slug}`;
-
-  const hreflangs = availableLanguages.map((lang) => ({
-    rel: "alternate",
-    hreflang: lang,
-    href: lang === "en" ? metaUrl : `${metaUrl.replace(/\/$/, "")}/${lang}`,
-  }));
-
   const content = translation.content || t("Content not available.");
   const categoryName = translation.category || t("Blog");
   const publicationDate = blog?.createdAt
@@ -102,30 +139,41 @@ const BlogPost = ({
               {renderContentWithShortcodes()}
             </div>
 
+            {/* Related Blogs Section */}
             <div className="my-8">
               <h2 className="text-2xl font-bold mb-4">
                 {t("Other Countries Highest Earning Youtubers")}
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {relatedBlogs.map((relatedBlog, index) => {
-                  const relatedTranslation = relatedBlog.translations[locale];
-                  if (!relatedTranslation) return null;
+              {loadingRelatedBlogs ? (
+                <div className="flex justify-center items-center h-24">
+                  <ClipLoader size={30} color={"#123abc"} />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {relatedBlogs.length > 0 ? (
+                    relatedBlogs.map((relatedBlog, index) => {
+                      const relatedTranslation = relatedBlog.translations[locale];
+                      if (!relatedTranslation) return null;
 
-                  return (
-                    <div key={index}>
-                      <a
-                        href={`/youtube/${relatedTranslation.slug}`}
-                        className="flex items-center space-x-3"
-                      >
-                        <FaCheckCircle className="text-green-600 text-lg mb-2" />
-                        <h5 className="text-lg font-semibold text-blue-600 hover:underline truncate">
-                          {relatedTranslation.title}
-                        </h5>
-                      </a>
-                    </div>
-                  );
-                })}
-              </div>
+                      return (
+                        <div key={index}>
+                          <a
+                            href={`/youtube/${relatedTranslation.slug}`}
+                            className="flex items-center space-x-3"
+                          >
+                            <FaCheckCircle className="text-green-600 text-lg mb-2" />
+                            <h5 className="text-lg font-semibold text-blue-600 hover:underline truncate">
+                              {relatedTranslation.title}
+                            </h5>
+                          </a>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="text-gray-500">{t("No related blogs found.")}</p>
+                  )}
+                </div>
+              )}
             </div>
 
             <Comments slug={slug} />
@@ -202,54 +250,93 @@ const BlogPost = ({
 export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
+
+    if (!slug) {
+      console.error("Slug is missing in params.");
+      return { notFound: true };
+    }
+
     const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
     const host = req.headers.host || "localhost:3000";
     const apiUrl = `${protocol}://${host}/api/youtube`;
 
-    const response = await axios.get(apiUrl);
-    const blogs = response.data.data;
+    console.log("Fetching youtube data from API:", apiUrl);
 
-    if (!Array.isArray(blogs)) {
-      console.error("Blogs is not an array:", blogs);
+    // Fetch youtube data from the API
+    const { data } = await axios.get(`${apiUrl}?slug=${slug.trim().toLowerCase()}`);
+    console.log("Fetched youtube data:", data);
+
+    // Check if data was found
+    if (!data || data.length === 0) {
+      console.error("Blog not found for slug:", slug);
       return { notFound: true };
     }
 
-    const blog = blogs.find((b) =>
-      Object.values(b.translations || {}).some((translation) => translation.slug === slug)
-    );
+    const blog = data;
+    console.log("Found blog:", blog);
 
-    if (!blog) return { notFound: true };
+    const currentTranslation =
+      blog.translations[locale] || blog.translations[blog.defaultLanguage];
+    if (!currentTranslation) {
+      console.error(`Translation for locale "${locale}" not found.`);
+      return { notFound: true };
+    }
 
-    const availableLanguages = Object.keys(blog.translations || {});
-    const authorResponse = await axios.get(`${protocol}://${host}/api/authors`);
-    const authors = authorResponse.data;
-    const author = authors.find((a) => a.name === blog.author);
+    const currentSlug = currentTranslation.slug;
+    if (currentSlug.trim().toLowerCase() !== slug.trim().toLowerCase()) {
+      console.log("Slug mismatch detected. Redirecting...");
+      return {
+        redirect: {
+          destination: `/youtube/${currentSlug}`,
+          permanent: false,
+        },
+      };
+    }
 
-    const relatedBlogs = blogs.filter(
-      (b) =>
-        b._id !== blog._id &&
-        Object.values(b.translations || {}).some(
-          (translation) => translation.category === blog.translations[locale]?.category
-        )
-    );
+    // Define meta URL
+    const metaUrl = `${protocol}://${host}/${locale === "en" ? "" : `${locale}/`}youtube/${slug}`;
+console.log(metaUrl);
 
+    // Define available languages for hreflang tags
+    const availableLanguages = Object.keys(blog.translations);
+
+    // Construct hreflang tags
+    const hreflangs = [
+      { rel: "alternate", hreflang: "x-default", href: metaUrl },
+      ...availableLanguages.map((lang) => ({
+        rel: "alternate",
+        hreflang: lang,
+        href: lang === "en" ? metaUrl : `${protocol}://${host}/${lang}/youtube/${slug}`,
+      })),
+    ];
+
+
+  
+
+
+    // Fetch shortcodes
     const shortcodesResponse = await axios.get(`${protocol}://${host}/api/shortcodes-tools`);
     const initialShortcodes = shortcodesResponse.data;
 
     return {
       props: {
         initialBlog: blog,
-        authorData: { author: author || null },
-        relatedBlogs,
         initialShortcodes,
-        availableLanguages,
+        metaUrl, // Pass meta URL to component
+        hreflangs, // Pass hreflangs to component
         ...(await serverSideTranslations(locale, ["blog", "navbar", "footer"])),
       },
     };
   } catch (error) {
-    console.error("Error in getServerSideProps:", error.message);
-    return { notFound: true };
+    console.error("Error fetching youtube or authors:", error.message);
+    return {
+      notFound: true,
+    };
   }
 }
+
+
+
+
 
 export default BlogPost;
