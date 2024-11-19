@@ -39,6 +39,19 @@ const PushNotificationSettings = () => {
     setFormData({ ...formData, [name]: value });
   };
 
+  const handleReset = () => {
+    setFormData({
+      apiKey: '',
+      authDomain: '',
+      projectId: '',
+      storageBucket: '',
+      messagingSenderId: '',
+      appId: '',
+      measurementId: '',
+    });
+    setStatus('');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -95,22 +108,30 @@ const PushNotificationSettings = () => {
                     value={formData[field]}
                     onChange={handleInputChange}
                     required
+                    placeholder={`Enter ${field.replace(/([A-Z])/g, ' $1')}`}
                     className="w-full rounded-md border border-gray-300 px-4 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               ))}
             </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full py-3 rounded-lg text-white font-semibold transition ${
-                loading
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              }`}
-            >
-              {loading ? 'Saving...' : 'Submit'}
-            </button>
+            <div className="flex justify-between">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
+              >
+                Reset
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className={`px-4 py-2 rounded-lg text-white font-semibold transition ${
+                  loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+              >
+                {loading ? 'Saving...' : 'Submit'}
+              </button>
+            </div>
           </form>
           {status && (
             <p

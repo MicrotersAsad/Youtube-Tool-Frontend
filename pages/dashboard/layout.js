@@ -51,17 +51,20 @@ const Layout = React.memo(({ children }) => {
     fetchPendingTickets(); // Fetch pending tickets when the component mounts or updates
     fetchOpenTickets();
   }, []);
-
   useEffect(() => {
     if (!user) return;
-
+  
     const notificationCollection = collection(firestore, 'notifications');
     let notificationQuery;
-
+  
     // রোল অনুযায়ী নোটিফিকেশন ফিল্টার
     if (user.role === 'admin' || user.role === 'super_admin') {
-      // এডমিন বা সুপার এডমিন সব নোটিফিকেশন দেখতে পারবে
-      notificationQuery = query(notificationCollection, orderBy('createdAt', 'desc'));
+      // এডমিন বা সুপার এডমিন নোটিফিকেশন ফিল্টার করবে যাতে নিজের মেসেজ বাদ দেওয়া হয়
+      notificationQuery = query(
+        notificationCollection,
+        where('senderUserId', '!=', user.id), // এডমিন তার নিজের মেসেজ বাদ দেবে
+        orderBy('createdAt', 'desc')
+      );
     } else {
       // সাধারণ ইউজার শুধু তার নিজের নোটিফিকেশন দেখতে পারবে
       notificationQuery = query(
@@ -70,21 +73,22 @@ const Layout = React.memo(({ children }) => {
         orderBy('createdAt', 'desc')
       );
     }
-
+  
     const unsubscribe = onSnapshot(notificationQuery, (snapshot) => {
       const fetchedNotifications = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
       setNotifications(fetchedNotifications);
-
+  
       // unread নোটিফিকেশনের সংখ্যা আপডেট করা
       const unreadCount = fetchedNotifications.filter((n) => !n.read).length;
       setUnreadCount(unreadCount);
     });
-
+  
     return () => unsubscribe();
   }, [user]);
+  
   
   const toggleNotificationDropdown = () => {
     setShowNotificationDropdown((prev) => !prev);

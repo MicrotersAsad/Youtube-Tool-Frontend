@@ -5,6 +5,8 @@ import bcrypt from 'bcryptjs';
 import { connectToDatabase } from '../../utils/mongodb';
 import { sendVerificationEmail } from '../../utils/sendVerificationEmail';
 import { v4 as uuidv4 } from 'uuid';
+import { collection, addDoc } from 'firebase/firestore';
+import { firestore } from '../../lib/firebase'; // Firestore setup
 
 // AWS S3 configuration
 const s3 = new S3Client({
@@ -83,12 +85,27 @@ export default async function handler(req, res) {
         createdAt: new Date(),
       });
 
+      if (!result.acknowledged) {
+        return res.status(500).json({ message: 'Failed to register user.' });
+      }
+
       // Send verification email
       await sendVerificationEmail(email, username, verificationToken);
+
+      // Notify admin of the new user registration
+      const notificationRef = collection(firestore, 'notifications');
+      await addDoc(notificationRef, {
+        type: 'new_user_registration',
+        message: `A new user, ${username}, has registered.`,
+        recipientUserId: 'admin', // This should be a unique identifier for the admin
+        createdAt: new Date(),
+        read: false,
+      });
 
       res.status(201).json({ message: 'Registration successful! Please check your email to verify.' });
     });
   } catch (error) {
+    console.error('Error during registration:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 }

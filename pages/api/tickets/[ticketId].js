@@ -23,7 +23,12 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'PATCH') {
     try {
-      const { status, comment, userId, userName } = req.body;
+      const { status, comment, userId, userName, recipientUserId } = req.body;
+
+      // Validate required fields
+      if (!ticketId || (!status && !comment)) {
+        return res.status(400).json({ success: false, message: 'Invalid request data' });
+      }
 
       // Update ticket status
       if (status) {
@@ -32,27 +37,26 @@ export default async function handler(req, res) {
           { $set: { status } }
         );
 
-        // Add a notification for the status update
+        // Send notification for status update
         await addDoc(collection(firestore, 'notifications'), {
           type: 'status_update',
-          message: `Your ticket ${ticketId} status has been updated to ${status}.`,
+          message: `Your ticket "${ticketId}" status has been updated to "${status}".`,
           ticketId,
-          userId, // স্পেসিফিক ইউজারের জন্য
+          recipientUserId, // Notify the ticket owner
           createdAt: new Date(),
           read: false,
         });
       }
 
-      // Add a comment and update the ticket to "pending" status
+      // Add a comment
       if (comment) {
         await db.collection('tickets').updateOne(
           { ticketId },
           {
-            $set: { status: 'pending' },
             $push: {
               comments: {
                 userId,
-                userName, // Add the userName to the comment
+                userName,
                 message: comment,
                 createdAt: new Date(),
               },
@@ -60,17 +64,21 @@ export default async function handler(req, res) {
           }
         );
 
-        // Add a notification for the new comment
+        // Determine notification recipient
+        const notificationRecipient = recipientUserId === 'admin' ? 'admin' : recipientUserId;
+
+        // Send notification for new comment
         await addDoc(collection(firestore, 'notifications'), {
           type: 'comment_added',
-          message: `${userName} commented on your ticket ${ticketId}: "${comment}".`,
+          message: `${userName} commented on ticket "${ticketId}": "${comment}".`,
           ticketId,
-          userId, // স্পেসিফিক ইউজারের জন্য
+          recipientUserId: notificationRecipient, // Notify the recipient
           createdAt: new Date(),
           read: false,
         });
       }
 
+      // Fetch the updated ticket
       const updatedTicket = await db.collection('tickets').findOne({ ticketId });
       res.status(200).json({ success: true, ticket: updatedTicket });
     } catch (error) {
@@ -79,7 +87,7 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'DELETE') {
     try {
-      const { commentId } = req.body; // The ID of the comment to delete
+      const { commentId } = req.body;
 
       // Remove the comment by filtering the comments array
       const result = await db.collection('tickets').updateOne(
@@ -94,8 +102,9 @@ export default async function handler(req, res) {
       // Add a notification for the deleted comment
       await addDoc(collection(firestore, 'notifications'), {
         type: 'comment_deleted',
-        message: `A comment was deleted from your ticket ${ticketId}.`,
+        message: `A comment was deleted from your ticket "${ticketId}".`,
         ticketId,
+        recipientUserId: 'admin', // Notify the admin
         createdAt: new Date(),
         read: false,
       });

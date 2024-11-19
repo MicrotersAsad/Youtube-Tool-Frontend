@@ -6,7 +6,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FaTrashAlt, FaTimes, FaBan, FaEdit, FaSearch } from 'react-icons/fa';
+import { FaTrashAlt, FaTimes, FaBan, FaEdit, FaSearch, FaUser } from 'react-icons/fa';
 
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
@@ -20,7 +20,8 @@ const AllUsers = () => {
   const [editUser, setEditUser] = useState(null);
   const [profileImage, setProfileImage] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-
+  const [showGeneralMessageModal, setShowGeneralMessageModal] = useState(false);
+  const [generalMessage, setGeneralMessage] = useState('');
   const usersPerPage = 10;
 
   useEffect(() => {
@@ -54,7 +55,40 @@ const AllUsers = () => {
       setLoading(false);
     }
   };
-
+  const handleSendMessageToUser = async () => {
+    if (!generalMessage.trim()) {
+      toast.error('Please enter a message.');
+      return;
+    }
+  
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/send-notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          recipientUserId: selectedUser._id, // Send message to the specific user
+          type: 'direct_message',
+          message: generalMessage, // Message content
+        }),
+      });
+  
+      if (!response.ok) throw new Error(await response.text());
+  
+      setShowGeneralMessageModal(false);
+      setGeneralMessage('');
+      toast.success(`Message sent to ${selectedUser.username} successfully!`);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message.');
+    }
+  };
+  
+  
+  
   const handleSearch = (term) => {
     if (term.trim() === '') {
       setFilteredUsers(users);
@@ -72,12 +106,41 @@ const AllUsers = () => {
     setSearchTerm(e.target.value);
   };
 
+  // const handleBanUser = async () => {
+  //   if (!banReason.trim()) {
+  //     toast.error('Please provide a reason for banning the user.');
+  //     return;
+  //   }
+
+  //   try {
+  //     const token = localStorage.getItem('token');
+  //     const response = await fetch(`/api/ban-user`, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //       body: JSON.stringify({ userId: selectedUser._id, reason: banReason }),
+  //     });
+
+  //     if (!response.ok) throw new Error(await response.text());
+
+  //     // Update state after ban
+  //     const updatedUsers = users.filter((user) => user._id !== selectedUser._id);
+  //     setUsers(updatedUsers);
+  //     setFilteredUsers(updatedUsers);
+  //     setShowBanModal(false);
+  //     toast.success('User banned successfully!');
+  //   } catch (error) {
+  //     toast.error('Failed to ban user');
+  //   }
+  // };
   const handleBanUser = async () => {
     if (!banReason.trim()) {
       toast.error('Please provide a reason for banning the user.');
       return;
     }
-
+  
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`/api/ban-user`, {
@@ -88,20 +151,34 @@ const AllUsers = () => {
         },
         body: JSON.stringify({ userId: selectedUser._id, reason: banReason }),
       });
-
+  
       if (!response.ok) throw new Error(await response.text());
-
+  
+      // Send notification to the banned user
+      await fetch(`/api/send-notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          recipientUserId: selectedUser._id,
+          type: 'ban_user',
+          message: `You have been banned for the following reason: ${banReason}.`,
+        }),
+      });
+  
       // Update state after ban
       const updatedUsers = users.filter((user) => user._id !== selectedUser._id);
       setUsers(updatedUsers);
       setFilteredUsers(updatedUsers);
       setShowBanModal(false);
-      toast.success('User banned successfully!');
+      toast.success('User banned successfully and notified!');
     } catch (error) {
       toast.error('Failed to ban user');
     }
   };
-
+  
   const openBanModal = (user) => {
     setSelectedUser(user);
     setBanReason('');
@@ -123,21 +200,27 @@ const AllUsers = () => {
       setProfileImage(file);
     }
   };
+  const openSendMessageModal = (user) => {
+    setSelectedUser(user); // Set the user to whom the message will be sent
+    setGeneralMessage(''); // Clear any previous message
+    setShowGeneralMessageModal(true); // Show the message modal
+  };
+  
 
   const handleUpdateUser = async () => {
     try {
       const token = localStorage.getItem('token');
       const formData = new FormData();
-
+  
       formData.append('userId', editUser._id);
       formData.append('username', editUser.username);
       formData.append('role', editUser.role);
       formData.append('email', editUser.email);
-
+  
       if (profileImage) {
         formData.append('profileImage', profileImage);
       }
-
+  
       const response = await fetch(`/api/update-user`, {
         method: 'PUT',
         headers: {
@@ -145,12 +228,26 @@ const AllUsers = () => {
         },
         body: formData,
       });
-
+  
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(errorText);
       }
-
+  
+      // Send notification to the edited user
+      await fetch(`/api/send-notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          recipientUserId: editUser._id,
+          type: 'edit_user',
+          message: `Your account details have been updated successfully.`,
+        }),
+      });
+  
       // Update users state after editing user
       const updatedUsers = users.map((user) =>
         user._id === editUser._id
@@ -160,11 +257,12 @@ const AllUsers = () => {
       setUsers(updatedUsers);
       setFilteredUsers(updatedUsers);
       setEditUser(null);
-      toast.success('User updated successfully!');
+      toast.success('User updated successfully and notified!');
     } catch (error) {
       toast.error('Failed to update user');
     }
   };
+  
 
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
   const paginatedUsers = filteredUsers.slice(
@@ -246,21 +344,29 @@ const AllUsers = () => {
                       {new Date(user.createdAt).toLocaleDateString()}
                     </td>
                     <td className="py-2 px-3 text-center flex justify-center space-x-2">
-                      <button
-                        className="text-red-500  p-1 rounded-full hover:text-red-600 transition duration-200"
-                        onClick={() => openBanModal(user)}
-                        title="Ban User"
-                      >
-                        <FaBan />
-                      </button>
-                      <button
-                        className="text-blue-500  p-1 rounded-full hover:text-blue-600 transition duration-200"
-                        onClick={() => openEditModal(user)}
-                        title="Edit User"
-                      >
-                        <FaEdit />
-                      </button>
-                    </td>
+  <button
+    className="text-red-500 p-1 rounded-full hover:text-red-600 transition duration-200"
+    onClick={() => openBanModal(user)}
+    title="Ban User"
+  >
+    <FaBan />
+  </button>
+  <button
+    className="text-blue-500 p-1 rounded-full hover:text-blue-600 transition duration-200"
+    onClick={() => openEditModal(user)}
+    title="Edit User"
+  >
+    <FaEdit />
+  </button>
+  <button
+    className="text-green-500 p-1 rounded-full hover:text-green-600 transition duration-200"
+    onClick={() => openSendMessageModal(user)}
+    title="Send Message"
+  >
+    <FaUser />
+  </button>
+</td>
+
                   </tr>
                 ))}
               </tbody>
@@ -270,6 +376,42 @@ const AllUsers = () => {
           
           
           )}
+       {showGeneralMessageModal && (
+  <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
+    <div className="bg-white p-6 rounded-lg shadow-lg w-3/4 relative">
+      <button
+        className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+        onClick={() => setShowGeneralMessageModal(false)}
+      >
+        <FaTimes size={24} />
+      </button>
+      <h2 className="text-xl font-semibold mb-4">Send Message to {selectedUser?.username}</h2>
+      <textarea
+        value={generalMessage}
+        onChange={(e) => setGeneralMessage(e.target.value)}
+        className="w-full border border-gray-300 rounded-lg p-3 shadow-sm mb-4"
+        placeholder="Enter your message here"
+        rows="4"
+      />
+      <div className="flex justify-end space-x-4">
+        <button
+          className="bg-gray-500 px-4 py-2 rounded-md hover:bg-gray-600 transition duration-200"
+          onClick={() => setShowGeneralMessageModal(false)}
+        >
+          Cancel
+        </button>
+        <button
+          className="bg-blue-500 px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"
+          onClick={handleSendMessageToUser}
+        >
+          Send Message
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
 {/* Pagination Controls */}
 <div className="flex justify-center items-center mt-6 space-x-2">
   {/* Previous Button */}

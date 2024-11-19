@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const TicketDetails = ({ ticket, onCommentSubmit, onUpdateStatus,onDeleteComment   }) => {
+const TicketDetails = ({ ticket, onCommentSubmit, onUpdateStatus, onDeleteComment }) => {
   const [newComment, setNewComment] = useState('');
 
   const handleCommentSubmit = (e) => {
@@ -16,34 +16,45 @@ const TicketDetails = ({ ticket, onCommentSubmit, onUpdateStatus,onDeleteComment
         <h2 className="ticket-title">
           [Ticket#{ticket.ticketId}] {ticket.subject}
         </h2>
-        <button
-          onClick={() => onUpdateStatus('closed')}
-          className="close-ticket-button"
-        >
-          Close Ticket
-        </button>
+        {ticket.status !== 'closed' && (
+          <button
+            onClick={() => onUpdateStatus('closed')}
+            className="close-ticket-button"
+          >
+            Close Ticket
+          </button>
+        )}
       </div>
 
-      <textarea
-        className="reply-input"
-        placeholder="Enter reply here"
-        value={newComment}
-        onChange={(e) => setNewComment(e.target.value)}
-      />
+      {/* Hide the reply input and button if the ticket is closed */}
+      {ticket.status !== 'closed' ? (
+        <>
+          <textarea
+            className="reply-input"
+            placeholder="Enter reply here"
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+          />
 
-      <div className="attachment-section">
-        <button className="add-attachment-button">+ Add Attachment</button>
-        <p className="attachment-info">
-          Max 5 files can be uploaded | Maximum upload size is 256MB | Allowed
-          File Extensions: .jpg, .jpeg, .png, .pdf, .doc, .docx
+          <div className="attachment-section">
+            <button className="add-attachment-button">+ Add Attachment</button>
+            <p className="attachment-info">
+              Max 5 files can be uploaded | Maximum upload size is 256MB | Allowed
+              File Extensions: .jpg, .jpeg, .png, .pdf, .doc, .docx
+            </p>
+          </div>
+        </>
+      ) : (
+        <p className="text-red-500 font-bold">
+          This ticket is closed. You cannot add replies or attachments.
         </p>
-      </div>
+      )}
 
       <div className="comment-section">
         {ticket.comments.map((comment, index) => (
           <div key={index} className="comment-box">
             <div className="comment-header">
-            <span className="font-bold">{comment.userName}</span>
+              <span className="font-bold">{comment.userName}</span>
               <span className="comment-timestamp">
                 Posted on{' '}
                 {new Date(comment.createdAt).toLocaleDateString('en-US', {
@@ -54,21 +65,25 @@ const TicketDetails = ({ ticket, onCommentSubmit, onUpdateStatus,onDeleteComment
                 })}{' '}
                 @ {new Date(comment.createdAt).toLocaleTimeString()}
               </span>
-              <button
+              {ticket.status !== 'closed' && (
+                <button
                   onClick={() => onDeleteComment(comment._id)}
                   className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-700"
                 >
                   Delete
                 </button>
+              )}
             </div>
             <p className="comment-text">{comment.message}</p>
           </div>
         ))}
       </div>
 
-      <button onClick={handleCommentSubmit} className="reply-button">
-        Reply
-      </button>
+      {ticket.status !== 'closed' && (
+        <button onClick={handleCommentSubmit} className="reply-button">
+          Reply
+        </button>
+      )}
 
       <style jsx>{`
         .ticket-details-container {
@@ -92,9 +107,6 @@ const TicketDetails = ({ ticket, onCommentSubmit, onUpdateStatus,onDeleteComment
         }
         .status-label.open {
           background-color: #28a745;
-        }
-        .status-label['in-progress'] {
-          background-color: #ffc107;
         }
         .status-label.closed {
           background-color: #dc3545;
@@ -160,22 +172,6 @@ const TicketDetails = ({ ticket, onCommentSubmit, onUpdateStatus,onDeleteComment
           justify-content: space-between;
           align-items: center;
           margin-bottom: 8px;
-        }
-        .comment-author {
-          font-weight: bold;
-          font-size: 16px;
-        }
-        .comment-timestamp {
-          font-size: 14px;
-          color: #777;
-        }
-        .delete-button {
-          background: #dc3545;
-          color: white;
-          border: none;
-          padding: 4px 8px;
-          border-radius: 4px;
-          cursor: pointer;
         }
         .comment-text {
           font-size: 14px;

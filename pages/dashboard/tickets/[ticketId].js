@@ -9,7 +9,7 @@ import { useAuth } from '../../../contexts/AuthContext';
  */
 const TicketDetailsPage = () => {
   const router = useRouter();
-  const {user}=useAuth()
+  const { user } = useAuth();
   const { ticketId } = router.query;
   const [ticket, setTicket] = useState(null);
   const [usersMap, setUsersMap] = useState({}); // Map of userId to userName
@@ -35,9 +35,9 @@ const TicketDetailsPage = () => {
     }
   };
 
-
   const handleCommentSubmit = async (comment) => {
     try {
+      const recipientUserId = user.role === 'admin' ? ticket.userId : 'admin'; // Admin replies to the user, User notifies Admin
       const response = await fetch(`/api/tickets/${ticketId}`, {
         method: 'PATCH',
         headers: {
@@ -46,7 +46,8 @@ const TicketDetailsPage = () => {
         body: JSON.stringify({
           comment,
           userId: user.id, // Pass the user's ID from the authenticated context
-          userName: user.username, // Pass the user's ID from the authenticated context
+          userName: user.username,
+          recipientUserId, // Notification recipient
         }),
       });
 
@@ -68,7 +69,10 @@ const TicketDetailsPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({
+          status,
+          recipientUserId: ticket.userId, // Notify the ticket owner about status updates
+        }),
       });
 
       const result = await response.json();

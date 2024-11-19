@@ -1,6 +1,4 @@
 import { connectToDatabase } from '../../../utils/mongodb';
-import { firestore } from '../../../lib/firebase'; 
-import { collection, addDoc } from 'firebase/firestore';
 import { v4 as uuidv4 } from 'uuid';
 
 export default async function handler(req, res) {
@@ -45,16 +43,6 @@ async function handleCreateTicket(req, res, db) {
     const result = await db.collection('tickets').insertOne(newTicket);
 
     if (result.acknowledged) {
-      // Add a notification in Firestore
-      await addDoc(collection(firestore, 'notifications'), {
-        type: 'ticket_created',
-        message: `${userName} created a new ticket: ${subject}`,
-        ticketId: newTicket.ticketId,
-        recipientUserId: userId,
-        createdAt: new Date(),
-        read: false,
-      });
-
       res.status(201).json({ success: true, ticket: newTicket });
     } else {
       res.status(500).json({ success: false, message: 'Failed to create ticket' });
@@ -88,17 +76,16 @@ async function handleGetTickets(req, res, db) {
 }
 
 // Update Ticket
-// Update Ticket
 async function handleUpdateTicket(req, res, db) {
   try {
     const { ticketId } = req.query;
-    const { status, comment, userId, userName, recipientUserId } = req.body;
+    const { status, comment, userId, userName } = req.body;
 
     if (!ticketId) {
       return res.status(400).json({ success: false, message: 'Ticket ID is required' });
     }
 
-    if (!comment || !userId || !userName || !recipientUserId) {
+    if (!comment || !userId || !userName) {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
 
@@ -127,21 +114,9 @@ async function handleUpdateTicket(req, res, db) {
       return res.status(404).json({ success: false, message: 'Ticket not found or no changes made' });
     }
 
-    // Firestore: Add a notification for the recipient
-    const notificationRef = collection(firestore, 'notifications');
-    await addDoc(notificationRef, {
-      type: 'comment_added',
-      message: `${userName} commented on your ticket ${ticketId}: "${comment}".`,
-      ticketId,
-      recipientUserId, // Include recipientUserId properly
-      createdAt: new Date(),
-      read: false,
-    });
-
-    res.status(200).json({ success: true, message: 'Comment added and notification sent' });
+    res.status(200).json({ success: true, message: 'Comment added successfully' });
   } catch (error) {
     console.error('Error updating ticket:', error);
     res.status(500).json({ success: false, message: 'Failed to update ticket' });
   }
 }
-

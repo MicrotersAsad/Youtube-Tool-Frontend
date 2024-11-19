@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { firestore } from '../lib/firebase'; // Firestore import
-import { collection, query, where, orderBy, onSnapshot, doc, deleteDoc } from 'firebase/firestore'; // Firestore modular functions
+import { firestore } from '../lib/firebase';
+import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -17,23 +17,12 @@ const NotificationList = () => {
     }
 
     const notificationsRef = collection(firestore, 'notifications');
-    let q;
+    const q = query(
+      notificationsRef,
+      where('recipientUserId', '==', user.role === 'admin' ? 'admin' : user._id),
+      orderBy('createdAt', 'desc')
+    );
 
- 
-
-    if (user.role === 'admin') {
-      // Admin can see all notifications
-      q = query(notificationsRef, orderBy('createdAt', 'desc'));
-    } else {
-      // User can see only their notifications
-      q = query(
-        notificationsRef,
-        where('recipientUserId', '==', user._id), // Filter for user's notifications
-        orderBy('createdAt', 'desc')
-      );
-    }
-
-    // Fetch notifications from Firestore
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
@@ -41,8 +30,6 @@ const NotificationList = () => {
           id: doc.id,
           ...doc.data(),
         }));
-
-        console.log("Fetched Notifications:", data);
         setNotifications(data);
         setLoading(false);
       },
@@ -52,20 +39,8 @@ const NotificationList = () => {
       }
     );
 
-    return () => unsubscribe(); // Cleanup listener
+    return () => unsubscribe();
   }, [user]);
-
-  // Delete notification method
-  const handleDelete = async (notificationId) => {
-    try {
-      const notificationRef = doc(firestore, 'notifications', notificationId);
-      await deleteDoc(notificationRef); // Delete notification from Firestore
-      setNotifications((prev) => prev.filter((notif) => notif.id !== notificationId)); // Update state
-      console.log(`Notification ${notificationId} deleted successfully`);
-    } catch (error) {
-      console.error("Error deleting notification:", error.message);
-    }
-  };
 
   if (loading) {
     return <p>Loading notifications...</p>;
@@ -75,6 +50,21 @@ const NotificationList = () => {
     return <p>No notifications found.</p>;
   }
 
+  const renderNotificationLink = (notification) => {
+    switch (notification.type) {
+      case 'new_user_registration':
+        return <Link href="all-user">{notification.message}</Link>;
+      case 'ticket_created':
+        return <Link href={`/tickets/${notification.ticketId}`}>{notification.message}</Link>;
+      case 'comment_added':
+        return <Link href={`/tickets/${notification.ticketId}`}>{notification.message}</Link>;
+      case 'general_announcement':
+        return <Link href="/announcements">{notification.message}</Link>;
+      default:
+        return <span>{notification.message}</span>;
+    }
+  };
+
   return (
     <div className="container mx-auto px-6 py-8">
       <h2 className="text-3xl font-bold text-center mb-6">Notifications</h2>
@@ -83,46 +73,19 @@ const NotificationList = () => {
           <thead>
             <tr className="bg-gray-800 text-white">
               <th className="px-4 py-2">Message</th>
-              <th className="px-4 py-2">Comments</th>
+              <th className="px-4 py-2">Type</th>
               <th className="px-4 py-2">Date</th>
-              <th className="px-4 py-2">Actions</th>
             </tr>
           </thead>
           <tbody>
             {notifications.map((notification) => (
               <tr key={notification.id} className="border-b">
                 <td className="px-4 py-2">
-                  <Link href={`tickets/${notification?.ticketId}`}>
-                    {notification?.message}
-                  </Link>
+                  {renderNotificationLink(notification)}
                 </td>
-                <td className="px-4 py-2">
-                  {notification.comments && notification.comments.length > 0 ? (
-                    notification.comments.map((comment, index) => (
-                      <div key={index}>
-                        <strong>{comment.userName}:</strong> {comment.message}
-                        <br />
-                        <small>
-                          {new Date(
-                            comment.createdAt.seconds * 1000
-                          ).toLocaleString()}
-                        </small>
-                      </div>
-                    ))
-                  ) : (
-                    <span>No comments available</span>
-                  )}
-                </td>
+                <td className="px-4 py-2 capitalize">{notification.type.replace(/_/g, ' ')}</td>
                 <td className="px-4 py-2">
                   {new Date(notification.createdAt.seconds * 1000).toLocaleString()}
-                </td>
-                <td className="px-4 py-2">
-                  <button
-                    onClick={() => handleDelete(notification.id)}
-                    className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-700"
-                  >
-                    Delete
-                  </button>
                 </td>
               </tr>
             ))}

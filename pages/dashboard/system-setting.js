@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import React from 'react';
-import { FaUsers, FaUserCheck, FaEnvelope, FaCrown, FaUser,FaUserAlt ,FaFileAlt ,FaTools ,FaStar ,FaSitemap ,FaComment ,FaChartLine ,FaSignInAlt , FaChevronRight, FaCog, FaGlobe, FaRobot, FaBell, FaRemoveFormat } from 'react-icons/fa';
+import { FaUsers, FaUserCheck, FaEnvelope, FaCrown, FaUser,FaUserAlt ,FaFileAlt ,FaTools ,FaStar ,FaSitemap ,FaComment ,FaChartLine ,FaSignInAlt , FaChevronRight, FaCog, FaGlobe, FaRobot, FaBell, FaRemoveFormat, FaCss3 } from 'react-icons/fa';
 import Layout from './layout';
 const Setting = () => {
     return (
@@ -42,7 +42,7 @@ const Setting = () => {
       </div>
       <div className="flex flex-col justify-between ml-4">
         <h3 className="text-black pt-2">Firebase Push Notification</h3>
-        <p className="text-sm text-gray-500">Configure proper meta title, meta description, meta keywords, etc to make the system SEO-friendly.</p>
+        <p className="text-sm text-gray-500">Control and configure overall notification elements of the system.</p>
       </div>
     </div>
   </Link>
@@ -55,7 +55,21 @@ const Setting = () => {
       </div>
       <div className="flex flex-col justify-between ml-4">
         <h3 className="text-black pt-2">Clear System Cache</h3>
-        <p className="text-sm text-gray-500">Configure proper meta title, meta description, meta keywords, etc to make the system SEO-friendly.</p>
+        <p className="text-sm text-gray-500">Clear your system cache to ensure optimal performance and remove temporary files.</p>
+
+      </div>
+    </div>
+  </Link>
+  <Link href="custom-css">
+    <div className="flex items-center border rounded-lg bg-white shadow-md hover:shadow-lg transition-all p-4 h-full">
+      <div className="flex items-center space-x-4 flex-shrink-0">
+        <div className="p-3 rounded-md border bg-primary">
+          <FaCss3 className="text-white fs-1" />
+        </div>
+      </div>
+      <div className="flex flex-col justify-between ml-4">
+        <h3 className="text-black pt-2">Custom CSS</h3>
+        <p className="text-sm text-gray-500">Write custom css here to modify some styles of frontend of the system if you need to.</p>
       </div>
     </div>
   </Link>

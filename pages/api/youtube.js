@@ -226,12 +226,12 @@ const handleGetRequest = async (req, res, youtube, query) => {
 
     // Case 2: Fetch by Slug
     if (slug) {
-      console.log("Fetching Blog for Slug:", slug);
+      
       const result = await youtube.findOne({
         [`translations.en.slug`]: slug, // Match the slug within `translations`
       });
 
-      console.log("Fetched Result by Slug:", result);
+
       if (!result) {
         return res.status(404).json({ message: `Resource not found for the slug: ${slug}` });
       }

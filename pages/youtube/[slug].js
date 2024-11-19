@@ -260,11 +260,11 @@ export async function getServerSideProps({ locale, params, req }) {
     const host = req.headers.host || "localhost:3000";
     const apiUrl = `${protocol}://${host}/api/youtube`;
 
-    console.log("Fetching youtube data from API:", apiUrl);
+
 
     // Fetch youtube data from the API
     const { data } = await axios.get(`${apiUrl}?slug=${slug.trim().toLowerCase()}`);
-    console.log("Fetched youtube data:", data);
+
 
     // Check if data was found
     if (!data || data.length === 0) {
@@ -273,7 +273,7 @@ export async function getServerSideProps({ locale, params, req }) {
     }
 
     const blog = data;
-    console.log("Found blog:", blog);
+    
 
     const currentTranslation =
       blog.translations[locale] || blog.translations[blog.defaultLanguage];
@@ -295,7 +295,7 @@ export async function getServerSideProps({ locale, params, req }) {
 
     // Define meta URL
     const metaUrl = `${protocol}://${host}/${locale === "en" ? "" : `${locale}/`}youtube/${slug}`;
-console.log(metaUrl);
+
 
     // Define available languages for hreflang tags
     const availableLanguages = Object.keys(blog.translations);
