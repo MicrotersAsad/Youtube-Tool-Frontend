@@ -1,6 +1,6 @@
-import { connectToDatabase } from "../../utils/mongodb";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
+import { connectToDatabase } from "../../utils/mongodb";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -15,41 +15,51 @@ export default async function handler(req, res) {
 
   try {
     const { db } = await connectToDatabase();
-    const user = await db.collection("user").findOne({ email });
 
+    // Find user by email
+    const user = await db.collection("user").findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const token = crypto.randomBytes(32).toString("hex");
-    const tokenExpiry = Date.now() + 3600000; // 1 hour
+    // Generate a unique token and expiration time
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetExpires = Date.now() + 3600000; // 1 hour from now
 
+    // Save the token and expiration in the database
     await db.collection("user").updateOne(
       { email },
-      { $set: { resetPasswordToken: token, resetPasswordExpires: tokenExpiry } }
+      {
+        $set: {
+          resetPasswordToken: resetToken,
+          resetPasswordExpires: resetExpires,
+        },
+      }
     );
 
+    // Send email with reset link
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      service: "Gmail", // Use your email provider
       auth: {
-        user: process.env.NEXT_PUBLIC_EMAIL_USER,
-        pass: process.env.NEXT_PUBLIC_EMAIL_PASS,
+        user: process.env.NEXT_PUBLIC_EMAIL_USER, // Your email
+        pass: process.env.NEXT_PUBLIC_EMAIL_PASS, // Your email password
       },
     });
 
-    const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
-    const mailOptions = {
-      to: email,
+    const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}&email=${email}`;
+
+    await transporter.sendMail({
       from: process.env.NEXT_PUBLIC_EMAIL_USER,
-      subject: "Password Reset",
-      text: `You requested a password reset. Please click the following link to reset your password: ${resetLink}`,
-    };
+      to: email,
+      subject: "Password Reset Request",
+      html: `<p>You requested a password reset. Click the link below to reset your password:</p>
+             <a href="${resetUrl}">Reset Password</a>
+             <p>If you did not request this, please ignore this email.</p>`,
+    });
 
-    await transporter.sendMail(mailOptions);
-
-    res.status(200).json({ message: "Password reset email sent" });
+    res.status(200).json({ message: "Reset link sent to your email." });
   } catch (error) {
-    console.error("Forgot password error:", error);
+    console.error("Error sending reset token:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 }

@@ -1,17 +1,12 @@
 import { useRouter } from "next/router";
 import React, { useState, useEffect } from "react";
-import { FaEnvelope, FaKey, FaEye, FaEyeSlash, FaUserCircle, FaArrowCircleRight } from "react-icons/fa";
-import { useAuth } from "../contexts/AuthContext";
-import Image from "next/image";
-import signIn from "../public/login.svg";
-import Link from "next/link";
+import { FaEnvelope, FaKey, FaEye, FaEyeSlash } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Head from "next/head";
 import ReCAPTCHA from "react-google-recaptcha";
 
 function LoginOrResetPassword() {
-  const { login, isAuthenticated, user } = useAuth();
   const router = useRouter();
   const [recaptchaToken, setRecaptchaToken] = useState("");
   const [email, setEmail] = useState("");
@@ -27,17 +22,10 @@ function LoginOrResetPassword() {
   const [message, setMessage] = useState("");
   const [isTokenSent, setIsTokenSent] = useState(false);
 
-  // Check if running on localhost
   const isLocalhost = typeof window !== "undefined" &&
                       (window.location.hostname === "localhost" ||
                        window.location.hostname === "127.0.0.1" ||
                        window.location.hostname === "::1");
-
-  useEffect(() => {
-    if (user) {
-      router.push("/");
-    }
-  }, [user, router]);
 
   const onRecaptchaChange = (token) => {
     setRecaptchaToken(token);
@@ -68,7 +56,6 @@ function LoginOrResetPassword() {
         throw new Error(data.message || "Error logging in");
       }
 
-      login(data.token);
       localStorage.setItem("token", data.token);
       toast.success("Login successful!");
       router.push("/");
@@ -100,8 +87,9 @@ function LoginOrResetPassword() {
       }
 
       setIsTokenSent(true);
-      setMessage("Reset token sent to your email.");
+      setMessage("Reset link sent to your email.");
     } catch (error) {
+      toast.error(error.message);
       setError(error.message);
     }
   };
@@ -129,6 +117,7 @@ function LoginOrResetPassword() {
       setIsResettingPassword(false);
       setIsTokenSent(false);
     } catch (error) {
+      toast.error(error.message);
       setError(error.message);
     }
   };
@@ -137,129 +126,51 @@ function LoginOrResetPassword() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <Head>
         <title>Login | Ytubetools</title>
-        <meta name="description" content="Log in to Ytubetools to access your account and manage your YouTube tools. Enhance your YouTube experience with our suite of tools designed for creators and viewers alike." />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://ytubetools.com/login" />
+        <meta name="description" content="Log in to Ytubetools to access your account and manage your YouTube tools." />
       </Head>
 
       <div className="min-h-screen flex flex-col md:flex-row items-stretch">
         <ToastContainer />
         <div className="w-full md:w-1/2 bg-red-500 text-white p-8 md:p-16 flex flex-col justify-center items-start space-y-4">
-          <h1 className="text-3xl md:text-5xl text-white font-bold leading-tight">Create YouTube Content Faster with Ytubetools Advanced AI Tool</h1>
-          <ul className="space-y-2 md:space-y-3 text-base md:text-lg pt-4 md:pt-8">
-            <li className="list-none"><FaArrowCircleRight /> 2,000 free credits every month</li>
-            <li className="list-none"><FaArrowCircleRight /> 18+ tools available</li>
-            <li className="list-none"><FaArrowCircleRight /> Generate engaging titles, descriptions, and more</li>
-            <li className="list-none"><FaArrowCircleRight /> Super easy to use</li>
-          </ul>
+          <h1 className="text-3xl md:text-5xl text-white font-bold leading-tight">Welcome to Ytubetools</h1>
         </div>
+
         <div className="w-full md:w-1/2 bg-white p-8 md:p-16 flex flex-col justify-center items-center">
           <div className="w-full max-w-md">
             {!isResettingPassword ? (
               <>
-                <h2 className="text-3xl font-semibold text-gray-700 mb-6 text-center">Welcome Back!</h2>
-                <p className="text-center text-gray-600 mb-6">Sign in to continue to YTubeTool.</p>
+                <h2 className="text-3xl font-semibold text-gray-700 mb-6 text-center">Login</h2>
                 <form onSubmit={handleSubmitLogin}>
                   <div className="mb-4">
-                    <label htmlFor="email" className="block text-gray-600 mb-2">
-                      <FaEnvelope className="inline-block text-red-500 mr-2" /> Email
-                    </label>
-                    <input className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500" type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                    <label className="block text-gray-600 mb-2">Email</label>
+                    <input className="w-full px-4 py-2 border rounded-md" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
                   </div>
                   <div className="mb-4 relative">
-                    <label htmlFor="password" className="block text-gray-600 mb-2">
-                      <FaKey className="inline-block text-red-500 mr-2" /> Password
-                    </label>
-                    <input className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500" type={showPassword ? "text" : "password"} id="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                    <span className="absolute right-3 pt-4 top-10 transform -translate-y-1/2 cursor-pointer" onClick={() => setShowPassword(!showPassword)}>
+                    <label className="block text-gray-600 mb-2">Password</label>
+                    <input className="w-full px-4 py-2 border rounded-md" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required />
+                    <span className="absolute right-3 top-3 cursor-pointer" onClick={() => setShowPassword(!showPassword)}>
                       {showPassword ? <FaEyeSlash /> : <FaEye />}
                     </span>
                   </div>
-                  {!isLocalhost && (
-                    <ReCAPTCHA sitekey="6LfAPX4qAAAAAIO7NZ2OxvSL2V05TLXckrzdn_OQ" onChange={onRecaptchaChange} />
-                  )}
-                  <div className="text-right mb-4">
-                    <a href="#" className="text-sm text-red-500 hover:underline" onClick={() => setIsResettingPassword(true)}>
-                      Forgot Password
-                    </a>
-                  </div>
-                  {error && <div className="alert alert-danger mb-4" role="alert">{error}</div>}
-                  <button type="submit" className="bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 transition duration-200 w-full mb-4" disabled={isLoading}>
-                    {isLoading ? "Logging in..." : "Login"}
-                  </button>
+                  <ReCAPTCHA sitekey="6LfAPX4qAAAAAIO7NZ2OxvSL2V05TLXckrzdn_OQ" onChange={onRecaptchaChange} />
+                  <button type="submit" className="w-full bg-red-500 text-white px-4 py-2 rounded-md mt-4">Login</button>
+                  <p className="mt-4 text-center">
+                    Forgot Password?{" "}
+                    <a href="#" className="text-red-500" onClick={() => setIsResettingPassword(true)}>Reset Here</a>
+                  </p>
                 </form>
-                <p className="mt-4 text-center text-gray-600">
-                  Do not have an account? <Link href="/register" className="text-red-500 hover:underline">Create an account</Link>.
-                </p>
               </>
             ) : (
-              <form onSubmit={handleResetPassword}>
-                <div className="mb-4 relative">
-                  <label htmlFor="resetPassword" className="block text-gray-600 mb-2">
-                    <FaKey className="inline-block text-red-500 mr-2" /> New Password
-                  </label>
-                  <input
-                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                    type={showPassword ? "text" : "password"}
-                    id="resetPassword"
-                    value={resetPassword}
-                    onChange={(e) => setResetPassword(e.target.value)}
-                    required
-                  />
-                  <span
-                    className="absolute right-3 pt-4 top-10 transform -translate-y-1/2 cursor-pointer"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <FaEyeSlash /> : <FaEye />}
-                  </span>
-                </div>
-                <div className="mb-4 relative">
-                  <label htmlFor="resetConfirmPassword" className="block text-gray-600 mb-2">
-                    <FaKey className="inline-block text-red-500 mr-2" /> Confirm New Password
-                  </label>
-                  <input
-                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                    type={showPassword ? "text" : "password"}
-                    id="resetConfirmPassword"
-                    value={resetConfirmPassword}
-                    onChange={(e) => setResetConfirmPassword(e.target.value)}
-                    required
-                  />
-                  <span
-                    className="absolute right-3 top-10 transform -translate-y-1/2 cursor-pointer"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <FaEyeSlash /> : <FaEye />}
-                  </span>
-                </div>
+              <form onSubmit={handleSendResetToken}>
+                <h2 className="text-3xl font-semibold text-gray-700 mb-6 text-center">Reset Password</h2>
                 <div className="mb-4">
-                  <label htmlFor="token" className="block text-gray-600 mb-2">
-                    <FaKey className="inline-block text-red-500 mr-2" /> Token
-                  </label>
-                  <input
-                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                    type="text"
-                    id="token"
-                    value={token}
-                    onChange={(e) => setToken(e.target.value)}
-                    required
-                  />
+                  <label className="block text-gray-600 mb-2">Email</label>
+                  <input className="w-full px-4 py-2 border rounded-md" type="email" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} required />
                 </div>
-                {message && <div className="text-green-500 mb-4">{message}</div>}
-                {error && <div className="text-red-500 mb-4">{error}</div>}
-                <button
-                  type="submit"
-                  className="bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 transition duration-200 w-full mb-4"
-                >
-                  Reset Password
-                </button>
-                <button
-                  className="w-full text-gray-600 py-2 rounded-md hover:underline transition duration-200"
-                  onClick={() => setIsResettingPassword(false)}
-                >
-                  Back to Login
-                </button>
+                <button type="submit" className="w-full bg-red-500 text-white px-4 py-2 rounded-md mt-4">Send Reset Link</button>
+                <p className="mt-4 text-center">
+                  Back to <a href="#" className="text-red-500" onClick={() => setIsResettingPassword(false)}>Login</a>
+                </p>
               </form>
             )}
           </div>
