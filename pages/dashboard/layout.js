@@ -22,25 +22,13 @@ import {
   FaListAlt,
   FaCheckCircle,
   FaTimesCircle,
-  FaBell,
 } from "react-icons/fa";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  writeBatch,
-  doc,
-  where,
-} from "firebase/firestore";
-import { firestore } from "../../lib/firebase"; // Firestore setup
 import Image from "next/image";
 import Notifications from "../../components/notificationalert";
 
 const Layout = React.memo(({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Loading state for search
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [menuOpen, setMenuOpen] = useState("");
   const [profileDropdown, setProfileDropdown] = useState(false);
@@ -51,83 +39,8 @@ const Layout = React.memo(({ children }) => {
   const [openCount, setOpenCount] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [showNotificationDropdown, setShowNotificationDropdown] =
-    useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [unreadNotifications, setUnreadNotifications] = useState([]);
-  const [readNotifications, setReadNotifications] = useState([]);
-  const [activeTab, setActiveTab] = useState("unread"); // Default tab
-
   const router = useRouter();
 
-  useEffect(() => {
-    if (!user) return;
-
-    const notificationCollection = collection(firestore, "notifications");
-    let notificationQuery;
-
-    if (user.role === "admin" || user.role === "super_admin") {
-      // Admin or super admin: Exclude their own messages
-      notificationQuery = query(
-        notificationCollection,
-        where("recipientUserId", "==", "admin"), // Only show notifications meant for admin
-        orderBy("createdAt", "desc") // Removed '!=' to comply with Firestore
-      );
-    } else {
-      // General user: Show only their notifications
-      notificationQuery = query(
-        notificationCollection,
-        where("recipientUserId", "==", user.id),
-        orderBy("createdAt", "desc")
-      );
-    }
-
-    const unsubscribe = onSnapshot(notificationQuery, (snapshot) => {
-      const fetchedNotifications = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      console.log("Fetched Notifications:", fetchedNotifications); // Debugging
-      setNotifications(fetchedNotifications);
-
-      const unreadCount = fetchedNotifications.filter((n) => !n.read).length;
-      setUnreadCount(unreadCount);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
-
-  const toggleNotificationDropdown = () => {
-    setShowNotificationDropdown((prev) => !prev);
-  };
-  const markAllAsRead = async () => {
-    try {
-      const unreadNotifications = notifications.filter((n) => !n.read);
-
-      if (unreadNotifications.length === 0) return;
-
-      const batch = writeBatch(firestore);
-
-      unreadNotifications.forEach((notification) => {
-        const docRef = doc(firestore, "notifications", notification.id);
-        batch.update(docRef, { read: true });
-      });
-
-      await batch.commit();
-
-      setNotifications((prev) =>
-        prev.map((n) => ({
-          ...n,
-          read: true,
-        }))
-      );
-
-      setUnreadCount(0);
-    } catch (error) {
-      console.error("Error marking notifications as read:", error);
-    }
-  };
 
   useEffect(() => {
     const savedMenu = localStorage.getItem("activeMenu");

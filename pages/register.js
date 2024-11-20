@@ -1,13 +1,12 @@
-
-
 import React, { useState, useEffect } from "react";
-import { FaArrowCircleRight, FaEnvelope, FaEye, FaEyeSlash, FaImage, FaKey, FaUser, FaUserAlt, FaUserCircle } from "react-icons/fa";
+import { FaArrowCircleRight, FaEnvelope, FaEye, FaEyeSlash, FaImage, FaKey, FaUser, FaUserCircle } from "react-icons/fa";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { toast, ToastContainer } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
 import Head from "next/head";
 import { useAuth } from "../contexts/AuthContext";
+import ReCAPTCHA from "react-google-recaptcha";
 
 function Register() {
   const router = useRouter();
@@ -17,20 +16,20 @@ function Register() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "user", // Default role is user
+    role: "user",
     profileImage: null,
     adminAnswer: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showVerification, setShowVerification] = useState(false);
-  const [verificationCode, setVerificationCode] = useState("");
+  const [captchaToken, setCaptchaToken] = useState(null); // Captcha state
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+
+  const reCAPTCHASiteKey="6LfAPX4qAAAAAIO7NZ2OxvSL2V05TLXckrzdn_OQ"; // Your site key
 
   useEffect(() => {
     if (user) {
-      router.push("/"); // Redirect to main page if logged in
+      router.push("/"); // Redirect if logged in
     }
   }, [user, router]);
 
@@ -55,8 +54,18 @@ function Register() {
     }));
   };
 
+  const handleCaptchaChange = (token) => {
+    setCaptchaToken(token); // Update the token
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (!captchaToken) {
+      toast.error("Please complete the reCAPTCHA!");
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       toast.error("Passwords do not match!");
       return;
@@ -68,6 +77,7 @@ function Register() {
     formDataToSend.append("password", formData.password);
     formDataToSend.append("role", formData.role);
     formDataToSend.append("profileImage", formData.profileImage);
+    formDataToSend.append("captchaToken", captchaToken); // Send reCAPTCHA token
     if (formData.role === "admin") {
       formDataToSend.append("adminAnswer", formData.adminAnswer);
     }
@@ -82,47 +92,14 @@ function Register() {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to register");
       }
+
       const result = await response.json();
-      toast.success("Registration successful! Please check your email to verify.");
-      setShowVerification(true);
+      toast.success(result.message || "Registration successful! Please verify your email.");
+      setTimeout(() => router.push("/login"), 2000);
     } catch (error) {
       console.error("Registration failed:", error);
       toast.error(error.message || "Registration failed");
       setError(error.message || "Registration failed");
-    }
-  };
-
-  const handleVerification = async (event) => {
-    event.preventDefault();
-    if (!verificationCode.trim()) {
-      toast.error("Please enter the verification code.");
-      return;
-    }
-
-    try {
-      const response = await fetch("/api/verify-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token: verificationCode }),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        toast.success("Email verified successfully!");
-        setShowVerification(false);
-        setSuccess("Email verified successfully! You can now register.");
-        setTimeout(() => {
-          router.push("/register");
-        }, 2000);
-      } else {
-        throw new Error(data.message || "Failed to verify email");
-      }
-    } catch (error) {
-      console.error("Verification failed:", error);
-      toast.error(error.message || "Verification failed");
-      setError(error.message || "Verification failed");
     }
   };
 
@@ -186,132 +163,104 @@ function Register() {
 
 
 
-      {/* Form Section */}
-      <div className="w-full md:w-1/2 bg-white p-8 md:p-16 flex flex-col justify-center items-center">
+<div className="w-full md:w-1/2 bg-white p-8 md:p-16 flex flex-col justify-center items-center">
         <div className="w-full max-w-md">
           <h2 className="text-3xl md:text-4xl font-semibold text-gray-700 mb-6 text-center">Sign Up</h2>
-          {!showVerification ? (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-gray-600 mb-2">
-                  <FaUser className="inline-block text-red-500 mr-2" /> Name:
-                </label>
-                <input
-                  className="w-full px-4 py-2 md:py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="email" className="block text-gray-600 mb-2">
-                  <FaEnvelope className="inline-block text-red-500 mr-2" /> Email:
-                </label>
-                <input
-                  className="w-full px-4 py-2 md:py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="relative">
-                <label htmlFor="password" className="block text-gray-600 mb-2">
-                  <FaKey className="inline-block text-red-500 mr-2" /> Password:
-                </label>
-                <input
-                  className="w-full px-4 py-2 md:py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                  type={showPassword ? "text" : "password"}
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
-               <span
-               className="absolute right-3 top-10 pt-4 transform -translate-y-1/2 cursor-pointer"
-                  onClick={() => setShowPassword(!showPassword)}
-              >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </span>
-              </div>
-              <div className="relative">
-                <label htmlFor="confirmPassword" className="block text-gray-600 mb-2">
-                  <FaKey className="inline-block text-red-500 mr-2" /> Confirm Password:
-                </label>
-                <input
-                  className="w-full px-4 py-2 md:py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                  type={showConfirmPassword ? "text" : "password"}
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                />
-                <span
-                  className="absolute right-3 top-10 pt-4 transform -translate-y-1/2 cursor-pointer"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                </span>
-              </div>
-              <div className="mb-6">
-                <label htmlFor="profileImage" className="block text-gray-600 mb-2">
-                  <FaImage className="inline-block text-red-500 mr-2" /> Profile Image:
-                </label>
-                <input
-                  className="w-full px-4 py-2 md:py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                  type="file"
-                  id="profileImage"
-                  name="profileImage"
-                  onChange={handleFileChange}
-                  required
-                />
-                <small className="text-gray-600">Profile image size should be less than 100 KB</small>
-              </div>
-              <div className="flex justify-center mb-6">
-                <button
-                  className="bg-red-500 text-white px-6 py-3 rounded-md hover:bg-red-600 transition duration-200 w-full"
-                  type="submit"
-                  disabled={!formData.profileImage}
-                >
-                  Register
-                </button>
-              </div>
-              <div className="text-center">
-                <p className="text-gray-600 text-sm">By clicking Register Yor agree with the  <Link href="/terms" className="text-red-500">Terms</Link> and <Link href="/privacy" className="text-red-500">Privacy</Link></p>
-                <p className="text-gray-600">Already have an account? <Link href="/register" className="text-red-500">register</Link></p>
-              </div>
-              {error && <div className="text-red-600 text-center mt-3">{error}</div>}
-            </form>
-          ) : (
-            <form onSubmit={handleVerification} className="space-y-4">
-              <h2 className="text-2xl font-semibold text-gray-700 mb-4 text-center">Verify Email</h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="name" className="block text-gray-600 mb-2">Name:</label>
               <input
                 className="w-full px-4 py-2 md:py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
                 type="text"
-                placeholder="Enter verification code"
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
                 required
               />
-              <div className="flex justify-center mb-6">
-                <button className="bg-red-500 text-white px-6 py-3 rounded-md hover:bg-red-600 transition duration-200 w-full" type="submit">
-                  Verify Email
-                </button>
-              </div>
-              {success && <div className="text-green-600 text-center mt-3">{success}</div>}
-              {error && <div className="text-red-600 text-center mt-3">{error}</div>}
-            </form>
-          )}
+            </div>
+            <div>
+              <label htmlFor="email" className="block text-gray-600 mb-2">Email:</label>
+              <input
+                className="w-full px-4 py-2 md:py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="relative">
+              <label htmlFor="password" className="block text-gray-600 mb-2">Password:</label>
+              <input
+                className="w-full px-4 py-2 md:py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+              <span
+                className="absolute right-3 top-10 pt-4 transform -translate-y-1/2 cursor-pointer"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </span>
+            </div>
+            <div className="relative">
+              <label htmlFor="confirmPassword" className="block text-gray-600 mb-2">Confirm Password:</label>
+              <input
+                className="w-full px-4 py-2 md:py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+              />
+              <span
+                className="absolute right-3 top-10 pt-4 transform -translate-y-1/2 cursor-pointer"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </span>
+            </div>
+            <div>
+              <label htmlFor="profileImage" className="block text-gray-600 mb-2">Profile Image:</label>
+              <input
+                className="w-full px-4 py-2 md:py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                type="file"
+                id="profileImage"
+                name="profileImage"
+                onChange={handleFileChange}
+                required
+              />
+            </div>
+
+            {/* Add reCAPTCHA */}
+            <div className="mt-4">
+              <ReCAPTCHA
+                sitekey={reCAPTCHASiteKey}
+                onChange={handleCaptchaChange}
+              />
+            </div>
+
+            <div className="flex justify-center mb-6">
+              <button
+                className="bg-red-500 text-white px-6 py-3 rounded-md hover:bg-red-600 transition duration-200 w-full"
+                type="submit"
+              >
+                Register
+              </button>
+            </div>
+            {error && <div className="text-red-600 text-center">{error}</div>}
+          </form>
         </div>
       </div>
     </div>
+   
   );
 }
 
