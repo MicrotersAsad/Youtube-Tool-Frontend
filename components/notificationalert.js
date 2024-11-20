@@ -225,7 +225,7 @@ const Notifications = () => {
         }
 
         .tab.active {
-          background-color: #007bff;
+          background-color: #0f1e73;
           color: white;
           font-weight: 600;
         }
