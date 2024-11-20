@@ -202,12 +202,12 @@ function Register() {
     <h2 className="text-3xl md:text-4xl font-semibold text-gray-700 mb-6 text-center">Get Started for FREE</h2>
 
     {/* Added Section */}
-    <div className="row ps-5 pe-5">
+    <div className="row">
     <div className="col-md-6">
-      <FaCheckCircle/><span className="ps-2 text-xs">100 free credit</span>
+      <FaCheckCircle/><span className="">100 free credit</span>
     </div>
     <div className="col-md-6">
-    <FaCheckCircle/><span className="ps-2 text-xs">No credit card requireds</span>
+    <FaCheckCircle/><span className="">No credit card requireds</span>
     </div>
     </div>
     {/* End of Added Section */}
@@ -292,42 +292,11 @@ function Register() {
                   onChange={handleRecaptcha}
                 />
               </div>
-              <div>
-  <label className="flex items-center space-x-2">
-    <input
-      type="checkbox"
-      name="terms"
-      required
-      className="w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
-    />
-    <span className="text-sm text-gray-600">
-      I agree to YtubeTools's{" "}
-      <a
-        href="/terms"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-red-500 hover:underline"
-      >
-        Terms
-      </a>{" "}
-      and{" "}
-      <a
-        href="/privacy"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-red-500 hover:underline"
-      >
-        Privacy Policy
-      </a>.
-    </span>
-  </label>
-</div>
-
               <div className="flex justify-center mb-6">
                 <button
                   className="bg-red-500 text-white px-6 py-3 rounded-md hover:bg-red-600 transition duration-200 w-full"
                   type="submit"
-                  disabled={ !recaptchaToken}
+                  disabled={!formData.profileImage || !recaptchaToken}
                 >
                   Register
                 </button>

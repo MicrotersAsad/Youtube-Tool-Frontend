@@ -7,7 +7,6 @@ import { sendVerificationEmail } from '../../utils/sendVerificationEmail';
 import { v4 as uuidv4 } from 'uuid';
 import { collection, addDoc } from 'firebase/firestore';
 import { firestore } from '../../lib/firebase'; // Firestore setup
-import fetch from 'node-fetch';
 
 // AWS S3 configuration
 const s3 = new S3Client({
@@ -39,21 +38,6 @@ export const config = {
   },
 };
 
-// Function to validate reCAPTCHA token
-async function validateCaptcha(token) {
-  const secretKey = process.env.GOOGLE_RECAPTCHA_SECRET; // Add this key to your environment variables
-  const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: `secret=${secretKey}&response=${token}`,
-  });
-
-  const data = await response.json();
-  return data.success;
-}
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
@@ -68,14 +52,8 @@ export default async function handler(req, res) {
         return res.status(500).json({ message: 'Unknown error' });
       }
 
-      const { username, email, password, role, adminAnswer, captchaToken } = req.body;
+      const { username, email, password, role, adminAnswer } = req.body;
       const profileImageUrl = req.file ? req.file.location : null; // Get S3 file URL
-
-      // Validate reCAPTCHA token
-      const isCaptchaValid = await validateCaptcha(captchaToken);
-      if (!isCaptchaValid) {
-        return res.status(400).json({ message: 'Invalid reCAPTCHA. Please try again.' });
-      }
 
       // Validate role and admin answer
       let finalRole = 'user';
