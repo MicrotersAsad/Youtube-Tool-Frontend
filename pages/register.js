@@ -327,7 +327,7 @@ function Register() {
                 <button
                   className="bg-red-500 text-white px-6 py-3 rounded-md hover:bg-red-600 transition duration-200 w-full"
                   type="submit"
-                  disabled={!formData.profileImage || !recaptchaToken}
+                  disabled={ !recaptchaToken}
                 >
                   Register
                 </button>
