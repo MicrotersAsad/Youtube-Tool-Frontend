@@ -37,7 +37,6 @@ const Layout = React.memo(({ children }) => {
   const { user, logout } = useAuth();
   const [pendingCount, setPendingCount] = useState([]);
   const [openCount, setOpenCount] = useState([]);
-  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
@@ -267,38 +266,50 @@ const Layout = React.memo(({ children }) => {
         } lg:translate-x-0 lg:static lg:inset-0 h-full flex flex-col`}
         // Removed onMouseEnter and onMouseLeave
       >
-        <div className="sticky top-0 bg-[#071251] z-50">
-          {/* Logo */}
-          <div className="flex items-center text-white justify-center mt-8">
-            <Link href="dashboard">
-              <Image
-                src={logo}
-                width={isCollapsed ? 40 : 206}
-                height={isCollapsed ? 40 : 80}
-                alt="Logo"
-              />
-            </Link>
-          </div>
-          {/* Heading - only show when sidebar is not collapsed */}
-        </div>
+    <div className="sticky top-0 bg-[#071251] z-50">
+  {/* Logo */}
+  {isCollapsed ? (
+    <div className="flex items-center justify-center mt-8" style={{ width: 40, height: 40 }} />
+  ) : (
+    <div className="flex items-center text-white justify-center mt-8">
+      <Link href="dashboard">
+        <Image
+          src={logo}
+          width={206} // Full size when not collapsed
+          height={80}
+          alt="Logo"
+        />
+      </Link>
+    </div>
+  )}
+</div>
+
+
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           <nav className=" text-white pb-4 pt-4">
             {/* Dashboard */}
             <div className="mt-2">
-              <Link
-                href="/dashboard/dashboard"
-                passHref
-                className={`flex items-center py-2 px-6 text-white text-sm  w-full cursor-pointer ${
-                  isActiveRoute("/dashboard/dashboard")
-                    ? "bg-[#4634ff] text-white"
-                    : "hover:bg-[#1d1e8e] hover:text-white"
-                }`}
-                style={{ marginLeft: isCollapsed ? "0" : "0" }}
-              >
-                <FaTachometerAlt className="text-white" />
-                {!isCollapsed && <span className="ml-3">Dashboard</span>}
-              </Link>
-            </div>
+  <Link
+    href="/dashboard/dashboard"
+    passHref
+    className={`flex items-center py-2 px-6 text-white text-sm w-full cursor-pointer ${
+      isActiveRoute("/dashboard/dashboard")
+        ? "bg-[#4634ff] text-white"
+        : "hover:bg-[#1d1e8e] hover:text-white"
+    }`}
+  >
+    <FaTachometerAlt
+      className="text-white"
+      style={{
+        fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
+        transition: "font-size 0.3s ease", // Smooth transition
+        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+      }}
+    />
+    {!isCollapsed && <span className="ml-3">Dashboard</span>}
+  </Link>
+</div>
+
 
             {/* Blog Main Menu Item with 0.3s Transition */}
             {user && (user.role === "admin" || user.role === "super_admin") && (
@@ -317,7 +328,14 @@ const Layout = React.memo(({ children }) => {
                   onClick={() => toggleMenu("blog")}
                   style={{ transition: "all 0.3s ease" }}
                 >
-                  <FaBlog className="mr-3 text-white" />
+                  <FaBlog
+      className=" mr-3 text-white"
+      style={{
+        fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
+        transition: "font-size 0.3s ease", // Smooth transition
+        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+      }}
+    />
                   {!isCollapsed && <span>Blog</span>}
                   {!isCollapsed && (
                     <span className="ml-auto">
@@ -374,7 +392,12 @@ const Layout = React.memo(({ children }) => {
                     }`}
                     onClick={() => toggleMenu("article")}
                   >
-                    <FaBlog className="mr-3 text-white" />
+                    <FaBlog className=" mr-3 text-white"
+      style={{
+        fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
+        transition: "font-size 0.3s ease", // Smooth transition
+        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+      }}/>
                     {!isCollapsed && <span>Youtube Article</span>}
                     {!isCollapsed && (
                       <span className="ml-auto">
@@ -467,7 +490,12 @@ const Layout = React.memo(({ children }) => {
                     }`}
                     onClick={() => toggleMenu("pages")}
                   >
-                    <FaFileAlt className="mr-3 text-white" />
+                    <FaFileAlt  className=" mr-3 text-white"
+      style={{
+        fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
+        transition: "font-size 0.3s ease", // Smooth transition
+        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+      }} />
                     {!isCollapsed && <span>Pages</span>}
                     {!isCollapsed && (
                       <span className="ml-auto">
@@ -535,7 +563,12 @@ const Layout = React.memo(({ children }) => {
                     }`}
                     onClick={() => toggleMenu("tools")}
                   >
-                    <FaFileAlt className="mr-3 text-white" />
+                    <FaFileAlt  className=" mr-3 text-white"
+      style={{
+        fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
+        transition: "font-size 0.3s ease", // Smooth transition
+        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+      }}/>
                     {!isCollapsed && <span>Content</span>}
                     {!isCollapsed && (
                       <span className="ml-auto">
@@ -606,7 +639,12 @@ const Layout = React.memo(({ children }) => {
                     }`}
                     onClick={() => toggleMenu("users")}
                   >
-                    <FaUsers className="mr-3 text-white" />
+                    <FaUsers  className=" mr-3 text-white"
+      style={{
+        fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
+        transition: "font-size 0.3s ease", // Smooth transition
+        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+      }} />
                     {!isCollapsed && <span>Manage Users</span>}
                     {!isCollapsed && (
                       <span className="ml-auto">
@@ -725,7 +763,12 @@ const Layout = React.memo(({ children }) => {
                     }`}
                     onClick={() => toggleMenu("all-subscription")}
                   >
-                    <FaFirstOrderAlt className="mr-3 text-white" />
+                    <FaFirstOrderAlt  className=" mr-3 text-white"
+      style={{
+        fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
+        transition: "font-size 0.3s ease", // Smooth transition
+        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+      }} />
                     {!isCollapsed && <span>Manage Subscription</span>}
                     {!isCollapsed && (
                       <span className="ml-auto">
@@ -820,7 +863,12 @@ const Layout = React.memo(({ children }) => {
                   }`}
                   onClick={() => toggleMenu("support")}
                 >
-                  <FaListAlt className="mr-3 text-white" />
+                  <FaListAlt  className=" mr-3 text-white"
+      style={{
+        fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
+        transition: "font-size 0.3s ease", // Smooth transition
+        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+      }} />
                   {!isCollapsed && <span>Support</span>}
                   {!isCollapsed && (
                     <span className="ml-auto">
@@ -950,7 +998,12 @@ const Layout = React.memo(({ children }) => {
                     }`}
                     onClick={() => toggleMenu("report")}
                   >
-                    <FaListAlt className="mr-3 text-white" />
+                    <FaListAlt className=" mr-3 text-white"
+      style={{
+        fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
+        transition: "font-size 0.3s ease", // Smooth transition
+        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+      }}/>
                     {!isCollapsed && <span>Report</span>}
                     {!isCollapsed && (
                       <span className="ml-auto">
@@ -1015,7 +1068,12 @@ const Layout = React.memo(({ children }) => {
                     }`}
                     onClick={() => toggleMenu("apiKeys")}
                   >
-                    <FaKey className="mr-3 text-white" />
+                    <FaKey  className=" mr-3 text-white"
+      style={{
+        fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
+        transition: "font-size 0.3s ease", // Smooth transition
+        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+      }} />
                     {!isCollapsed && <span>API Keys</span>}
                     {!isCollapsed && (
                       <span className="ml-auto">
@@ -1089,7 +1147,12 @@ const Layout = React.memo(({ children }) => {
                     }`}
                     onClick={() => toggleMenu("about")}
                   >
-                    <FaInfoCircle className="mr-3 text-white" />{" "}
+                    <FaInfoCircle  className=" mr-3 text-white"
+      style={{
+        fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
+        transition: "font-size 0.3s ease", // Smooth transition
+        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+      }} />{" "}
                     {/* Icon indicating About Section */}
                     {!isCollapsed && <span>About</span>}
                     {!isCollapsed && (
@@ -1224,7 +1287,12 @@ const Layout = React.memo(({ children }) => {
                     }`}
                     onClick={() => toggleMenu("appearance")}
                   >
-                    <FaCogs className="mr-3 text-white" />
+                    <FaCogs  className=" mr-3 text-white"
+      style={{
+        fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
+        transition: "font-size 0.3s ease", // Smooth transition
+        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+      }} />
                     {!isCollapsed && <span>Appearance</span>}
                     {!isCollapsed && (
                       <span className="ml-auto">
@@ -1393,7 +1461,12 @@ const Layout = React.memo(({ children }) => {
                     }`}
                     style={{ paddingLeft: isCollapsed ? "24px" : "24px" }} // Conditional padding to adjust based on collapsed state
                   >
-                    <FaTachometerAlt className="mr-3 text-white" />
+                    <FaTachometerAlt  className=" mr-3 text-white"
+      style={{
+        fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
+        transition: "font-size 0.3s ease", // Smooth transition
+        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+      }}/>
                     {!isCollapsed && <span>System Setting</span>}
                   </Link>
                 </div>
