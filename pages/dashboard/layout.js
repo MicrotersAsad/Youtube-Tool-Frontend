@@ -22,6 +22,11 @@ import {
   FaListAlt,
   FaCheckCircle,
   FaTimesCircle,
+  FaYoutube,
+  FaPage4,
+  FaHeadphones,
+  FaAssistiveListeningSystems,
+  FaServer,
 } from "react-icons/fa";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import Image from "next/image";
@@ -51,13 +56,22 @@ const Layout = React.memo(({ children }) => {
   useEffect(() => {
     localStorage.setItem("isCollapsed", isCollapsed);
   }, [isCollapsed]);
-
   const toggleMenu = (menu) => {
-    const newMenu = menuOpen === menu ? "" : menu;
-    setMenuOpen(newMenu);
-    localStorage.setItem("activeMenu", newMenu);
+    if (menuOpen === menu) {
+      setMenuOpen(""); // Close the menu if it's already open
+      localStorage.setItem("activeMenu", ""); // Clear local storage for active menu
+    } else {
+      setMenuOpen(menu); // Open the clicked menu
+      localStorage.setItem("activeMenu", menu); // Save the state to local storage
+    }
   };
-
+  
+  const toggleSidebarAndMenu = (menu) => {
+    if (isCollapsed) {
+      setIsCollapsed(false); // Expand the sidebar if collapsed
+    }
+    toggleMenu(menu); // Toggle the specific menu
+  };
   const isActiveRoute = (route) => router.pathname === route;
 
   const handleLogout = () => {
@@ -313,165 +327,163 @@ const Layout = React.memo(({ children }) => {
 
             {/* Blog Main Menu Item with 0.3s Transition */}
             {user && (user.role === "admin" || user.role === "super_admin") && (
-              <div className="mt-2">
-                <p
-                  className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-                    isActiveRoute("/dashboard/categories") ||
-                    isActiveRoute("/dashboard/all-blogs") ||
-                    isActiveRoute("/dashboard/authors") ||
-                    isActiveRoute("/dashboard/blogs")
-                      ? "bg-[#4634ff] text-white"
-                      : menuOpen === "blog"
-                      ? "bg-[#1d1e8e] text-white"
-                      : "hover:bg-[#1d1e8e] hover:text-white"
-                  }`}
-                  onClick={() => toggleMenu("blog")}
-                  style={{ transition: "all 0.3s ease" }}
-                >
-                  <FaBlog
-      className=" mr-3 text-white"
+           <div className="mt-2">
+           <p
+             className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
+               isActiveRoute("/dashboard/categories") ||
+               isActiveRoute("/dashboard/all-blogs") ||
+               isActiveRoute("/dashboard/authors") ||
+               isActiveRoute("/dashboard/blogs")
+                 ? "bg-[#4634ff] text-white"
+                 : menuOpen === "blog"
+                 ? "bg-[#1d1e8e] text-white"
+                 : "hover:bg-[#1d1e8e] hover:text-white"
+             }`}
+             onClick={() => toggleSidebarAndMenu("blog")} // Call the unified function
+             style={{ transition: "all 0.3s ease" }}
+           >
+             <FaBlog
+               className="mr-3 text-white"
+               style={{
+                 fontSize: isCollapsed ? "1.3rem" : "1rem",
+                 marginLeft: isCollapsed ? "3px" : "0px",
+                 transition: "font-size 0.3s ease, margin-left 0.3s ease",
+               }}
+             />
+             {!isCollapsed && <span>Blog</span>}
+             {!isCollapsed && (
+               <span className="ml-auto">
+                 {menuOpen === "blog" ? (
+                   <FiChevronUp className="w-6 h-6" />
+                 ) : (
+                   <FiChevronDown className="w-6 h-6" />
+                 )}
+               </span>
+             )}
+           </p>
+       
+           {/* Submenu */}
+           {menuOpen === "blog" && (
+             <div className="ml-6 mt-2 mb-1 overflow-hidden">
+               {[
+                 { href: "/dashboard/categories", label: "Categories" },
+                 { href: "/dashboard/all-blogs", label: "All Posts" },
+                 { href: "/dashboard/blogs", label: "Add Post" },
+                 { href: "/dashboard/authors", label: "Add Authors" },
+               ].map(({ href, label }, index) => (
+                 <Link href={href} passHref key={index}>
+                   <p
+                     className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                       isActiveRoute(href)
+                         ? "bg-[#1d1e8e] text-white"
+                         : "hover:bg-[#1d1e8e] hover:text-white"
+                     }`}
+                   >
+                     <FaCircle className="mr-2 text-xs" />
+                     {label}
+                   </p>
+                 </Link>
+               ))}
+             </div>
+           )}
+         </div>
+            )}
+
+            {user && (user.role === "admin" || user.role === "super_admin") ? (
+              <>
+                {/* Article Youtube */}
+                <div className="mt-2">
+  <p
+    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
+      isActiveRoute("/dashboard/yt-categories") ||
+      isActiveRoute("/dashboard/all-article") ||
+      isActiveRoute("/dashboard/article") ||
+      isActiveRoute("/dashboard/create-shortcode")
+        ? "bg-[#4634ff] text-white"
+        : menuOpen === "article"
+        ? "bg-[#1d1e8e] text-white"
+        : "hover:bg-[#1d1e8e] hover:text-white"
+    }`}
+    onClick={() => toggleMenu("article")} // Toggle dropdown state
+  >
+    <FaYoutube
+      className="mr-3 text-white"
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
         marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
       }}
     />
-                  {!isCollapsed && <span>Blog</span>}
-                  {!isCollapsed && (
-                    <span className="ml-auto">
-                      {menuOpen === "blog" ? (
-                        <FiChevronUp className="w-6 h-6" />
-                      ) : (
-                        <FiChevronDown className="w-6 h-6" />
-                      )}
-                    </span>
-                  )}
-                </p>
+    {!isCollapsed && <span>Youtube Article</span>}
+    {!isCollapsed && (
+      <span className="ml-auto">
+        {menuOpen === "article" ? (
+          <FiChevronUp className="w-6 h-6" />
+        ) : (
+          <FiChevronDown className="w-6 h-6" />
+        )}
+      </span>
+    )}
+  </p>
 
-                {/* Submenu */}
-                {menuOpen === "blog" && (
-                  <div className="ml-6 mt-2 mb-1 overflow-hidden">
-                    {[
-                      { href: "/dashboard/categories", label: "Categories" },
-                      { href: "/dashboard/all-blogs", label: "All Posts" },
-                      { href: "/dashboard/blogs", label: "Add Post" },
-                      { href: "/dashboard/authors", label: "Add Authors" },
-                    ].map(({ href, label }, index) => (
-                      <Link href={href} passHref key={index}>
-                        <p
-                          className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                            isActiveRoute(href)
-                              ? "bg-[#1d1e8e] text-white"
-                              : "hover:bg-[#1d1e8e] hover:text-white"
-                          }`}
-                        >
-                          <FaCircle className="mr-2 text-xs" />
-                          {label}
-                        </p>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+  {/* Dropdown Content with Smooth Opening and Closing Animation */}
+  <div
+    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
+      menuOpen === "article" ? "max-h-screen opacity-100 scale-y-100" : "max-h-0 opacity-0 scale-y-0"
+    }`}
+  >
+    <Link href="/dashboard/yt-categories" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/yt-categories")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Categories
+      </p>
+    </Link>
+    <Link href="/dashboard/all-article" passHref>
+      <p
+        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/all-article")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+      >
+        <FaCircle className="mr-2 text-xs" />
+        All Article
+      </p>
+    </Link>
+    <Link href="/dashboard/article" passHref>
+      <p
+        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/article")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Add Article
+      </p>
+    </Link>
+    <Link href="/dashboard/create-shortcode" passHref>
+      <p
+        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/create-shortcode")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Create Shortcode
+      </p>
+    </Link>
+  </div>
+</div>
 
-            {user && (user.role === "admin" || user.role === "super_admin") ? (
-              <>
-                {/* Blog */}
-                <div className="mt-2">
-                  <p
-                    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-                      isActiveRoute("/dashboard/yt-categories") ||
-                      isActiveRoute("/dashboard/all-article") ||
-                      isActiveRoute("/dashboard/article") ||
-                      isActiveRoute("/dashboard/create-shortcode")
-                        ? "bg-[#4634ff] text-white"
-                        : menuOpen === "blog"
-                        ? "bg-[#1d1e8e] text-white"
-                        : "hover:bg-[#1d1e8e] hover:text-white"
-                    }`}
-                    onClick={() => toggleMenu("article")}
-                  >
-                    <FaBlog className=" mr-3 text-white"
-      style={{
-        fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
-        transition: "font-size 0.3s ease", // Smooth transition
-        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
-      }}/>
-                    {!isCollapsed && <span>Youtube Article</span>}
-                    {!isCollapsed && (
-                      <span className="ml-auto">
-                        {menuOpen === "article" ? (
-                          <FiChevronUp className="w-6 h-6" />
-                        ) : (
-                          <FiChevronDown className="w-6 h-6" />
-                        )}
-                      </span>
-                    )}
-                  </p>
 
-                  {/* Dropdown Content with Smooth Opening and Closing Animation */}
-                  <div
-                    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
-                      (menuOpen === "article" ||
-                        isActiveRoute("/dashboard/yt-categories") ||
-                        isActiveRoute("/dashboard/all-article") ||
-                        isActiveRoute("/dashboard/article")) &&
-                      !isCollapsed
-                        ? "max-h-screen opacity-100 scale-y-100"
-                        : "max-h-0 opacity-0 scale-y-0"
-                    }`}
-                  >
-                    <Link href="/dashboard/yt-categories" passHref>
-                      <p
-                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/categories")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Categories
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/all-article" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/all-article")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        All Article
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/article" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/article")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Add Article
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/create-shortcode" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/create-shortcode")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Create Shortcode
-                      </p>
-                    </Link>
-                  </div>
-                </div>
               </>
             ) : null}
 
@@ -479,72 +491,80 @@ const Layout = React.memo(({ children }) => {
               <>
                 {/* Pages */}
                 <div className="">
-                  <p
-                    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-                      isActiveRoute("/dashboard/all-pages") ||
-                      isActiveRoute("/dashboard/add-page")
-                        ? "bg-[#4634ff] text-white"
-                        : menuOpen === "pages"
-                        ? "bg-[#1d1e8e] text-white"
-                        : "hover:bg-[#1d1e8e] hover:text-white"
-                    }`}
-                    onClick={() => toggleMenu("pages")}
-                  >
-                    <FaFileAlt  className=" mr-3 text-white"
+  <p
+    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
+      menuOpen === "pages"
+        ? "bg-[#4634ff] text-white"
+        : "hover:bg-[#1d1e8e] hover:text-white"
+    }`}
+    onClick={() => {
+      // Toggle dropdown, close if already open
+      if (menuOpen === "pages") {
+        setMenuOpen("");
+      } else {
+        toggleMenu("pages");
+        if (isCollapsed) setIsCollapsed(false); // Expand sidebar if collapsed
+      }
+    }}
+  >
+    <FaPage4
+      className="mr-3 text-white"
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
         marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
-      }} />
-                    {!isCollapsed && <span>Pages</span>}
-                    {!isCollapsed && (
-                      <span className="ml-auto">
-                        {menuOpen === "pages" ? (
-                          <FiChevronUp className="w-6 h-6" />
-                        ) : (
-                          <FiChevronDown className="w-6 h-6" />
-                        )}
-                      </span>
-                    )}
-                  </p>
+      }}
+    />
+    {!isCollapsed && <span>Pages</span>}
+    {!isCollapsed && (
+      <span className="ml-auto">
+        {menuOpen === "pages" ? (
+          <FiChevronUp className="w-6 h-6" />
+        ) : (
+          <FiChevronDown className="w-6 h-6" />
+        )}
+      </span>
+    )}
+  </p>
 
-                  {/* Dropdown Content with Smooth Opening and Closing Animation */}
-                  <div
-                    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
-                      (menuOpen === "pages" ||
-                        isActiveRoute("/dashboard/all-pages") ||
-                        isActiveRoute("/dashboard/add-page")) &&
-                      !isCollapsed
-                        ? "max-h-screen opacity-100 scale-y-100"
-                        : "max-h-0 opacity-0 scale-y-0"
-                    }`}
-                  >
-                    <Link href="/dashboard/all-pages" passHref>
-                      <p
-                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/all-pages")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        All Pages
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/add-page" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/add-page")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Add New Page
-                      </p>
-                    </Link>
-                  </div>
-                </div>
+  {/* Dropdown Content with Smooth Opening and Closing Animation */}
+  <div
+    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
+      menuOpen === "pages" && !isCollapsed
+        ? "max-h-screen opacity-100 scale-y-100"
+        : "max-h-0 opacity-0 scale-y-0"
+    }`}
+  >
+    <Link href="/dashboard/all-pages" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/all-pages")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        All Pages
+      </p>
+    </Link>
+    <Link href="/dashboard/add-page" passHref>
+      <p
+        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/add-page")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Add New Page
+      </p>
+    </Link>
+  </div>
+</div>
+
+
               </>
             ) : null}
 
@@ -552,899 +572,967 @@ const Layout = React.memo(({ children }) => {
             {user && (user.role === "admin" || user.role === "super_admin") ? (
               <>
                 <div className="">
-                  <p
-                    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-                      isActiveRoute("/dashboard/content") ||
-                      isActiveRoute("/dashboard/review")
-                        ? "bg-[#4634ff] text-white"
-                        : menuOpen === "pages"
-                        ? "bg-[#1d1e8e] text-white"
-                        : "hover:bg-[#1d1e8e] hover:text-white"
-                    }`}
-                    onClick={() => toggleMenu("tools")}
-                  >
-                    <FaFileAlt  className=" mr-3 text-white"
+  <p
+    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
+      menuOpen === "tools"
+        ? "bg-[#1d1e8e] text-white"
+        : "hover:bg-[#1d1e8e] hover:text-white"
+    }`}
+    onClick={() => {
+      if (menuOpen === "tools") {
+        setMenuOpen(""); // Close dropdown if already open
+      } else {
+        toggleMenu("tools");
+        if (isCollapsed) setIsCollapsed(false); // Open sidebar if collapsed
+      }
+    }}
+  >
+    <FaFileAlt
+      className="mr-3 text-white"
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
         marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
-      }}/>
-                    {!isCollapsed && <span>Content</span>}
-                    {!isCollapsed && (
-                      <span className="ml-auto">
-                        {menuOpen === "tools" ? (
-                          <FiChevronUp className="w-6 h-6" />
-                        ) : (
-                          <FiChevronDown className="w-6 h-6" />
-                        )}
-                      </span>
-                    )}
-                  </p>
+      }}
+    />
+    {!isCollapsed && <span>Content</span>}
+    {!isCollapsed && (
+      <span className="ml-auto">
+        {menuOpen === "tools" ? (
+          <FiChevronUp className="w-6 h-6" />
+        ) : (
+          <FiChevronDown className="w-6 h-6" />
+        )}
+      </span>
+    )}
+  </p>
 
-                  {/* Dropdown Content */}
-                  <div
-                    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
-                      (menuOpen === "tools" ||
-                        isActiveRoute("/dashboard/content")) &&
-                      !isCollapsed
-                        ? "max-h-screen opacity-100 scale-y-100"
-                        : "max-h-0 opacity-0 scale-y-0"
-                    }`}
-                  >
-                    <Link href="/dashboard/content" passHref>
-                      <p
-                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/content")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "bg-transparent text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Tools Content
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/review" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/review")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "bg-transparent text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Tools Review
-                      </p>
-                    </Link>
-                  </div>
-                </div>
+  {/* Dropdown Content */}
+  <div
+    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
+      menuOpen === "tools" && !isCollapsed
+        ? "max-h-screen opacity-100 scale-y-100"
+        : "max-h-0 opacity-0 scale-y-0"
+    }`}
+  >
+    <Link href="/dashboard/content" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/content")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Tools Content
+      </p>
+    </Link>
+    <Link href="/dashboard/review" passHref>
+      <p
+        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/review")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Tools Review
+      </p>
+    </Link>
+  </div>
+</div>
+
               </>
             ) : null}
 
             {/* Manage Users */}
             {user && (user.role === "admin" || user.role === "super_admin") ? (
               <>
-                <div className="">
-                  <p
-                    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-                      isActiveRoute("/dashboard/all-user") ||
-                      isActiveRoute("/dashboard/active-users") ||
-                      isActiveRoute("/dashboard/ban-user") ||
-                      isActiveRoute("/dashboard/unverified-user") ||
-                      isActiveRoute("/dashboard/premium-user") ||
-                      isActiveRoute("/dashboard/non-premium-user")
-                        ? "bg-[#4634ff] text-white"
-                        : menuOpen === "users"
-                        ? "bg-[#1d1e8e] text-white"
-                        : "hover:bg-[#1d1e8e] hover:text-white"
-                    }`}
-                    onClick={() => toggleMenu("users")}
-                  >
-                    <FaUsers  className=" mr-3 text-white"
+               <div className="">
+  <p
+    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
+      menuOpen === "users" ||
+      isActiveRoute("/dashboard/all-user") ||
+      isActiveRoute("/dashboard/active-users") ||
+      isActiveRoute("/dashboard/ban-user") ||
+      isActiveRoute("/dashboard/unverified-user") ||
+      isActiveRoute("/dashboard/premium-user") ||
+      isActiveRoute("/dashboard/non-premium-user")
+        ? "bg-[#4634ff] text-white"
+        : "hover:bg-[#1d1e8e] hover:text-white"
+    }`}
+    onClick={() => {
+      if (menuOpen === "users") {
+        setMenuOpen(""); // Close dropdown if open
+      } else {
+        toggleMenu("users");
+        if (isCollapsed) setIsCollapsed(false); // Expand sidebar if collapsed
+      }
+    }}
+  >
+    <FaUsers
+      className="mr-3 text-white"
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
         marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
-      }} />
-                    {!isCollapsed && <span>Manage Users</span>}
-                    {!isCollapsed && (
-                      <span className="ml-auto">
-                        {menuOpen === "users" ? (
-                          <FiChevronUp className="w-6 h-6" />
-                        ) : (
-                          <FiChevronDown className="w-6 h-6" />
-                        )}
-                      </span>
-                    )}
-                  </p>
+      }}
+    />
+    {!isCollapsed && <span>Manage Users</span>}
+    {!isCollapsed && (
+      <span className="ml-auto">
+        {menuOpen === "users" ? (
+          <FiChevronUp className="w-6 h-6" />
+        ) : (
+          <FiChevronDown className="w-6 h-6" />
+        )}
+      </span>
+    )}
+  </p>
 
-                  {/* Dropdown Content with Smooth Opening and Closing Animation */}
-                  <div
-                    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
-                      (menuOpen === "users" ||
-                        isActiveRoute("/dashboard/users")) &&
-                      !isCollapsed
-                        ? "max-h-screen opacity-100 scale-y-100"
-                        : "max-h-0 opacity-0 scale-y-0"
-                    }`}
-                  >
-                    <Link href="/dashboard/all-user" passHref>
-                      <p
-                        className={`relative flex  items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/all-user")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        All User
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/active-users" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/active-users")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Active User
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/unverified-user" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/unverified-user")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Unverified User
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/premium-user" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/premium-user")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Premium User
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/non-premium-user" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/non-premium-user")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Non Premium User
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/ban-user" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/ban-user")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Ban User
-                      </p>
-                    </Link>
-                  </div>
-                </div>
+  {/* Dropdown Content with Smooth Opening and Closing Animation */}
+  <div
+    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
+      menuOpen === "users" && !isCollapsed
+        ? "max-h-screen opacity-100 scale-y-100"
+        : "max-h-0 opacity-0 scale-y-0"
+    }`}
+  >
+    <Link href="/dashboard/all-user" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/all-user")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        All User
+      </p>
+    </Link>
+    <Link href="/dashboard/active-users" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/active-users")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Active User
+      </p>
+    </Link>
+    <Link href="/dashboard/unverified-user" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/unverified-user")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Unverified User
+      </p>
+    </Link>
+    <Link href="/dashboard/premium-user" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/premium-user")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Premium User
+      </p>
+    </Link>
+    <Link href="/dashboard/non-premium-user" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/non-premium-user")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Non Premium User
+      </p>
+    </Link>
+    <Link href="/dashboard/ban-user" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/ban-user")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Ban User
+      </p>
+    </Link>
+  </div>
+</div>
+
               </>
             ) : null}
             {/* Manage Subscription */}
             {user && (user.role === "admin" || user.role === "super_admin") ? (
               <>
-                <div className="">
-                  <p
-                    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-                      isActiveRoute("/dashboard/all-subscription") ||
-                      isActiveRoute("/dashboard/active-subscription") ||
-                      isActiveRoute("/dashboard/expired-subscription") ||
-                      isActiveRoute("/dashboard/user-logs") ||
-                      isActiveRoute("/dashboard/unverified-user") ||
-                      isActiveRoute("/dashboard/premium-user") ||
-                      isActiveRoute("/dashboard/non-premium-user")
-                        ? "bg-[#4634ff] text-white"
-                        : menuOpen === "users"
-                        ? "bg-[#1d1e8e] text-white"
-                        : "hover:bg-[#1d1e8e] hover:text-white"
-                    }`}
-                    onClick={() => toggleMenu("all-subscription")}
-                  >
-                    <FaFirstOrderAlt  className=" mr-3 text-white"
+             <div className="">
+  <p
+    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
+      menuOpen === "all-subscription"
+        ? "bg-[#4634ff] text-white"
+        : "hover:bg-[#1d1e8e] hover:text-white"
+    }`}
+    onClick={() => {
+      if (menuOpen === "all-subscription") {
+        setMenuOpen(""); // Close dropdown if it's open
+      } else {
+        toggleMenu("all-subscription"); // Open dropdown
+        if (isCollapsed) setIsCollapsed(false); // Expand sidebar if collapsed
+      }
+    }}
+  >
+    <FaFirstOrderAlt
+      className="mr-3 text-white"
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
         marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
-      }} />
-                    {!isCollapsed && <span>Manage Subscription</span>}
-                    {!isCollapsed && (
-                      <span className="ml-auto">
-                        {menuOpen === "all-subscription" ? (
-                          <FiChevronUp className="w-6 h-6" />
-                        ) : (
-                          <FiChevronDown className="w-6 h-6" />
-                        )}
-                      </span>
-                    )}
-                  </p>
+      }}
+    />
+    {!isCollapsed && <span>Manage Subscription</span>}
+    {!isCollapsed && (
+      <span className="ml-auto">
+        {menuOpen === "all-subscription" ? (
+          <FiChevronUp className="w-6 h-6" />
+        ) : (
+          <FiChevronDown className="w-6 h-6" />
+        )}
+      </span>
+    )}
+  </p>
 
-                  {/* Dropdown Content with Smooth Opening and Closing Animation */}
-                  <div
-                    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
-                      (menuOpen === "all-subscription" ||
-                        isActiveRoute("/dashboard/all-subscription")) &&
-                      !isCollapsed
-                        ? "max-h-screen opacity-100 scale-y-100"
-                        : "max-h-0 opacity-0 scale-y-0"
-                    }`}
-                  >
-                    <Link href="/dashboard/all-subscription" passHref>
-                      <p
-                        className={`relative flex  items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/all-subscription")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        All Subscription
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/active-subscription" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/active-subscription")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Active Subscription
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/expired-subscription" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/expired-subscription")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Expired Subscription
-                      </p>
-                    </Link>
-                    <Link href="#" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/cancel-subscription")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Cancel Subscription
-                      </p>
-                    </Link>
-                  </div>
-                </div>
+  {/* Dropdown Content with Smooth Opening and Closing Animation */}
+  <div
+    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
+      menuOpen === "all-subscription" && !isCollapsed
+        ? "max-h-screen opacity-100 scale-y-100"
+        : "max-h-0 opacity-0 scale-y-0"
+    }`}
+  >
+    <Link href="/dashboard/all-subscription" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/all-subscription")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        All Subscription
+      </p>
+    </Link>
+    <Link href="/dashboard/active-subscription" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/active-subscription")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Active Subscription
+      </p>
+    </Link>
+    <Link href="/dashboard/expired-subscription" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/expired-subscription")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Expired Subscription
+      </p>
+    </Link>
+    <Link href="/dashboard/cancel-subscription" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/cancel-subscription")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Cancel Subscription
+      </p>
+    </Link>
+  </div>
+</div>
+
               </>
             ) : null}
 
             {/* Support Section */}
             {user && ( // Only render the support section if the user is logged in
               <div className="">
-                <p
-                  className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-                    isActiveRoute("/dashboard/create-ticket") ||
-                    isActiveRoute("/dashboard/my-tickets") ||
-                    isActiveRoute("/dashboard/pending-tickets") ||
-                    isActiveRoute("/dashboard/closed-tickets") ||
-                    isActiveRoute("/dashboard/open-tickets") ||
-                    isActiveRoute("/dashboard/all-tickets") ||
-                    isActiveRoute("/dashboard/")
-                      ? "bg-[#4634ff] text-white"
-                      : menuOpen === "support"
-                      ? "bg-[#1d1e8e] text-white"
-                      : "hover:bg-[#1d1e8e] hover:text-white"
-                  }`}
-                  onClick={() => toggleMenu("support")}
-                >
-                  <FaListAlt  className=" mr-3 text-white"
-      style={{
-        fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
-        transition: "font-size 0.3s ease", // Smooth transition
-        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
-      }} />
-                  {!isCollapsed && <span>Support</span>}
-                  {!isCollapsed && (
-                    <span className="ml-auto">
-                      {menuOpen === "support" ? (
-                        <FiChevronUp className="w-6 h-6" />
-                      ) : (
-                        <FiChevronDown className="w-6 h-6" />
-                      )}
-                    </span>
-                  )}
-                </p>
-
-                {/* Dropdown Content with Smooth Opening and Closing Animation */}
-                <div
-                  className={`ml-6 mt-2 mb-1 overflow-hidden transition-all duration-700 ease-in-out origin-top ${
-                    menuOpen === "support" && !isCollapsed
-                      ? "max-h-screen opacity-100 scale-y-100"
-                      : "max-h-0 opacity-0 scale-y-0"
-                  }`}
-                >
-                  {/* Role-Based Menu Items */}
-                  {user.role === "user" && (
-                    <>
-                      <Link href="/dashboard/create-ticket" passHref>
-                        <p
-                          className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                            isActiveRoute("/dashboard/create-ticket")
-                              ? "bg-[#1d1e8e] text-white"
-                              : "hover:bg-[#1d1e8e] hover:text-white"
-                          }`}
-                        >
-                          <FaCircle className="mr-2 text-xs" />
-                          Create New Ticket
-                        </p>
-                      </Link>
-                      <Link href="/dashboard/my-tickets" passHref>
-                        <p
-                          className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                            isActiveRoute("/dashboard/my-tickets")
-                              ? "bg-[#1d1e8e] text-white"
-                              : "hover:bg-[#1d1e8e] hover:text-white"
-                          }`}
-                        >
-                          <FaCircle className="mr-2 text-xs" />
-                          My Tickets
-                        </p>
-                      </Link>
-                    </>
-                  )}
-
-                  {user.role === "admin" && (
-                    <>
-                      <Link href="/dashboard/pending-tickets" passHref>
-                        <p
-                          className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                            isActiveRoute("/dashboard/pending-tickets")
-                              ? "bg-[#1d1e8e] text-white"
-                              : "hover:bg-[#1d1e8e] hover:text-white"
-                          }`}
-                        >
-                          <FaCircle className="mr-2 text-xs" />
-                          Pending Ticket
-                          <span className="ml-auto bg-blue-600 text-white text-xs rounded-full px-2 py-1">
-                            {pendingCount.length}
-                          </span>
-                        </p>
-                      </Link>
-
-                      <Link href="/dashboard/closed-tickets" passHref>
-                        <p
-                          className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                            isActiveRoute("/dashboard/closed-tickets")
-                              ? "bg-[#1d1e8e] text-white"
-                              : "hover:bg-[#1d1e8e] hover:text-white"
-                          }`}
-                        >
-                          <FaCircle className="mr-2 text-xs" />
-                          Closed Ticket
-                        </p>
-                      </Link>
-                      <Link href="/dashboard/open-tickets" passHref>
-                        <p
-                          className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                            isActiveRoute("/dashboard/open-tickets")
-                              ? "bg-[#1d1e8e] text-white"
-                              : "hover:bg-[#1d1e8e] hover:text-white"
-                          }`}
-                        >
-                          <FaCircle className="mr-2 text-xs" />
-                          Open Ticket
-                          <span className="ml-auto bg-blue-600 text-white text-xs rounded-full px-2 py-1">
-                            {openCount.length}
-                          </span>
-                        </p>
-                      </Link>
-                      <Link href="/dashboard/all-tickets" passHref>
-                        <p
-                          className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                            isActiveRoute("/dashboard/all-tickets")
-                              ? "bg-[#1d1e8e] text-white"
-                              : "hover:bg-[#1d1e8e] hover:text-white"
-                          }`}
-                        >
-                          <FaCircle className="mr-2 text-xs" />
-                          All Ticket
-                        </p>
-                      </Link>
-                    </>
-                  )}
-                </div>
+              <p
+                className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
+                  menuOpen === "support"
+                    ? "bg-[#4634ff] text-white"
+                    : "hover:bg-[#1d1e8e] hover:text-white"
+                }`}
+                onClick={() => {
+                  if (menuOpen === "support") {
+                    setMenuOpen(""); // Close dropdown if already open
+                  } else {
+                    toggleMenu("support"); // Open dropdown
+                    if (isCollapsed) setIsCollapsed(false); // Expand sidebar if collapsed
+                  }
+                }}
+              >
+                <FaHeadphones
+                  className="mr-3 text-white"
+                  style={{
+                    fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
+                    transition: "font-size 0.3s ease", // Smooth transition
+                    marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+                  }}
+                />
+                {!isCollapsed && <span>Support</span>}
+                {!isCollapsed && (
+                  <span className="ml-auto">
+                    {menuOpen === "support" ? (
+                      <FiChevronUp className="w-6 h-6" />
+                    ) : (
+                      <FiChevronDown className="w-6 h-6" />
+                    )}
+                  </span>
+                )}
+              </p>
+            
+              {/* Dropdown Content with Smooth Opening and Closing Animation */}
+              <div
+                className={`ml-6 mt-2 mb-1 overflow-hidden transition-all duration-700 ease-in-out origin-top ${
+                  menuOpen === "support" && !isCollapsed
+                    ? "max-h-screen opacity-100 scale-y-100"
+                    : "max-h-0 opacity-0 scale-y-0"
+                }`}
+              >
+                {/* Role-Based Menu Items */}
+                {user.role === "user" && (
+                  <>
+                    <Link href="/dashboard/create-ticket" passHref>
+                      <p
+                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                          isActiveRoute("/dashboard/create-ticket")
+                            ? "bg-[#1d1e8e] text-white"
+                            : "hover:bg-[#1d1e8e] hover:text-white"
+                        }`}
+                        onClick={() => setMenuOpen("")} // Close dropdown on item click
+                      >
+                        <FaCircle className="mr-2 text-xs" />
+                        Create New Ticket
+                      </p>
+                    </Link>
+                    <Link href="/dashboard/my-tickets" passHref>
+                      <p
+                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                          isActiveRoute("/dashboard/my-tickets")
+                            ? "bg-[#1d1e8e] text-white"
+                            : "hover:bg-[#1d1e8e] hover:text-white"
+                        }`}
+                        onClick={() => setMenuOpen("")} // Close dropdown on item click
+                      >
+                        <FaCircle className="mr-2 text-xs" />
+                        My Tickets
+                      </p>
+                    </Link>
+                  </>
+                )}
+            
+                {user.role === "admin" && (
+                  <>
+                    <Link href="/dashboard/pending-tickets" passHref>
+                      <p
+                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                          isActiveRoute("/dashboard/pending-tickets")
+                            ? "bg-[#1d1e8e] text-white"
+                            : "hover:bg-[#1d1e8e] hover:text-white"
+                        }`}
+                        onClick={() => setMenuOpen("")} // Close dropdown on item click
+                      >
+                        <FaCircle className="mr-2 text-xs" />
+                        Pending Ticket
+                        <span className="ml-auto bg-blue-600 text-white text-xs rounded-full px-2 py-1">
+                          {pendingCount.length}
+                        </span>
+                      </p>
+                    </Link>
+            
+                    <Link href="/dashboard/closed-tickets" passHref>
+                      <p
+                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                          isActiveRoute("/dashboard/closed-tickets")
+                            ? "bg-[#1d1e8e] text-white"
+                            : "hover:bg-[#1d1e8e] hover:text-white"
+                        }`}
+                        onClick={() => setMenuOpen("")} // Close dropdown on item click
+                      >
+                        <FaCircle className="mr-2 text-xs" />
+                        Closed Ticket
+                      </p>
+                    </Link>
+                    <Link href="/dashboard/open-tickets" passHref>
+                      <p
+                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                          isActiveRoute("/dashboard/open-tickets")
+                            ? "bg-[#1d1e8e] text-white"
+                            : "hover:bg-[#1d1e8e] hover:text-white"
+                        }`}
+                        onClick={() => setMenuOpen("")} // Close dropdown on item click
+                      >
+                        <FaCircle className="mr-2 text-xs" />
+                        Open Ticket
+                        <span className="ml-auto bg-blue-600 text-white text-xs rounded-full px-2 py-1">
+                          {openCount.length}
+                        </span>
+                      </p>
+                    </Link>
+                    <Link href="/dashboard/all-tickets" passHref>
+                      <p
+                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                          isActiveRoute("/dashboard/all-tickets")
+                            ? "bg-[#1d1e8e] text-white"
+                            : "hover:bg-[#1d1e8e] hover:text-white"
+                        }`}
+                        onClick={() => setMenuOpen("")} // Close dropdown on item click
+                      >
+                        <FaCircle className="mr-2 text-xs" />
+                        All Ticket
+                      </p>
+                    </Link>
+                  </>
+                )}
               </div>
+            </div>
+            
             )}
 
             {/* Report Section */}
             {user && (user.role === "admin" || user.role === "super_admin") ? (
               <>
-                <div className="">
-                  <p
-                    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-                      isActiveRoute("/dashboard/user-log") ||
-                      isActiveRoute("/dashboard/addopenaiKey") ||
-                      isActiveRoute("/dashboard/")
-                        ? "bg-[#4634ff] text-white"
-                        : menuOpen === "report"
-                        ? "bg-[#1d1e8e] text-white"
-                        : "hover:bg-[#1d1e8e] hover:text-white"
-                    }`}
-                    onClick={() => toggleMenu("report")}
-                  >
-                    <FaListAlt className=" mr-3 text-white"
+              <div className="">
+  <p
+    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
+      menuOpen === "report"
+        ? "bg-[#4634ff] text-white"
+        : "hover:bg-[#1d1e8e] hover:text-white"
+    }`}
+    onClick={() => {
+      if (menuOpen === "report") {
+        setMenuOpen(""); // Close dropdown if already open
+      } else {
+        toggleMenu("report"); // Open dropdown
+        if (isCollapsed) setIsCollapsed(false); // Expand sidebar if collapsed
+      }
+    }}
+  >
+    <FaListAlt
+      className="mr-3 text-white"
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
         marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
-      }}/>
-                    {!isCollapsed && <span>Report</span>}
-                    {!isCollapsed && (
-                      <span className="ml-auto">
-                        {menuOpen === "report" ? (
-                          <FiChevronUp className="w-6 h-6" />
-                        ) : (
-                          <FiChevronDown className="w-6 h-6" />
-                        )}
-                      </span>
-                    )}
-                  </p>
+      }}
+    />
+    {!isCollapsed && <span>Report</span>}
+    {!isCollapsed && (
+      <span className="ml-auto">
+        {menuOpen === "report" ? (
+          <FiChevronUp className="w-6 h-6" />
+        ) : (
+          <FiChevronDown className="w-6 h-6" />
+        )}
+      </span>
+    )}
+  </p>
 
-                  {/* Dropdown Content with Smooth Opening and Closing Animation */}
-                  <div
-                    className={`ml-6 mt-2 mb-1 overflow-hidden transition-all duration-700 ease-in-out origin-top ${
-                      menuOpen === "report" && !isCollapsed
-                        ? "max-h-screen opacity-100 scale-y-100"
-                        : "max-h-0 opacity-0 scale-y-0"
-                    }`}
-                  >
-                    <Link href="/dashboard/user-log" passHref>
-                      <p
-                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/user-log")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Login History
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/all-notification" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/all-notification")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        All Notification
-                      </p>
-                    </Link>
-                  </div>
-                </div>
+  {/* Dropdown Content with Smooth Opening and Closing Animation */}
+  <div
+    className={`ml-6 mt-2 mb-1 overflow-hidden transition-all duration-700 ease-in-out origin-top ${
+      menuOpen === "report" && !isCollapsed
+        ? "max-h-screen opacity-100 scale-y-100"
+        : "max-h-0 opacity-0 scale-y-0"
+    }`}
+  >
+    <Link href="/dashboard/user-log" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/user-log")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Login History
+      </p>
+    </Link>
+    <Link href="/dashboard/all-notification" passHref>
+      <p
+        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/all-notification")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        All Notification
+      </p>
+    </Link>
+  </div>
+</div>
+
               </>
             ) : null}
             {/* API Keys Section */}
             {user && (user.role === "admin" || user.role === "super_admin") ? (
               <>
-                <div className="">
-                  <p
-                    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-                      isActiveRoute("/dashboard/addYtApi") ||
-                      isActiveRoute("/dashboard/addopenaiKey") ||
-                      isActiveRoute("/dashboard/")
-                        ? "bg-[#4634ff] text-white"
-                        : menuOpen === "apiKeys"
-                        ? "bg-[#1d1e8e] text-white"
-                        : "hover:bg-[#1d1e8e] hover:text-white"
-                    }`}
-                    onClick={() => toggleMenu("apiKeys")}
-                  >
-                    <FaKey  className=" mr-3 text-white"
+              <div className="">
+  <p
+    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
+      menuOpen === "apiKeys" || isActiveRoute("/dashboard/addYtApi") || isActiveRoute("/dashboard/addopenaiKey")
+        ? "bg-[#4634ff] text-white"
+        : "hover:bg-[#1d1e8e] hover:text-white"
+    }`}
+    onClick={() => {
+      if (menuOpen === "apiKeys") {
+        setMenuOpen(""); // Close dropdown if already open
+      } else {
+        toggleMenu("apiKeys"); // Open dropdown
+        if (isCollapsed) setIsCollapsed(false); // Expand sidebar if collapsed
+      }
+    }}
+  >
+    <FaKey
+      className="mr-3 text-white"
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
         marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
-      }} />
-                    {!isCollapsed && <span>API Keys</span>}
-                    {!isCollapsed && (
-                      <span className="ml-auto">
-                        {menuOpen === "apiKeys" ? (
-                          <FiChevronUp className="w-6 h-6" />
-                        ) : (
-                          <FiChevronDown className="w-6 h-6" />
-                        )}
-                      </span>
-                    )}
-                  </p>
+      }}
+    />
+    {!isCollapsed && <span>API Keys</span>}
+    {!isCollapsed && (
+      <span className="ml-auto">
+        {menuOpen === "apiKeys" ? (
+          <FiChevronUp className="w-6 h-6" />
+        ) : (
+          <FiChevronDown className="w-6 h-6" />
+        )}
+      </span>
+    )}
+  </p>
 
-                  {/* Dropdown Content with Smooth Opening and Closing Animation */}
-                  <div
-                    className={`ml-6 mt-2 mb-1 overflow-hidden transition-all duration-700 ease-in-out origin-top ${
-                      menuOpen === "apiKeys" && !isCollapsed
-                        ? "max-h-screen opacity-100 scale-y-100"
-                        : "max-h-0 opacity-0 scale-y-0"
-                    }`}
-                  >
-                    <Link href="/dashboard/addYtApi" passHref>
-                      <p
-                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/addYtApi")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Add YouTube Key
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/addopenaiKey" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/addopenaiKey")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Add OpenAI Key
-                      </p>
-                    </Link>
-                  </div>
-                </div>
+  {/* Dropdown Content with Smooth Opening and Closing Animation */}
+  <div
+    className={`ml-6 mt-2 mb-1 overflow-hidden transition-all duration-700 ease-in-out origin-top ${
+      menuOpen === "apiKeys" && !isCollapsed
+        ? "max-h-screen opacity-100 scale-y-100"
+        : "max-h-0 opacity-0 scale-y-0"
+    }`}
+  >
+    <Link href="/dashboard/addYtApi" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/addYtApi")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Add YouTube Key
+      </p>
+    </Link>
+    <Link href="/dashboard/addopenaiKey" passHref>
+      <p
+        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/addopenaiKey")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Add OpenAI Key
+      </p>
+    </Link>
+  </div>
+</div>
+
               </>
             ) : null}
 
             {/* About Section */}
             {user && (user.role === "admin" || user.role === "super_admin") ? (
               <>
-                <div className="">
-                  <p
-                    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-                      isActiveRoute("/dashboard/about") ||
-                      isActiveRoute("/dashboard/governing") ||
-                      isActiveRoute("/dashboard/staff") ||
-                      isActiveRoute("/dashboard/teacher") ||
-                      isActiveRoute("/dashboard/achievement") ||
-                      isActiveRoute("/dashboard/privacy") ||
-                      isActiveRoute("/dashboard/refund") ||
-                      isActiveRoute("/dashboard/terms") ||
-                      isActiveRoute("/dashboard/gdpr") ||
-                      isActiveRoute("/dashboard/notice") ||
-                      isActiveRoute("/dashboard/ccpa")
-                        ? "bg-[#4634ff] text-white"
-                        : menuOpen === "about"
-                        ? "bg-[#1d1e8e] text-white"
-                        : "hover:bg-[#1d1e8e] hover:text-white"
-                    }`}
-                    onClick={() => toggleMenu("about")}
-                  >
-                    <FaInfoCircle  className=" mr-3 text-white"
+            <div className="">
+  <p
+    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
+      menuOpen === "about" ||
+      isActiveRoute("/dashboard/about") ||
+      isActiveRoute("/dashboard/privacy") ||
+      isActiveRoute("/dashboard/refund") ||
+      isActiveRoute("/dashboard/terms") ||
+      isActiveRoute("/dashboard/gdpr") ||
+      isActiveRoute("/dashboard/notice") ||
+      isActiveRoute("/dashboard/ccpa")
+        ? "bg-[#4634ff] text-white"
+        : "hover:bg-[#1d1e8e] hover:text-white"
+    }`}
+    onClick={() => {
+      if (menuOpen === "about") {
+        setMenuOpen(""); // Close dropdown if already active
+      } else {
+        toggleMenu("about"); // Open dropdown
+        if (isCollapsed) setIsCollapsed(false); // Expand sidebar if collapsed
+      }
+    }}
+  >
+    <FaInfoCircle
+      className="mr-3 text-white"
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
         marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
-      }} />{" "}
-                    {/* Icon indicating About Section */}
-                    {!isCollapsed && <span>About</span>}
-                    {!isCollapsed && (
-                      <span className="ml-auto">
-                        {menuOpen === "about" ? (
-                          <FiChevronUp className="w-6 h-6" />
-                        ) : (
-                          <FiChevronDown className="w-6 h-6" />
-                        )}
-                      </span>
-                    )}
-                  </p>
+      }}
+    />
+    {!isCollapsed && <span>About</span>}
+    {!isCollapsed && (
+      <span className="ml-auto">
+        {menuOpen === "about" ? (
+          <FiChevronUp className="w-6 h-6" />
+        ) : (
+          <FiChevronDown className="w-6 h-6" />
+        )}
+      </span>
+    )}
+  </p>
 
-                  {/* Dropdown Content with Smooth Opening and Closing Animation */}
-                  <div
-                    className={`ml-6 mt-2 mb-1 overflow-hidden transition-all duration-700 ease-in-out origin-top ${
-                      menuOpen === "about" && !isCollapsed
-                        ? "max-h-screen opacity-100 scale-y-100"
-                        : "max-h-0 opacity-0 scale-y-0"
-                    }`}
-                  >
-                    <Link href="/dashboard/about" passHref>
-                      <p
-                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/about")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        About Us
-                      </p>
-                    </Link>
+  {/* Dropdown Content with Smooth Opening and Closing Animation */}
+  <div
+    className={`ml-6 mt-2 mb-1 overflow-hidden transition-all duration-700 ease-in-out origin-top ${
+      menuOpen === "about" && !isCollapsed
+        ? "max-h-screen opacity-100 scale-y-100"
+        : "max-h-0 opacity-0 scale-y-0"
+    }`}
+  >
+    <Link href="/dashboard/about" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/about")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        About Us
+      </p>
+    </Link>
 
-                    <Link href="/dashboard/privacy" passHref>
-                      <p
-                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/privacy")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Privacy Policy
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/refund" passHref>
-                      <p
-                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/refund")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Refund
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/terms" passHref>
-                      <p
-                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/terms")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Terms and Conditions
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/gdpr" passHref>
-                      <p
-                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/gdpr")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        GDPR Information
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/notice" passHref>
-                      <p
-                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/notice")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Notice
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/ccpa" passHref>
-                      <p
-                        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/ccpa")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        CCPA Compliance
-                      </p>
-                    </Link>
-                  </div>
-                </div>
+    <Link href="/dashboard/privacy" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/privacy")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Privacy Policy
+      </p>
+    </Link>
+    <Link href="/dashboard/refund" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/refund")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Refund
+      </p>
+    </Link>
+    <Link href="/dashboard/terms" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/terms")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Terms and Conditions
+      </p>
+    </Link>
+    <Link href="/dashboard/gdpr" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/gdpr")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        GDPR Information
+      </p>
+    </Link>
+    <Link href="/dashboard/notice" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/notice")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Notice
+      </p>
+    </Link>
+    <Link href="/dashboard/ccpa" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/ccpa")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        CCPA Compliance
+      </p>
+    </Link>
+  </div>
+</div>
+
               </>
             ) : null}
 
             {/* Appearance */}
             {user && (user.role === "admin" || user.role === "super_admin") ? (
               <>
-                <div className="">
-                  <p
-                    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-                      isActiveRoute("/dashboard/setting") ||
-                      isActiveRoute("/dashboard/fotter-management") ||
-                      isActiveRoute("/dashboard/contact") ||
-                      isActiveRoute("/dashboard/allcontact") ||
-                      isActiveRoute("/dashboard/emailConfigForm") ||
-                      isActiveRoute("/dashboard/comment") ||
-                      isActiveRoute("/dashboard/media") ||
-                      isActiveRoute("/dashboard/all-menu") ||
-                      isActiveRoute("/dashboard/add-menu") ||
-                      isActiveRoute("/dashboard/importExport")
-                        ? "bg-[#4634ff] text-white"
-                        : menuOpen === "appearance"
-                        ? "bg-[#1d1e8e] text-white"
-                        : "hover:bg-[#1d1e8e] hover:text-white"
-                    }`}
-                    onClick={() => toggleMenu("appearance")}
-                  >
-                    <FaCogs  className=" mr-3 text-white"
+            <div className="">
+  <p
+    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
+      menuOpen === "appearance" ||
+      isActiveRoute("/dashboard/setting") ||
+      isActiveRoute("/dashboard/fotter-management") ||
+      isActiveRoute("/dashboard/contact") ||
+      isActiveRoute("/dashboard/allcontact") ||
+      isActiveRoute("/dashboard/emailConfigForm") ||
+      isActiveRoute("/dashboard/comment") ||
+      isActiveRoute("/dashboard/media") ||
+      isActiveRoute("/dashboard/all-menu") ||
+      isActiveRoute("/dashboard/add-menu") ||
+      isActiveRoute("/dashboard/importExport")
+        ? "bg-[#4634ff] text-white"
+        : "hover:bg-[#1d1e8e] hover:text-white"
+    }`}
+    onClick={() => {
+      if (menuOpen === "appearance") {
+        setMenuOpen(""); // Close if already active
+      } else {
+        toggleMenu("appearance"); // Open dropdown
+        if (isCollapsed) setIsCollapsed(false); // Expand sidebar if collapsed
+      }
+    }}
+  >
+    <FaCogs
+      className="mr-3 text-white"
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
         marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
-      }} />
-                    {!isCollapsed && <span>Appearance</span>}
-                    {!isCollapsed && (
-                      <span className="ml-auto">
-                        {menuOpen === "appearance" ? (
-                          <FiChevronUp className="w-6 h-6" />
-                        ) : (
-                          <FiChevronDown className="w-6 h-6" />
-                        )}
-                      </span>
-                    )}
-                  </p>
+      }}
+    />
+    {!isCollapsed && <span>Appearance</span>}
+    {!isCollapsed && (
+      <span className="ml-auto">
+        {menuOpen === "appearance" ? (
+          <FiChevronUp className="w-6 h-6" />
+        ) : (
+          <FiChevronDown className="w-6 h-6" />
+        )}
+      </span>
+    )}
+  </p>
 
-                  {/* Dropdown Content with Smooth Opening and Closing Animation */}
-                  <div
-                    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
-                      (menuOpen === "appearance" ||
-                        isActiveRoute("/dashboard/report") ||
-                        isActiveRoute("/dashboard/allcontact") ||
-                        isActiveRoute("/dashboard/emailConfigForm") ||
-                        isActiveRoute("/dashboard/comment") ||
-                        isActiveRoute("/dashboard/media") ||
-                        isActiveRoute("/dashboard/all-menu") ||
-                        isActiveRoute("/dashboard/add-menu") ||
-                        isActiveRoute("/dashboard/addheader") ||
-                        isActiveRoute("/dashboard/importExport")) &&
-                      !isCollapsed
-                        ? "max-h-screen opacity-100 scale-y-100"
-                        : "max-h-0 opacity-0 scale-y-0"
-                    }`}
-                  >
-                    <Link href="/dashboard/report" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/report")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Report
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/contact" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/contact")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Contact
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/allcontact" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/allcontact")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        All Contact
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/emailConfigForm" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/emailConfigForm")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        SMTP
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/comment" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/comment")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Comments
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/media" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/media")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Media
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/all-menu" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/all-menu")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        All Menu
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/add-menu" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/add-menu")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Menu
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/addheader" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/addheader")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Custom Header
-                      </p>
-                    </Link>
-                    <Link href="/dashboard/importExport" passHref>
-                      <p
-                        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                          isActiveRoute("/dashboard/importExport")
-                            ? "bg-[#1d1e8e] text-white"
-                            : "hover:bg-[#1d1e8e] hover:text-white"
-                        }`}
-                      >
-                        <FaCircle className="mr-2 text-xs" />
-                        Site Backup
-                      </p>
-                    </Link>
-                  </div>
-                </div>
+  {/* Dropdown Content with Smooth Opening and Closing Animation */}
+  <div
+    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
+      menuOpen === "appearance" && !isCollapsed
+        ? "max-h-screen opacity-100 scale-y-100"
+        : "max-h-0 opacity-0 scale-y-0"
+    }`}
+  >
+    <Link href="/dashboard/report" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/report")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Report
+      </p>
+    </Link>
+    <Link href="/dashboard/contact" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/contact")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Contact
+      </p>
+    </Link>
+    <Link href="/dashboard/allcontact" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/allcontact")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        All Contact
+      </p>
+    </Link>
+    <Link href="/dashboard/emailConfigForm" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/emailConfigForm")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        SMTP
+      </p>
+    </Link>
+    <Link href="/dashboard/comment" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/comment")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Comments
+      </p>
+    </Link>
+    <Link href="/dashboard/media" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/media")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Media
+      </p>
+    </Link>
+    <Link href="/dashboard/all-menu" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/all-menu")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        All Menu
+      </p>
+    </Link>
+    <Link href="/dashboard/add-menu" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/add-menu")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Menu
+      </p>
+    </Link>
+    <Link href="/dashboard/addheader" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/addheader")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Custom Header
+      </p>
+    </Link>
+    <Link href="/dashboard/importExport" passHref>
+      <p
+        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/importExport")
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => setMenuOpen("")} // Close dropdown on item click
+      >
+        <FaCircle className="mr-2 text-xs" />
+        Site Backup
+      </p>
+    </Link>
+  </div>
+</div>
+
               </>
             ) : null}
             {/* Setting */}
@@ -1461,7 +1549,7 @@ const Layout = React.memo(({ children }) => {
                     }`}
                     style={{ paddingLeft: isCollapsed ? "24px" : "24px" }} // Conditional padding to adjust based on collapsed state
                   >
-                    <FaTachometerAlt  className=" mr-3 text-white"
+                    <FaServer  className=" mr-3 text-white"
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
