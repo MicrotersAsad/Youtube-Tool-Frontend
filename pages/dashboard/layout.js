@@ -25,9 +25,18 @@ import {
   FaBell,
 } from "react-icons/fa";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
-import { collection, query, orderBy, onSnapshot, writeBatch, doc, where } from "firebase/firestore";
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  writeBatch,
+  doc,
+  where,
+} from "firebase/firestore";
 import { firestore } from "../../lib/firebase"; // Firestore setup
 import Image from "next/image";
+import Notifications from "../../components/notificationalert";
 
 const Layout = React.memo(({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -41,127 +50,82 @@ const Layout = React.memo(({ children }) => {
   const [pendingCount, setPendingCount] = useState([]);
   const [openCount, setOpenCount] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [notifications, setNotifications] = useState([]);
+
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotificationDropdown, setShowNotificationDropdown] =
     useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadNotifications, setUnreadNotifications] = useState([]);
+  const [readNotifications, setReadNotifications] = useState([]);
+  const [activeTab, setActiveTab] = useState("unread"); // Default tab
 
   const router = useRouter();
-  useEffect(() => {
-    fetchPendingTickets(); // Fetch pending tickets when the component mounts or updates
-    fetchOpenTickets();
-  }, []);
+
   useEffect(() => {
     if (!user) return;
-  
-    const notificationCollection = collection(firestore, 'notifications');
+
+    const notificationCollection = collection(firestore, "notifications");
     let notificationQuery;
-  
-    // রোল অনুযায়ী নোটিফিকেশন ফিল্টার
-    if (user.role === 'admin' || user.role === 'super_admin') {
-      // এডমিন বা সুপার এডমিন নোটিফিকেশন ফিল্টার করবে যাতে নিজের মেসেজ বাদ দেওয়া হয়
+
+    if (user.role === "admin" || user.role === "super_admin") {
+      // Admin or super admin: Exclude their own messages
       notificationQuery = query(
         notificationCollection,
-        where('senderUserId', '!=', user.id), // এডমিন তার নিজের মেসেজ বাদ দেবে
-        orderBy('createdAt', 'desc')
+        where("recipientUserId", "==", "admin"), // Only show notifications meant for admin
+        orderBy("createdAt", "desc") // Removed '!=' to comply with Firestore
       );
     } else {
-      // সাধারণ ইউজার শুধু তার নিজের নোটিফিকেশন দেখতে পারবে
+      // General user: Show only their notifications
       notificationQuery = query(
         notificationCollection,
-        where('recipientUserId', '==', user.id), // নিজের ইউজার আইডি অনুযায়ী ফিল্টার
-        orderBy('createdAt', 'desc')
+        where("recipientUserId", "==", user.id),
+        orderBy("createdAt", "desc")
       );
     }
-  
+
     const unsubscribe = onSnapshot(notificationQuery, (snapshot) => {
       const fetchedNotifications = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
+      console.log("Fetched Notifications:", fetchedNotifications); // Debugging
       setNotifications(fetchedNotifications);
-  
-      // unread নোটিফিকেশনের সংখ্যা আপডেট করা
+
       const unreadCount = fetchedNotifications.filter((n) => !n.read).length;
       setUnreadCount(unreadCount);
     });
-  
+
     return () => unsubscribe();
   }, [user]);
-  
-  
+
   const toggleNotificationDropdown = () => {
     setShowNotificationDropdown((prev) => !prev);
   };
   const markAllAsRead = async () => {
     try {
       const unreadNotifications = notifications.filter((n) => !n.read);
-  
+
       if (unreadNotifications.length === 0) return;
-  
+
       const batch = writeBatch(firestore);
-  
+
       unreadNotifications.forEach((notification) => {
         const docRef = doc(firestore, "notifications", notification.id);
         batch.update(docRef, { read: true });
       });
-  
+
       await batch.commit();
-  
+
       setNotifications((prev) =>
         prev.map((n) => ({
           ...n,
           read: true,
         }))
       );
-  
+
       setUnreadCount(0);
     } catch (error) {
       console.error("Error marking notifications as read:", error);
-    }
-  };
-  
-
-  
-  
-  const fetchPendingTickets = async () => {
-    try {
-      const response = await fetch("/api/tickets/create");
-      const result = await response.json();
-
-      if (result.success) {
-        const pendingTickets = result.tickets.filter(
-          (ticket) => ticket.status === "pending"
-        );
-
-        setPendingCount(pendingTickets); // Set the count of pending tickets
-      } else {
-        console.error("Failed to fetch tickets:", result.message);
-      }
-    } catch (error) {
-      console.error("Error fetching tickets:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const fetchOpenTickets = async () => {
-    try {
-      const response = await fetch("/api/tickets/create");
-      const result = await response.json();
-
-      if (result.success) {
-        const openTickets = result.tickets.filter(
-          (ticket) => ticket.status === "open"
-        );
-
-        setOpenCount(openTickets); // Set the count of pending tickets
-      } else {
-        console.error("Failed to fetch tickets:", result.message);
-      }
-    } catch (error) {
-      console.error("Error fetching tickets:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -189,19 +153,6 @@ const Layout = React.memo(({ children }) => {
     router.push("/login");
   };
 
-  const getProfileImagePath = (imagePath) => {
-    // Check if the imagePath is a base64 string by matching a common base64 pattern
-    if (imagePath && imagePath.startsWith("data:image")) {
-      return imagePath;
-    }
-
-    // Handle other cases as before
-    return imagePath
-      ? imagePath.startsWith("/uploads/")
-        ? imagePath
-        : `/uploads/profileImages/${imagePath}`
-      : null;
-  };
   const data = [
     // Dashboard
     {
@@ -1614,44 +1565,8 @@ const Layout = React.memo(({ children }) => {
                 <FaGlobe className="w-5 h-5" />
               </button>
               {/* Notification Icon */}
-              <div className="relative">
-      {/* Notification Bell Icon */}
-      <button className="relative text-white" onClick={toggleNotificationDropdown}>
-        <FaBell className="w-6 h-6" />
-        {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-2">
-            {unreadCount}
-          </span>
-        )}
-      </button>
-
-      {/* Notification Dropdown */}
-      {showNotificationDropdown && (
-        <div className="absolute right-0 mt-2 w-80 bg-white shadow-lg rounded-lg z-10">
-          <div className="p-4 flex justify-between items-center">
-            <h4 className="text-lg font-bold">Notifications</h4>
-            <button onClick={markAllAsRead} className="text-sm text-blue-600 hover:underline">
-              Mark all as read
-            </button>
-          </div>
-          <ul className="max-h-64 overflow-y-auto">
-            {notifications.map((notification) => (
-              <li
-                key={notification.id}
-                className={`p-4 border-b ${notification.read ? 'bg-gray-100' : 'bg-blue-50'}`}
-              >
-                <p className="text-sm">{notification.message}</p>
-                <small className="text-gray-500">
-                  {new Date(notification.createdAt.toDate()).toLocaleString()}
-                </small>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-
-
+              {/* Notification Bell Icon */}
+            <Notifications/>
 
               <button
                 className="flex items-center text-white"

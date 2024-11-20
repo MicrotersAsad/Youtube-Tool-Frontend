@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { firestore } from '../lib/firebase';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -42,6 +42,15 @@ const NotificationList = () => {
     return () => unsubscribe();
   }, [user]);
 
+  const handleDeleteNotification = async (id) => {
+    try {
+      await deleteDoc(doc(firestore, 'notifications', id));
+      setNotifications((prevNotifications) => prevNotifications.filter((notification) => notification.id !== id));
+    } catch (error) {
+      console.error("Error deleting notification:", error.message);
+    }
+  };
+
   if (loading) {
     return <p>Loading notifications...</p>;
   }
@@ -60,6 +69,8 @@ const NotificationList = () => {
         return <Link href={`/tickets/${notification.ticketId}`}>{notification.message}</Link>;
       case 'general_announcement':
         return <Link href="/announcements">{notification.message}</Link>;
+      case 'payment_success':
+        return <Link href="all-subscription">{notification.message}</Link>;
       default:
         return <span>{notification.message}</span>;
     }
@@ -75,6 +86,7 @@ const NotificationList = () => {
               <th className="px-4 py-2">Message</th>
               <th className="px-4 py-2">Type</th>
               <th className="px-4 py-2">Date</th>
+              {user.role === 'admin' && <th className="px-4 py-2">Actions</th>}
             </tr>
           </thead>
           <tbody>
@@ -87,6 +99,16 @@ const NotificationList = () => {
                 <td className="px-4 py-2">
                   {new Date(notification.createdAt.seconds * 1000).toLocaleString()}
                 </td>
+                {user.role === 'admin' && (
+                  <td className="px-4 py-2">
+                    <button
+                      onClick={() => handleDeleteNotification(notification.id)}
+                      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

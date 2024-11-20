@@ -11,38 +11,30 @@ const PaymentSuccess = () => {
 
   useEffect(() => {
     if (session_id && user) {
-      const token = localStorage.getItem('token');
-      if (token) {
-        axios.post('/api/payment-success', { sessionId: session_id }, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        })
-        .then(response => {
-          console.log('Payment status updated to success:', response.data);
-          // Fetch the updated user data
-          return axios.get('/api/user', { headers: { 'Authorization': `Bearer ${token}` } });
-        })
-        .then(response => {
-          login(response.data.token); // Assuming the updated token is returned
-          router.push('https://youtube-tool-frontend.vercel.app/');
-        })
-        .catch(error => {
-          console.error('Failed to update payment status:', error);
-        });
-
-        axios.post('/api/get-session-details', { sessionId: session_id })
-          .then(response => {
-            setSessionDetails(response.data);
-          })
-          .catch(error => {
-            console.error('Error fetching session details:', error);
+      const fetchData = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+  
+        try {
+          await axios.post('/api/payment-success', { sessionId: session_id }, {
+            headers: { Authorization: `Bearer ${token}` },
           });
-      } else {
-        console.error('No token found in local storage');
-      }
+          console.log('Payment status updated.');
+  
+          const response = await axios.get('/api/user', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          login(response.data.token);
+          router.push('https://youtube-tool-frontend.vercel.app/');
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      };
+  
+      fetchData();
     }
-  }, [session_id, user, login, router]);
+  }, [session_id, user, login, router]); // সঠিক ডিপেন্ডেন্সি ব্যবহার করুন
+  
 
   return (
     <div>
