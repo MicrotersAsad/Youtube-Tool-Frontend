@@ -38,6 +38,8 @@ export default async function handler(req, res) {
       }
 
       const recaptchaSecret = recaptchaExtension.config.secretKey;
+      console.log(recaptchaSecret);
+      
 
       // Check failed login attempts
       const attemptRecord = await db.collection("failed_logins").findOne({ ipAddress });
