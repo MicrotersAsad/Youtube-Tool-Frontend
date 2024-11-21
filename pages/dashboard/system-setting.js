@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import React from 'react';
-import { FaUsers, FaUserCheck, FaEnvelope, FaCrown, FaUser,FaUserAlt ,FaFileAlt ,FaTools ,FaStar ,FaSitemap ,FaComment ,FaChartLine ,FaSignInAlt , FaChevronRight, FaCog, FaGlobe, FaRobot, FaBell, FaRemoveFormat, FaCss3 } from 'react-icons/fa';
+import { FaUsers, FaUserCheck, FaEnvelope, FaCrown, FaUser,FaUserAlt ,FaFileAlt ,FaTools ,FaStar ,FaSitemap ,FaComment ,FaChartLine ,FaSignInAlt , FaChevronRight, FaCog, FaGlobe, FaRobot, FaBell, FaRemoveFormat, FaCss3, FaPuzzlePiece } from 'react-icons/fa';
 import Layout from './layout';
 const Setting = () => {
     return (
@@ -109,6 +109,19 @@ const Setting = () => {
       <div className="flex flex-col justify-between ml-4">
         <h3 className="text-black pt-2">Robots txt</h3>
         <p className="text-sm text-gray-500">Insert the robots.txt content here to enhance bot web crawlers and instruct them on how to interact with certain areas of the website.</p>
+      </div>
+    </div>
+  </Link>
+  <Link href="extension">
+    <div className="flex items-center border rounded-lg bg-white shadow-md hover:shadow-lg transition-all p-4 h-full">
+      <div className="flex items-center space-x-4 flex-shrink-0">
+        <div className="p-3 rounded-md border bg-primary">
+          <FaPuzzlePiece className="text-white fs-1" />
+        </div>
+      </div>
+      <div className="flex flex-col justify-between ml-4">
+        <h3 className="text-black pt-2">Extension</h3>
+        <p className="text-sm text-gray-500">Manage extensions of the system here to extend some extra features of the system.</p>
       </div>
     </div>
   </Link>
