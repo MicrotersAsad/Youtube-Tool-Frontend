@@ -1,64 +1,122 @@
-// pages/_app.js
-
-import { appWithTranslation } from 'next-i18next';
-import { useEffect } from 'react';
-import Head from 'next/head';
-import Script from 'next/script';
-import '../styles/globals.css';
-import { AuthProvider } from '../contexts/AuthContext';
-import Footer from './Footer';
-import Navbar from './Navbar';
-import { ContentProvider } from '../contexts/ContentContext';
-import CookieConsent from 'react-cookie-consent';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import '../public/laraberg.css';
-import nextI18NextConfig from '../next-i18next.config';
+import { appWithTranslation } from "next-i18next";
+import { useEffect, useState } from "react";
+import Head from "next/head";
+import Script from "next/script";
+import "../styles/globals.css";
+import { AuthProvider } from "../contexts/AuthContext";
+import Footer from "./Footer";
+import Navbar from "./Navbar";
+import { ContentProvider } from "../contexts/ContentContext";
+import CookieConsent from "react-cookie-consent";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import "../public/laraberg.css";
+import nextI18NextConfig from "../next-i18next.config";
 
 function MyApp({ Component, pageProps }) {
-  const { headerContent } = pageProps; // Access headerContent from props
+  const [tawkConfig, setTawkConfig] = useState(null);
+  const [googleAnalyticsConfig, setGoogleAnalyticsConfig] = useState(null);
   const router = useRouter();
 
+  // Fetch configurations from the /api/extensions endpoint
   useEffect(() => {
-    if (!headerContent) return;
+    const fetchConfigs = async () => {
+      try {
+        const protocol =
+          window.location.protocol === "https:" ? "https" : "http";
+        const host = window.location.host;
 
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(headerContent, 'text/html');
+        const response = await fetch(`${protocol}://${host}/api/extensions`);
+        const result = await response.json();
 
-    // Add meta tags if they don't already exist
-    const metaTags = doc.querySelectorAll('meta');
-    metaTags.forEach((meta) => {
-      if (!document.head.querySelector(`meta[content="${meta.getAttribute('content')}"]`)) {
-        document.head.appendChild(meta.cloneNode(true));
+        if (result.success) {
+          // Tawk.to configuration
+          const tawkExtension = result.data.find(
+            (ext) => ext.key === "tawk_to" && ext.status === "Enabled"
+          );
+          if (tawkExtension && tawkExtension.config.appKey) {
+            setTawkConfig(tawkExtension.config);
+          }
+
+          // Google Analytics configuration
+          const googleAnalyticsExtension = result.data.find(
+            (ext) =>
+              ext.key === "google_analytics" && ext.status === "Enabled"
+          );
+          if (
+            googleAnalyticsExtension &&
+            googleAnalyticsExtension.config.measurementId
+          ) {
+            setGoogleAnalyticsConfig(
+              googleAnalyticsExtension.config.measurementId
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching configurations:", error);
       }
-    });
+    };
 
-    // Add script tags if they don't already exist
-    const scriptTags = doc.querySelectorAll('script');
-    scriptTags.forEach((script) => {
-      if (script.src && !document.head.querySelector(`script[src="${script.src}"]`)) {
-        const newScript = document.createElement('script');
-        newScript.src = script.src;
-        newScript.type = script.type || 'text/javascript';
-        newScript.async = script.async || false;
-        document.head.appendChild(newScript);
-      } else if (!script.src) {
-        const inlineScript = document.createElement('script');
-        inlineScript.type = script.type || 'text/javascript';
-        inlineScript.textContent = script.textContent;
-        document.head.appendChild(inlineScript);
-      }
-    });
-  }, [headerContent]);
+    fetchConfigs();
+  }, []);
+
+  // Dynamically add Tawk.to script
+  useEffect(() => {
+    if (tawkConfig && tawkConfig.appKey) {
+      const Tawk_API = window.Tawk_API || {};
+      const Tawk_LoadStart = new Date();
+      const script = document.createElement("script");
+      script.async = true;
+      script.src = `https://embed.tawk.to/${tawkConfig.appKey}/1id6uh68m`;
+      script.charset = "UTF-8";
+      script.setAttribute("crossorigin", "*");
+      document.body.appendChild(script);
+
+      return () => {
+        if (script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+      };
+    }
+  }, [tawkConfig]);
+
+  // Dynamically add Google Analytics script
+  useEffect(() => {
+    if (googleAnalyticsConfig) {
+      const gtagScript = document.createElement("script");
+      gtagScript.async = true;
+      gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsConfig}`;
+      document.head.appendChild(gtagScript);
+
+      const inlineScript = document.createElement("script");
+      inlineScript.innerHTML = `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '${googleAnalyticsConfig}');
+      `;
+      document.head.appendChild(inlineScript);
+
+      return () => {
+        if (gtagScript.parentNode) {
+          document.head.removeChild(gtagScript);
+        }
+        if (inlineScript.parentNode) {
+          document.head.removeChild(inlineScript);
+        }
+      };
+    }
+  }, [googleAnalyticsConfig]);
 
   return (
     <>
       <Head>
         <meta name="twitter:image" content={pageProps.meta?.image || ""} />
         <link rel="icon" href="/favicon.ico" />
-        <meta name="google-site-verification" content="_eXmkpaLA6eqmMTx8hVOZP1tF7-PZ9X8vIwkWxo8Po8" />
-
-
+        <meta
+          name="google-site-verification"
+          content="_eXmkpaLA6eqmMTx8hVOZP1tF7-PZ9X8vIwkWxo8Po8"
+        />
       </Head>
 
       <Script
@@ -69,27 +127,27 @@ function MyApp({ Component, pageProps }) {
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Organization",
-          "name": "YouTube Tools",
-          "url": "http://www.ytubetools.com/",
-          "logo": "https://yourwebsite.com/logo.png",
-          "contactPoint": {
+          name: "YouTube Tools",
+          url: "http://www.ytubetools.com/",
+          logo: "https://yourwebsite.com/logo.png",
+          contactPoint: {
             "@type": "ContactPoint",
-            "telephone": "+880 162-519-2766",
-            "contactType": "Customer Service"
+            telephone: "+880 162-519-2766",
+            contactType: "Customer Service",
           },
-          "sameAs": [
+          sameAs: [
             "https://www.facebook.com/yourprofile",
             "https://www.twitter.com/yourprofile",
-            "https://www.linkedin.com/in/yourprofile"
-          ]
+            "https://www.linkedin.com/in/yourprofile",
+          ],
         })}
       </Script>
 
       <AuthProvider>
         <ContentProvider>
-          {!router.pathname.includes('/dashboard') && <Navbar />}
+          {!router.pathname.includes("/dashboard") && <Navbar />}
           <Component {...pageProps} />
-          {!router.pathname.includes('/dashboard') && <Footer />}
+          {!router.pathname.includes("/dashboard") && <Footer />}
         </ContentProvider>
       </AuthProvider>
 
@@ -103,7 +161,9 @@ function MyApp({ Component, pageProps }) {
       >
         This website uses cookies to enhance the user experience.{" "}
         <Link href="/privacy" passHref>
-          <span style={{ color: "#fff", textDecoration: 'underline' }}>Learn more</span>
+          <span style={{ color: "#fff", textDecoration: "underline" }}>
+            Learn more
+          </span>
         </Link>
       </CookieConsent>
     </>

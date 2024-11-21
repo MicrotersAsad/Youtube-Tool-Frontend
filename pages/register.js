@@ -27,7 +27,11 @@ function Register() {
   const [verificationCode, setVerificationCode] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
+  // Check if running on localhost
+  const isLocalhost = typeof window !== "undefined" && 
+                      (window.location.hostname === "localhost" || 
+                       window.location.hostname === "127.0.0.1" || 
+                       window.location.hostname === "::1");
   useEffect(() => {
     if (user) {
       router.push("/"); // Redirect to main page if logged in
@@ -65,33 +69,30 @@ function Register() {
       toast.error("Passwords do not match!");
       return;
     }
-    if (!recaptchaToken) {
-      toast.error("Please verify the reCAPTCHA.");
-      return;
-    }
 
-    const formDataToSend = new FormData();
-    formDataToSend.append("username", formData.name);
-    formDataToSend.append("email", formData.email);
-    formDataToSend.append("password", formData.password);
-    formDataToSend.append("role", formData.role);
-    formDataToSend.append("profileImage", formData.profileImage);
-    formDataToSend.append("recaptchaToken", recaptchaToken); // Send reCAPTCHA token to backend
-    if (formData.role === "admin") {
-      formDataToSend.append("adminAnswer", formData.adminAnswer);
-    }
+    // Skip reCAPTCHA validation for localhost
+    const captchaToken = isLocalhost ? "localhost-bypass" : recaptchaToken;
 
     try {
       const response = await fetch("/api/register", {
         method: "POST",
-        body: formDataToSend,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role,
+          adminAnswer: formData.role === "admin" ? formData.adminAnswer : null,
+          captchaToken,
+        }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to register");
-      }
       const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to register");
+      }
       toast.success("Registration successful! Please check your email to verify.");
       setShowVerification(true);
     } catch (error) {
@@ -283,20 +284,53 @@ function Register() {
                 </span>
               </div>
               <div>
+  <label className="flex items-center space-x-2">
+    <input
+      type="checkbox"
+      name="terms"
+      required
+      className="w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+    />
+    <span className="text-sm text-gray-600">
+      I agree to WriterBuddy's{" "}
+      <a
+        href="/terms"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-red-500 hover:underline"
+      >
+        Terms
+      </a>{" "}
+      and{" "}
+      <a
+        href="/privacy"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-red-500 hover:underline"
+      >
+        Privacy Policy
+      </a>.
+    </span>
+  </label>
+</div>
+
+              <div>
                 
                
               </div>
-              <div className="my-6">
-                <ReCAPTCHA
-                  sitekey="6LfAPX4qAAAAAIO7NZ2OxvSL2V05TLXckrzdn_OQ" //  site key"
-                  onChange={handleRecaptcha}
-                />
-              </div>
+              {!isLocalhost && (
+                <div className="my-6">
+                  <ReCAPTCHA
+                    sitekey="6LfAPX4qAAAAAIO7NZ2OxvSL2V05TLXckrzdn_OQ"
+                    onChange={setRecaptchaToken}
+                  />
+                </div>
+              )}
               <div className="flex justify-center mb-6">
                 <button
                   className="bg-red-500 text-white px-6 py-3 rounded-md hover:bg-red-600 transition duration-200 w-full"
                   type="submit"
-                  disabled={!formData.profileImage || !recaptchaToken}
+                  disabled={!isLocalhost && !recaptchaToken} // Disable button if reCAPTCHA is required but not completed
                 >
                   Register
                 </button>
@@ -304,8 +338,20 @@ function Register() {
             </form>
           ) : (
             <form onSubmit={handleVerification} className="space-y-4">
-              <h2 className="text-2xl font-semibold text-gray-700 mb-4 text-center">Verify Email</h2>
-              <input
+             
+              <div className="text-center">
+                <h2 className="text-3xl font-semibold text-gray-700 mb-6">
+                  Check Your Email For Verify!
+                </h2>
+                <p className="text-gray-600 mb-4">
+                We sent you an email. Please confirm your account by submit your verification code
+                </p>
+                <img
+                  src="https://app.writerbuddy.ai/build/assets/Email-Carh2xnc.gif"
+                  alt="Email Sent"
+                  className="mx-auto w-64 h-auto"
+                />
+                 <input
                 className="w-full px-4 py-2 md:py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
                 type="text"
                 placeholder="Enter verification code"
@@ -318,6 +364,8 @@ function Register() {
                   Verify Email
                 </button>
               </div>
+              </div>
+             
             </form>
           )}
         </div>

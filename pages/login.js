@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaEnvelope, FaKey, FaEye, FaEyeSlash, FaArrowCircleRight, FaUserCircle } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -18,7 +18,37 @@ function LoginOrResetPassword() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [isTokenSent, setIsTokenSent] = useState(false);
+  const [sitekey, setSiteKey] = useState(null);
+  useEffect(() => {
+    const fetchConfigs = async () => {
+      try {
+        const protocol =
+          window.location.protocol === "https:" ? "https" : "http";
+        const host = window.location.host;
 
+        const response = await fetch(`${protocol}://${host}/api/extensions`);
+        const result = await response.json();
+
+        if (result.success) {
+          // capctha.to configuration
+          const capcthaExtension = result.data.find(
+            (ext) => ext.key === "google_recaptcha_2" && ext.status === "Enabled"
+          );
+          if (capcthaExtension && capcthaExtension.config.appKey) {
+            setSiteKey(capcthaExtension.config);
+            console.log(sitekey);
+            
+          }
+
+        
+        }
+      } catch (error) {
+        console.error("Error fetching configurations:", error);
+      }
+    };
+
+    fetchConfigs();
+  }, []);
   // Check if running on localhost
   const isLocalhost =
     typeof window !== "undefined" &&
@@ -164,7 +194,7 @@ function LoginOrResetPassword() {
                 </div>
                 {!isLocalhost && (
                   <ReCAPTCHA
-                    sitekey="6LfAPX4qAAAAAIO7NZ2OxvSL2V05TLXckrzdn_OQ"
+                    sitekey={sitekey?.sitekey}
                     onChange={onRecaptchaChange}
                   />
                 )}
@@ -202,7 +232,7 @@ function LoginOrResetPassword() {
                 <img
                   src="https://app.writerbuddy.ai/build/assets/Email-Carh2xnc.gif"
                   alt="Email Sent"
-                  className="mx-auto w-64 h-64"
+                  className="mx-auto w-64 h-auto"
                 />
                 <button
                   onClick={() => setIsResettingPassword(false)}

@@ -112,14 +112,20 @@ const Notifications = () => {
 
   return (
     <div className="relative">
-      <button className="relative text-white" onClick={toggleNotificationDropdown}>
-        <FaBell className="w-6 h-6" />
-        {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-2">
-            {unreadCount}
-          </span>
-        )}
-      </button>
+ <button className="relative text-white" onClick={toggleNotificationDropdown}>
+  <div className="relative">
+    <FaBell
+      className={`w-6 h-6 ${unreadCount > 0 ? "animate-ring" : ""}`}
+    />
+    {unreadCount > 0 && (
+      <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-2">
+        {unreadCount}
+      </span>
+    )}
+  </div>
+</button>
+
+
 
       {showNotificationDropdown && (
         <div className="notification-dropdown">

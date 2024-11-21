@@ -1037,7 +1037,7 @@ const Layout = React.memo(({ children }) => {
             {/* Report Section */}
             {user && (user.role === "admin" || user.role === "super_admin") ? (
               <>
-              <div className="">
+              <div className="mt-2">
   <p
     className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
       menuOpen === "report"
@@ -1632,22 +1632,20 @@ const Layout = React.memo(({ children }) => {
             {/* Action Icons and Profile */}
             <div className="flex items-center space-x-4">
               {/* Action Icons */}
-              <button
-                className="flex items-center text-white"
-                onClick={() => router.push("/")}
-              >
-                <FaGlobe className="w-5 h-5" />
-              </button>
+              <Link target="_blank" href='/'> <FaGlobe className="w-5 h-5 text-white" /></Link>
               {/* Notification Icon */}
               {/* Notification Bell Icon */}
             <Notifications/>
 
-              <button
-                className="flex items-center text-white"
-                onClick={() => router.push("/dashboard/system-setting")}
-              >
-                <FaWrench className="w-5 h-5" />
-              </button>
+            {user?.role === "admin" && (
+  <button
+    className="flex items-center text-white"
+    onClick={() => router.push("/dashboard/system-setting")}
+  >
+    <FaWrench className="w-5 h-5" />
+  </button>
+)}
+
 
               {/* Profile */}
               <div className="relative">
@@ -1725,7 +1723,7 @@ const Layout = React.memo(({ children }) => {
                       </div>
                     </div>
                     <hr />
-                    <Link href="/user/profile" passHref>
+                    <Link href="edit-profile" passHref>
                       <button className="flex items-center w-full px-4 py-2 text-gray-800 hover:bg-gray-100">
                         <FaUser className="mr-3" />
                         Profile

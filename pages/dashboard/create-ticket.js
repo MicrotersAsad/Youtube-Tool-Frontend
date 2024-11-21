@@ -2,6 +2,7 @@ import React from 'react';
 import TicketForm from '../../components/TicketForm';
 import Layout from './layout';
 import { useAuth } from '../../contexts/AuthContext'; // Make sure you have useAuth imported
+import { toast, ToastContainer } from 'react-toastify';
 
 /**
  * User page to create a new ticket.
@@ -33,7 +34,7 @@ const CreateTicketPage = () => {
       const result = await response.json();
 
       if (result.success) {
-        alert('Ticket created successfully');
+        toast.success('Ticket created successfully');
 
         // Send a notification to the admin
         await fetch('/api/send-notification', {
@@ -49,19 +50,20 @@ const CreateTicketPage = () => {
           }),
         });
 
-        alert('Notification sent to the admin!');
+        toast.success('Notification sent to the admin!');
       } else {
-        alert('Failed to create ticket');
+        toast.error('Failed to create ticket');
       }
     } catch (error) {
       console.error('Error creating ticket:', error);
-      alert('An error occurred while creating the ticket.');
+      toast.error('An error occurred while creating the ticket.');
     }
   };
 
   return (
     <Layout>
       <div className="container mx-auto mt-8">
+        <ToastContainer/>
         <TicketForm onSubmit={handleTicketSubmit} />
       </div>
     </Layout>
