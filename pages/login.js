@@ -30,25 +30,26 @@ function LoginOrResetPassword() {
         const result = await response.json();
 
         if (result.success) {
-          // capctha.to configuration
-          const capcthaExtension = result.data.find(
+          // reCAPTCHA configuration
+          const captchaExtension = result.data.find(
             (ext) => ext.key === "google_recaptcha_2" && ext.status === "Enabled"
           );
-          if (capcthaExtension && capcthaExtension.config.appKey) {
-            setSiteKey(capcthaExtension.config);
-            console.log(sitekey);
-            
+          if (captchaExtension && captchaExtension.config.siteKey) {
+            setSiteKey(captchaExtension.config.siteKey);
+          } else {
+            console.error("ReCAPTCHA configuration not found or disabled.");
           }
-
-        
         }
       } catch (error) {
         console.error("Error fetching configurations:", error);
+      } finally {
+        setIsLoading(false); // Data has been loaded
       }
     };
 
     fetchConfigs();
   }, []);
+  
   // Check if running on localhost
   const isLocalhost =
     typeof window !== "undefined" &&
@@ -192,12 +193,13 @@ function LoginOrResetPassword() {
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </span>
                 </div>
-                {!isLocalhost && (
-                  <ReCAPTCHA
-                    sitekey={sitekey?.sitekey}
-                    onChange={onRecaptchaChange}
-                  />
-                )}
+                {!isLocalhost && sitekey && (
+  <ReCAPTCHA
+    sitekey={sitekey} // সঠিকভাবে `sitekey` পাঠানো
+    onChange={onRecaptchaChange}
+  />
+)}
+
                  <div className="text-right mb-4">
                  <p className="mt-4 text-center">
                   Forgot Password?{" "}
