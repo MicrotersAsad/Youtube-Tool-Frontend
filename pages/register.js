@@ -27,6 +27,37 @@ function Register() {
   const [verificationCode, setVerificationCode] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [sitekey, setSiteKey] = useState(null);
+  useEffect(() => {
+    const fetchConfigs = async () => {
+      try {
+        const protocol =
+          window.location.protocol === "https:" ? "https" : "http";
+        const host = window.location.host;
+
+        const response = await fetch(`${protocol}://${host}/api/extensions`);
+        const result = await response.json();
+
+        if (result.success) {
+          // reCAPTCHA configuration
+          const captchaExtension = result.data.find(
+            (ext) => ext.key === "google_recaptcha_2" && ext.status === "Enabled"
+          );
+          if (captchaExtension && captchaExtension.config.siteKey) {
+            setSiteKey(captchaExtension.config.siteKey);
+          } else {
+            console.error("ReCAPTCHA configuration not found or disabled.");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching configurations:", error);
+      } finally {
+        setIsLoading(false); // Data has been loaded
+      }
+    };
+
+    fetchConfigs();
+  }, []);
   // Check if running on localhost
   const isLocalhost = typeof window !== "undefined" && 
                       (window.location.hostname === "localhost" || 
@@ -318,14 +349,12 @@ function Register() {
                 
                
               </div>
-              {!isLocalhost && (
-                <div className="my-6">
-                  <ReCAPTCHA
-                    sitekey="6LfAPX4qAAAAAIO7NZ2OxvSL2V05TLXckrzdn_OQ"
-                    onChange={setRecaptchaToken}
-                  />
-                </div>
-              )}
+              {!isLocalhost && sitekey && (
+  <ReCAPTCHA
+    sitekey={sitekey} // সঠিকভাবে `sitekey` পাঠানো
+    onChange={onRecaptchaChange}
+  />
+)}
               <div className="flex justify-center mb-6">
                 <button
                   className="bg-red-500 text-white px-6 py-3 rounded-md hover:bg-red-600 transition duration-200 w-full"

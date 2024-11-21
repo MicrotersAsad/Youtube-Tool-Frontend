@@ -3,18 +3,42 @@ import { connectToDatabase } from "../../utils/mongodb";
 import { sendVerificationEmail } from "../../utils/sendVerificationEmail";
 import { v4 as uuidv4 } from "uuid";
 import { collection, addDoc } from "firebase/firestore";
-import { firestore } from "../../lib/firebase"; // Firestore setup
+import { firestore } from "../../lib/firebase";
 import fetch from "node-fetch";
 
 export const config = {
   api: {
-    bodyParser: true, // Enable body parser to parse JSON requests
+    bodyParser: true,
   },
 };
 
+// Function to fetch the secret key dynamically
+async function fetchSecretKey() {
+  try {
+    const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+    const host = process.env.API_HOST || "localhost:3000"; // Replace with your host
+    const response = await fetch(`${protocol}://${host}/api/extensions`);
+    const result = await response.json();
+
+    if (result.success) {
+      const captchaExtension = result.data.find(
+        (ext) => ext.key === "google_recaptcha_2" && ext.status === "Enabled"
+      );
+      return captchaExtension?.config?.secretKey || process.env.GOOGLE_RECAPTCHA_SECRET;
+    }
+  } catch (error) {
+    console.error("Error fetching secret key:", error);
+    return process.env.GOOGLE_RECAPTCHA_SECRET; // Fallback to environment variable
+  }
+}
+
 // Function to validate reCAPTCHA token
 async function validateCaptcha(token) {
-  const secretKey = process.env.GOOGLE_RECAPTCHA_SECRET; // Set this in your environment variables
+  const secretKey = await fetchSecretKey();
+  if (!secretKey) {
+    throw new Error("Missing reCAPTCHA secret key.");
+  }
+
   const response = await fetch("https://www.google.com/recaptcha/api/siteverify", {
     method: "POST",
     headers: {
@@ -35,19 +59,16 @@ export default async function handler(req, res) {
   try {
     const { username, email, password, role, adminAnswer, captchaToken } = req.body;
 
-    // Validate required fields
     if (!username || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Skip reCAPTCHA validation for localhost
     const isLocalhost =
       req.headers.host.includes("localhost") ||
       req.headers.host.includes("127.0.0.1") ||
       req.headers.host.includes("::1");
 
     if (!isLocalhost) {
-      // Validate reCAPTCHA token only for production
       if (!captchaToken) {
         return res.status(400).json({ message: "reCAPTCHA token is missing" });
       }
@@ -57,7 +78,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // Validate role and admin answer if role is admin
     let finalRole = "user";
     if (role === "admin") {
       if (adminAnswer !== "nazmul hasan") {
@@ -66,30 +86,23 @@ export default async function handler(req, res) {
       finalRole = "admin";
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Generate a verification token
     const verificationToken = uuidv4();
 
-    // Connect to the database
     const { db } = await connectToDatabase();
-
-    // Check if the email is already registered
     const existingUser = await db.collection("user").findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "Email is already registered." });
     }
 
-    // Insert user data into the database
     const result = await db.collection("user").insertOne({
       username,
       email,
       password: hashedPassword,
-      profileImage: null, // No profile image needed
+      profileImage: null,
       verificationToken,
       verified: false,
-      role: finalRole, // User role
+      role: finalRole,
       createdAt: new Date(),
     });
 
@@ -97,15 +110,13 @@ export default async function handler(req, res) {
       return res.status(500).json({ message: "Failed to register user." });
     }
 
-    // Send verification email
     await sendVerificationEmail(email, username, verificationToken);
 
-    // Notify admin of the new user registration
     const notificationRef = collection(firestore, "notifications");
     await addDoc(notificationRef, {
       type: "new_user_registration",
       message: `A new user, ${username}, has registered.`,
-      recipientUserId: "admin", // Admin ID or identifier
+      recipientUserId: "admin",
       createdAt: new Date(),
       read: false,
     });
