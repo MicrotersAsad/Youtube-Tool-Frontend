@@ -155,7 +155,7 @@ function Register() {
         setShowVerification(false);
         setSuccess("Email verified successfully! You can now register.");
         setTimeout(() => {
-          router.push("/register");
+          router.push("/login");
         }, 2000);
       } else {
         throw new Error(data.message || "Failed to verify email");

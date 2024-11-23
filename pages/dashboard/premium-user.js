@@ -165,9 +165,9 @@ const Users = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-100 p-4 md:p-8">
+      <div className="min-h-screen bg-gray-100">
         <ToastContainer />
-        <div className="bg-white p-4 md:p-8 rounded-lg shadow-lg">
+        <div className="bg-white pt-5 pb-5 rounded">
           <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4 md:mb-6 text-center">Premium Users</h2>
           {error && <div className="text-red-500 mb-4">{error}</div>}
           {loading ? (
@@ -176,9 +176,9 @@ const Users = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-            <table className="min-w-full bg-gradient-to-r from-gray-100 to-gray-50 rounded-lg shadow-lg border border-gray-200">
+            <table className="min-w-full bg-gradient-to-r from-gray-100 to-gray-50 rounded border border-gray-200">
               <thead>
-                <tr className="bg-gradient-to-r from-blue-600 via-blue-500 to-purple-500 text-white">
+                <tr className="bg-[#071251] text-white">
                   <th className="py-2 px-4 border-b">
                     <input
                       type="checkbox"

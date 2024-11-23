@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import Layout from './layout';
 import Link from 'next/link';
-import { FaEdit, FaTrash, FaEye } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaEye,FaSearch  } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+
 function Allarticle() {
   const [articles, setArticles] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -32,8 +33,7 @@ function Allarticle() {
         throw new Error('Failed to fetch categories');
       }
       const data = await response.json();
-      
-      // Map categories to include their translations
+
       const formattedCategories = data.map((category) => {
         const translation = category.translations.en || {}; // Adjust for the desired language
         return {
@@ -116,7 +116,6 @@ function Allarticle() {
     setSearch(e.target.value);
   };
 
-
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
     setCurrentPage(1);
@@ -156,18 +155,56 @@ function Allarticle() {
     fetchArticles(pageNumber);
   };
 
+  const renderPaginationButtons = () => {
+    const totalPagesToShow = 5;
+    const startPage = Math.max(currentPage - Math.floor(totalPagesToShow / 2), 1);
+    const endPage = Math.min(startPage + totalPagesToShow - 1, totalPages);
+
+    const buttons = [];
+    for (let i = startPage; i <= endPage; i++) {
+      buttons.push(
+        <button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          className={`mx-1 px-3 py-1 border rounded ${
+            currentPage === i
+              ? 'bg-blue-500 text-white'
+              : 'bg-white text-blue-500 hover:bg-blue-100'
+          }`}
+        >
+          {i}
+        </button>
+      );
+    }
+
+    return buttons;
+  };
+
   return (
     <Layout>
       <div className="container mx-auto p-5">
-        <h2 className="text-3xl font-semibold mb-6">All Articles</h2>
+      <div className="flex flex-col md:flex-row justify-between items-center ms-4 mb-4 space-y-4 md:space-y-0">
+  {/* Left side heading */}
+  <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 text-center md:text-left">
+    All Article
+  </h2>
+
+  {/* Right side search bar */}
+  <div className="flex border border-gray-300 rounded-md overflow-hidden md:me-5 w-full md:w-64">
+    <input
+      type="text"
+      value={search}
+      onChange={handleSearchChange}
+      placeholder="Title"
+      className="py-2 px-3 flex-grow focus:outline-none placeholder-gray-400 text-sm"
+    />
+    <button className="bg-[#071251] p-2 flex items-center justify-center">
+      <FaSearch className="text-white" />
+    </button>
+  </div>
+</div>
         <div className="mb-3 flex flex-wrap items-center">
-          <input
-            type="text"
-            placeholder="Search by title"
-            value={search}
-            onChange={handleSearchChange}
-            className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-2 px-4 text-sm leading-tight focus:outline-none focus:border-blue-500 mb-3 md:mb-0"
-          />
+         
           <div className="relative ml-0 md:ml-3 mb-3 md:mb-0">
             <select
               value={selectedCategory}
@@ -214,11 +251,11 @@ function Allarticle() {
           </div>
         </div>
         {loading ? (
-         <Skeleton count={5} height={20} />
+          <Skeleton count={5} height={20} />
         ) : (
           <>
             <table className="min-w-full bg-white border border-gray-300">
-              <thead>
+              <thead className="bg-[#071251] text-white">
                 <tr>
                   <th className="py-2 px-4 border-b">
                     <input
@@ -248,12 +285,15 @@ function Allarticle() {
                     <td className="py-2 px-4 border-b">{article.category || 'Uncategorized'}</td>
                     <td className="py-2 px-4 border-b">{article.language}</td>
                     <td className="py-2 px-4 border-b">
-                      <Link target='_blank' href={`/youtube/${article.slug}`}className="flex items-center">
-                        <FaEye className="mr-1" /> 
+                      <Link
+                        target="_blank"
+                        href={`/youtube/${article.slug}`}
+                        className="flex items-center"
+                      >
+                        <FaEye className="mr-1" />
                       </Link>
                     </td>
                     <td className="py-2 px-4 border-b">
-                      
                       <Link href={`/dashboard/edit-article?id=${article._id}`}>
                         <FaEdit className="ml-3 text-blue-500 hover:text-blue-700" />
                       </Link>
@@ -269,19 +309,23 @@ function Allarticle() {
               </tbody>
             </table>
             <div className="flex justify-center mt-4">
-              {Array.from({ length: totalPages }, (_, index) => (
+              {currentPage > 1 && (
                 <button
-                  key={index}
-                  onClick={() => handlePageChange(index + 1)}
-                  className={`mx-1 px-3 py-1 border rounded ${
-                    currentPage === index + 1
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-white text-blue-500 hover:bg-blue-100'
-                  }`}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  className="mx-1 px-3 py-1 border rounded bg-white text-blue-500 hover:bg-blue-100"
                 >
-                  {index + 1}
+                  Previous
                 </button>
-              ))}
+              )}
+              {renderPaginationButtons()}
+              {currentPage < totalPages && (
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className="mx-1 px-3 py-1 border rounded bg-white text-blue-500 hover:bg-blue-100"
+                >
+                  Next
+                </button>
+              )}
             </div>
           </>
         )}

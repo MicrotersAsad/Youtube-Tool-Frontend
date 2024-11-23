@@ -193,24 +193,32 @@ const Users = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-100 p-4 md:p-8">
+      <div className="min-h-screen bg-gray-100">
         <ToastContainer />
-        <div className="bg-white p-4 md:p-8 rounded-lg shadow-lg">
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4 md:mb-6 text-center">Active Users</h2>
+        <div className="bg-white rounded pt-3 pb-3">
+          
 
-          {/* Search Bar */}
-          <div className="flex justify-end mb-4">
-            <div className="relative">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={handleSearchChange}
-                placeholder="Search by email or payment status..."
-                className="py-2 pl-10 pr-4 w-72 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-              <FaSearch className="absolute left-3 top-2.5 text-gray-500" />
-            </div>
-          </div>
+           {/* Search Bar */}
+  <div className="flex justify-between items-center mb-4 pt-4">
+  {/* left side heading */}
+  <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 md:p-6">
+    Active  Users
+  </h2>
+
+  {/* right side search bar */}
+  <div className="flex border border-gray-300 rounded-md overflow-hidden w-72 md:me-5">
+    <input
+      type="text"
+      value={searchTerm}
+      onChange={handleSearchChange}
+       placeholder="Search by email or payment status..."
+      className="py-2 px-3 flex-grow focus:outline-none placeholder-gray-400 text-sm"
+    />
+    <button className="bg-[#071251] p-3 flex items-center justify-center">
+      <FaSearch className="text-white" />
+    </button>
+  </div>
+</div>
 
           {error && <div className="text-red-500 mb-4">{error}</div>}
           {loading ? (
@@ -220,7 +228,7 @@ const Users = () => {
           ) : (
             <div className="overflow-x-auto">
             <table className="min-w-full bg-white shadow-lg rounded-lg overflow-hidden">
-              <thead className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+              <thead className="bg-[#071251] text-white">
                 <tr>
                   <th className="pt-3 pb-3 px-4 border-b text-sm">
                     <input

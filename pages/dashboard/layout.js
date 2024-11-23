@@ -300,7 +300,7 @@ const Layout = React.memo(({ children }) => {
 
 
         <div className="flex-1 overflow-y-auto custom-scrollbar">
-          <nav className=" text-white pb-4 pt-4">
+          <nav className=" text-white pt-4">
             {/* Dashboard */}
             <div className="mt-2">
   <Link
@@ -317,7 +317,7 @@ const Layout = React.memo(({ children }) => {
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
-        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+        marginLeft: isCollapsed ? "10px" : "0px", // Add margin-left when collapsed
       }}
     />
     {!isCollapsed && <span className="ml-3">Dashboard</span>}
@@ -326,166 +326,183 @@ const Layout = React.memo(({ children }) => {
 
 
             {/* Blog Main Menu Item with 0.3s Transition */}
-            {user && (user.role === "admin" || user.role === "super_admin") && (
-           <div className="mt-2">
-           <p
-             className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-               isActiveRoute("/dashboard/categories") ||
-               isActiveRoute("/dashboard/all-blogs") ||
-               isActiveRoute("/dashboard/authors") ||
-               isActiveRoute("/dashboard/blogs")
-                 ? "bg-[#4634ff] text-white"
-                 : menuOpen === "blog"
-                 ? "bg-[#1d1e8e] text-white"
-                 : "hover:bg-[#1d1e8e] hover:text-white"
-             }`}
-             onClick={() => toggleSidebarAndMenu("blog")} // Call the unified function
-             style={{ transition: "all 0.3s ease" }}
-           >
-             <FaBlog
-               className="mr-3 text-white"
-               style={{
-                 fontSize: isCollapsed ? "1.3rem" : "1rem",
-                 marginLeft: isCollapsed ? "3px" : "0px",
-                 transition: "font-size 0.3s ease, margin-left 0.3s ease",
-               }}
-             />
-             {!isCollapsed && <span>Blog</span>}
-             {!isCollapsed && (
-               <span className="ml-auto">
-                 {menuOpen === "blog" ? (
-                   <FiChevronUp className="w-6 h-6" />
-                 ) : (
-                   <FiChevronDown className="w-6 h-6" />
-                 )}
-               </span>
-             )}
-           </p>
-       
-           {/* Submenu */}
-           {menuOpen === "blog" && (
-             <div className="ml-6 mt-2 mb-1 overflow-hidden">
-               {[
-                 { href: "/dashboard/categories", label: "Categories" },
-                 { href: "/dashboard/all-blogs", label: "All Posts" },
-                 { href: "/dashboard/blogs", label: "Add Post" },
-                 { href: "/dashboard/authors", label: "Add Authors" },
-               ].map(({ href, label }, index) => (
-                 <Link href={href} passHref key={index}>
-                   <p
-                     className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                       isActiveRoute(href)
-                         ? "bg-[#1d1e8e] text-white"
-                         : "hover:bg-[#1d1e8e] hover:text-white"
-                     }`}
-                   >
-                     <FaCircle className="mr-2 text-xs" />
-                     {label}
-                   </p>
-                 </Link>
-               ))}
-             </div>
-           )}
-         </div>
-            )}
-
-            {user && (user.role === "admin" || user.role === "super_admin") ? (
-              <>
-                {/* Article Youtube */}
-                <div className="mt-2">
-  <p
-    className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
-      isActiveRoute("/dashboard/yt-categories") ||
-      isActiveRoute("/dashboard/all-article") ||
-      isActiveRoute("/dashboard/article") ||
-      isActiveRoute("/dashboard/create-shortcode")
-        ? "bg-[#4634ff] text-white"
-        : menuOpen === "article"
-        ? "bg-[#1d1e8e] text-white"
-        : "hover:bg-[#1d1e8e] hover:text-white"
-    }`}
-    onClick={() => toggleMenu("article")} // Toggle dropdown state
-  >
-    <FaYoutube
-      className="mr-3 text-white"
-      style={{
-        fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
-        transition: "font-size 0.3s ease", // Smooth transition
-        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+{user && (user.role === "admin" || user.role === "super_admin") && (
+  <div className="">
+    <p
+      className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
+        isActiveRoute("/dashboard/categories") ||
+        isActiveRoute("/dashboard/all-blogs") ||
+        isActiveRoute("/dashboard/authors") ||
+        isActiveRoute("/dashboard/blogs")
+          ? "bg-[#4634ff] text-white"
+          : menuOpen === "blog"
+          ? "bg-[#1d1e8e] text-white"
+          : "hover:bg-[#1d1e8e] hover:text-white"
+      }`}
+      onClick={() => {
+        if (isCollapsed && menuOpen === "blog") {
+          // If collapsed and already open, close the menu
+          setMenuOpen("");
+        } else {
+          // Otherwise, toggle the menu
+          toggleSidebarAndMenu("blog");
+        }
       }}
-    />
-    {!isCollapsed && <span>Youtube Article</span>}
-    {!isCollapsed && (
-      <span className="ml-auto">
-        {menuOpen === "article" ? (
-          <FiChevronUp className="w-6 h-6" />
-        ) : (
-          <FiChevronDown className="w-6 h-6" />
-        )}
-      </span>
+      style={{ transition: "all 0.3s ease" }}
+    >
+      <FaBlog
+        className="mr-3 text-white"
+        style={{
+          fontSize: isCollapsed ? "1.3rem" : "1rem",
+          marginLeft: isCollapsed ? "10px" : "0px",
+          transition: "font-size 0.3s ease, margin-left 0.3s ease",
+        }}
+      />
+      {!isCollapsed && <span>Blog</span>}
+      {!isCollapsed && (
+        <span className="ml-auto">
+          {menuOpen === "blog" ? (
+            <FiChevronUp className="w-6 h-6" />
+          ) : (
+            <FiChevronDown className="w-6 h-6" />
+          )}
+        </span>
+      )}
+    </p>
+
+    {/* Submenu */}
+    {menuOpen === "blog" && !isCollapsed && (
+      <div className="ml-6 mt-2 mb-1 overflow-hidden">
+        {[
+          { href: "/dashboard/categories", label: "Categories" },
+          { href: "/dashboard/all-blogs", label: "All Posts" },
+          { href: "/dashboard/blogs", label: "Add Post" },
+          { href: "/dashboard/authors", label: "Add Authors" },
+        ].map(({ href, label }, index) => (
+          <Link href={href} passHref key={index}>
+            <p
+              className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                isActiveRoute(href)
+                  ? "bg-[#1d1e8e] text-white"
+                  : "hover:bg-[#1d1e8e] hover:text-white"
+              }`}
+            >
+              <FaCircle className="mr-2 text-xs" />
+              {label}
+            </p>
+          </Link>
+        ))}
+      </div>
     )}
-  </p>
-
-  {/* Dropdown Content with Smooth Opening and Closing Animation */}
-  <div
-    className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
-      menuOpen === "article" ? "max-h-screen opacity-100 scale-y-100" : "max-h-0 opacity-0 scale-y-0"
-    }`}
-  >
-    <Link href="/dashboard/yt-categories" passHref>
-      <p
-        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-          isActiveRoute("/dashboard/yt-categories")
-            ? "bg-[#1d1e8e] text-white"
-            : "hover:bg-[#1d1e8e] hover:text-white"
-        }`}
-      >
-        <FaCircle className="mr-2 text-xs" />
-        Categories
-      </p>
-    </Link>
-    <Link href="/dashboard/all-article" passHref>
-      <p
-        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-          isActiveRoute("/dashboard/all-article")
-            ? "bg-[#1d1e8e] text-white"
-            : "hover:bg-[#1d1e8e] hover:text-white"
-        }`}
-      >
-        <FaCircle className="mr-2 text-xs" />
-        All Article
-      </p>
-    </Link>
-    <Link href="/dashboard/article" passHref>
-      <p
-        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-          isActiveRoute("/dashboard/article")
-            ? "bg-[#1d1e8e] text-white"
-            : "hover:bg-[#1d1e8e] hover:text-white"
-        }`}
-      >
-        <FaCircle className="mr-2 text-xs" />
-        Add Article
-      </p>
-    </Link>
-    <Link href="/dashboard/create-shortcode" passHref>
-      <p
-        className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-          isActiveRoute("/dashboard/create-shortcode")
-            ? "bg-[#1d1e8e] text-white"
-            : "hover:bg-[#1d1e8e] hover:text-white"
-        }`}
-      >
-        <FaCircle className="mr-2 text-xs" />
-        Create Shortcode
-      </p>
-    </Link>
   </div>
-</div>
+)}
 
 
-              </>
-            ) : null}
+{user && (user.role === "admin" || user.role === "super_admin") ? (
+  <>
+    {/* Article Youtube */}
+    <div className="">
+      <p
+        className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
+          isActiveRoute("/dashboard/yt-categories") ||
+          isActiveRoute("/dashboard/all-article") ||
+          isActiveRoute("/dashboard/article") ||
+          isActiveRoute("/dashboard/create-shortcode")
+            ? "bg-[#4634ff] text-white"
+            : menuOpen === "article"
+            ? "bg-[#1d1e8e] text-white"
+            : "hover:bg-[#1d1e8e] hover:text-white"
+        }`}
+        onClick={() => {
+          if (isCollapsed && menuOpen === "article") {
+            // If collapsed and already open, close the menu
+            setMenuOpen("");
+          } else {
+            // Otherwise, toggle the menu
+            toggleSidebarAndMenu("article");
+          }
+        }}
+        style={{ transition: "all 0.3s ease" }}
+      >
+        <FaYoutube
+          className="mr-3 text-white"
+          style={{
+            fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
+            transition: "font-size 0.3s ease, margin-left 0.3s ease",
+            marginLeft: isCollapsed ? "10px" : "0px", // Add margin-left when collapsed
+          }}
+        />
+        {!isCollapsed && <span>Youtube Article</span>}
+        {!isCollapsed && (
+          <span className="ml-auto">
+            {menuOpen === "article" ? (
+              <FiChevronUp className="w-6 h-6" />
+            ) : (
+              <FiChevronDown className="w-6 h-6" />
+            )}
+          </span>
+        )}
+      </p>
+
+      {/* Dropdown Content */}
+      {menuOpen === "article" && !isCollapsed && (
+        <div
+          className="ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top"
+        >
+          <Link href="/dashboard/yt-categories" passHref>
+            <p
+              className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                isActiveRoute("/dashboard/yt-categories")
+                  ? "bg-[#1d1e8e] text-white"
+                  : "hover:bg-[#1d1e8e] hover:text-white"
+              }`}
+            >
+              <FaCircle className="mr-2 text-xs" />
+              Categories
+            </p>
+          </Link>
+          <Link href="/dashboard/all-article" passHref>
+            <p
+              className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                isActiveRoute("/dashboard/all-article")
+                  ? "bg-[#1d1e8e] text-white"
+                  : "hover:bg-[#1d1e8e] hover:text-white"
+              }`}
+            >
+              <FaCircle className="mr-2 text-xs" />
+              All Article
+            </p>
+          </Link>
+          <Link href="/dashboard/article" passHref>
+            <p
+              className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                isActiveRoute("/dashboard/article")
+                  ? "bg-[#1d1e8e] text-white"
+                  : "hover:bg-[#1d1e8e] hover:text-white"
+              }`}
+            >
+              <FaCircle className="mr-2 text-xs" />
+              Add Article
+            </p>
+          </Link>
+          <Link href="/dashboard/create-shortcode" passHref>
+            <p
+              className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+                isActiveRoute("/dashboard/create-shortcode")
+                  ? "bg-[#1d1e8e] text-white"
+                  : "hover:bg-[#1d1e8e] hover:text-white"
+              }`}
+            >
+              <FaCircle className="mr-2 text-xs" />
+              Create Shortcode
+            </p>
+          </Link>
+        </div>
+      )}
+    </div>
+  </>
+) : null}
+
 
             {user && (user.role === "admin" || user.role === "super_admin") ? (
               <>
@@ -512,7 +529,7 @@ const Layout = React.memo(({ children }) => {
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
-        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+        marginLeft: isCollapsed ? "10px" : "0px", // Add margin-left when collapsed
       }}
     />
     {!isCollapsed && <span>Pages</span>}
@@ -592,7 +609,7 @@ const Layout = React.memo(({ children }) => {
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
-        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+        marginLeft: isCollapsed ? "10px" : "0px", // Add margin-left when collapsed
       }}
     />
     {!isCollapsed && <span>Content</span>}
@@ -677,7 +694,7 @@ const Layout = React.memo(({ children }) => {
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
-        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+        marginLeft: isCollapsed ? "10px" : "0px", // Add margin-left when collapsed
       }}
     />
     {!isCollapsed && <span>Manage Users</span>}
@@ -807,7 +824,7 @@ const Layout = React.memo(({ children }) => {
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
-        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+        marginLeft: isCollapsed ? "10px" : "0px", // Add margin-left when collapsed
       }}
     />
     {!isCollapsed && <span>Manage Subscription</span>}
@@ -911,7 +928,7 @@ const Layout = React.memo(({ children }) => {
                   style={{
                     fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
                     transition: "font-size 0.3s ease", // Smooth transition
-                    marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+                    marginLeft: isCollapsed ? "10px" : "0px", // Add margin-left when collapsed
                   }}
                 />
                 {!isCollapsed && <span>Support</span>}
@@ -1058,7 +1075,7 @@ const Layout = React.memo(({ children }) => {
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
-        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+        marginLeft: isCollapsed ? "10px" : "0px", // Add margin-left when collapsed
       }}
     />
     {!isCollapsed && <span>Report</span>}
@@ -1136,7 +1153,7 @@ const Layout = React.memo(({ children }) => {
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
-        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+        marginLeft: isCollapsed ? "10px" : "0px", // Add margin-left when collapsed
       }}
     />
     {!isCollapsed && <span>API Keys</span>}
@@ -1222,7 +1239,7 @@ const Layout = React.memo(({ children }) => {
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
-        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+        marginLeft: isCollapsed ? "10px" : "0px", // Add margin-left when collapsed
       }}
     />
     {!isCollapsed && <span>About</span>}
@@ -1377,7 +1394,7 @@ const Layout = React.memo(({ children }) => {
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
-        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+        marginLeft: isCollapsed ? "10px" : "0px", // Add margin-left when collapsed
       }}
     />
     {!isCollapsed && <span>Appearance</span>}
@@ -1553,7 +1570,7 @@ const Layout = React.memo(({ children }) => {
       style={{
         fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
         transition: "font-size 0.3s ease", // Smooth transition
-        marginLeft: isCollapsed ? "3px" : "0px", // Add margin-left when collapsed
+        marginLeft: isCollapsed ? "10px" : "0px", // Add margin-left when collapsed
       }}/>
                     {!isCollapsed && <span>System Setting</span>}
                   </Link>
@@ -1565,7 +1582,7 @@ const Layout = React.memo(({ children }) => {
         {/* Bottom Fixed Section */}
         {/* Footer Text */}
         <div
-          className="text-center text-white font-bold text-xs"
+          className="text-center text-white font-bold pt-3 pb-3 rounded bg-[#071251] shadow text-xs"
           style={{
             position: "absolute",
             bottom: "10px",
@@ -1745,7 +1762,7 @@ const Layout = React.memo(({ children }) => {
 
           {/* Main content */}
           <main className="flex-1 overflow-y-auto bg-gray-100">
-            <div className="container mx-auto px-6 py-8">{children}</div>
+            <div className="container mx-auto">{children}</div>
           </main>
         </div>
       </div>

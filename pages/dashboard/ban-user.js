@@ -65,22 +65,27 @@ const BanUser = () => {
     <Layout>
       <div className="min-h-screen bg-gray-100 p-4 md:p-8">
         <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-3xl font-semibold text-gray-800 mb-6 text-center">
-            Banned Users List
-          </h2>
           {/* Search Bar */}
-          <div className="flex justify-end mb-4">
-            <div className="relative">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={handleSearchChange}
-                placeholder="Search by username or email..."
-                className="py-2 pl-10 pr-4 w-72 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-              <FaSearch className="absolute left-3 top-2.5 text-gray-500" />
-            </div>
-          </div>
+  <div className="flex justify-between items-center mb-4">
+  {/* left side heading */}
+  <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 md:p-6">
+   Ban User List
+  </h2>
+
+  {/* right side search bar */}
+  <div className="flex border border-gray-300 rounded-md overflow-hidden w-64 md:me-5">
+    <input
+      type="text"
+      value={searchTerm}
+      onChange={handleSearchChange}
+      placeholder="UserName"
+      className="py-2 px-3 flex-grow focus:outline-none placeholder-gray-400 text-sm"
+    />
+    <button className="bg-[#071251] p-2 flex items-center justify-center">
+      <FaSearch className="text-white" />
+    </button>
+  </div>
+</div>
 
           {error && (
             <div className="bg-red-100 text-red-600 p-4 rounded-md mb-4 flex items-center">
@@ -97,7 +102,7 @@ const BanUser = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-md">
-                <thead className="bg-gradient-to-r from-red-500 to-red-700 text-white">
+                <thead className="bg-[#071251] text-white">
                   <tr>
                     
                     <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider">

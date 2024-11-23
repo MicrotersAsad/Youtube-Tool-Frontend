@@ -37,7 +37,7 @@ export default async function handler(req, res) {
       }
     );
 
-    // Send email with reset link
+    // Configure the email transporter
     const transporter = nodemailer.createTransport({
       service: "Gmail", // Use your email provider
       auth: {
@@ -46,15 +46,93 @@ export default async function handler(req, res) {
       },
     });
 
-    const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}&email=${email}`;
+    // Generate the reset URL
+    const resetUrl = `${process.env.NEXT_PUBLIC_API_BASE_UR}/reset-password?token=${resetToken}&email=${email}`;
 
+    // Email HTML template
+    const emailHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+          }
+          .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+          }
+          .header {
+            background-color: #ef4444;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 24px;
+          }
+          .content {
+            padding: 20px;
+            text-align: center;
+          }
+          .content h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #333;
+          }
+          .content p {
+            font-size: 16px;
+            margin-bottom: 30px;
+            color: #555;
+          }
+          .content .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #ef4444;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+          }
+          .footer {
+            background: #f4f4f4;
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+            color: #777;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            YtTools - Password Reset
+          </div>
+          <div class="content">
+            <h2>Forgot your password?</h2>
+            <p>No worries! Click the button below to reset your password. This link will expire in 1 hour.</p>
+            <a href="${resetUrl}" class="button">Reset Password</a>
+            <p>If you did not request a password reset, please ignore this email or contact support.</p>
+          </div>
+          <div class="footer">
+            &copy; ${new Date().getFullYear()} YtTools Inc. All Rights Reserved.
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Send the email
     await transporter.sendMail({
       from: process.env.NEXT_PUBLIC_EMAIL_USER,
       to: email,
       subject: "Password Reset Request",
-      html: `<p>You requested a password reset. Click the link below to reset your password:</p>
-             <a href="${resetUrl}">Reset Password</a>
-             <p>If you did not request this, please ignore this email.</p>`,
+      html: emailHTML,
     });
 
     res.status(200).json({ message: "Reset link sent to your email." });

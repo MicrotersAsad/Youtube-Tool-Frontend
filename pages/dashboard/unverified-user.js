@@ -186,7 +186,7 @@ const Users = () => {
     <Layout>
       <div className="min-h-screen bg-gray-100 p-4 md:p-8">
         <ToastContainer />
-        <div className="bg-white p-4 md:p-8 rounded-lg shadow-sm">
+        <div className="bg-white pt-3 pb-3 rounded">
           <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4 md:mb-6 text-center">Unverified Users</h2>
           {error && <div className="text-red-500 mb-4">{error}</div>}
           {loading ? (
@@ -197,7 +197,7 @@ const Users = () => {
             <div className="overflow-x-auto">
               <table className="min-w-full bg-white">
                 <thead>
-                  <tr className="bg-[#4634ff] text-white">
+                  <tr className="bg-[#071251] text-white">
                     <th className="pt-3 pb-3 px-4 border-b text-sm">
                       <input type="checkbox" onChange={handleSelectAllUsers} checked={selectedUsers.length === users.length} />
                     </th>

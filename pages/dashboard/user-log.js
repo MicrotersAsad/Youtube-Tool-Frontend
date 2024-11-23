@@ -62,12 +62,12 @@ const UserLog = () => {
     setSearchTerm(event.target.value);
   };
 
-  // Pagination logic
+  // Pagination logic with reverse
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const paginatedUsers = filteredUsers
+    .slice()
+    .reverse() // রিভার্স করে দেখানো হবে
+    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handlePageChange = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
@@ -77,23 +77,26 @@ const UserLog = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-        <div className="p-6 rounded-lg shadow-lg bg-white">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
-            User Login History
+      <div className="min-h-screen bg-gray-50">
+        <div className="pt-6 pb-6 rounded bg-white">
+        <div className="flex flex-col md:flex-row justify-between items-center ms-4 mb-4 space-y-4 md:space-y-0">
+          <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 text-center md:text-left">
+          User Login History
           </h2>
-          <div className="flex justify-end mb-4">
-            <div className="relative">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={handleSearchChange}
-                placeholder="Search by username or IP address..."
-                className="py-2 pl-10 pr-4 w-72 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-              <FaSearch className="absolute left-3 top-2.5 text-gray-500" />
-            </div>
+
+          <div className="flex border border-gray-300 rounded-md overflow-hidden md:me-5 w-full md:w-64">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={handleSearchChange}
+               placeholder="Search by username or IP address..."
+              className="py-2 px-3 flex-grow focus:outline-none placeholder-gray-400 text-sm"
+            />
+            <button className="bg-[#071251] p-2 flex items-center justify-center">
+              <FaSearch className="text-white" />
+            </button>
           </div>
+        </div>
           {error && (
             <div className="bg-red-100 text-red-600 p-4 rounded-md mb-4 flex items-center">
               <FaExclamationCircle className="mr-2" />
@@ -198,19 +201,30 @@ const UserLog = () => {
                 >
                   « Prev
                 </button>
-                {Array.from({ length: totalPages }, (_, index) => (
-                  <button
-                    key={index}
-                    className={`px-3 py-1 rounded-md ${
-                      currentPage === index + 1
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                    onClick={() => handlePageChange(index + 1)}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
+                {(() => {
+                  const pageNumbersToShow = 5; // একসাথে ৫টি পেজ দেখানোর জন্য
+                  const startPage = Math.max(currentPage - Math.floor(pageNumbersToShow / 2), 1);
+                  const endPage = Math.min(startPage + pageNumbersToShow - 1, totalPages);
+
+                  const pageNumbers = [];
+                  for (let i = startPage; i <= endPage; i++) {
+                    pageNumbers.push(i);
+                  }
+
+                  return pageNumbers.map((number) => (
+                    <button
+                      key={number}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === number
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                      onClick={() => handlePageChange(number)}
+                    >
+                      {number}
+                    </button>
+                  ));
+                })()}
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   className={`px-4 py-2 rounded-md ${

@@ -29,32 +29,35 @@ const AllUsers = () => {
   }, []);
 
   useEffect(() => {
-    setFilteredUsers(users);
+    setFilteredUsers(users.reverse()); // reverse order
     handleSearch(searchTerm);
   }, [users, searchTerm]);
+  
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No token found');
-
+  
       const response = await fetch(`/api/user-list`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
+  
       if (!response.ok) throw new Error('Failed to fetch users');
-
+  
       const result = await response.json();
-      setUsers(result.success && Array.isArray(result.data) ? result.data : []);
+      const fetchedUsers = result.success && Array.isArray(result.data) ? result.data : [];
+      setUsers(fetchedUsers.reverse()); //reverse system
       setLoading(false);
     } catch (error) {
       setError(error.message);
       setLoading(false);
     }
   };
+  
   const handleSendMessageToUser = async () => {
     if (!generalMessage.trim()) {
       toast.error('Please enter a message.');
@@ -91,16 +94,17 @@ const AllUsers = () => {
   
   const handleSearch = (term) => {
     if (term.trim() === '') {
-      setFilteredUsers(users);
+      setFilteredUsers(users.reverse()); // সার্চ ছাড়া পুরো লিস্ট রিভার্স
     } else {
       const filtered = users.filter(
         (user) =>
           user.username.toLowerCase().includes(term.toLowerCase()) ||
           user.email.toLowerCase().includes(term.toLowerCase())
       );
-      setFilteredUsers(filtered);
+      setFilteredUsers(filtered.reverse()); // সার্চ রেজাল্ট রিভার্স
     }
   };
+  
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -263,33 +267,45 @@ const AllUsers = () => {
     }
   };
   
-
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
   const paginatedUsers = filteredUsers.slice(
     (currentPage - 1) * usersPerPage,
     currentPage * usersPerPage
   );
+  
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <div className="min-h-screen">
         <ToastContainer />
-        <div className="bg-white p-4 md:p-8 rounded-lg shadow-lg">
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4 md:mb-6 text-center">All Users</h2>
+        <div className="bg-white rounded pt-3 pb-3">
+        
 
-          {/* Search Bar */}
-          <div className="flex justify-end mb-4">
-            <div className="relative">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={handleSearchChange}
-                placeholder="Search by username or email..."
-                className="py-2 pl-10 pr-4 w-72 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-              <FaSearch className="absolute left-3 top-2.5 text-gray-500" />
-            </div>
-          </div>
+ {/* Search Bar */}
+<div className="flex flex-col md:flex-row justify-between items-center mb-4 space-y-4 md:space-y-0">
+  {/* Left side heading */}
+  <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 text-center md:text-left ps-5">
+    All Users
+  </h2>
+
+  {/* Right side search bar */}
+  <div className="flex border border-gray-300 rounded-md overflow-hidden w-full md:w-64">
+    <input
+      type="text"
+      value={searchTerm}
+      onChange={handleSearchChange}
+      placeholder="UserName"
+      className="py-2 px-3 flex-grow focus:outline-none placeholder-gray-400 text-sm"
+    />
+    <button className="bg-[#071251] p-2 flex items-center justify-center">
+      <FaSearch className="text-white" />
+    </button>
+  </div>
+</div>
+
+
+
+
 
           {error && <div className="text-red-500 mb-4">{error}</div>}
           {loading ? (
@@ -300,10 +316,10 @@ const AllUsers = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-            <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
-              <thead className="bg-gradient-to-r from-blue-500 text-white via-blue-600 to-blue-700 ">
+            <table className="min-w-full   overflow-hidden rounded">
+              <thead className="bg-[#071251] text-white ">
                 <tr>
-                  <th className="py-2 px-3 text-left text-xs font-bold uppercase tracking-wide">
+                  <th className="pt-3 pb-3 px-4  text-left text-xs font-bold uppercase tracking-wide">
                     User
                   </th>
                   <th className="py-2 px-3 text-left text-xs font-bold uppercase tracking-wide">

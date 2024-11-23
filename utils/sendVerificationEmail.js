@@ -15,7 +15,7 @@ export async function sendVerificationEmail(email, username, token) {
     from: process.env.EMAIL_USER,
     to: email,
     subject: 'Verify your email',
-    text: `Hello ${username},\n\nPlease verify your email by verify-email?token=${token}\n\nThank you!`,
+    text: `Hello ${username},\n\n by verify-email?token=${token}\n\nThank you!`,
   };
 
   try {

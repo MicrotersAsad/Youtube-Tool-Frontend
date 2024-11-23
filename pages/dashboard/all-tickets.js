@@ -16,7 +16,7 @@ const AdminTicketsPage = () => {
   const fetchTickets = async () => {
     try {
       const response = await fetch('/api/tickets/create');
-      console.log(response);
+     
       
       const result = await response.json();
       if (result.success) {
@@ -33,7 +33,7 @@ const AdminTicketsPage = () => {
     <Layout>
 
 
-    <div className="container mx-auto mt-8">
+    <div className="container mx-auto">
       <TicketList tickets={tickets} />
     </div>
     </Layout>

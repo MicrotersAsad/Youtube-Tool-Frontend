@@ -195,7 +195,7 @@ function LoginOrResetPassword() {
                 </div>
                 {!isLocalhost && sitekey && (
   <ReCAPTCHA
-    sitekey={sitekey} // সঠিকভাবে `sitekey` পাঠানো
+    sitekey={sitekey} 
     onChange={onRecaptchaChange}
   />
 )}

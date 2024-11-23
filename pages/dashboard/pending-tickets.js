@@ -3,12 +3,16 @@ import Layout from './layout';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
+import { FaSearch } from 'react-icons/fa';
+
+const ITEMS_PER_PAGE = 10;
 
 const PendingTicketsPage = () => {
   const { user } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (user && user.id) {
@@ -23,7 +27,7 @@ const PendingTicketsPage = () => {
 
       if (result.success) {
         const PendingTickets = result.tickets.filter(ticket => ticket.status === 'pending');
-        setTickets(PendingTickets);
+        setTickets(PendingTickets.reverse());
       } else {
         console.error('Failed to fetch tickets:', result.message);
       }
@@ -36,6 +40,7 @@ const PendingTicketsPage = () => {
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
+    setCurrentPage(1);
   };
 
   const getLastReplyTime = (comments) => {
@@ -44,73 +49,137 @@ const PendingTicketsPage = () => {
     return formatDistanceToNow(lastCommentTime, { addSuffix: true });
   };
 
-  const filteredTickets = tickets.filter((ticket) =>
-    ticket.subject.toLowerCase().includes(searchTerm.toLowerCase())
+  const getFilteredTickets = () => {
+    if (!searchTerm) return tickets;
+    return tickets.filter((ticket) =>
+      ticket.subject.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
+
+  const paginatedTickets = getFilteredTickets().slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
   );
+
+  const totalPages = Math.ceil(getFilteredTickets().length / ITEMS_PER_PAGE);
 
   return (
     <Layout>
-      <div className="container">
-        <h1 className="heading">Pending Tickets</h1>
-        <input
-          type="text"
-          placeholder="Search tickets..."
-          className="search-input"
-          value={searchTerm}
-          onChange={handleSearchChange}
-        />
+      <div className=" bg-white pt-5 pb-5">
+        <div className="flex flex-col md:flex-row justify-between items-center ms-4 mb-4 space-y-4 md:space-y-0">
+          <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 text-center md:text-left">
+            Pending Tickets
+          </h2>
+
+          <div className="flex border border-gray-300 rounded-md overflow-hidden md:me-5 w-full md:w-64">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              placeholder="UserName"
+              className="py-2 px-3 flex-grow focus:outline-none placeholder-gray-400 text-sm"
+            />
+            <button className="bg-[#071251] p-2 flex items-center justify-center">
+              <FaSearch className="text-white" />
+            </button>
+          </div>
+        </div>
         {loading ? (
           <p className="loading-text">Loading tickets...</p>
-        ) : filteredTickets.length > 0 ? (
-          <table className="tickets-table">
-            <thead>
-              <tr className="table-header bg-[#4634ff] text-white">
-                <th className="table-header-cell">Subject</th>
-                <th className="table-header-cell">Submitted By</th>
-                <th className="table-header-cell">Status</th>
-                <th className="table-header-cell">Priority</th>
-                <th className="table-header-cell">Last Reply</th>
-                <th className="table-header-cell">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTickets.map((ticket) => (
-                <tr key={ticket._id} className="table-row">
-                  <td className="table-cell">
-                    <Link href={`/dashboard/tickets/${ticket.ticketId}`}>
-                      <span className="subject-link">
-                        [Ticket#{ticket.ticketId}] {ticket.subject}
-                      </span>
-                    </Link>
-                  </td>
-                  <td className="table-cell">{ticket.userName || 'Anonymous'}</td>
-                  <td className="table-cell">
-                    <span className={`status-label Pending`}>
-                      {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
-                    </span>
-                  </td>
-                  <td className="table-cell">
-                    <span className={`priority-label ${ticket.priority}`}>
-                      {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)}
-                    </span>
-                  </td>
-                  <td className="table-cell">{getLastReplyTime(ticket.comments)}</td>
-                  <td className="table-cell">
-                    <Link href={`/dashboard/tickets/${ticket.ticketId}`}>
-                      <button className="details-button">Details</button>
-                    </Link>
-                  </td>
+        ) : paginatedTickets.length > 0 ? (
+          <>
+            <table className="tickets-table">
+              <thead>
+                <tr className="table-header bg-[#071251] text-white">
+                  <th className="table-header-cell">Subject</th>
+                  <th className="table-header-cell">Submitted By</th>
+                  <th className="table-header-cell">Status</th>
+                  <th className="table-header-cell">Priority</th>
+                  <th className="table-header-cell">Last Reply</th>
+                  <th className="table-header-cell">Action</th>
                 </tr>
+              </thead>
+              <tbody>
+                {paginatedTickets.map((ticket) => (
+                  <tr key={ticket._id} className="table-row">
+                    <td className="table-cell">
+                      <Link href={`/dashboard/tickets/${ticket.ticketId}`}>
+                        <span className="subject-link">
+                          [Ticket#{ticket.ticketId}] {ticket.subject}
+                        </span>
+                      </Link>
+                    </td>
+                    <td className="table-cell">{ticket.userName || 'Anonymous'}</td>
+                    <td className="table-cell">
+                      <span className={`status-label Pending`}>
+                        {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="table-cell">
+                      <span className={`priority-label ${ticket.priority}`}>
+                        {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)}
+                      </span>
+                    </td>
+                    <td className="table-cell">{getLastReplyTime(ticket.comments)}</td>
+                    <td className="table-cell">
+                      <Link href={`/dashboard/tickets/${ticket.ticketId}`}>
+                        <button className="details-button">Details</button>
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Pagination Controls */}
+            <div className="flex justify-center items-center mt-6 space-x-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className={`px-3 py-1 rounded ${
+                  currentPage === 1
+                    ? 'bg-gray-300 cursor-not-allowed'
+                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                }`}
+              >
+                Previous
+              </button>
+
+              {Array.from({ length: totalPages }).map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentPage(index + 1)}
+                  className={`px-3 py-1 rounded ${
+                    currentPage === index + 1
+                      ? 'bg-blue-500 text-white font-bold'
+                      : 'bg-gray-200 hover:bg-gray-300'
+                  }`}
+                >
+                  {index + 1}
+                </button>
               ))}
-            </tbody>
-          </table>
+
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className={`px-3 py-1 rounded ${
+                  currentPage === totalPages
+                    ? 'bg-gray-300 cursor-not-allowed'
+                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          </>
         ) : (
           <p className="no-data-text">Data not found.</p>
         )}
       </div>
 
       <style jsx global>{`
-      
         .heading {
           font-size: 2rem;
           font-weight: bold;
@@ -138,7 +207,7 @@ const PendingTicketsPage = () => {
           overflow: hidden;
         }
         .table-header {
-          background-color: #3b5998;
+          background-color: #071251;
           color: white;
         }
         .table-header-cell {

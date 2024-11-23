@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from './layout';
 import Link from 'next/link';
-import { FaEdit, FaTrash, FaEye } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaEye, FaSearch } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -139,15 +139,28 @@ function AllBlogs() {
   return (
     <Layout>
       <div className="container mx-auto p-5">
-        <h2 className="text-3xl font-semibold mb-6">All Blogs</h2>
+      <div className="flex flex-col md:flex-row justify-between items-center ms-4 mb-4 space-y-4 md:space-y-0">
+  {/* Left side heading */}
+  <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 text-center md:text-left">
+    All Blogs
+  </h2>
+
+  {/* Right side search bar */}
+  <div className="flex border border-gray-300 rounded-md overflow-hidden md:me-5 w-full md:w-64">
+    <input
+      type="text"
+      value={search}
+      onChange={handleSearchChange}
+      placeholder="Title"
+      className="py-2 px-3 flex-grow focus:outline-none placeholder-gray-400 text-sm"
+    />
+    <button className="bg-[#071251] p-2 flex items-center justify-center">
+      <FaSearch className="text-white" />
+    </button>
+  </div>
+</div>
         <div className="mb-3 flex flex-wrap items-center">
-          <input
-            type="text"
-            placeholder="Search by title"
-            value={search}
-            onChange={handleSearchChange}
-            className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-2 px-4 text-sm leading-tight focus:outline-none focus:border-blue-500 mb-3 md:mb-0"
-          />
+         
           <div className="relative ml-0 md:ml-3 mb-3 md:mb-0">
             <select
               value={selectedCategory}
