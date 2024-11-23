@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import TicketDetails from '../../../components/TicketDetails';
 import Layout from '../layout';
 import { useAuth } from '../../../contexts/AuthContext';
-
+import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 /**
  * Page to show the details of a single support ticket.
  */
@@ -28,7 +29,7 @@ const TicketDetailsPage = () => {
         const fetchedTicket = result.ticket;
         setTicket(fetchedTicket);
       } else {
-        alert('Failed to fetch ticket details');
+        toast.error('Failed to fetch ticket details');
       }
     } catch (error) {
       console.error('Error fetching ticket:', error);
@@ -54,8 +55,9 @@ const TicketDetailsPage = () => {
       const result = await response.json();
       if (result.success) {
         fetchTicket(); // Refresh ticket details after adding a comment
+        toast.success('Ticket Replied successfully ');
       } else {
-        alert('Failed to add comment');
+        toast.error('Failed to add comment');
       }
     } catch (error) {
       console.error('Error adding comment:', error);

@@ -3,7 +3,7 @@ import TicketForm from '../../components/TicketForm';
 import Layout from './layout';
 import { useAuth } from '../../contexts/AuthContext'; // Make sure you have useAuth imported
 import { toast, ToastContainer } from 'react-toastify';
-
+import 'react-toastify/dist/ReactToastify.css';
 /**
  * User page to create a new ticket.
  */

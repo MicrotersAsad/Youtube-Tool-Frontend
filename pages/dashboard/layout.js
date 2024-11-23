@@ -326,7 +326,7 @@ const Layout = React.memo(({ children }) => {
 
 
             {/* Blog Main Menu Item with 0.3s Transition */}
-{user && (user.role === "admin" || user.role === "super_admin") && (
+            {user && (user.role === "admin" || user.role === "super_admin") && (
   <div className="">
     <p
       className={`flex items-center py-2 text-white text-sm px-6 cursor-pointer ${
@@ -340,12 +340,11 @@ const Layout = React.memo(({ children }) => {
           : "hover:bg-[#1d1e8e] hover:text-white"
       }`}
       onClick={() => {
-        if (isCollapsed && menuOpen === "blog") {
-          // If collapsed and already open, close the menu
+        if (menuOpen === "blog") {
           setMenuOpen("");
         } else {
-          // Otherwise, toggle the menu
-          toggleSidebarAndMenu("blog");
+          toggleMenu("blog");
+          if (isCollapsed) setIsCollapsed(false); // Expand sidebar if collapsed
         }
       }}
       style={{ transition: "all 0.3s ease" }}
@@ -370,32 +369,37 @@ const Layout = React.memo(({ children }) => {
       )}
     </p>
 
-    {/* Submenu */}
-    {menuOpen === "blog" && !isCollapsed && (
-      <div className="ml-6 mt-2 mb-1 overflow-hidden">
-        {[
-          { href: "/dashboard/categories", label: "Categories" },
-          { href: "/dashboard/all-blogs", label: "All Posts" },
-          { href: "/dashboard/blogs", label: "Add Post" },
-          { href: "/dashboard/authors", label: "Add Authors" },
-        ].map(({ href, label }, index) => (
-          <Link href={href} passHref key={index}>
-            <p
-              className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                isActiveRoute(href)
-                  ? "bg-[#1d1e8e] text-white"
-                  : "hover:bg-[#1d1e8e] hover:text-white"
-              }`}
-            >
-              <FaCircle className="mr-2 text-xs" />
-              {label}
-            </p>
-          </Link>
-        ))}
-      </div>
-    )}
+    {/* Submenu with Smooth Opening and Closing Animation */}
+    <div
+      className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
+        menuOpen === "blog" && !isCollapsed
+          ? "max-h-screen opacity-100 scale-y-100"
+          : "max-h-0 opacity-0 scale-y-0"
+      }`}
+    >
+      {[
+        { href: "/dashboard/categories", label: "Categories" },
+        { href: "/dashboard/all-blogs", label: "All Posts" },
+        { href: "/dashboard/blogs", label: "Add Post" },
+        { href: "/dashboard/authors", label: "Add Authors" },
+      ].map(({ href, label }, index) => (
+        <Link href={href} passHref key={index}>
+          <p
+            className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+              isActiveRoute(href)
+                ? "bg-[#1d1e8e] text-white"
+                : "hover:bg-[#1d1e8e] hover:text-white"
+            }`}
+          >
+            <FaCircle className="mr-2 text-xs" />
+            {label}
+          </p>
+        </Link>
+      ))}
+    </div>
   </div>
 )}
+
 
 
 {user && (user.role === "admin" || user.role === "super_admin") ? (
@@ -414,12 +418,11 @@ const Layout = React.memo(({ children }) => {
             : "hover:bg-[#1d1e8e] hover:text-white"
         }`}
         onClick={() => {
-          if (isCollapsed && menuOpen === "article") {
-            // If collapsed and already open, close the menu
+          if (menuOpen === "article") {
             setMenuOpen("");
           } else {
-            // Otherwise, toggle the menu
-            toggleSidebarAndMenu("article");
+            toggleMenu("article");
+            if (isCollapsed) setIsCollapsed(false); // Expand sidebar if collapsed
           }
         }}
         style={{ transition: "all 0.3s ease" }}
@@ -428,7 +431,7 @@ const Layout = React.memo(({ children }) => {
           className="mr-3 text-white"
           style={{
             fontSize: isCollapsed ? "1.3rem" : "1rem", // Adjust size dynamically
-            transition: "font-size 0.3s ease, margin-left 0.3s ease",
+            transition: "font-size 0.3s ease",
             marginLeft: isCollapsed ? "10px" : "0px", // Add margin-left when collapsed
           }}
         />
@@ -444,64 +447,67 @@ const Layout = React.memo(({ children }) => {
         )}
       </p>
 
-      {/* Dropdown Content */}
-      {menuOpen === "article" && !isCollapsed && (
-        <div
-          className="ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top"
-        >
-          <Link href="/dashboard/yt-categories" passHref>
-            <p
-              className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                isActiveRoute("/dashboard/yt-categories")
-                  ? "bg-[#1d1e8e] text-white"
-                  : "hover:bg-[#1d1e8e] hover:text-white"
-              }`}
-            >
-              <FaCircle className="mr-2 text-xs" />
-              Categories
-            </p>
-          </Link>
-          <Link href="/dashboard/all-article" passHref>
-            <p
-              className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                isActiveRoute("/dashboard/all-article")
-                  ? "bg-[#1d1e8e] text-white"
-                  : "hover:bg-[#1d1e8e] hover:text-white"
-              }`}
-            >
-              <FaCircle className="mr-2 text-xs" />
-              All Article
-            </p>
-          </Link>
-          <Link href="/dashboard/article" passHref>
-            <p
-              className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                isActiveRoute("/dashboard/article")
-                  ? "bg-[#1d1e8e] text-white"
-                  : "hover:bg-[#1d1e8e] hover:text-white"
-              }`}
-            >
-              <FaCircle className="mr-2 text-xs" />
-              Add Article
-            </p>
-          </Link>
-          <Link href="/dashboard/create-shortcode" passHref>
-            <p
-              className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-                isActiveRoute("/dashboard/create-shortcode")
-                  ? "bg-[#1d1e8e] text-white"
-                  : "hover:bg-[#1d1e8e] hover:text-white"
-              }`}
-            >
-              <FaCircle className="mr-2 text-xs" />
-              Create Shortcode
-            </p>
-          </Link>
-        </div>
-      )}
+      {/* Dropdown Content with Smooth Opening and Closing Animation */}
+      <div
+        className={`ml-6 mt-2 mb-1 overflow-hidden transform transition-all duration-700 ease-in-out origin-top ${
+          menuOpen === "article" && !isCollapsed
+            ? "max-h-screen opacity-100 scale-y-100"
+            : "max-h-0 opacity-0 scale-y-0"
+        }`}
+      >
+        <Link href="/dashboard/yt-categories" passHref>
+          <p
+            className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+              isActiveRoute("/dashboard/yt-categories")
+                ? "bg-[#1d1e8e] text-white"
+                : "hover:bg-[#1d1e8e] hover:text-white"
+            }`}
+          >
+            <FaCircle className="mr-2 text-xs" />
+            Categories
+          </p>
+        </Link>
+        <Link href="/dashboard/all-article" passHref>
+          <p
+            className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+              isActiveRoute("/dashboard/all-article")
+                ? "bg-[#1d1e8e] text-white"
+                : "hover:bg-[#1d1e8e] hover:text-white"
+            }`}
+          >
+            <FaCircle className="mr-2 text-xs" />
+            All Article
+          </p>
+        </Link>
+        <Link href="/dashboard/article" passHref>
+          <p
+            className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+              isActiveRoute("/dashboard/article")
+                ? "bg-[#1d1e8e] text-white"
+                : "hover:bg-[#1d1e8e] hover:text-white"
+            }`}
+          >
+            <FaCircle className="mr-2 text-xs" />
+            Add Article
+          </p>
+        </Link>
+        <Link href="/dashboard/create-shortcode" passHref>
+          <p
+            className={`relative mt-2 flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
+              isActiveRoute("/dashboard/create-shortcode")
+                ? "bg-[#1d1e8e] text-white"
+                : "hover:bg-[#1d1e8e] hover:text-white"
+            }`}
+          >
+            <FaCircle className="mr-2 text-xs" />
+            Create Shortcode
+          </p>
+        </Link>
+      </div>
     </div>
   </>
 ) : null}
+
 
 
             {user && (user.role === "admin" || user.role === "super_admin") ? (

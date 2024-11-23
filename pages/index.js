@@ -154,21 +154,30 @@ export default function Home({
 
   const processTags = (inputValue) => {
     const parts = inputValue
-      .split(/[,\.]/)
-      .map((part) => part.trim())
-      .filter((part) => part);
-    if (parts.length > 1) {
-      setTags([...tags, ...parts]);
-      setInput("");
+      .split(/[,.\n]/) // Comma, Dot, বা Newline দিয়ে ট্যাগ আলাদা করুন
+      .map((part) => part.trim()) // প্রতিটি অংশ ট্রিম করুন
+      .filter((part) => part && !tags.includes(part)); // ফাঁকা বা ডুপ্লিকেট ট্যাগ বাদ দিন
+  
+    if (parts.length > 0) {
+      setTags([...tags, ...parts]); // নতুন ট্যাগ অ্যাড করুন
+      setInput(""); // ইনপুট ক্লিয়ার করুন
     }
   };
+  
+  
+  
 
   const handleKeyDown = (event) => {
-    if (["Enter", ",", "."].includes(event.key)) {
+    if (event.key === "Enter" || event.key === "," || event.key === ".") {
+      // Enter, Comma বা Dot প্রেস করলে ট্যাগ প্রসেস হবে
       event.preventDefault();
       processTags(input.trim());
-    }
+    } 
   };
+  
+  
+  
+  
 
   const handleSelectAll = () => {
     const newSelection = !selectAll;
@@ -277,7 +286,9 @@ export default function Home({
                 messages: [
                   {
                     role: "system",
-                    content: t("generateTagsPrompt", { tags: tags.join(", ") }),
+                    content: `Generate a list of at least 10 SEO-friendly Title for keywords: "${tags.join(
+                      ", "
+                    )}".`,
                   },
                   { role: "user", content: tags.join(", ") },
                 ],
@@ -711,85 +722,97 @@ export default function Home({
           )}
 
           <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
-            <div className="keywords-input-container">
-              <div className="tags-container flex flex-wrap gap-2 mb-4">
-                {isLoading
-                  ? Array(3)
-                      .fill(0)
-                      .map((_, i) => (
-                        <Skeleton key={i} width={80} height={30} />
-                      ))
-                  : tags.map((tag, index) => (
-                      <span
-                        key={index}
-                        className="bg-gray-200 px-2 py-1 rounded-md flex items-center"
-                      >
-                        {tag}
-                        <span
-                          className="ml-2 cursor-pointer"
-                          onClick={() =>
-                            setTags(tags.filter((_, i) => i !== index))
-                          }
-                        >
-                          ×
-                        </span>
-                      </span>
-                    ))}
-              </div>
-              {isLoading ? (
-                <Skeleton height={40} width="100%" />
-              ) : (
-                <input
-                  type="text"
-                  placeholder={t("Add a keyword")}
-                  className="w-full p-2"
-                  value={input}
-                  onChange={handleInputChange}
-                  onKeyDown={handleKeyDown}
-                  required
-                />
-              )}
-            </div>
-
-            <div className="flex items-center mt-4 md:mt-0 ps-6 pe-6">
-              <button
-                className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-500"
-                type="button"
-                id="button-addon2"
-                onClick={generateTitles}
-                disabled={isLoading || tags.length === 0}
+          <div>
+      {/* Keywords Input Section */}
+      <div className="keywords-input-container">
+        <div className="tags-container flex flex-wrap gap-2 mb-4">
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} width={80} height={30} />
+            ))
+          ) : (
+            tags.map((tag, index) => (
+              <span
+                key={index}
+                className="bg-gray-200 px-2 py-1 rounded-md flex items-center"
               >
-                <span className="animate-spin mr-2">
-                  <svg
-                    aria-hidden="true"
-                    className="h-5 w-5"
-                    viewBox="0 0 512 512"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="white"
-                  >
-                    <path d="..."></path>
-                  </svg>
+                {tag}
+                <span
+                  className="ml-2 cursor-pointer text-red-500"
+                  onClick={() =>
+                    setTags(tags.filter((_, i) => i !== index))
+                  }
+                >
+                  ×
                 </span>
-                {isLoading ? t("Generating...") : t("Generate Tag")}
-              </button>
-              <div className="ms-auto">
-                {isLoading ? (
-                  <Skeleton width={30} height={30} circle />
-                ) : (
-                  <button
-                    className="flex items-center justify-center"
-                    onClick={saveChannel}
-                    style={{ color: buttonColors.save }}
-                  >
-                    <FaBookmark
-                      className={`text-lg ${
-                        isSaved ? "text-purple-600" : "text-red-500"
-                      }`}
-                    />
-                  </button>
-                )}
-              </div>
-            </div>
+              </span>
+            ))
+          )}
+        </div>
+
+        {isLoading ? (
+          <Skeleton height={40} width="100%" />
+        ) : (
+          <input
+            type="text"
+            placeholder="Add a keyword"
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            value={input}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            required
+          />
+        )}
+      </div>
+
+      {/* Buttons Section */}
+      <div className="flex items-center mt-4 ps-6 pe-6">
+        {/* Generate Titles Button */}
+        <button
+  className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-400"
+  type="button"
+  id="button-addon2"
+  onClick={generateTitles}
+  disabled={isLoading || tags.length === 0}
+>
+  {isLoading ? (
+    <>
+     <span className="animate-spin mr-2">
+  <svg
+    aria-hidden="true"
+    className="h-5 w-5"
+    viewBox="0 0 512 512"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="white"
+  >
+    <path d="M487.4 315.7l-42.6-24.6c4.3-23.2 4.3-47 0-70.2l42.6-24.6c4.9-2.8 7.1-8.6 5.5-14-11.1-35.6-30-67.8-54.7-94.6-3.8-4.1-10-5.1-14.8-2.3L380.8 110c-17.9-15.4-38.5-27.3-60.8-35.1V25.8c0-5.6-3.9-10.5-9.4-11.7-36.7-8.2-74.3-7.8-109.2 0-5.5 1.2-9.4 6.1-9.4 11.7V75c-22.2 7.9-42.8 19.8-60.8 35.1L88.7 85.5c-4.9-2.8-11-1.9-14.8 2.3-24.7 26.7-43.6 58.9-54.7 94.6-1.7 5.4.6 11.2 5.5 14L67.3 221c-4.3 23.2-4.3 47 0 70.2l-42.6 24.6c-4.9 2.8-7.1 8.6-5.5 14 11.1 35.6 30 67.8 54.7 94.6 3.8 4.1 10 5.1 14.8 2.3l42.6-24.6c17.9 15.4 38.5 27.3 60.8 35.1v49.2c0 5.6 3.9 10.5 9.4 11.7 36.7 8.2 74.3 7.8 109.2 0 5.5-1.2 9.4-6.1 9.4-11.7v-49.2c22.2-7.9 42.8-19.8 60.8-35.1l42.6 24.6c4.9 2.8 11 1.9 14.8-2.3 24.7-26.7 43.6-58.9 54.7-94.6 1.5-5.5-.7-11.3-5.6-14.1zM256 336c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z"></path>
+  </svg>
+</span>
+
+      Loading...
+    </>
+  ) : (
+    <>
+     <span className="animate-spin mr-2">
+  <svg
+    aria-hidden="true"
+    className="h-5 w-5"
+    viewBox="0 0 512 512"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="white"
+  >
+    <path d="M487.4 315.7l-42.6-24.6c4.3-23.2 4.3-47 0-70.2l42.6-24.6c4.9-2.8 7.1-8.6 5.5-14-11.1-35.6-30-67.8-54.7-94.6-3.8-4.1-10-5.1-14.8-2.3L380.8 110c-17.9-15.4-38.5-27.3-60.8-35.1V25.8c0-5.6-3.9-10.5-9.4-11.7-36.7-8.2-74.3-7.8-109.2 0-5.5 1.2-9.4 6.1-9.4 11.7V75c-22.2 7.9-42.8 19.8-60.8 35.1L88.7 85.5c-4.9-2.8-11-1.9-14.8 2.3-24.7 26.7-43.6 58.9-54.7 94.6-1.7 5.4.6 11.2 5.5 14L67.3 221c-4.3 23.2-4.3 47 0 70.2l-42.6 24.6c-4.9 2.8-7.1 8.6-5.5 14 11.1 35.6 30 67.8 54.7 94.6 3.8 4.1 10 5.1 14.8 2.3l42.6-24.6c17.9 15.4 38.5 27.3 60.8 35.1v49.2c0 5.6 3.9 10.5 9.4 11.7 36.7 8.2 74.3 7.8 109.2 0 5.5-1.2 9.4-6.1 9.4-11.7v-49.2c22.2-7.9 42.8-19.8 60.8-35.1l42.6 24.6c4.9 2.8 11 1.9 14.8-2.3 24.7-26.7 43.6-58.9 54.7-94.6 1.5-5.5-.7-11.3-5.6-14.1zM256 336c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z"></path>
+  </svg>
+</span>
+
+
+      Generate Title
+    </>
+  )}
+</button>
+        </div>
+      </div>
+    
 
             {/* Reaction Bar */}
             <div className="w-full flex items-center justify-between mt-4 p-3 bg-gray-100 rounded-md">
@@ -868,53 +891,47 @@ export default function Home({
 
       <div className="max-w-7xl mx-auto p-4">
         {/* Generated Titles Section */}
-        <div className="text-center my-4">
+        <div className="generated-titles-container">
           {generatedTitles.length > 0 && (
-            <div className="inline-block p-2 rounded-md bg-gray-200">
+            <div className="select-all-checkbox">
               <input
                 type="checkbox"
                 checked={selectAll}
                 onChange={handleSelectAll}
-                className="mr-2"
               />
-              <span>{t("selectAll")}</span>
+              <span>{t("Select All")}</span>
             </div>
+          )}
+          {generatedTitles.map((title, index) => (
+            <div key={index} className="title-checkbox">
+              <input
+                className="me-2"
+                type="checkbox"
+                checked={title.selected}
+                onChange={() => toggleTitleSelect(index)}
+              />
+              {title.text}
+              <FaCopy
+                className="copy-icon"
+                onClick={() => copyToClipboard(title.text)}
+              />
+            </div>
+          ))}
+          {generatedTitles.some((title) => title.selected) && (
+            <button className="btn btn-primary" onClick={copySelectedTitles}>
+              {t("Copy All Titles")} <FaCopy />
+            </button>
+          )}
+          {generatedTitles.some((title) => title.selected) && (
+            <button
+              className="btn btn-primary ms-2"
+              onClick={downloadSelectedTitles}
+            >
+              {t("Download Titles")} <FaDownload />
+            </button>
           )}
         </div>
 
-        <div className="generated-titles-container grid grid-cols-1 md:grid-cols-4 gap-4">
-          {isLoading
-            ? Array(8)
-                .fill(0)
-                .map((_, i) => (
-                  <Skeleton
-                    key={i}
-                    width="100%"
-                    height={40}
-                    className="rounded-md"
-                  />
-                ))
-            : generatedTitles.map((title, index) => (
-                <div
-                  key={index}
-                  className="flex items-center p-2 border rounded-md"
-                >
-                  <input
-                    className="mr-2"
-                    type="checkbox"
-                    checked={title.selected}
-                    onChange={() => toggleTitleSelect(index)}
-                  />
-                  {title.text.replace(/^\d+\.\s*/, "")}
-                  <FaCopy
-                    className="ml-2 cursor-pointer"
-                    onClick={() =>
-                      copyToClipboard(title.text.replace(/^\d+\.\s*/, ""))
-                    }
-                  />
-                </div>
-              ))}
-        </div>
 
         {/* Content Section */}
         <div className="content pt-6 pb-5">
