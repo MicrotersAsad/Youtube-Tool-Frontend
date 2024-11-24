@@ -1561,7 +1561,7 @@ const Layout = React.memo(({ children }) => {
             {/* Setting */}
             {user && (user.role === "admin" || user.role === "super_admin") ? (
               <>
-                <div className="mt-2">
+                <div className="mt-2 mb-5">
                   <Link
                     href="/dashboard/system-setting"
                     passHref
@@ -1588,7 +1588,7 @@ const Layout = React.memo(({ children }) => {
         {/* Bottom Fixed Section */}
         {/* Footer Text */}
         <div
-          className="text-center text-white font-bold pt-3 pb-3 rounded bg-[#071251] shadow text-xs"
+          className="text-center text-white font-bold mt-5  pb-3 rounded bg-[#071251] shadow text-xs"
           style={{
             position: "absolute",
             bottom: "10px",

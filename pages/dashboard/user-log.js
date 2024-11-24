@@ -109,7 +109,7 @@ const UserLog = () => {
             <div>
               <div className="overflow-x-auto">
                 <table className="min-w-full bg-white border border-gray-200">
-                  <thead className="bg-gradient-to-r from-blue-500 to-blue-700 text-white">
+                  <thead className="bg-[#071251] text-white">
                     <tr>
                       <th className="py-3 px-4 text-left text-xs font-normal uppercase tracking-wider">
                         User
@@ -306,7 +306,7 @@ const UserLog = () => {
         }
 
         th {
-          background: linear-gradient(to right, #3b82f6, #2563eb);
+          background-color:#071251;
           color: white;
           padding: 1rem;
           font-size: 0.85rem;
