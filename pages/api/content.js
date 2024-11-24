@@ -1,6 +1,6 @@
 import { connectToDatabase } from '../../utils/mongodb';
 import AWS from 'aws-sdk';
-
+import multiparty from 'multiparty';
 // AWS S3 কনফিগারেশন
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -133,37 +133,61 @@ const handlePost = async (req, res) => {
 
 const handlePut = async (req, res) => {
   try {
-    const { category, language } = req.query;
-    const { content, title, description } = req.body;
-    const faqs = req.body.faqs ? JSON.parse(req.body.faqs) : [];
-    const relatedTools = req.body.relatedTools ? JSON.parse(req.body.relatedTools) : [];
+    const form = new multiparty.Form();
 
-    if (!category || !content || !title || !description || !language) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
+    // Parse the form data
+    form.parse(req, async (err, fields, files) => {
+      if (err) {
+        return res.status(400).json({ message: 'Failed to parse form data', error: err.message });
+      }
 
-    const imageUrl = req.file ? (await uploadFileToS3(req.file)).Location : undefined;
+      // Extract query parameters
+      const { category, language } = req.query;
 
-    const translation = {
-      content,
-      title,
-      description,
-      ...(imageUrl && { image: imageUrl }),
-      faqs,
-      relatedTools,
-    };
+      // Extract fields
+      const content = fields.content ? fields.content[0] : null;
+      const title = fields.title ? fields.title[0] : null;
+      const description = fields.description ? fields.description[0] : null;
+      const faqs = fields.faqs ? JSON.parse(fields.faqs[0]) : [];
+      const relatedTools = fields.relatedTools ? JSON.parse(fields.relatedTools[0]) : [];
 
-    const { db } = await connectToDatabase();
-    const filter = { category };
-    const updateDoc = { $set: { [`translations.${language}`]: translation } };
-    const options = { upsert: true };
+      if (!category || !content || !title || !description || !language) {
+        return res.status(400).json({ message: 'Missing required fields' });
+      }
 
-    const result = await db.collection('content').updateOne(filter, updateDoc, options);
-    if (!result.matchedCount && !result.upsertedCount) {
-      return res.status(500).json({ message: 'Failed to update document' });
-    }
+      // Upload the file if provided
+      let imageUrl;
+      if (files.file && files.file[0]) {
+        const file = files.file[0];
+        const uploadResult = await uploadFileToS3({
+          originalname: file.originalFilename,
+          buffer: file.path,
+          mimetype: file.headers['content-type'],
+        });
+        imageUrl = uploadResult.Location;
+      }
 
-    res.status(200).json({ message: 'Document updated successfully' });
+      const translation = {
+        content,
+        title,
+        description,
+        ...(imageUrl && { image: imageUrl }),
+        faqs,
+        relatedTools,
+      };
+
+      const { db } = await connectToDatabase();
+      const filter = { category };
+      const updateDoc = { $set: { [`translations.${language}`]: translation } };
+      const options = { upsert: true };
+
+      const result = await db.collection('content').updateOne(filter, updateDoc, options);
+      if (!result.matchedCount && !result.upsertedCount) {
+        return res.status(500).json({ message: 'Failed to update document' });
+      }
+
+      res.status(200).json({ message: 'Document updated successfully' });
+    });
   } catch (error) {
     res.status(500).json({ message: 'Failed to handle PUT request', error: error.message });
   }

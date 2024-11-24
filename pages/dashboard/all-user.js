@@ -6,7 +6,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FaTrashAlt, FaTimes, FaBan, FaEdit, FaSearch, FaUser } from 'react-icons/fa';
+import { FaTrashAlt, FaTimes, FaBan, FaEdit, FaSearch, FaUser,FaEllipsisV,FaEnvelope  } from 'react-icons/fa';
 
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
@@ -23,10 +23,14 @@ const AllUsers = () => {
   const [showGeneralMessageModal, setShowGeneralMessageModal] = useState(false);
   const [generalMessage, setGeneralMessage] = useState('');
   const usersPerPage = 10;
-
+  const [dropdownOpen, setDropdownOpen] = useState(null);
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  const toggleDropdown = (userId) => {
+    setDropdownOpen((prev) => (prev === userId ? null : userId));
+  };
 
   useEffect(() => {
     setFilteredUsers(users.reverse()); // reverse order
@@ -359,7 +363,7 @@ const AllUsers = () => {
                     <td className="py-2 px-3 text-sm text-gray-500">
                       {new Date(user.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="py-2 px-3 text-center flex justify-center space-x-2">
+                    {/* <td className="py-2 px-3 text-center flex justify-center space-x-2">
   <button
     className="text-red-500 p-1 rounded-full hover:text-red-600 transition duration-200"
     onClick={() => openBanModal(user)}
@@ -381,7 +385,44 @@ const AllUsers = () => {
   >
     <FaUser />
   </button>
-</td>
+</td> */}
+ <td className="py-2 px-4 relative">
+                    <button
+                      className="text-gray-700 hover:text-gray-900"
+                      onClick={() => toggleDropdown(user._id)}
+                    >
+                      <FaEllipsisV />
+                    </button>
+                    {dropdownOpen === user._id && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg">
+                        <button
+                          className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left"
+                          onClick={() => handleEditUser(user)}
+                        >
+                          <FaEdit className="mr-2" /> Edit
+                        </button>
+                        <button
+                          className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setShowBanModal(true);
+                          }}
+                        >
+                          <FaBan className="mr-2" /> Ban
+                        </button>
+                        <button
+                          className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setShowMessageModal(true);
+                          }}
+                        >
+                          <FaEnvelope className="mr-2" /> Send Message
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                
 
                   </tr>
                 ))}
@@ -401,7 +442,7 @@ const AllUsers = () => {
       >
         <FaTimes size={24} />
       </button>
-      <h2 className="text-xl font-semibold mb-4">Send Message to {selectedUser?.username}</h2>
+      <h2 className="text-xl font-semibold mb-4">Send Notification to {selectedUser?.username}</h2>
       <textarea
         value={generalMessage}
         onChange={(e) => setGeneralMessage(e.target.value)}
@@ -411,13 +452,13 @@ const AllUsers = () => {
       />
       <div className="flex justify-end space-x-4">
         <button
-          className="bg-gray-500 px-4 py-2 rounded-md hover:bg-gray-600 transition duration-200"
+          className="bg-red-500 px-4 py-2 rounded-md hover:bg-red-600 text-white transition duration-200"
           onClick={() => setShowGeneralMessageModal(false)}
         >
           Cancel
         </button>
         <button
-          className="bg-blue-500 px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"
+          className="bg-blue-500 px-4 py-2 text-white rounded-md hover:bg-blue-600 transition duration-200"
           onClick={handleSendMessageToUser}
         >
           Send Message
@@ -506,13 +547,13 @@ const AllUsers = () => {
                 />
                 <div className="flex justify-end space-x-4">
                   <button
-                    className="bg-gray-500  px-4 py-2 rounded-md hover:bg-gray-600 transition duration-200"
+                     className="bg-[#071251] px-4 py-2 rounded-md hover:bg-green-600 text-white transition duration-200"
                     onClick={() => setShowBanModal(false)}
                   >
                     Cancel
                   </button>
                   <button
-                    className="bg-red-500  px-4 py-2 rounded-md hover:bg-red-600 transition duration-200"
+                    className="bg-red-500 px-4 py-2 rounded-md hover:bg-red-600 text-white transition duration-200"
                     onClick={handleBanUser}
                   >
                     Ban User
@@ -580,13 +621,13 @@ const AllUsers = () => {
                 )}
                 <div className="flex justify-end space-x-4">
                   <button
-                    className="bg-gray-500  px-4 py-2 rounded-md hover:bg-gray-600 transition duration-200"
+                    className="bg-red-500  px-4 py-2 text-white rounded-md hover:bg-red-600 transition duration-200"
                     onClick={() => setEditUser(null)}
                   >
                     Cancel
                   </button>
                   <button
-                    className="bg-blue-500  px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"
+                    className="bg-green-500 text-white  px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"
                     onClick={handleUpdateUser}
                   >
                     Update User

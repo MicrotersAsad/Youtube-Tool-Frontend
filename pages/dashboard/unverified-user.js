@@ -18,7 +18,7 @@ const Users = () => {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [sendingAll, setSendingAll] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
-  
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
@@ -88,27 +88,60 @@ const Users = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`/api/user?id=${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
+  // const handleDelete = async (id) => {
+  //   if (window.confirm('Are you sure you want to delete this user?')) {
+  //     try {
+  //       const token = localStorage.getItem('token');
+  //       const response = await fetch(`/api/user?id=${id}`, {
+  //         method: 'DELETE',
+  //         headers: {
+  //           'Authorization': `Bearer ${token}`,
+  //         },
+  //       });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText);
-        }
+  //       if (!response.ok) {
+  //         const errorText = await response.text();
+  //         throw new Error(errorText);
+  //       }
 
-        setUsers(users.filter((user) => user._id !== id));
-        toast.success('User deleted successfully!');
-      } catch (error) {
-        toast.error('Failed to delete user');
+  //       setUsers(users.filter((user) => user._id !== id));
+  //       toast.success('User deleted successfully!');
+  //     } catch (error) {
+  //       toast.error('Failed to delete user');
+  //     }
+  //   }
+  // };
+    // Handle delete modal actions
+    const openDeleteModal = (user) => {
+      setSelectedUser(user);
+      setShowDeleteModal(true);
+    };
+  
+    const closeDeleteModal = () => {
+      setSelectedUser(null);
+      setShowDeleteModal(false);
+    };
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+
+    try {
+      const response = await fetch(`/api/user?id=${selectedUser._id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete user');
       }
+
+      setUsers((prevUsers) => prevUsers.filter((u) => u._id !== selectedUser._id));
+      toast.success('User deleted successfully!');
+    } catch (error) {
+      toast.error('Failed to delete user');
+    } finally {
+      closeDeleteModal();
     }
   };
 
@@ -237,15 +270,15 @@ const Users = () => {
                       <td className="py-2 px-4 mt-3 text-center d-flex">
                         {user.role !== 'admin' && (
                           <>
-                            <button
-                              className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-200"
-                              onClick={() => handleDelete(user._id)}
-                            >
-                              <FaTrashAlt />
-                            </button>
+                           <button
+                          className="text-red-500 p-2 rounded-full hover:text-red-600 transition duration-200"
+                          onClick={() => openDeleteModal(user)}
+                        >
+                          <FaTrashAlt />
+                        </button>
 
                             <button
-                              className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-200 ml-2"
+                              className="text-green-500  px-4 py-2 rounded-md hover:text-green-600 transition duration-200 ml-2"
                               onClick={() => openEmailModal(user)}
                             >
                               <FaEnvelope />
@@ -297,6 +330,31 @@ const Users = () => {
           </div>
         )}
       </div>
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+              <h2 className="text-xl font-semibold mb-4 text-gray-800">Confirm Deletion</h2>
+              <p className="mb-6 text-gray-600">
+                Are you sure you want to delete this user? This action cannot be undone.
+              </p>
+              <div className="flex justify-end space-x-4">
+                <button
+                  className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                  onClick={closeDeleteModal}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                  onClick={handleDeleteUser}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       {/* Modal for sending email */}
       {showEmailModal && (
