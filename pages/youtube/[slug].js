@@ -28,6 +28,9 @@ const BlogPost = ({
   const [loadingRelatedBlogs, setLoadingRelatedBlogs] = useState(true); // Loading state for related blogs
 
   const translation = blog?.translations?.[locale];
+
+
+  
   useEffect(() => {
     const fetchRelatedBlogs = async () => {
       try {
@@ -87,8 +90,8 @@ const BlogPost = ({
     ? format(new Date(blog.createdAt), "MMMM dd, yyyy")
     : "";
 
-  const renderMetaTitle = () => translation.title || t("Blog Post");
-  const renderMetaDescription = () => translation.description || t("Read this amazing blog post.");
+  const renderMetaTitle = () => translation.metaTitle || t("Blog Post");
+  const renderMetaDescription = () => translation.metaDescription || t("Read this amazing blog post.");
   const renderMetaImage = () => translation.image || "/default.jpg";
 
   const renderContentWithShortcodes = () => {

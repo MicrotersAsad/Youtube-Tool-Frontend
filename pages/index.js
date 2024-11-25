@@ -676,7 +676,7 @@ export default function Home({
 
         <div className="max-w-7xl mx-auto p-4">
           <h2 className="text-3xl text-white">
-            {isLoading ? <Skeleton width={250} /> : t("YouTube Tag Generator")}
+            {isLoading ? <Skeleton width={250} /> : t("YouTube Title Generator")}
           </h2>
 
           <ToastContainer />

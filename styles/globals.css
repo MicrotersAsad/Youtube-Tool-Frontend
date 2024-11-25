@@ -1199,3 +1199,8 @@ div .content article img {
   animation: ring 1s infinite ease;
 }
 
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  z-index: 10;
+}
