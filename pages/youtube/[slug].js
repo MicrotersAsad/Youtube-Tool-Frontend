@@ -29,14 +29,14 @@ const BlogPost = ({
 
   const translation = blog?.translations?.[locale];
 
-
-  
   useEffect(() => {
     const fetchRelatedBlogs = async () => {
       try {
-        
-        
-        const response = await fetch('/api/youtube');
+        // Setting the initial page and limit
+        const page = 1; // Start from page 1
+        const limit = 300; // Fetch 30 blogs at a time
+  
+        const response = await fetch(`/api/youtube?page=${page}&limit=${limit}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -48,6 +48,7 @@ const BlogPost = ({
           const allBlogs = data.data;
           console.log("All blogs:", allBlogs);
   
+          // Filter out the current blog and match the category of related blogs
           const filteredBlogs = allBlogs.filter(
             (b) =>
               b._id !== blog._id &&
@@ -73,6 +74,8 @@ const BlogPost = ({
       fetchRelatedBlogs();
     }
   }, [blog, locale]);
+  
+  
   
 
   if (!translation) {
@@ -152,9 +155,9 @@ const BlogPost = ({
                   <ClipLoader size={30} color={"#123abc"} />
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-1">
                   {relatedBlogs.length > 0 ? (
-                    relatedBlogs.map((relatedBlog, index) => {
+                    relatedBlogs.slice(0,30).map((relatedBlog, index) => {
                       const relatedTranslation = relatedBlog.translations[locale];
                       if (!relatedTranslation) return null;
 
