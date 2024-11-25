@@ -28,6 +28,10 @@ function Register() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [sitekey, setSiteKey] = useState(null);
+  const [isLoading,setIsLoading]=useState(false)
+  const onRecaptchaChange = (token) => {
+    setRecaptchaToken(token);
+  };
   useEffect(() => {
     const fetchConfigs = async () => {
       try {

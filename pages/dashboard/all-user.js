@@ -355,9 +355,9 @@ const AllUsers = () => {
                       </td>
                       <td className="py-2 px-4 border-b text-center">
   {user?.verified ? (
-    <span className="text-green-500 font-semibold">Success</span>
+    <span className="text-green-500 font-semibold text-sm">Success</span>
   ) : (
-    <span className="text-red-500 font-semibold">False</span>
+    <span className="text-red-500 font-semibold text-sm">False</span>
   )}
 </td>
 
