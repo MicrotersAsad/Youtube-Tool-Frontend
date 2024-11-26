@@ -89,9 +89,9 @@ export default async function handler(req, res) {
       updatedAt: new Date(),
     };
 
+    // Only add profileImage if the file exists
     if (req.file) {
-      // Use S3 file URL for the uploaded image
-      updateData.profileImage = req.file.location;
+      updateData.profileImage = req.file.location; // Store the image URL from S3
     }
 
     // Update the user document in MongoDB
@@ -104,7 +104,12 @@ export default async function handler(req, res) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    res.status(200).json({ success: true, message: 'User updated successfully', imageUrl: req.file.location });
+    // Send a success response
+    res.status(200).json({
+      success: true,
+      message: 'User updated successfully',
+      imageUrl: req.file ? req.file.location : null, // Return the image URL if available
+    });
   } catch (error) {
     console.error('Error updating user:', error.message);
     res.status(500).json({ success: false, message: error.message });

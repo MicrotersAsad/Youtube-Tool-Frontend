@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import "../public/laraberg.css";
 import nextI18NextConfig from "../next-i18next.config";
+import { UserActionProvider } from "../contexts/UserActionContext";
 
 function MyApp({ Component, pageProps }) {
   const [tawkConfig, setTawkConfig] = useState(null);
@@ -145,9 +146,11 @@ function MyApp({ Component, pageProps }) {
 
       <AuthProvider>
         <ContentProvider>
+        <UserActionProvider>
           {!router.pathname.includes("/dashboard") && <Navbar />}
-          <Component {...pageProps} />
+          <Component {...pageProps}  />
           {!router.pathname.includes("/dashboard") && <Footer />}
+          </UserActionProvider>
         </ContentProvider>
       </AuthProvider>
 
