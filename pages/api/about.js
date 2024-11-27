@@ -1,6 +1,23 @@
+
 import { connectToDatabase } from '../../utils/mongodb';
 
+// Authorization middleware
+function checkAuthorization(req) {
+  const token = req.headers.authorization?.split(' ')[1]; // Expecting 'Bearer <token>'
+  const validToken = process.env.AUTH_TOKEN; // Token stored in .env file
+
+  if (!token || token !== validToken) {
+    return false; // Unauthorized
+  }
+  return true; // Authorized
+}
+
 export default async function handler(req, res) {
+  // Check Authorization
+  if (!checkAuthorization(req)) {
+    return res.status(401).json({ message: 'You Are Hacker! I am Your Father' });
+  }
+
   if (req.method === 'POST') {
     try {
       const { content, language, metaTitle, metaDescription } = req.body;

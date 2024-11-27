@@ -1271,12 +1271,23 @@ export async function getServerSideProps({ req, locale }) {
   const host = req.headers.host || "your-default-domain.com";
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || `${protocol}://${host}`;
   const contentApiUrl = `${baseUrl}/api/content?category=tagGenerator&language=${locale}`;
+  console.log(contentApiUrl);
+  
   const headerApiUrl = `${baseUrl}/api/heading`;
+
+  const AUTH_TOKEN = process.env.AUTH_TOKEN; // Authorization token from .env
 
   try {
     const [contentResponse, headerResponse] = await Promise.all([
-      fetch(contentApiUrl),
-      fetch(headerApiUrl),
+      fetch(contentApiUrl, {
+        headers: {
+          'Authorization': `Bearer ${AUTH_TOKEN}`, // Add Authorization header
+          'Content-Type': 'application/json',
+        },
+      }),
+      fetch(headerApiUrl, {
+      
+      }),
     ]);
 
     // Fetching content and header data with fallback
@@ -1348,3 +1359,4 @@ export async function getServerSideProps({ req, locale }) {
     };
   }
 }
+

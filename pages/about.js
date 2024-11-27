@@ -1,4 +1,5 @@
-// pages/about.js
+
+// // pages/about.js
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Head from 'next/head';
 import React from 'react';
@@ -29,9 +30,7 @@ function About({ existingContent, metaTitle, metaDescription, metaUrl, hreflangs
 
         {/* Twitter Meta Tags */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:domain" content={metaUrl
-                .replace("/about", "")}
-            />
+        <meta name="twitter:domain" content={metaUrl.replace("/about", "")} />
         <meta property="twitter:url" content={metaUrl} />
         <meta name="twitter:title" content={metaTitle} />
         <meta name="twitter:description" content={metaDescription} />
@@ -51,12 +50,14 @@ function About({ existingContent, metaTitle, metaDescription, metaUrl, hreflangs
       </Head>
       <div className="mt-10">
         <h1 className="text-center">About Us</h1>
-        <div dangerouslySetInnerHTML={{ __html: existingContent }} style={{ listStyleType: 'none' }}></div>
+        <div
+          dangerouslySetInnerHTML={{ __html: existingContent }}
+          style={{ listStyleType: 'none' }}
+        ></div>
       </div>
     </div>
   );
 }
-
 
 export async function getServerSideProps({ req, locale }) {
   const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
@@ -64,13 +65,20 @@ export async function getServerSideProps({ req, locale }) {
   const baseUrl = `${protocol}://${host}`;
   const aboutApiUrl = `${baseUrl}/api/about`;
 
+  // Authorization Header
+  const authorizationToken = process.env.AUTH_TOKEN; // Store the token in your .env file
+
   // Prepare hreflangs based on actual content availability
   const hreflangs = [];
 
   for (const lang of i18n.locales) {
     const url = `${aboutApiUrl}?lang=${lang}`;
-    const response = await fetch(url);
-    
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${authorizationToken}`,
+      },
+    });
+
     if (response.ok) {
       // If content exists for this language, add to hreflangs
       hreflangs.push({
@@ -90,7 +98,12 @@ export async function getServerSideProps({ req, locale }) {
 
   // Fetch the content for the requested locale
   const currentLocaleUrl = `${aboutApiUrl}?lang=${locale}`;
-  const contentResponse = await fetch(currentLocaleUrl);
+  const contentResponse = await fetch(currentLocaleUrl, {
+    headers: {
+      Authorization: `Bearer ${authorizationToken}`,
+    },
+  });
+
   const contentData = contentResponse.ok ? await contentResponse.json() : {};
 
   return {
@@ -106,3 +119,4 @@ export async function getServerSideProps({ req, locale }) {
 }
 
 export default About;
+

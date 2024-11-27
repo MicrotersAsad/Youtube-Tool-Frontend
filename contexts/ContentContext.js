@@ -8,9 +8,16 @@ export const useContent = () => useContext(ContentContext);
 
 export const fetchContent = async (category, locale, host, protocol, setLoading) => {
   setLoading(true);
+  const AUTH_TOKEN = process.env.AUTH_TOKEN; // Authorization token from .env
+
   try {
     const apiUrl = `${protocol}://${host}/api/content?category=${category}&language=${locale}`;
-    const contentResponse = await fetch(apiUrl);
+    const contentResponse = await fetch(apiUrl, {
+      headers: {
+        'Authorization': `Bearer ${AUTH_TOKEN}`, // Add Authorization header
+        'Content-Type': 'application/json',
+      },
+    });
 
     if (!contentResponse.ok) {
       throw new Error('Failed to fetch content');
@@ -80,9 +87,16 @@ export const fetchContent = async (category, locale, host, protocol, setLoading)
 
 export const fetchReviews = async (tool, host, protocol, setLoading) => {
   setLoading(true);
+  const AUTH_TOKEN = process.env.AUTH_TOKEN; // Authorization token from .env
+
   try {
     const apiUrl = `${protocol}://${host}/api/reviews?tool=${tool}`;
-    const response = await fetch(apiUrl);
+    const response = await fetch(apiUrl, {
+      headers: {
+        'Authorization': `Bearer ${AUTH_TOKEN}`, // Add Authorization header
+        'Content-Type': 'application/json',
+      },
+    });
 
     if (!response.ok) throw new Error('Failed to fetch reviews');
 

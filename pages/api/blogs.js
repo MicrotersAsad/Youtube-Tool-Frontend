@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { connectToDatabase } from '../../utils/mongodb';
 import multer from 'multer';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client } from '@aws-sdk/client-s3';
 import multerS3 from 'multer-s3';
 
 export const config = {
@@ -10,7 +10,7 @@ export const config = {
   },
 };
 
-// Configure AWS S3 v3
+// Configure AWS S3
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
   credentials: {
@@ -33,7 +33,7 @@ const upload = multer({
       cb(null, { fieldName: file.fieldname });
     },
     key: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
       cb(null, `uploads/${uniqueSuffix}-${file.originalname}`);
     },
   }),
@@ -50,19 +50,25 @@ const runMiddleware = (req, res, fn) => {
   });
 };
 
-const createSlug = (title) => {
-  return title
-    .toString()
-    .toLowerCase()
-    .replace(/\s+/g, '-') // Replace spaces with -
-    .replace(/[^\w-]+/g, '') // Remove all non-word characters
-    .replace(/--+/g, '-') // Replace multiple - with single -
-    .replace(/^-+/, '') // Trim - from start of text
-    .replace(/-+$/, ''); // Trim - from end of text
+// Authorization Middleware
+const checkAuthorization = (req) => {
+  const token = req.headers.authorization?.split(' ')[1]; // Bearer <token>
+  const validToken = process.env.AUTH_TOKEN; // Stored in .env
+
+  if (!token || token !== validToken) {
+    return false; // Unauthorized
+  }
+  return true; // Authorized
 };
 
 export default async function handler(req, res) {
   const { method, query } = req;
+
+  // Authorization Check
+  if (!checkAuthorization(req)) {
+    return res.status(401).json({ message: 'You Are Hacker! I am Your Father' });
+  }
+
   let db, client;
 
   try {
