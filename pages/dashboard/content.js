@@ -73,12 +73,23 @@ function Content() {
 
   const fetchContent = async () => {
     try {
-      const response = await fetch(`/api/content?category=${selectedCategory}&language=${selectedLanguage}`);
+      const response = await fetch(
+        `/api/content?category=${selectedCategory}&language=${selectedLanguage}`, 
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer AZ-fc905a5a5ae08609ba38b046ecc8ef00`, // Add Authorization header
+            'Content-Type': 'application/json', // Optional: Include Content-Type if needed
+          },
+        }
+      );
+  
       if (!response.ok) {
         throw new Error('Failed to fetch content');
       }
+  
       const data = await response.json();
-
+  
       if (data?.translations?.[selectedLanguage]) {
         const contentData = data.translations[selectedLanguage].content || '';
         const faqsData = data.translations[selectedLanguage].faqs || [];
@@ -86,7 +97,7 @@ function Content() {
         const metatitle = data.translations[selectedLanguage].title || '';
         const metaDescription = data.translations[selectedLanguage].description || '';
         const imageUrl = data.translations[selectedLanguage].image || '';
-
+  
         setQuillContent(contentData);
         setExistingContent(contentData);
         setTitle(metatitle);
@@ -109,6 +120,7 @@ function Content() {
       setAvailableLanguages([]);
     }
   };
+  
 
   const clearFields = () => {
     setQuillContent('');
@@ -125,7 +137,7 @@ function Content() {
   const handleSubmit = useCallback(async () => {
     try {
       const method = isEditing ? 'PUT' : 'POST';
-
+  
       // Prepare form data
       const formData = new FormData();
       formData.append('content', quillContent);
@@ -137,17 +149,23 @@ function Content() {
       }
       formData.append('faqs', JSON.stringify(faqs));
       formData.append('relatedTools', JSON.stringify(relatedTools));
-
-      const response = await fetch(`/api/content?category=${selectedCategory}&language=${selectedLanguage}`, {
-        method,
-        body: formData,
-      });
-
+  
+      const response = await fetch(
+        `/api/content?category=${selectedCategory}&language=${selectedLanguage}`, 
+        {
+          method,
+          headers: {
+            'Authorization': `Bearer AZ-fc905a5a5ae08609ba38b046ecc8ef00`, // Add Authorization header
+          },
+          body: formData,
+        }
+      );
+  
       if (!response.ok) {
         const errorMessage = await response.text();
         throw new Error(`Failed to post content: ${errorMessage}`);
       }
-
+  
       // Handle success
       setError(null);
       setExistingContent(quillContent);
@@ -157,8 +175,19 @@ function Content() {
       console.error('Error posting content:', error.message);
       setError(error.message);
     }
-  }, [quillContent, selectedCategory, selectedLanguage, isEditing, title, description, image, faqs, relatedTools, existingImage]);
-
+  }, [
+    quillContent, 
+    selectedCategory, 
+    selectedLanguage, 
+    isEditing, 
+    title, 
+    description, 
+    image, 
+    faqs, 
+    relatedTools, 
+    existingImage,
+  ]);
+  
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);

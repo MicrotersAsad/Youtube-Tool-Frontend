@@ -1,9 +1,17 @@
 import multer from 'multer';
+import AWS from 'aws-sdk';
 import fs from 'fs';
 import path from 'path';
 import { ObjectId } from 'mongodb';
 import { connectToDatabase } from '../../utils/mongodb';
 import { slugify } from '../../utils/slugify'; // Ensure this utility function exists
+
+// AWS S3 Configuration
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION,
+});
 
 const sanitizeFilename = (filename) => {
   const name = filename.substring(0, filename.lastIndexOf('.'));
@@ -16,9 +24,10 @@ const sanitizeFilename = (filename) => {
   return sanitizedBaseName + extension;
 };
 
+// Multer Configuration for Temporary Storage
 const upload = multer({
   storage: multer.diskStorage({
-    destination: './public/uploads',
+    destination: './tmp/uploads',
     filename: (req, file, cb) => {
       const sanitizedFilename = sanitizeFilename(file.originalname);
       cb(null, sanitizedFilename);
@@ -43,6 +52,18 @@ export const config = {
   },
 };
 
+// Upload File to S3
+const uploadFileToS3 = async (filePath, filename) => {
+  const fileContent = fs.readFileSync(filePath);
+  const params = {
+    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Key: `uploads/${Date.now()}-${filename}`,
+    Body: fileContent,
+    ContentType: 'image/jpeg', // or any other content type
+  };
+  return s3.upload(params).promise();
+};
+
 const handler = async (req, res) => {
   const { db } = await connectToDatabase();
 
@@ -53,12 +74,17 @@ const handler = async (req, res) => {
 
     try {
       const sanitizedTitle = slugify(title || req.file.originalname);
-      const filePath = path.join(process.cwd(), 'public/uploads', req.file.filename);
-      const url = `/uploads/${req.file.filename}`;
+      const filePath = path.join(process.cwd(), 'tmp/uploads', req.file.filename);
+
+      // Upload File to S3
+      const uploadResult = await uploadFileToS3(filePath, req.file.filename);
+
+      // After uploading to S3, delete the local temporary file
+      fs.unlinkSync(filePath);
 
       const imageMetadata = {
         title: title || req.file.originalname,
-        url: url,
+        url: uploadResult.Location, // S3 URL
         uploadDate: new Date(),
       };
 
@@ -80,9 +106,7 @@ const handler = async (req, res) => {
         return res.status(404).json({ message: 'Image not found' });
       }
 
-      const filePath = path.join(process.cwd(), 'public', image.url);
-      fs.unlinkSync(filePath);
-
+      // Only delete metadata from database, do not delete file from S3
       await db.collection('images').deleteOne({ _id: new ObjectId(id) });
 
       res.status(200).json({ message: 'Image deleted successfully' });

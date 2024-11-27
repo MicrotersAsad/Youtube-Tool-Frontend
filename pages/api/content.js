@@ -34,7 +34,7 @@ function authMiddleware(req, res) {
   const authHeader = req.headers['authorization'];
 
   if (!authHeader) {
-    res.status(401).json({ message: 'Authorization header is missing' });
+    res.status(401).json({ message: 'ok' });
     return false;
   }
 

@@ -86,11 +86,25 @@ export default function Home({
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const token = process.env.AUTH_TOKEN  // Replace with the actual token or method to get it
+  
         const response = await fetch(
-          `/api/content?category=tagGenerator&language=${i18n.language}`
+          `/api/content?category=tagGenerator&language=${i18n.language}`,
+          {
+            method: "GET",  // Default method is GET, but you can specify it explicitly
+            headers: {
+              "Authorization": `Bearer ${token}`,  // Add Authorization header
+              "Content-Type": "application/json", // Optional, based on your API requirements
+            },
+          }
         );
+  
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+  
         const data = await response.json();
-
+  
         setLikes(data.reactions.likes || 0);
         setUnlikes(data.reactions.unlikes || 0);
       } catch (error) {
@@ -98,8 +112,10 @@ export default function Home({
         toast.error("Failed to fetch content");
       }
     };
+  
     fetchData();
   }, [i18n.language]);
+  
   const closeModal = () => setModalVisible(false);
   useEffect(() => {
     // ডেটা লোড হয়ে গেলে isLoading স্টেট false করে দেয়
@@ -286,7 +302,7 @@ export default function Home({
                 messages: [
                   {
                     role: "system",
-                    content: `Generate a list of at least 10 SEO-friendly Title for keywords: "${tags.join(
+                    content: `Generate a list of at least 10 SEO-friendly Tag for keywords: "${tags.join(
                       ", "
                     )}".`,
                   },
@@ -676,7 +692,7 @@ export default function Home({
 
         <div className="max-w-7xl mx-auto p-4">
           <h2 className="text-3xl text-white">
-            {isLoading ? <Skeleton width={250} /> : t("YouTube Title Generator")}
+            {isLoading ? <Skeleton width={250} /> : t("YouTube Tag Generator")}
           </h2>
 
           <ToastContainer />
@@ -806,7 +822,7 @@ export default function Home({
 </span>
 
 
-      Generate Title
+      Generate Tag
     </>
   )}
 </button>
