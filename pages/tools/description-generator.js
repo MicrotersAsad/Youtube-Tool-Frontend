@@ -70,19 +70,34 @@ const YouTubeDescriptionGenerator = ({ meta = [], faqList = [], relatedTools = [
     userProfile: "",
   });
   const router = useRouter();
-
   useEffect(() => {
     const fetchContent = async () => {
       try {
         const language = i18n.language;
-        const response = await fetch(`/api/content?category=DescriptionGenerator&language=${language}`);
-        
+  
+        // Retrieve the authentication token from localStorage (or any other storage mechanism you're using)
+        const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+        if (!token) {
+          throw new Error('You are not authenticated. Please log in.');
+        }
+  
+        // Make the fetch request with the authorization token in the headers
+        const response = await fetch(`/api/content?category=DescriptionGenerator&language=${language}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,  // Attach the token as a Bearer token
+          },
+        });
+  
         if (!response.ok) throw new Error("Failed to fetch content");
+        
         const data = await response.json();
         console.log(data);
-       
+  
+        // Set state based on the fetched data
         setLikes(data.reactions.likes || 0);
         setUnlikes(data.reactions.unlikes || 0);
+  
       } catch (error) {
         console.error("Error fetching content:", error);
         toast.error("Failed to fetch content");
@@ -91,6 +106,7 @@ const YouTubeDescriptionGenerator = ({ meta = [], faqList = [], relatedTools = [
   
     fetchContent();
   }, [i18n.language]);
+  
   useEffect(() => {
     fetchReviews();
   }, [i18n.language]);
@@ -883,19 +899,17 @@ export async function getServerSideProps({ req, locale }) {
 
   try {
     // Authorization token
-    const authToken = process.env.AUTH_TOKEN; // Ensure AUTH_TOKEN is set in your environment
+    const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
 
     // Fetch content and header data in parallel
     const [contentResponse, headerResponse] = await Promise.all([
       fetch(contentApiUrl, {
         headers: {
-          Authorization: `Bearer ${authToken}`,
+          Authorization: `Bearer ${token}`,
         },
       }),
       fetch(headerApiUrl, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
+        
       }),
     ]);
 

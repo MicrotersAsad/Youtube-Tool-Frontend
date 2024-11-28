@@ -23,7 +23,9 @@ import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
-const KeywordSearch = ({ meta, faqs, relatedTools, existingContent, reactions,hreflangs  }) => {
+const KeywordSearch = ({ meta, faqList, relatedTools, existingContent, reactions,hreflangs  }) => {
+  console.log(existingContent);
+  
   const [keyword, setKeyword] = useState("");
   const [relatedKeywords, setRelatedKeywords] = useState(null);
   const [googleSuggestionKeywords, setGoogleSuggestionKeywords] = useState(null);
@@ -497,7 +499,7 @@ const KeywordSearch = ({ meta, faqs, relatedTools, existingContent, reactions,hr
   {JSON.stringify({
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: faqs.map((faq) => ({
+    mainEntity: faqList.map((faq) => ({
       "@type": "Question",
       name: faq.question,
       acceptedAnswer: {
@@ -777,7 +779,7 @@ Search
               {t('Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us')}
             </p>
             <div className="faq-grid">
-              {faqs?.map((faq, index) => (
+              {faqList?.map((faq, index) => (
                 <div key={index} className="faq-item">
                   <span id={`accordion-${index}`} className="target-fix"></span>
                   <a
@@ -992,7 +994,7 @@ Search
             </div>
           </div>
         )}
-        {/* Related Tools Section */}
+        {/* Related Tools Section
         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
           <h2 className="text-2xl font-bold mb-5 text-center">{t("Related Tools")}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1013,7 +1015,7 @@ Search
               </a>
             ))}
           </div>
-        </div>
+        </div> */}
         {/* End of Related Tools Section */}
         </div>
     </>
@@ -1021,120 +1023,119 @@ Search
 };
 
 export async function getServerSideProps({ req, locale }) {
-  // Determine protocol
+  // Extract protocol and host, fallback to defaults if necessary
   const protocol =
     req.headers["x-forwarded-proto"]?.split(",")[0] ||
-    (req.connection.encrypted ? "https" : "http");
-  const host = req.headers.host || "your-default-domain.com";
+    (req.connection?.encrypted ? "https" : "http") ||
+    "https"; // fallback to https
+  const host = req.headers.host || "your-default-domain.com"; // Ensure the host is correct
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || `${protocol}://${host}`;
   
-  // Define base URL (language-specific part added here)
-  const basePath = `${protocol}://${host}/tools/keyword-research`;
-  const baseUrl = locale === "en" ? basePath : `${protocol}://${host}/${locale}/tools/keyword-research`;
-  
-  // Define content and header API URLs
-  const contentApiUrl = `${protocol}://${host}/api/content?category=keyword-research&language=${locale}`;
-  const headerApiUrl = `${protocol}://${host}/api/heading`;
+  const contentApiUrl = `${baseUrl}/api/content?category=keyword-research&language=${locale}`;
+  const headerApiUrl = `${baseUrl}/api/heading`;
+
+  console.log("Fetching data from:", contentApiUrl); // Debugging: Log the request URL
+
+  const AUTH_TOKEN = process.env.AUTH_TOKEN; // Authorization token from .env
+
+  // Function to fetch with timeout
+  const fetchWithTimeout = (url, options = {}) => {
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error("Request timed out")), 5000); // Timeout after 5 seconds
+      fetch(url, options)
+        .then(response => {
+          clearTimeout(timeout);
+          resolve(response);
+        })
+        .catch(error => {
+          clearTimeout(timeout);
+          reject(error);
+        });
+    });
+  };
 
   try {
-    // Fetch content and header data in parallel
+    // Fetching both API data concurrently
     const [contentResponse, headerResponse] = await Promise.all([
-      fetch(contentApiUrl),
-      fetch(headerApiUrl),
+      fetchWithTimeout(contentApiUrl, {
+        headers: { 'Authorization': `Bearer ${AUTH_TOKEN}`, 'Content-Type': 'application/json' }
+      }),
+      fetchWithTimeout(headerApiUrl),
     ]);
 
-    if (!contentResponse.ok || !headerResponse.ok) {
-      throw new Error("Failed to fetch data from APIs");
-    }
-
-    const contentData = await contentResponse.json();
-    const headerData = await headerResponse.json();
-
-    // Extract header content and localized data with fallbacks
+    // If the response is OK, parse it, else use fallback data
+    const contentData = contentResponse.ok ? await contentResponse.json() : { translations: {} };
+    const headerData = headerResponse.ok ? await headerResponse.json() : [{ content: "" }];
+    
     const headerContent = headerData[0]?.content || "";
     const localeData = contentData.translations?.[locale] || {};
+    const translations = contentData.translations || {};
 
-    // Meta information with fallback defaults
+    // Prepare meta data for SEO or page title
     const meta = {
       title: localeData.title || "Default Title",
       description: localeData.description || "Default description",
-      image: localeData.image || "",
-      url: baseUrl, // Canonical URL includes language-specific path if needed
+      url: `${baseUrl}${locale === "en" ? "" : `/${locale}`}`,
+      img: localeData.image || "Default Image",
     };
 
-    // Extract reactions with default values
-    const reactions = localeData.reactions || {
-      likes: 0,
-      unlikes: 0,
-      reports: [],
-      users: {},
-    };
-
-    // Generate hreflang links
-    const translations = contentData.translations || {};
+    // Hreflang for international SEO
     const hreflangs = [
-      { rel: "alternate", hreflang: "x-default", href: `${basePath}` },
-      { rel: "alternate", hreflang: "en", href: `${basePath}` },
+      { rel: "alternate", hreflang: "x-default", href: baseUrl },
+      { rel: "alternate", hreflang: "en", href: baseUrl },
       ...Object.keys(translations)
         .filter((lang) => lang !== "en")
         .map((lang) => ({
           rel: "alternate",
           hreflang: lang,
-          href: `${protocol}://${host}/${lang}/tools/keyword-research`,
+          href: `${baseUrl}/${lang}`,
         })),
     ];
 
-    // Return props for the page
     return {
       props: {
-        meta,
-        faqs: contentData.translations[locale]?.faqs || [],
-        relatedTools: contentData.translations[locale]?.relatedTools || [],
-        existingContent: contentData.translations[locale]?.content || "",
-        reactions,
-        hreflangs, // Pass hreflang data as props
-        ...(await serverSideTranslations(locale, [
-         
-          "navbar",
-          "keyword",
-          "footer",
-        ])),
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching data:", error);
-
-    // Fallback props in case of error
-    return {
-      props: {
-        meta: {
-          title: "Default Title",
-          description: "Default description",
-          image: "",
-          url: `${protocol}://${host}/tools/keyword-research${locale === "en" ? "" : `/${locale}`}`,
-        },
-        reactions: {
+        initialMeta: meta,
+        reactions: localeData.reactions || {
           likes: 0,
           unlikes: 0,
           reports: [],
           users: {},
         },
-        existingContent: "",
+        content: localeData.content || "",
+        faqList: localeData.faqList || [],
+        tools: localeData.relatedTools || [],
+        headerContent,
+        translations,
+        hreflangs,
+        ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching data:", error);
+
+    // Return fallback props in case of error
+    return {
+      props: {
+        initialMeta: {
+          title: "Default Title",
+          description: "Default description",
+          url: `${baseUrl}${locale === "en" ? "" : `/${locale}`}`,
+        },
+        reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
+        content: "",
         faqList: [],
-        relatedTools: [],
+        tools: [],
         headerContent: "",
         translations: {},
         hreflangs: [
-          { rel: "alternate", hreflang: "x-default", href: `${basePath}` },
-          { rel: "alternate", hreflang: "en", href: `${basePath}` },
+          { rel: "alternate", hreflang: "x-default", href: baseUrl },
+          { rel: "alternate", hreflang: "en", href: baseUrl },
         ],
-        ...(await serverSideTranslations(locale, [
-          "keyword",
-          "navbar",
-          "footer",
-        ])),
+        ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
       },
     };
   }
 }
+
 
 export default KeywordSearch;

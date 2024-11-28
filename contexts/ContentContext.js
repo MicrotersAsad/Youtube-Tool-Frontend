@@ -8,7 +8,7 @@ export const useContent = () => useContext(ContentContext);
 
 export const fetchContent = async (category, locale, host, protocol, setLoading) => {
   setLoading(true);
-  const AUTH_TOKEN = process.env.AUTH_TOKEN; // Authorization token from .env
+  const AUTH_TOKEN ="AZ-fc905a5a5ae08609ba38b046ecc8ef00"; // Authorization token from .env
 
   try {
     const apiUrl = `${protocol}://${host}/api/content?category=${category}&language=${locale}`;
@@ -87,7 +87,7 @@ export const fetchContent = async (category, locale, host, protocol, setLoading)
 
 export const fetchReviews = async (tool, host, protocol, setLoading) => {
   setLoading(true);
-  const AUTH_TOKEN = process.env.AUTH_TOKEN; // Authorization token from .env
+  const AUTH_TOKEN ="AZ-fc905a5a5ae08609ba38b046ecc8ef00"; // Authorization token from .env
 
   try {
     const apiUrl = `${protocol}://${host}/api/reviews?tool=${tool}`;

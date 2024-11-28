@@ -1027,6 +1027,7 @@ export async function getServerSideProps({ req, locale }) {
   // Define content and header API URLs
   const contentApiUrl = `${protocol}://${host}/api/content?category=channel-id-finder&language=${locale}`;
   const headerApiUrl = `${protocol}://${host}/api/heading`;
+console.log(contentApiUrl);
 
   try {
     // Fetch content and header data in parallel
