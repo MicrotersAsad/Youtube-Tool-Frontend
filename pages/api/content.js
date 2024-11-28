@@ -1,18 +1,66 @@
+import { ObjectId } from 'mongodb';
 import { connectToDatabase } from '../../utils/mongodb';
-import AWS from 'aws-sdk';
+import multer from 'multer';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import multerS3 from 'multer-s3';
 import multiparty from 'multiparty';
-
-// AWS S3 Configuration
-const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION,
-});
 
 export const config = {
   api: {
     bodyParser: false,
   },
+};
+
+// Configure AWS S3
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
+if (!process.env.AWS_S3_BUCKET_NAME) {
+  throw new Error("AWS_S3_BUCKET_NAME environment variable is not set");
+}
+
+// Configure multer to use S3 for image storage
+const upload = multer({
+  storage: multerS3({
+    s3,
+    bucket: process.env.AWS_S3_BUCKET_NAME,
+    metadata: (req, file, cb) => {
+      cb(null, { fieldName: file.fieldname });
+    },
+    key: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, `uploads/${uniqueSuffix}-${file.originalname}`);
+    },
+  }),
+});
+
+// Utility function to upload files to S3
+const uploadFileToS3 = async (filePath, filename) => {
+  const fileContent = fs.readFileSync(filePath);
+  const params = {
+    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Key: `uploads/${Date.now()}-${filename}`,
+    Body: fileContent,
+    ContentType: 'image/jpeg', // or any other content type
+  };
+  return s3.upload(params).promise();
+};
+
+// Run middleware for file upload
+const runMiddleware = (req, res, fn) => {
+  return new Promise((resolve, reject) => {
+    fn(req, res, (result) => {
+      if (result instanceof Error) {
+        return reject(result);
+      }
+      return resolve(result);
+    });
+  });
 };
 
 // CORS Middleware
@@ -29,31 +77,9 @@ function corsMiddleware(req, res) {
   return false;
 }
 
-// Authentication Middleware
-function authMiddleware(req, res) {
-  const authHeader = req.headers['authorization'];
-
-  if (!authHeader) {
-    res.status(401).json({ message: 'ok' });
-    return false;
-  }
-
-  const token = authHeader.split(' ')[1]; // Assumes 'Bearer TOKEN'
-  if (!token || token !== process.env.AUTH_TOKEN) {
-    res.status(403).json({ message: 'Invalid or missing token' });
-    return false;
-  }
-
-  // Token is valid
-  return true;
-}
-
+// Main API handler
 const handler = async (req, res) => {
   if (corsMiddleware(req, res)) return;
-
-  // Check authentication
-  const isAuthenticated = authMiddleware(req, res);
-  if (!isAuthenticated) return;
 
   const { method } = req;
 
@@ -76,18 +102,7 @@ const handler = async (req, res) => {
   }
 };
 
-// S3 File Upload Function
-const uploadFileToS3 = async (file) => {
-  const params = {
-    Bucket: process.env.AWS_S3_BUCKET_NAME,
-    Key: `uploads/${Date.now()}-${file.originalname}`,
-    Body: file.buffer,
-    ContentType: file.mimetype,
-  };
-  return s3.upload(params).promise();
-};
-
-// Handle GET Request
+// Handle GET request
 const handleGet = async (req, res) => {
   const { category, language } = req.query;
   const { db } = await connectToDatabase();
@@ -116,82 +131,63 @@ const handleGet = async (req, res) => {
   }
 };
 
-// Handle POST Request
+// Handle POST request
 const handlePost = async (req, res) => {
+  await runMiddleware(req, res, upload.single('image'));
+
   try {
-    const form = new multiparty.Form();
+    const { category, language } = req.query;
+    const { content, title, description } = req.body;
+    const faqs = req.body.faqs ? JSON.parse(req.body.faqs) : [];
+    const relatedTools = req.body.relatedTools ? JSON.parse(req.body.relatedTools) : [];
 
-    // Parse the form data
-    form.parse(req, async (err, fields, files) => {
-      if (err) {
-        return res.status(400).json({ message: 'Failed to parse form data', error: err.message });
-      }
+    if (!category || !content || !title || !description || !language) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
 
-      const { category, language } = req.query;
-      const content = fields.content ? fields.content[0] : null;
-      const title = fields.title ? fields.title[0] : null;
-      const description = fields.description ? fields.description[0] : null;
-      const faqs = fields.faqs ? JSON.parse(fields.faqs[0]) : [];
-      const relatedTools = fields.relatedTools ? JSON.parse(fields.relatedTools[0]) : [];
+    let imageUrl;
+    if (req.file) {
+      imageUrl = req.file.location; // Get the image URL from S3
+    }
 
-      if (!category || !content || !title || !description || !language) {
-        return res.status(400).json({ message: 'Missing required fields' });
-      }
+    const translation = {
+      content,
+      title,
+      description,
+      image: imageUrl,
+      faqs,
+      relatedTools,
+      reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
+    };
 
-      // Upload the file if provided
-      let imageUrl = null;
-      if (files.file && files.file[0]) {
-        const file = files.file[0];
-        const uploadResult = await uploadFileToS3({
-          originalname: file.originalFilename,
-          buffer: file.path,
-          mimetype: file.headers['content-type'],
-        });
-        imageUrl = uploadResult.Location;
-      }
+    const { db } = await connectToDatabase();
+    const filter = { category };
+    const updateDoc = { $set: { [`translations.${language}`]: translation } };
+    const options = { upsert: true };
 
-      const translation = {
-        content,
-        title,
-        description,
-        image: imageUrl,
-        faqs,
-        relatedTools,
-        reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
-      };
+    const result = await db.collection('content').updateOne(filter, updateDoc, options);
+    if (!result.matchedCount && !result.upsertedCount) {
+      return res.status(500).json({ message: 'Failed to insert or update document' });
+    }
 
-      const { db } = await connectToDatabase();
-      const filter = { category };
-      const updateDoc = { $set: { [`translations.${language}`]: translation } };
-      const options = { upsert: true };
-
-      const result = await db.collection('content').updateOne(filter, updateDoc, options);
-      if (!result.matchedCount && !result.upsertedCount) {
-        return res.status(500).json({ message: 'Failed to insert or update document' });
-      }
-
-      res.status(201).json({ message: 'Document inserted/updated successfully' });
-    });
+    res.status(201).json({ message: 'Document inserted/updated successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Failed to handle POST request', error: error.message });
   }
 };
 
-// Handle PUT Request
+// Handle PUT request
 const handlePut = async (req, res) => {
   try {
     const form = new multiparty.Form();
 
-    // Parse the form data
     form.parse(req, async (err, fields, files) => {
       if (err) {
         return res.status(400).json({ message: 'Failed to parse form data', error: err.message });
       }
 
-      // Extract query parameters
       const { category, language } = req.query;
 
-      // Extract fields
       const content = fields.content ? fields.content[0] : null;
       const title = fields.title ? fields.title[0] : null;
       const description = fields.description ? fields.description[0] : null;
@@ -202,8 +198,7 @@ const handlePut = async (req, res) => {
         return res.status(400).json({ message: 'Missing required fields' });
       }
 
-      // Upload the file if provided
-      let imageUrl = null;
+      let imageUrl;
       if (files.file && files.file[0]) {
         const file = files.file[0];
         const uploadResult = await uploadFileToS3({
@@ -211,14 +206,14 @@ const handlePut = async (req, res) => {
           buffer: file.path,
           mimetype: file.headers['content-type'],
         });
-        imageUrl = uploadResult.Location;
+        imageUrl = uploadResult.Location; // Get the image URL from S3
       }
 
       const translation = {
         content,
         title,
         description,
-        ...(imageUrl && { image: imageUrl }),
+        ...(imageUrl && { image: imageUrl }), // Add image URL if available
         faqs,
         relatedTools,
       };
@@ -239,5 +234,7 @@ const handlePut = async (req, res) => {
     res.status(500).json({ message: 'Failed to handle PUT request', error: error.message });
   }
 };
+
+
 
 export default handler;

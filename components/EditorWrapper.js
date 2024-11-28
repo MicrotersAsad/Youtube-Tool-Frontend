@@ -12,16 +12,11 @@ const JoditWrapper = forwardRef(({ initialContent = '', onChange = () => {} }, r
   useEffect(() => {
     setContent(initialContent);
   }, [initialContent]);
-
-  const handleChange = (value) => {
-    try {
-      setContent(value);
-      onChange(value);
-    } catch (error) {
-      console.error('Error updating content:', error);
-    }
+  const handleEditorChange = (value) => {
+    setContent(value);
+    onChange(value);
   };
-
+  
   const config = {
     readonly: false,
     toolbarAdaptive: false,
@@ -38,14 +33,19 @@ const JoditWrapper = forwardRef(({ initialContent = '', onChange = () => {} }, r
       'align', 'undo', 'redo', '|',
       'hr', 'eraser', 'fullsize'
     ],
+    events: {
+      blur: handleEditorChange,  // update content on blur event
+      focus: () => {}  // Optional: Handle focus event if needed
+    }
   };
+  
 
   return (
     <JoditEditor
       ref={ref || editorRef}
       value={content}
       config={config}
-      onBlur={handleChange} // preferred to use `onBlur` instead of `onChange` for better performance
+      onBlur={handleEditorChange} // preferred to use `onBlur` instead of `onChange` for better performance
     />
   );
 });

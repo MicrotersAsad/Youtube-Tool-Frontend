@@ -16,7 +16,9 @@ import Script from "next/script";
 
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
-const YouTubeDescriptionGenerator = ({ meta = [], faqs = [], relatedTools = [], existingContent = "", reactions,translations,hreflangs  }) => {
+const YouTubeDescriptionGenerator = ({ meta = [], faqList = [], relatedTools = [], existingContent = "", reactions,translations,hreflangs  }) => {
+
+  
   const { user, updateUserProfile } = useAuth();
   const [likes, setLikes] = useState(reactions.likes || 0);
   const [unlikes, setUnlikes] = useState(reactions.unlikes || 0);
@@ -476,7 +478,7 @@ ${keywords}
   {JSON.stringify({
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: faqs.map((faq) => ({
+    mainEntity: faqList.map((faq) => ({
       "@type": "Question",
       name: faq.question,
       acceptedAnswer: {
@@ -642,7 +644,7 @@ ${keywords}
             {t("Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us")}
           </p>
           <div className="faq-grid">
-            {faqs?.map((faq, index) => (
+            {faqList?.map((faq, index) => (
               <div key={index} className="faq-item">
                 <span id={`accordion-${index}`} className="target-fix"></span>
                 <a
@@ -880,10 +882,21 @@ export async function getServerSideProps({ req, locale }) {
   const headerApiUrl = `${baseUrl}/api/heading`;
 
   try {
+    // Authorization token
+    const authToken = process.env.AUTH_TOKEN; // Ensure AUTH_TOKEN is set in your environment
+
     // Fetch content and header data in parallel
     const [contentResponse, headerResponse] = await Promise.all([
-      fetch(contentApiUrl),
-      fetch(headerApiUrl),
+      fetch(contentApiUrl, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      }),
+      fetch(headerApiUrl, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      }),
     ]);
 
     if (!contentResponse.ok || !headerResponse.ok) {
@@ -896,6 +909,7 @@ export async function getServerSideProps({ req, locale }) {
     // Extract header content and localized data with fallbacks
     const headerContent = headerData[0]?.content || "";
     const localeData = contentData.translations?.[locale] || {};
+console.log(localeData);
 
     // Meta information with fallback defaults
     const meta = {
@@ -981,4 +995,5 @@ export async function getServerSideProps({ req, locale }) {
     };
   }
 }
+
 export default YouTubeDescriptionGenerator;

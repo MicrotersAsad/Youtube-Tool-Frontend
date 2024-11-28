@@ -2,15 +2,9 @@ import React, { useState, useEffect } from "react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import {
-  FaShareAlt,
   FaThumbsUp,
   FaThumbsDown,
   FaFlag,
-  FaBookmark,
-  FaFacebook,
-  FaLinkedin,
-  FaInstagram,
-  FaTwitter,
   FaCopy,
   FaDownload,
   FaStar,
@@ -43,6 +37,9 @@ export default function Home({
   translations,
   hreflangs,
 }) {
+
+
+
   const { user, updateUserProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -83,6 +80,8 @@ export default function Home({
     setOpenIndex(openIndex === index ? null : index);
   };
 
+
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -104,6 +103,7 @@ export default function Home({
         }
   
         const data = await response.json();
+
   
         setLikes(data.reactions.likes || 0);
         setUnlikes(data.reactions.unlikes || 0);
@@ -206,21 +206,7 @@ export default function Home({
     );
   };
 
-  const shareOnSocialMedia = (socialNetwork) => {
-    const url = encodeURIComponent(window.location.href);
-    const socialMediaUrls = {
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
-      twitter: `https://twitter.com/intent/tweet?url=${url}`,
-      instagram: "Instagram sharing is only available via the mobile app.",
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
-    };
 
-    if (socialNetwork === "instagram") {
-      toast.info("Instagram sharing is available only via the mobile app.");
-    } else {
-      window.open(socialMediaUrls[socialNetwork], "_blank");
-    }
-  };
 
   const toggleTitleSelect = (index) => {
     const newTitles = [...generatedTitles];
@@ -589,7 +575,7 @@ export default function Home({
           <meta property="og:url" content={meta?.url} />
           <meta property="og:title" content={meta?.title} />
           <meta property="og:description" content={meta?.description} />
-          <meta property="og:image" content={meta?.image} />
+          <meta property="og:image" content={meta?.image|| "NA"} />
           <meta property="og:image:secure_url" content={meta?.image} />
           <meta property="og:site_name" content="Ytubetools" />
           <meta property="og:locale" content="en_US" />
@@ -1280,33 +1266,47 @@ export default function Home({
 }
 
 export async function getServerSideProps({ req, locale }) {
+  // Extract protocol and host, fallback to defaults if necessary
   const protocol =
     req.headers["x-forwarded-proto"]?.split(",")[0] ||
     (req.connection?.encrypted ? "https" : "http") ||
     "https"; // fallback to https
-  const host = req.headers.host || "your-default-domain.com";
+  const host = req.headers.host || "your-default-domain.com"; // Ensure the host is correct
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || `${protocol}://${host}`;
-  const contentApiUrl = `${baseUrl}/api/content?category=tagGenerator&language=${locale}`;
-  console.log(contentApiUrl);
   
+  const contentApiUrl = `${baseUrl}/api/content?category=tagGenerator&language=${locale}`;
   const headerApiUrl = `${baseUrl}/api/heading`;
+
+  console.log("Fetching data from:", contentApiUrl); // Debugging: Log the request URL
 
   const AUTH_TOKEN = process.env.AUTH_TOKEN; // Authorization token from .env
 
+  // Function to fetch with timeout
+  const fetchWithTimeout = (url, options = {}) => {
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error("Request timed out")), 5000); // Timeout after 5 seconds
+      fetch(url, options)
+        .then(response => {
+          clearTimeout(timeout);
+          resolve(response);
+        })
+        .catch(error => {
+          clearTimeout(timeout);
+          reject(error);
+        });
+    });
+  };
+
   try {
+    // Fetching both API data concurrently
     const [contentResponse, headerResponse] = await Promise.all([
-      fetch(contentApiUrl, {
-        headers: {
-          'Authorization': `Bearer ${AUTH_TOKEN}`, // Add Authorization header
-          'Content-Type': 'application/json',
-        },
+      fetchWithTimeout(contentApiUrl, {
+        headers: { 'Authorization': `Bearer ${AUTH_TOKEN}`, 'Content-Type': 'application/json' }
       }),
-      fetch(headerApiUrl, {
-      
-      }),
+      fetchWithTimeout(headerApiUrl),
     ]);
 
-    // Fetching content and header data with fallback
+    // If the response is OK, parse it, else use fallback data
     const contentData = contentResponse.ok ? await contentResponse.json() : { translations: {} };
     const headerData = headerResponse.ok ? await headerResponse.json() : [{ content: "" }];
     
@@ -1314,12 +1314,15 @@ export async function getServerSideProps({ req, locale }) {
     const localeData = contentData.translations?.[locale] || {};
     const translations = contentData.translations || {};
 
+    // Prepare meta data for SEO or page title
     const meta = {
       title: localeData.title || "Default Title",
       description: localeData.description || "Default description",
       url: `${baseUrl}${locale === "en" ? "" : `/${locale}`}`,
+      img: localeData.image || "Default Image",
     };
 
+    // Hreflang for international SEO
     const hreflangs = [
       { rel: "alternate", hreflang: "x-default", href: baseUrl },
       { rel: "alternate", hreflang: "en", href: baseUrl },
@@ -1353,6 +1356,7 @@ export async function getServerSideProps({ req, locale }) {
   } catch (error) {
     console.error("Error fetching data:", error);
 
+    // Return fallback props in case of error
     return {
       props: {
         initialMeta: {
@@ -1375,4 +1379,5 @@ export async function getServerSideProps({ req, locale }) {
     };
   }
 }
+
 

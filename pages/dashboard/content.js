@@ -97,6 +97,7 @@ function Content() {
         const metatitle = data.translations[selectedLanguage].title || '';
         const metaDescription = data.translations[selectedLanguage].description || '';
         const imageUrl = data.translations[selectedLanguage].image || '';
+ 
   
         setQuillContent(contentData);
         setExistingContent(contentData);
@@ -160,6 +161,7 @@ function Content() {
           body: formData,
         }
       );
+  console.log(response);
   
       if (!response.ok) {
         const errorMessage = await response.text();

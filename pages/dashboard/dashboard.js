@@ -94,7 +94,12 @@ const Dashboard = () => {
           ] = await Promise.all([
             fetch(`/api/get-visit-count?filter=${filter}`),
             fetch(`/api/user-visits?filter=${filter}`),
-            fetch(`/api/blogs?start=${moment().subtract(30, 'days').format('YYYY-MM-DD')}&end=${moment().format('YYYY-MM-DD')}`),
+            fetch(`/api/blogs?start=${moment().subtract(30, 'days').format('YYYY-MM-DD')}&end=${moment().format('YYYY-MM-DD')}`, {
+              headers: {
+                'Authorization': `Bearer AZ-fc905a5a5ae08609ba38b046ecc8ef00`, // Add your custom header here
+                'Content-Type': 'application/json' // Example of another header, if needed
+              }
+            }),
             fetch('/api/user-list', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }),
             fetch('/api/get-login-stats'),
             fetch('/api/active-sessions'),
@@ -102,7 +107,7 @@ const Dashboard = () => {
             fetch('/api/pages'),
             fetch('/api/comments/all')
           ]);
-
+  
           const siteViewsData = await siteViewsResponse.json();
           const userVisitsData = await userVisitsResponse.json();
           const blogData = await blogResponse.json();
@@ -112,7 +117,7 @@ const Dashboard = () => {
           const reviewsData = await reviewsResponse.json();
           const pagesData = await pagesResponse.json();
           const commentsData = await commentsResponse.json();
-
+  
           setSiteViews(siteViewsData.visitCount);
           setChartData(userVisitsData.map(item => item.value));
           setLabels(userVisitsData.map(item => item.date));
@@ -120,7 +125,7 @@ const Dashboard = () => {
             labels: blogData.map(item => moment(item.createdAt).format('YYYY-MM-DD')),
             datasets: [{ label: 'Blogs Published', data: blogData.map(() => 1), borderColor: 'rgba(75, 192, 192, 1)', fill: true }]
           });
-
+  
           const premiumUserCount = userListData.data.filter(user => user.paymentStatus === 'success').length;
           setTotalUsers(userListData.data.length);
           setActiveUsers(userListData.data.filter(user => user.verified).length);
@@ -128,7 +133,7 @@ const Dashboard = () => {
           setNonPremiumUsers(userListData.data.length - premiumUserCount);
           setEmailUnverifiedUsers(userListData.data.filter(user => !user.verified).length);
           setActiveLogin(activeSessionsData.activeUsers);
-
+  
           setBrowserStats({
             labels: loginStatsData.browserStats.map(item => item._id),
             datasets: [{ data: loginStatsData.browserStats.map(item => item.count), backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FFA726', '#66BB6A'] }]
@@ -141,13 +146,13 @@ const Dashboard = () => {
             labels: loginStatsData.countryStats.map(item => item._id),
             datasets: [{ data: loginStatsData.countryStats.map(item => item.count), backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FFA726', '#66BB6A'] }]
           });
-
+  
           setBlogs(blogData);
           setTools(reviewsData.length);
           setReviews(reviewsData);
           setPages(pagesData);
           setComments(commentsData);
-
+  
           setLoading(false);
         } catch (error) {
           console.error('Error fetching data:', error);
@@ -157,6 +162,7 @@ const Dashboard = () => {
       fetchAllData();
     }
   }, [user, filter]);
+  
 
   const handleFilterChange = (newFilter) => {
     setFilter(newFilter);

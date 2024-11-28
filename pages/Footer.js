@@ -25,7 +25,7 @@ const Footer = () => {
                 /> 
               </Link>
               <p className="mt-5 text-gray-400">
-                {t('Welcome to Microters, your creative marketing partner. We turn vision into measurable success with innovative strategies and data-driven solutions.')}
+                {t('Welcome to YtubeTools, your creative marketing partner. We turn vision into measurable success with innovative strategies and data-driven solutions.')}
               </p>
               <div className="flex mt-4 space-x-2">
                 <FaFacebook className="fs-3 hover:text-blue-800 transition duration-300 transform hover:scale-110" />
@@ -159,7 +159,7 @@ const Footer = () => {
                 </small>
               </div>
             <p className="text-base text-gray-400 xl:text-center">
-              {t('© 2024 Microters, Inc. All rights reserved.')}
+              {t('© 2024 YtubeTools, Inc. All rights reserved.')}
             </p>
           </div>
         </div>

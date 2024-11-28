@@ -7,28 +7,29 @@ import PropTypes from 'prop-types';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null);  // ইউজারের প্রোফাইল স্টেট
+  const [userFetched, setUserFetched] = useState(false);  // ইউজার প্রোফাইল ফেচ হয়েছে কিনা সেটা ট্র্যাক করার জন্য ফ্ল্যাগ
+  const [loading, setLoading] = useState(true);  // লোডিং স্টেট
   const router = useRouter();
 
+  // `useEffect` - ইউজার প্রোফাইল ফেচ করার জন্য
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const decoded = jwt.decode(token);
-        if (decoded) {
-          // Fetch the full user profile on page load to get profileImage and other data
-          fetchUserProfile(decoded);
-        } else {
-          console.error("Token decoding failed");
-        }
-      } catch (error) {
-        console.error("Token verification failed:", error);
-        localStorage.removeItem('token');
-        router.push('/login');
+    if (token && !userFetched) {  // যদি টোকেন থাকে এবং ইউজারের প্রোফাইল ফেচ করা না হয়ে থাকে
+      setLoading(true);
+      const decoded = jwt.decode(token);
+      if (decoded) {
+        fetchUserProfile(decoded);  // ইউজারের প্রোফাইল ফেচ করা হবে
+      } else {
+        console.error("Token decoding failed");
+        setLoading(false);
       }
+    } else {
+      setLoading(false);  // টোকেন না থাকলে বা ইউজার ফেচ হয়ে থাকলে লোডিং বন্ধ করা হবে
     }
-  }, [router]);
+  }, [userFetched, router]);  // `userFetched` পরিবর্তিত হলে পুনরায় রান হবে
 
+  // ইউজারের প্রোফাইল ফেচ করার ফাংশন
   const fetchUserProfile = async (decoded) => {
     try {
       const token = localStorage.getItem('token');
@@ -37,12 +38,16 @@ export const AuthProvider = ({ children }) => {
           Authorization: `Bearer ${token}`,
         },
       });
-      setUser({ ...decoded, ...response.data }); // Merge decoded token data with API response
+      setUser({ ...decoded, ...response.data });  // ইউজারের প্রোফাইল সেট করা
+      setUserFetched(true);  // ইউজারের প্রোফাইল ফেচ হয়েছে, তাই ফ্ল্যাগটি true করা
     } catch (error) {
       console.error("Failed to fetch user profile:", error);
+    } finally {
+      setLoading(false);  // API কল শেষে লোডিং বন্ধ
     }
   };
 
+  // লগিন ফাংশন
   const login = async (email, password) => {
     try {
       const response = await axios.post('/api/login', { email, password });
@@ -50,7 +55,8 @@ export const AuthProvider = ({ children }) => {
       const decoded = jwt.decode(token);
       if (decoded) {
         localStorage.setItem('token', token);
-        fetchUserProfile(decoded); // Fetch full profile with profileImage after login
+        setUserFetched(false);  // লগিন হওয়ার পর ফ্ল্যাগটি false করতে হবে, নতুনভাবে প্রোফাইল ফেচ করার জন্য
+        fetchUserProfile(decoded);  // লগিন হওয়ার পর ইউজারের প্রোফাইল ফেচ করা
       } else {
         console.error("Token decoding failed on login");
       }
@@ -59,12 +65,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // লগআউট ফাংশন
   const logout = () => {
     setUser(null);
     localStorage.removeItem('token');
     router.push('/login');
   };
 
+  // প্রোফাইল আপডেট ফাংশন
   const updateUserProfile = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -73,14 +81,14 @@ export const AuthProvider = ({ children }) => {
           Authorization: `Bearer ${token}`,
         },
       });
-      setUser(prevUser => ({ ...prevUser, ...response.data })); // Update only user data, keeping token data intact
+      setUser(prevUser => ({ ...prevUser, ...response.data })); // ইউজারের প্রোফাইল আপডেট করা
     } catch (error) {
       console.error('Failed to update profile:', error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateUserProfile }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUserProfile, loading }}>
       {children}
     </AuthContext.Provider>
   );
