@@ -99,10 +99,26 @@ function Blogs() {
 
   const fetchContent = async () => {
     try {
-      const response = await fetch(`/api/blogs?category=${selectedCategory}&language=${selectedLanguage}`);
+      // Retrieve the token from localStorage (or cookie, or wherever it is stored)
+      const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Replace with your actual token storage method
+  
+      if (!token) {
+        throw new Error('Authorization token is missing');
+      }
+  
+      // Make the fetch request with Authorization header
+      const response = await fetch(`/api/blogs?category=${selectedCategory}&language=${selectedLanguage}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Add Authorization header with token
+          'Content-Type': 'application/json',  // Set the content type to JSON (optional)
+        },
+      });
+  
       if (!response.ok) {
         throw new Error('Failed to fetch content');
       }
+  
       const data = await response.json();
       setExistingContents(data);
       setIsEditing(false);
@@ -111,16 +127,16 @@ function Blogs() {
       setError(error.message);
     }
   };
-
+  
   const handleSubmit = async () => {
     if (!title || !quillContent || !metaDescription || !metaTitle || !description || !selectedCategory || !selectedLanguage || !selectedAuthor || !selectedEditor || !selectedDeveloper) {
       setError('Please fill in all the fields.');
       return;
     }
-
+  
     try {
       const method = isEditing ? 'PUT' : 'POST';
-
+  
       const formData = new FormData();
       formData.append('content', quillContent);
       formData.append('title', title);
@@ -138,26 +154,40 @@ function Blogs() {
       formData.append('slug', slug);
       formData.append('createdAt', new Date().toISOString());
       formData.append('isDraft', JSON.stringify(false));
-
+  
+      // Retrieve the token from localStorage (or wherever you're storing it)
+      const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Replace this with your actual token retrieval method
+  
+      if (!token) {
+        throw new Error('Authorization token is missing');
+      }
+  
+      // Make the fetch request with Authorization header
       const response = await fetch('/api/blogs', {
         method,
         body: formData,
+        headers: {
+          'Authorization': `Bearer ${token}`, // Add Authorization header with token
+          // Optional: You can also add Content-Type, though it's not necessary with FormData
+          // 'Content-Type': 'multipart/form-data', 
+        },
       });
-
+  
       if (!response.ok) {
         const errorMessage = await response.text();
         throw new Error(`Failed to post content: ${errorMessage}`);
       }
-
+  
       setError(null);
-      fetchContent();
+      fetchContent();  // Optionally refresh the list of blogs
       toast.success('Blog uploaded successfully!');
-      localStorage.removeItem('blogFormState');
+      localStorage.removeItem('blogFormState'); // Remove form state after successful submit
     } catch (error) {
       console.error('Error posting content:', error.message);
       setError(error.message);
     }
   };
+  
 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);

@@ -133,8 +133,16 @@ const BlogSection = ({ initialBlogs = [],availableLanguages, metaUrl  }) => {
 
   const fetchBlogs = useCallback(async () => {
     setLoading(true);
+  
+    // Assuming you have the token stored in a variable (localStorage, cookies, etc.)
+    const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace with actual token, e.g. localStorage.getItem('authToken')
+  
     try {
-      const response = await axios.get('/api/blogs');
+      const response = await axios.get('/api/blogs', {
+        headers: {
+          Authorization: `Bearer ${token}`,  // Add Bearer token to the headers
+        },
+      });
       setBlogsData(response.data);
       setLoading(false);
     } catch (error) {
@@ -385,12 +393,23 @@ export async function getServerSideProps({ locale, req }) {
     const baseUrl = `${protocol}://${host}`;
 
     // Construct the active URL based on locale and request URL
-    // Exclude 'en' from the URL path to avoid "/en" in the meta URL
     const metaUrl = locale === 'en' ? `${baseUrl}${req.url}` : `${baseUrl}/${locale}${req.url}`;
 
-    // Fetch blog data from API
+    // Retrieve token from cookies (or headers)
+    const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // assuming the token is stored in the cookies as 'authToken'
+    
+    // Ensure token is present for authorized API access
+    if (!token) {
+      throw new Error('No authorization token found');
+    }
+
+    // Fetch blog data from API with Authorization header
     const apiUrl = `${baseUrl}/api/blogs`;
-    const { data } = await axios.get(apiUrl);
+    const { data } = await axios.get(apiUrl, {
+      headers: {
+        Authorization: `Bearer ${token}`,  // Add the Bearer token
+      },
+    });
 
     // Sort blogs by creation date
     const sortedData = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -423,4 +442,5 @@ export async function getServerSideProps({ locale, req }) {
     };
   }
 }
+
 export default BlogSection;
