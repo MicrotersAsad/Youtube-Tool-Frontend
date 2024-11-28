@@ -54,8 +54,25 @@ function Allarticle() {
   const fetchArticles = async (page = 1) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/youtube?page=${page}&limit=${articlesPerPage}`);
+      // Retrieve the token from localStorage, cookies, or headers
+      const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+  
+      if (!token) {
+        console.error('Authorization token is missing.');
+        // Handle the missing token (e.g., show an error, redirect to login page, etc.)
+        return;
+      }
+  
+      // Make the API request with the Authorization header
+      const response = await fetch(`/api/youtube?page=${page}&limit=${articlesPerPage}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+  
       if (!response.ok) throw new Error('Failed to fetch articles');
+  
       const responseData = await response.json();
       if (Array.isArray(responseData.data)) {
         setArticles(responseData.data);
@@ -71,6 +88,7 @@ function Allarticle() {
     }
     setLoading(false);
   };
+  
 
   const getCategoriesArray = (categories) => {
     if (!categories) return [];
@@ -129,11 +147,28 @@ function Allarticle() {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this article?')) {
       try {
+        // Retrieve the token from localStorage, cookies, or headers
+        const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+  
+        if (!token) {
+          console.error('Authorization token is missing.');
+          toast.error('You are not authorized to delete this article.');
+          return;
+        }
+  
         const response = await fetch(`/api/youtube?id=${id}`, {
           method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`, // Include the Bearer token in the header
+          },
         });
+  
         if (!response.ok) throw new Error('Failed to delete article');
+  
+        // Update the UI by removing the deleted article from the list
         setArticles(articles.filter((article) => article._id !== id));
+  
+        // Show success message
         toast.success('Article deleted successfully!');
       } catch (error) {
         console.error('Error deleting article:', error.message);
@@ -141,6 +176,7 @@ function Allarticle() {
       }
     }
   };
+  
 
   const handleSelectAllArticles = () => {
     if (selectedArticles.length === filteredArticles.length) {

@@ -40,6 +40,8 @@ const YTTitleGenerator = ({
   hreflangs,
   reactions: initialReactions = { likes: 0, unlikes: 0, users: {} },
 }) => {
+  console.log(content);
+  
   const { t } = useTranslation("titlegenerator");
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();

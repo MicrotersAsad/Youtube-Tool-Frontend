@@ -84,15 +84,30 @@ function EditBlog() {
 
   const fetchBlogData = async (id, lang) => {
     try {
-      const response = await fetch(`/api/blogs?id=${id}`);
+      // Get the authentication token from localStorage (or wherever you store it)
+      const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+  
+      if (!token) {
+        throw new Error('You are not authenticated. Please log in.');
+      }
+  
+      // Make the API request to fetch blog data
+      const response = await fetch(`/api/blogs?id=${id}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,  // Adding Bearer token for authentication
+        },
+      });
+  
       if (!response.ok) {
         throw new Error('Failed to fetch blog data');
       }
+  
       const data = await response.json();
-
+  
       if (data.translations && data.translations[lang]) {
         const translation = data.translations[lang];
-
+  
         // Set the state with the fetched data
         setQuillContent(translation.content || '');
         setSelectedCategory(translation.category?._id || '');
@@ -118,18 +133,31 @@ function EditBlog() {
         setSelectedEditor('');
         setSelectedDeveloper('');
       }
+  
       setIsDraft(data.isDraft || false);
+  
     } catch (error) {
       console.error('Error fetching blog data:', error.message);
       setError(error.message);
     }
   };
+  
 
   const handleSave = useCallback(async () => {
     try {
-      console.log('Selected Category ID being sent:', selectedCategory); // Debugging
+      // Debugging: Log the selected category ID being sent
+      console.log('Selected Category ID being sent:', selectedCategory);
+  
+      // Validate the category ID format
       if (!selectedCategory || selectedCategory.length !== 24) throw new Error('Invalid category ID format');
-
+  
+      // Get the authentication token from localStorage (or wherever you store it)
+      const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+      if (!token) {
+        throw new Error('You are not authenticated. Please log in.');
+      }
+  
+      // Prepare the form data to be sent in the request
       const formData = new FormData();
       formData.append('content', quillContent);
       formData.append('title', title);
@@ -137,37 +165,49 @@ function EditBlog() {
       formData.append('metaTitle', metaTitle);
       formData.append('metaDescription', metaDescription);
       formData.append('description', description);
+  
+      // Attach image if it exists, otherwise attach the initial image
       if (image) {
         formData.append('image', image);
       } else if (initialImage) {
         formData.append('image', initialImage);
       }
+  
+      // Append other fields
       formData.append('category', selectedCategory);
       formData.append('author', selectedAuthor);
       formData.append('editor', selectedEditor);
       formData.append('developer', selectedDeveloper);
       formData.append('isDraft', JSON.stringify(isDraft));
       formData.append('language', language);
-
+  
+      // Send the PUT request with Authorization header
       const response = await fetch(`/api/blogs?id=${id}`, {
         method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Include token in Authorization header
+        },
         body: formData,
       });
-
+  
+      // Check if the response is okay
       if (!response.ok) {
         const errorMessage = await response.text();
         throw new Error(`Failed to update content: ${errorMessage}`);
       }
-
+  
+      // If the request was successful
       setError(null);
       toast.success('Content updated successfully!');
+  
+      // Redirect to the dashboard or desired page
       router.push('/dashboard/all-blogs');
     } catch (error) {
       console.error('Error updating content:', error.message);
       setError(error.message);
     }
   }, [quillContent, selectedCategory, metaTitle, metaDescription, description, title, slug, image, initialImage, isDraft, id, router, language, selectedAuthor, selectedEditor, selectedDeveloper]);
-
+  
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
   }, []);

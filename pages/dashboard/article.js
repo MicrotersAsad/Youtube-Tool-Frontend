@@ -101,10 +101,27 @@ function Article() {
   
   const fetchContent = async () => {
     try {
-      const response = await fetch(`/api/youtube?category=${selectedCategory}&language=${selectedLanguage}`);
+      // Retrieve the token from localStorage or other secure storage
+      const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+  
+      if (!token) {
+        console.error('Authorization token is missing.');
+        toast.error('You are not authorized to fetch content.');
+        return;
+      }
+  
+      const response = await fetch(`/api/youtube?category=${selectedCategory}&language=${selectedLanguage}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Add Bearer token to Authorization header
+          
+        },
+      });
+  
       if (!response.ok) {
         throw new Error('Failed to fetch content');
       }
+  
       const data = await response.json();
       setExistingContents(data);
       setIsEditing(false);
@@ -115,7 +132,9 @@ function Article() {
     }
   };
   
+  
   const handleSubmit = async () => {
+    // Validate form fields
     if (!title) {
       toast.error('Title is required.');
       return;
@@ -158,8 +177,10 @@ function Article() {
     }
   
     try {
+      // Set method for the API call (PUT for editing, POST for creating new)
       const method = isEditing ? 'PUT' : 'POST';
   
+      // Prepare form data
       const formData = new FormData();
       formData.append('content', quillContent);
       formData.append('title', title);
@@ -178,22 +199,36 @@ function Article() {
       formData.append('createdAt', new Date().toISOString());
       formData.append('isDraft', JSON.stringify(false));
   
+      // Retrieve the token from localStorage (or other secure storage)
+      const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+  
+      if (!token) {
+        toast.error('You are not authenticated. Please log in.');
+        return;
+      }
+  
+      // Send the request with the Authorization header
       const response = await fetch('/api/youtube', {
         method,
         body: formData,
+        headers: {
+          'Authorization': `Bearer ${token}`, // Add Bearer token for authentication
+        },
       });
   
+      // Handle the response
       if (!response.ok) {
         const errorMessage = await response.text();
         throw new Error(`Failed to post content: ${errorMessage}`);
       }
   
+      // Reset error state, fetch content, and display success message
       setError(null);
       fetchContent();
       toast.success('Blog uploaded successfully!');
-      localStorage.removeItem('blogFormState');
+      localStorage.removeItem('blogFormState'); // Optionally remove any saved form state
   
-      // Reset form state and reload page to clear everything
+      // Reset the form and reload the page to clear everything
       setTimeout(() => {
         window.location.reload();
       }, 500);
@@ -202,6 +237,7 @@ function Article() {
       setError(error.message);
     }
   };
+  
   
   
   const handleQuillChange = useCallback((newContent) => {

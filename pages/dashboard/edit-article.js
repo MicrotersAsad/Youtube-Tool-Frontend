@@ -84,15 +84,28 @@ function EditBlog() {
 
   const fetchBlogData = async (id, lang) => {
     try {
-      const response = await fetch(`/api/youtube?id=${id}`);
+      // Retrieve the token from localStorage (or other secure storage)
+      const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+      if (!token) {
+        throw new Error('You are not authenticated. Please log in.');
+      }
+  
+      // Make the request to fetch blog data with the Authorization header
+      const response = await fetch(`/api/youtube?id=${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`, // Add Bearer token for authentication
+        },
+      });
+  
       if (!response.ok) {
         throw new Error('Failed to fetch blog data');
       }
+  
       const data = await response.json();
-
+  
       if (data.translations && data.translations[lang]) {
         const translation = data.translations[lang];
-
+  
         // Set the state with the fetched data
         setQuillContent(translation.content || '');
         setSelectedCategory(translation.category?._id || '');
@@ -118,18 +131,23 @@ function EditBlog() {
         setSelectedEditor('');
         setSelectedDeveloper('');
       }
+  
       setIsDraft(data.isDraft || false);
     } catch (error) {
       console.error('Error fetching blog data:', error.message);
       setError(error.message);
     }
   };
+  
 
   const handleSave = useCallback(async () => {
     try {
       console.log('Selected Category ID being sent:', selectedCategory); // Debugging
-      if (!selectedCategory || selectedCategory.length !== 24) throw new Error('please select existing  category');
-
+  
+      // Ensure category is selected and has a valid length
+      if (!selectedCategory || selectedCategory.length !== 24) throw new Error('Please select a valid category');
+  
+      // Prepare the form data for the request
       const formData = new FormData();
       formData.append('content', quillContent);
       formData.append('title', title);
@@ -137,37 +155,58 @@ function EditBlog() {
       formData.append('metaTitle', metaTitle);
       formData.append('metaDescription', metaDescription);
       formData.append('description', description);
+      
+      // Handle image file (either the new one or the initial one)
       if (image) {
         formData.append('image', image);
       } else if (initialImage) {
         formData.append('image', initialImage);
       }
+  
       formData.append('category', selectedCategory);
       formData.append('author', selectedAuthor);
       formData.append('editor', selectedEditor);
       formData.append('developer', selectedDeveloper);
       formData.append('isDraft', JSON.stringify(isDraft));
       formData.append('language', language);
-
+  
+      // Retrieve the authentication token (adjust this based on your app's storage method)
+      const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+  
+      if (!token) {
+        throw new Error('You are not authenticated. Please log in.');
+      }
+  
+      // Send the PUT request with the authorization header
       const response = await fetch(`/api/youtube?id=${id}`, {
         method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,  // Adding the Bearer token for authentication
+        },
         body: formData,
       });
-
+  
       if (!response.ok) {
         const errorMessage = await response.text();
         throw new Error(`Failed to update content: ${errorMessage}`);
       }
-
+  
+      // Reset any errors and show success message
       setError(null);
       toast.success('Content updated successfully!');
+      
+      // Redirect to the dashboard or desired location
       router.push('/dashboard/all-article');
     } catch (error) {
       console.error('Error updating content:', error.message);
       setError(error.message);
     }
-  }, [quillContent, selectedCategory, metaTitle, metaDescription, description, title, slug, image, initialImage, isDraft, id, router, language, selectedAuthor, selectedEditor, selectedDeveloper]);
-
+  }, [
+    quillContent, selectedCategory, metaTitle, metaDescription, description, 
+    title, slug, image, initialImage, isDraft, id, router, language, 
+    selectedAuthor, selectedEditor, selectedDeveloper
+  ]);
+  
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
   }, []);
