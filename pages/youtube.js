@@ -88,8 +88,7 @@ const BlogSection = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) =
   const router = useRouter();
   const { category: selectedCategory } = router.query;
   const [loading, setLoading] = useState(!initialBlogs.length);
-  const [currentPage, setCurrentPage] = useState(meta?.currentPage || 1);
-  const [totalPages, setTotalPages] = useState(meta?.totalPages || 1);
+ 
   const [error, setError] = useState('');
   const [blogsData, setBlogsData] = useState(initialBlogs);
   const [categories, setCategories] = useState([]);
@@ -97,6 +96,9 @@ const BlogSection = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) =
   const [currentCategory, setCurrentCategory] = useState(selectedCategory || '');
   const [search, setSearch] = useState('');
   const blogsPerPage = 9;
+  const [currentPage, setCurrentPage] = useState(meta?.currentPage || 1);  // Safe fallback
+const [totalPages, setTotalPages] = useState(meta?.totalPages || 1);  // Safe fallback
+
   const currentLanguage = i18n.language || 'en';
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
@@ -126,14 +128,25 @@ const BlogSection = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) =
     async (page = 1, category = '') => {
       setLoading(true);
       try {
+        const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+  
+        if (!token) {
+          throw new Error('No authorization token found');
+        }
+  
         const response = await axios.get(`/api/youtube`, {
           params: { page, limit: blogsPerPage, category },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
-
-        const { data: blogs, meta } = response.data;
-        setBlogsData(blogs);
-        setCurrentPage(meta.currentPage);
-        setTotalPages(meta.totalPages);
+  
+        const { data: blogs, meta = { currentPage: 1, totalPages: 1 } } = response.data;
+  
+        // Ensure blogsData is always an array
+        setBlogsData(Array.isArray(blogs) ? blogs : []);
+        setCurrentPage(meta.currentPage || 1);
+        setTotalPages(meta.totalPages || 1);
       } catch (error) {
         console.error('Error fetching blogs:', error);
         setError('Failed to fetch blogs.');
@@ -143,6 +156,8 @@ const BlogSection = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) =
     },
     [blogsPerPage]
   );
+  
+  
 
   useEffect(() => {
     fetchBlogs(currentPage, currentCategory);
@@ -175,34 +190,32 @@ const BlogSection = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) =
       .map((blog) => {
         const translation = blog.translations[currentLanguage];
         if (!translation) return null;
-  
+
         const { title, category } = translation;
-  
+
         // Normalize category and currentCategory for comparison
         const normalizedCategory = category ? category.toLowerCase().replace(/\s+/g, '-') : '';
         const normalizedCurrentCategory = currentCategory ? currentCategory.toLowerCase() : '';
-  
+
         // Generate slug if it doesn't exist
         if (!translation.slug && title) {
           translation.slug = createSlug(title);
         }
-  
+
         // Extract first image if it doesn't exist
         if (!translation.image && translation.content) {
           translation.image = extractFirstImage(translation.content);
         }
-  
+
         // Filter by search query
-        const searchMatch =
-          !search || (title && title.toLowerCase().includes(search.toLowerCase()));
-  
+        const searchMatch = !search || (title && title.toLowerCase().includes(search.toLowerCase()));
+
         // Filter by category
-        const categoryMatch =
-          !currentCategory || normalizedCategory === normalizedCurrentCategory;
-  
+        const categoryMatch = !currentCategory || normalizedCategory === normalizedCurrentCategory;
+
         // Exclude blogs that don't match search or category
         if (!searchMatch || !categoryMatch) return null;
-  
+
         return {
           _id: blog._id,
           createdAt: blog.createdAt,
@@ -353,25 +366,42 @@ const BlogSection = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) =
   );
 };
 
-export async function getServerSideProps({ locale, req, query }) {
+
+
+export async function getServerSideProps({ locale = 'en', req, query }) {
   const { page = 1, category = '' } = query;
 
+  // Get the base URL from the request headers
   const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
   const host = req.headers.host;
   const baseUrl = `${protocol}://${host}`;
 
+  // Fetch the token securely (e.g., from cookies, environment variables)
+  const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace with a secure way of managing the token
+
+  if (!token) {
+    throw new Error('No authorization token found');
+  }
+
   try {
+    // Make the API request to fetch data
     const { data } = await axios.get(`${baseUrl}/api/youtube`, {
+      headers: {
+        Authorization: `Bearer ${token}`,  // Add the Bearer token
+      },
       params: { page, limit: 9, category },
     });
 
+    // Construct the meta URL (to avoid duplication and ensure correct locale)
+    const metaUrl = `${baseUrl}${req.url}`;
+
     return {
       props: {
-        initialBlogs: data.data,
-        meta: data.meta,
-        availableLanguages: ['en', 'es'],
-        metaUrl: `${baseUrl}${req.url}`,
-        ...(await serverSideTranslations(locale, ['blog', 'navbar', 'footer'])),
+        initialBlogs: data.data || [],  // Safely access `data`
+        meta: data.meta || { currentPage: 1, totalPages: 0 },
+        availableLanguages: ['en', 'es'],  // Add any other languages you want to support
+        metaUrl,
+        ...(await serverSideTranslations(locale, ['blog', 'navbar', 'footer'])),  // Add translations
       },
     };
   } catch (error) {
@@ -380,11 +410,12 @@ export async function getServerSideProps({ locale, req, query }) {
       props: {
         initialBlogs: [],
         meta: { currentPage: 1, totalPages: 0 },
-        availableLanguages: [],
+        availableLanguages: [],  // If error occurs, return an empty languages array
         metaUrl: `${baseUrl}${req.url}`,
       },
     };
   }
 }
+
 
 export default BlogSection;

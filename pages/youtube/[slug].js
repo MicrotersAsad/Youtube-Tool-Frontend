@@ -32,22 +32,36 @@ const BlogPost = ({
   useEffect(() => {
     const fetchRelatedBlogs = async () => {
       try {
-        // Setting the initial page and limit
+        // Set up the initial page and limit for the request
         const page = 1; // Start from page 1
-        const limit = 300; // Fetch 30 blogs at a time
-  
-        const response = await fetch(`/api/youtube?page=${page}&limit=${limit}`);
+        const limit = 300; // Fetch 300 blogs at a time
+
+        // Get the token from localStorage or other secure places
+        const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+        if (!token) {
+          throw new Error('Authorization token not found');
+        }
+
+        // Make the API request with the Authorization header
+        const response = await fetch(`/api/youtube?page=${page}&limit=${limit}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`, // Add the token in the Authorization header
+            'Content-Type': 'application/json', // Ensure content type is JSON
+          },
+        });
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-  
+
         const data = await response.json();
         console.log("Fetched blogs data:", data);
-  
+
         if (Array.isArray(data.data)) {
           const allBlogs = data.data;
           console.log("All blogs:", allBlogs);
-  
+
           // Filter out the current blog and match the category of related blogs
           const filteredBlogs = allBlogs.filter(
             (b) =>
@@ -57,7 +71,7 @@ const BlogPost = ({
                   translation.category === blog.translations[locale]?.category
               )
           );
-  
+
           setRelatedBlogs(filteredBlogs);
           console.log("Filtered related blogs:", filteredBlogs);
         } else {
@@ -69,7 +83,7 @@ const BlogPost = ({
         setLoadingRelatedBlogs(false);
       }
     };
-  
+
     if (blog) {
       fetchRelatedBlogs();
     }
@@ -253,6 +267,7 @@ const BlogPost = ({
   );
 };
 
+
 export async function getServerSideProps({ locale, params, req }) {
   try {
     const { slug } = params;
@@ -266,11 +281,20 @@ export async function getServerSideProps({ locale, params, req }) {
     const host = req.headers.host || "localhost:3000";
     const apiUrl = `${protocol}://${host}/api/youtube`;
 
+    // Retrieve the token securely (from cookies or headers)
+    const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token  // You can change this to suit where you store the token
+    if (!token) {
+      console.error("Authorization token is missing.");
+      return { notFound: true };  // You can also return an error page if the token is missing
+    }
 
-
-    // Fetch youtube data from the API
-    const { data } = await axios.get(`${apiUrl}?slug=${slug.trim().toLowerCase()}`);
-
+    // Fetch youtube data from the API with the Authorization header
+    const { data } = await axios.get(`${apiUrl}?slug=${slug.trim().toLowerCase()}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
 
     // Check if data was found
     if (!data || data.length === 0) {
@@ -279,8 +303,6 @@ export async function getServerSideProps({ locale, params, req }) {
     }
 
     const blog = data;
-    
-
     const currentTranslation =
       blog.translations[locale] || blog.translations[blog.defaultLanguage];
     if (!currentTranslation) {
@@ -302,7 +324,6 @@ export async function getServerSideProps({ locale, params, req }) {
     // Define meta URL
     const metaUrl = `${protocol}://${host}/${locale === "en" ? "" : `${locale}/`}youtube/${slug}`;
 
-
     // Define available languages for hreflang tags
     const availableLanguages = Object.keys(blog.translations);
 
@@ -315,10 +336,6 @@ export async function getServerSideProps({ locale, params, req }) {
         href: lang === "en" ? metaUrl : `${protocol}://${host}/${lang}/youtube/${slug}`,
       })),
     ];
-
-
-  
-
 
     // Fetch shortcodes
     const shortcodesResponse = await axios.get(`${protocol}://${host}/api/shortcodes-tools`);
@@ -340,6 +357,7 @@ export async function getServerSideProps({ locale, params, req }) {
     };
   }
 }
+
 
 
 

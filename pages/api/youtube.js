@@ -10,6 +10,28 @@ export const config = {
   },
 };
 
+// Authorization Middleware
+const checkAuthorization = (req) => {
+  const token = req.headers.authorization?.split(' ')[1]; // Bearer <token>
+  const validToken = process.env.AUTH_TOKEN; // Stored in .env
+
+  if (!token) {
+    return false; // Missing token
+  }
+  
+  if (token !== validToken) {
+    return false; // Invalid token
+  }
+  
+  return true; // Token is valid
+};
+
+// Error Handling
+const errorHandler = (res, error) => {
+  console.error('Error:', error);
+  return res.status(500).json({ message: 'Internal server error', error: error.message });
+};
+
 // Configure AWS S3
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
@@ -36,8 +58,21 @@ const upload = multer({
       cb(null, `uploads/${uniqueSuffix}-${file.originalname}`);
     },
   }),
+  fileFilter: (req, file, cb) => {
+    // Validate file type (e.g., allow only images)
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(file.mimetype)) {
+      return cb(new Error('Invalid file type'), false);
+    }
+    // Validate file size (e.g., limit to 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      return cb(new Error('File is too large. Max size is 5MB'), false);
+    }
+    cb(null, true);
+  }
 });
 
+// Run middleware function
 const runMiddleware = (req, res, fn) => {
   return new Promise((resolve, reject) => {
     fn(req, res, (result) => {
@@ -62,8 +97,13 @@ const generateUniqueSlug = async (slug, language, youtube) => {
 
 export default async function handler(req, res) {
   const { method, query } = req;
-  let db, client;
 
+  // Authorization Check
+  if (!checkAuthorization(req)) {
+    return res.status(401).json({ message: 'Unauthorized access. Invalid token.' });
+  }
+
+  let db, client;
   try {
     ({ db, client } = await connectToDatabase());
   } catch (error) {
@@ -73,27 +113,31 @@ export default async function handler(req, res) {
 
   const youtube = db.collection('youtube');
 
-  switch (method) {
-    case 'POST':
-      await handlePostRequest(req, res, youtube);
-      break;
+  try {
+    switch (method) {
+      case 'POST':
+        await handlePostRequest(req, res, youtube);
+        break;
 
-    case 'GET':
-      await handleGetRequest(req, res, youtube, query);
-      break;
+      case 'GET':
+        await handleGetRequest(req, res, youtube, query);
+        break;
 
-    case 'PUT':
-      await handlePutRequest(req, res, youtube, query);
-      break;
+      case 'PUT':
+        await handlePutRequest(req, res, youtube, query);
+        break;
 
-    case 'DELETE':
-      await handleDeleteRequest(req, res, youtube, query);
-      break;
+      case 'DELETE':
+        await handleDeleteRequest(req, res, youtube, query);
+        break;
 
-    default:
-      res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
-      res.status(405).end(`Method ${method} Not Allowed`);
-      break;
+      default:
+        res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
+        res.status(405).end(`Method ${method} Not Allowed`);
+        break;
+    }
+  } catch (error) {
+    errorHandler(res, error);  // Handle errors globally
   }
 }
 
@@ -201,11 +245,9 @@ const handlePostRequest = async (req, res, youtube) => {
       res.status(201).json(doc);
     }
   } catch (error) {
-    console.error('POST error:', error);
-    res.status(500).json({ message: 'Internal server error', error: error.message });
+    errorHandler(res, error); // Handle errors
   }
 };
-
 
 const handleGetRequest = async (req, res, youtube, query) => {
   try {
@@ -226,11 +268,9 @@ const handleGetRequest = async (req, res, youtube, query) => {
 
     // Case 2: Fetch by Slug
     if (slug) {
-      
       const result = await youtube.findOne({
         [`translations.en.slug`]: slug, // Match the slug within `translations`
       });
-
 
       if (!result) {
         return res.status(404).json({ message: `Resource not found for the slug: ${slug}` });
@@ -265,16 +305,9 @@ const handleGetRequest = async (req, res, youtube, query) => {
       },
     });
   } catch (error) {
-    console.error('GET error:', error.message);
-    return res.status(500).json({ message: 'Internal server error.', error: error.message });
+    errorHandler(res, error);
   }
 };
-
-
-
-
-
-
 
 const handlePutRequest = async (req, res, youtube, query) => {
   try {
@@ -318,8 +351,7 @@ const handlePutRequest = async (req, res, youtube, query) => {
       res.status(404).json({ message: 'Data not found or no changes made' });
     }
   } catch (error) {
-    console.error('PUT error:', error);
-    res.status(500).json({ message: 'Internal server error', error: error.message });
+    errorHandler(res, error);
   }
 };
 
@@ -370,7 +402,6 @@ const handleDeleteRequest = async (req, res, youtube, query) => {
       }
     }
   } catch (error) {
-    console.error('DELETE error:', error);
-    return res.status(500).json({ message: 'Internal server error', error: error.message });
+    errorHandler(res, error);
   }
 };

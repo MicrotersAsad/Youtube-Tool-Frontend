@@ -44,17 +44,35 @@ function AllBlogs() {
   const fetchBlogs = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/blogs');
+      // Retrieve the token from localStorage (or wherever you're storing it)
+      const token ="AZ-fc905a5a5ae08609ba38b046ecc8ef00" // Replace this with your actual token retrieval method
+  
+      if (!token) {
+        throw new Error('Authorization token is missing');
+      }
+  
+      // Make the fetch request with the Authorization header
+      const response = await fetch('/api/blogs', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Add Authorization header with the token
+          'Content-Type': 'application/json',  // Optional, if the API expects JSON
+        },
+      });
+  
       if (!response.ok) {
         throw new Error('Failed to fetch blogs');
       }
+  
       const data = await response.json();
-      setBlogs(data);
+      setBlogs(data); // Set blogs in state after successful fetch
     } catch (error) {
       console.error('Error fetching blogs:', error.message);
+    } finally {
+      setLoading(false); // Ensure loading is set to false even if the fetch fails
     }
-    setLoading(false);
   };
+  
 
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
@@ -71,13 +89,29 @@ function AllBlogs() {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this blog?')) {
       try {
+        // Retrieve the token from localStorage (or wherever you're storing it)
+        const token ="AZ-fc905a5a5ae08609ba38b046ecc8ef00" // Replace this with your actual token retrieval method
+  
+        if (!token) {
+          throw new Error('Authorization token is missing');
+        }
+  
+        // Send DELETE request with Authorization header
         const response = await fetch(`/api/blogs?id=${id}`, {
           method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`, // Add Authorization header with the token
+            'Content-Type': 'application/json', // Optional, depending on your API
+          },
         });
+  
         if (!response.ok) {
           throw new Error('Failed to delete blog');
         }
+  
+        // Filter out the deleted blog from the state
         setBlogs(blogs.filter((blog) => blog._id !== id));
+  
         toast.success('Blog deleted successfully!');
       } catch (error) {
         console.error('Error deleting blog:', error.message);
@@ -85,6 +119,7 @@ function AllBlogs() {
       }
     }
   };
+  
   
   const getCategoriesArray = (categories) => {
     if (!categories) return [];

@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import { ClipLoader } from "react-spinners";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import Breadcrumb from "../Breadcrumb";
 import Comments from "../../components/Comments";
 import { useToc } from "../../hook/useToc";
 import TableOfContents from "../../components/TableOfContents";
@@ -244,14 +243,27 @@ export async function getServerSideProps({ locale, params, req }) {
       return { notFound: true };
     }
 
+    // Get protocol and host for constructing the API URL
     const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
     const host = req.headers.host || "localhost:3000";
     const apiUrl = `${protocol}://${host}/api/youtube`;
 
-    console.log("Fetching youtube from API:", apiUrl);
+    // Get the authorization token from the request headers
+    const token ="AZ-fc905a5a5ae08609ba38b046ecc8ef00" // Replace this with your actual token retrieval method
+    if (!token) {
+      console.error("Authorization token is missing.");
+      return { notFound: true }; // You can redirect or return an error if the token is missing
+    }
 
-    // Fetch all youtube from the API
-    const { data } = await axios.get(apiUrl);
+    // Set up the headers for the request, including the Authorization token
+    const headers = {
+      Authorization: token, // Add token to Authorization header
+    };
+
+
+
+    // Fetch all youtube data from the API with authorization
+    const { data } = await axios.get(apiUrl, { headers });
     const youtube = data;
 
     console.log("youtube fetched:", youtube);
@@ -260,7 +272,6 @@ export async function getServerSideProps({ locale, params, req }) {
     const blog = youtube.find((blog) =>
       Object.values(blog.translations).some((translation) => translation.slug === slug)
     );
-console.log(blog);
 
     if (!blog) {
       console.error("Blog not found for slug:", slug);
@@ -301,7 +312,7 @@ console.log(blog);
     ];
 
     // Fetch authors
-    const authorResponse = await axios.get(`${protocol}://${host}/api/authors`);
+    const authorResponse = await axios.get(`${protocol}://${host}/api/authors`, { headers });
     const authors = authorResponse.data;
 
     const author = authors.find(
@@ -326,7 +337,7 @@ console.log(blog);
       .slice(0, 3);
 
     // Fetch shortcodes
-    const shortcodesResponse = await axios.get(`${protocol}://${host}/api/shortcodes-tools`);
+    const shortcodesResponse = await axios.get(`${protocol}://${host}/api/shortcodes-tools`, { headers });
     const initialShortcodes = shortcodesResponse.data;
 
     return {
