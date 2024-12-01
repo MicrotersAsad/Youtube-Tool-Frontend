@@ -75,7 +75,7 @@ const YouTubeDescriptionGenerator = ({ meta = [], faqList = [], relatedTools = [
       try {
         const language = i18n.language;
   
-        // Retrieve the authentication token from localStorage (or any other storage mechanism you're using)
+        // Retrieve the authentication token
         const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
         if (!token) {
           throw new Error('You are not authenticated. Please log in.');
@@ -90,13 +90,16 @@ const YouTubeDescriptionGenerator = ({ meta = [], faqList = [], relatedTools = [
         });
   
         if (!response.ok) throw new Error("Failed to fetch content");
-        
+  
         const data = await response.json();
-        console.log(data);
+  
+        // Safely access `reactions` properties using optional chaining
+        const likes = data.reactions?.likes || 0;  // Default to 0 if undefined
+        const unlikes = data.reactions?.unlikes || 0;  // Default to 0 if undefined
   
         // Set state based on the fetched data
-        setLikes(data.reactions.likes || 0);
-        setUnlikes(data.reactions.unlikes || 0);
+        setLikes(likes);
+        setUnlikes(unlikes);
   
       } catch (error) {
         console.error("Error fetching content:", error);
@@ -106,6 +109,7 @@ const YouTubeDescriptionGenerator = ({ meta = [], faqList = [], relatedTools = [
   
     fetchContent();
   }, [i18n.language]);
+  
   
   useEffect(() => {
     fetchReviews();
@@ -923,7 +927,7 @@ export async function getServerSideProps({ req, locale }) {
     // Extract header content and localized data with fallbacks
     const headerContent = headerData[0]?.content || "";
     const localeData = contentData.translations?.[locale] || {};
-console.log(localeData);
+
 
     // Meta information with fallback defaults
     const meta = {

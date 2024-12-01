@@ -93,6 +93,7 @@ export default function Home() {
                 <option value="user">User</option>
                 <option value="ytApi">Youtube Api</option>
                 <option value="openaiKey">Openai Key</option>
+                <option value="youtube">Youtube</option>
               </select>
             </div>
             <div className="mb-4">
@@ -158,6 +159,7 @@ export default function Home() {
                 <option value="user">User</option>
                 <option value="ytApi">Youtube Api</option>
                 <option value="openaiKey">Openai Key</option>
+                <option value="youtube">Youtube</option>
               </select>
             </div>
             <button type="submit" className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500">Export Content</button>

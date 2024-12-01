@@ -21,10 +21,12 @@ import Select from 'react-select';
 import countryList from 'react-select-country-list';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
+import { useRouter } from "next/navigation";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
-const KeywordSearch = ({ meta, faqList, relatedTools, existingContent, reactions,hreflangs  }) => {
-  console.log(existingContent);
+const KeywordSearch = ({ initialMeta,meta, faqList, tools, content, reactions,hreflangs  }) => {
+  const router = useRouter();
+
   
   const [keyword, setKeyword] = useState("");
   const [relatedKeywords, setRelatedKeywords] = useState(null);
@@ -73,7 +75,7 @@ const KeywordSearch = ({ meta, faqList, relatedTools, existingContent, reactions
         setUnlikes(data.reactions.unlikes || 0);
       } catch (error) {
         console.error("Error fetching content:", error);
-        setError("Failed to load content.");
+       
       }
     };
 
@@ -131,7 +133,9 @@ const KeywordSearch = ({ meta, faqList, relatedTools, existingContent, reactions
       setError("Failed to load reviews.");
     }
   };
-
+  const toggleFAQ = (index) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
       toast.error("All fields are required.");
@@ -391,8 +395,8 @@ const KeywordSearch = ({ meta, faqList, relatedTools, existingContent, reactions
         <div className="max-w-7xl mx-auto p-4">
         <Head>
           {/* SEO Meta Tags */}
-          <title>{meta?.title}</title>
-          <meta name="description" content={meta?.description} />
+          <title>{initialMeta?.title}</title>
+          <meta name="description" content={initialMeta?.description} />
           <meta
             name="viewport"
             content="width=device-width, initial-scale=1.0"
@@ -400,15 +404,15 @@ const KeywordSearch = ({ meta, faqList, relatedTools, existingContent, reactions
           <meta name="robots" content="index, follow" />
 
           {/* Canonical URL */}
-          <link rel="canonical" href={`${meta?.url}`} />
+          <link rel="canonical" href={`${initialMeta?.url}`} />
 
           {/* Open Graph Meta Tags */}
           <meta property="og:type" content="website" />
-          <meta property="og:url"  content={`${meta?.url}`}/>
-          <meta property="og:title" content={meta?.title} />
-          <meta property="og:description" content={meta?.description} />
-          <meta property="og:image" content={meta?.image} />
-          <meta property="og:image:secure_url" content={meta?.image} />
+          <meta property="og:url"  content={`${initialMeta?.url}`}/>
+          <meta property="og:title" content={initialMeta?.title} />
+          <meta property="og:description" content={initialMeta?.description} />
+          <meta property="og:image" content={initialMeta?.image} />
+          <meta property="og:image:secure_url" content={initialMeta?.image} />
           <meta property="og:site_name" content="Ytubetools" />
           <meta property="og:locale" content="en_US" />
 
@@ -420,12 +424,12 @@ const KeywordSearch = ({ meta, faqList, relatedTools, existingContent, reactions
                 .toLowerCase()
                 .replace("tools/keyword-research", "")}
             />
-          <meta property="twitter:url" content={`${meta?.url}`}/>
-          <meta name="twitter:title" content={meta?.title} />
-          <meta name="twitter:description" content={meta?.description} />
-          <meta name="twitter:image" content={meta?.image} />
+          <meta property="twitter:url" content={`${initialMeta?.url}`}/>
+          <meta name="twitter:title" content={initialMeta?.title} />
+          <meta name="twitter:description" content={initialMeta?.description} />
+          <meta name="twitter:image" content={initialMeta?.image} />
           <meta name="twitter:site" content="@ytubetools" />
-          <meta name="twitter:image:alt" content={meta?.imageAlt} />
+          <meta name="twitter:image:alt" content={initialMeta?.imageAlt} />
 
           {/* Alternate hreflang Tags for SEO */}
           {hreflangs &&
@@ -511,7 +515,7 @@ const KeywordSearch = ({ meta, faqList, relatedTools, existingContent, reactions
 </Script>
 
 
-          <h2 className="text-3xl pt-5 text-white">{t('YouTube Keyword Research')}</h2>
+          <h1 className="text-3xl pt-5 text-white">{t('YouTube Keyword Research')}</h1>
         
           {modalVisible && (
             <div
@@ -768,7 +772,7 @@ Search
 
 <div className="content pt-6 pb-5">
           <article
-            dangerouslySetInnerHTML={{ __html: existingContent }}
+            dangerouslySetInnerHTML={{ __html: content }}
             style={{ listStyleType: "none" }}
           ></article>
         </div>
@@ -994,11 +998,11 @@ Search
             </div>
           </div>
         )}
-        {/* Related Tools Section
+        {/* Related Tools Section */}
         <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
           <h2 className="text-2xl font-bold mb-5 text-center">{t("Related Tools")}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {relatedTools.map((tool, index) => (
+            {tools.map((tool, index) => (
               <a
                 key={index}
                 href={tool.link}
@@ -1015,8 +1019,8 @@ Search
               </a>
             ))}
           </div>
-        </div> */}
-        {/* End of Related Tools Section */}
+        </div>
+        {/* /* End of Related Tools Section */}
         </div>
     </>
   );
@@ -1065,6 +1069,8 @@ export async function getServerSideProps({ req, locale }) {
 
     // If the response is OK, parse it, else use fallback data
     const contentData = contentResponse.ok ? await contentResponse.json() : { translations: {} };
+  
+    
     const headerData = headerResponse.ok ? await headerResponse.json() : [{ content: "" }];
     
     const headerContent = headerData[0]?.content || "";
@@ -1078,6 +1084,7 @@ export async function getServerSideProps({ req, locale }) {
       url: `${baseUrl}${locale === "en" ? "" : `/${locale}`}`,
       img: localeData.image || "Default Image",
     };
+
 
     // Hreflang for international SEO
     const hreflangs = [
@@ -1102,7 +1109,7 @@ export async function getServerSideProps({ req, locale }) {
           users: {},
         },
         content: localeData.content || "",
-        faqList: localeData.faqList || [],
+        faqList: localeData.faqs || [],
         tools: localeData.relatedTools || [],
         headerContent,
         translations,

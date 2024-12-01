@@ -40,7 +40,7 @@ const YTTitleGenerator = ({
   hreflangs,
   reactions: initialReactions = { likes: 0, unlikes: 0, users: {} },
 }) => {
-  console.log(content);
+
   
   const { t } = useTranslation("titlegenerator");
   const { user, updateUserProfile } = useAuth();
@@ -48,8 +48,7 @@ const YTTitleGenerator = ({
   const [tags, setTags] = useState([]);
   const [input, setInput] = useState("");
   const [generatedTitles, setGeneratedTitles] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loading, setLloading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false)
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
@@ -88,22 +87,43 @@ const YTTitleGenerator = ({
     const fetchContent = async () => {
       try {
         const language = i18n.language;
+  
+        // Retrieve authentication token (modify this based on your auth setup)
+        const token ="AZ-fc905a5a5ae08609ba38b046ecc8ef00"
+  
+        if (!token) {
+          throw new Error("Authentication token not found");
+        }
+  
         const response = await fetch(
-          `/api/content?category=Titlegenerator&language=${language}`
+          `/api/content?category=Titlegenerator&language=${language}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
+              "Content-Type": "application/json",
+            },
+          }
         );
-
+  
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
-        setLikes(data.reactions.likes || 0);
-        setUnlikes(data.reactions.unlikes || 0);
+  
+        // Safely access data.reactions
+        const likes = data.reactions?.likes || 0; // Default to 0 if undefined
+        const unlikes = data.reactions?.unlikes || 0;
+  
+        setLikes(likes);
+        setUnlikes(unlikes);
       } catch (error) {
         console.error("Error fetching content:", error);
         toast.error("Failed to fetch content");
       }
     };
-
+  
     fetchContent();
   }, [i18n.language]);
+  ;
+  
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
       updateUserProfile().then(() => setIsUpdated(true));
