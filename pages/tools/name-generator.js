@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { FaCopy, FaDownload, FaFacebook, FaInstagram, FaTwitter, FaLinkedin } from 'react-icons/fa';
 import { toast, ToastContainer } from 'react-toastify';
 import { useTranslation } from 'react-i18next'; // Import useTranslation
-import dynamic from 'next/dynamic';
+
 
 const Test = () => {
   const [tags, setTags] = useState([]);

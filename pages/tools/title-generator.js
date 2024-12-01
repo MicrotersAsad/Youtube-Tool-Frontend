@@ -676,7 +676,7 @@ const YTTitleGenerator = ({
             })}
           </Script>
 
-          <h2 className="text-3xl text-white">{"YouTube Title Generator"}</h2>
+          <h1 className="text-3xl text-white">{"YouTube Title Generator"}</h1>
 
           {modalVisible && (
             <div

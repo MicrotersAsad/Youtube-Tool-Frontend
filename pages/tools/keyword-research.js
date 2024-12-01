@@ -63,23 +63,34 @@ const KeywordSearch = ({ initialMeta,meta, faqList, tools, content, reactions,hr
     const fetchContent = async () => {
       try {
         const language = i18n.language;
+       
+
+        // Add Authorization header if the token is available
         const response = await fetch(
-          `/api/content?category=keyword-research&language=${language}`
+          `/api/content?category=keyword-research&language=${language}`,
+          {
+            method: 'GET',  // or 'POST' depending on your API
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization':`Bearer AZ-fc905a5a5ae08609ba38b046ecc8ef00`  // Add token to the header
+            },
+          }
         );
+
         if (!response.ok) {
           throw new Error("Failed to fetch content");
         }
+
         const data = await response.json();
-  
         setLikes(data.reactions.likes || 0);
         setUnlikes(data.reactions.unlikes || 0);
       } catch (error) {
         console.error("Error fetching content:", error);
-       
       }
     };
 
-    fetchContent(i18n.language);
+    fetchContent();
+    // If there's a reviews fetching function, you can call it similarly:
     fetchReviews(i18n.language);
   }, [i18n.language]);
 

@@ -58,26 +58,36 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions,
   };
 
   const closeModal = () => setModalVisible(false);
-
   useEffect(() => {
     const fetchContent = async () => {
       try {
         const language = i18n.language;
-        const response = await fetch(`/api/content?category=channel-id-finder&language=${language}`);
+   
         
+        const response = await fetch(
+          `/api/content?category=channel-id-finder&language=${language}`,
+          {
+            method: 'GET',  // or 'POST' depending on your API
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization':`Bearer ${process.env.AUTH_TOKEN}`  // Add token to the header
+            },
+          }
+        );
+
         if (!response.ok) throw new Error("Failed to fetch content");
+
         const data = await response.json();
-       
         setLikes(data.reactions.likes || 0);
         setUnlikes(data.reactions.unlikes || 0);
       } catch (error) {
         console.error("Error fetching content:", error);
-        toast.error("Failed to fetch content");
+        toast.error("Failed to fetch content");  // Display an error message if fetch fails
       }
     };
-  
+
     fetchContent();
-  }, [i18n.language]);
+  }, [i18n.language]);  // Rerun the effect when the language changes
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -1013,7 +1023,12 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions,
   );
 };
 
+
+
 export async function getServerSideProps({ req, locale }) {
+  // Retrieve the auth token from the cookies (or headers if needed)
+ 
+
   // Determine protocol
   const protocol =
     req.headers["x-forwarded-proto"]?.split(",")[0] ||
@@ -1027,13 +1042,21 @@ export async function getServerSideProps({ req, locale }) {
   // Define content and header API URLs
   const contentApiUrl = `${protocol}://${host}/api/content?category=channel-id-finder&language=${locale}`;
   const headerApiUrl = `${protocol}://${host}/api/heading`;
-console.log(contentApiUrl);
 
   try {
-    // Fetch content and header data in parallel
+    // Fetch content and header data in parallel with auth token in headers
     const [contentResponse, headerResponse] = await Promise.all([
-      fetch(contentApiUrl),
-      fetch(headerApiUrl),
+      fetch(contentApiUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization':`Bearer ${process.env.AUTH_TOKEN}`// Add token to the header
+        },
+      }),
+      fetch(headerApiUrl, {
+        method: 'GET',
+       
+      }),
     ]);
 
     if (!contentResponse.ok || !headerResponse.ok) {
@@ -1086,6 +1109,7 @@ console.log(contentApiUrl);
         existingContent: contentData.translations[locale]?.content || "",
         reactions,
         hreflangs, // Pass hreflang data as props
+        headerContent,
         ...(await serverSideTranslations(locale, [
           "common",
           "tagextractor",
@@ -1131,6 +1155,7 @@ console.log(contentApiUrl);
     };
   }
 }
+
 
 
 export default ChannelIdFinder;

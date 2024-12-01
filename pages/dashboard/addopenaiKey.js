@@ -4,6 +4,8 @@ import Layout from './layout';
 export default function Tokens() {
   const [tokens, setTokens] = useState([]);
   const [newTokens, setNewTokens] = useState('');
+  const [usageLimit, setUsageLimit] = useState(1000);
+  const [serviceType, setServiceType] = useState('openai');  // Add serviceType for OpenAI or Azure
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -23,7 +25,7 @@ export default function Tokens() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ tokens: newTokens, usageLimit: 1000 }),
+      body: JSON.stringify({ tokens: newTokens, usageLimit, serviceType }),
     });
     setNewTokens('');
     fetchTokens();
@@ -63,6 +65,17 @@ export default function Tokens() {
             className="w-full p-2 border rounded"
             placeholder="Add API keys (comma-separated)"
           />
+          <div className="mt-2">
+            <label className="mr-2">Service Type:</label>
+            <select
+              value={serviceType}
+              onChange={(e) => setServiceType(e.target.value)}
+              className="p-2 border rounded"
+            >
+              <option value="openai">OpenAI</option>
+              <option value="azure">Azure OpenAI</option>
+            </select>
+          </div>
           <button
             onClick={handleAddTokens}
             className="bg-blue-500 text-white px-4 py-2 mt-2 rounded"
@@ -77,6 +90,7 @@ export default function Tokens() {
               <th className="p-2">#</th>
               <th className="p-2">API Key</th>
               <th className="p-2">Usage</th>
+              <th className="p-2">Service Type</th>
               <th className="p-2">Action</th>
             </tr>
           </thead>
@@ -88,6 +102,7 @@ export default function Tokens() {
                 <td className="p-2">
                   {token.usageCount}/{token.usageLimit}
                 </td>
+                <td className="p-2">{token.serviceType}</td> {/* Display service type */}
                 <td className="p-2 flex space-x-2">
                   <button
                     onClick={() => handleToggleActive(token._id, !token.active)}

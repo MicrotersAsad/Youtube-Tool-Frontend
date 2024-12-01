@@ -51,13 +51,14 @@ export default async function handler(req, res) {
       res.status(500).json({ message: 'Error fetching tokens' });
     }
   } else if (req.method === 'POST') {
-    const { tokens, usageLimit = 1000 } = req.body;
+    const { tokens, usageLimit = 1000, serviceType = 'openai' } = req.body; // Added serviceType to differentiate
     const tokenArray = tokens.split(',').map(token => token.trim());
 
     try {
       await db.collection('openaiKey').insertMany(
         tokenArray.map(token => ({
           token,
+          serviceType,  // Store which service (openai or azure) the token is for
           active: true,
           usageCount: 0,
           usageLimit,

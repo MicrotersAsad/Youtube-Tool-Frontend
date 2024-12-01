@@ -70,24 +70,36 @@ const TagExtractor = ({ meta, reviews, content, relatedTools, faqs,reactions,hre
     const fetchContent = async () => {
       try {
         const language = i18n.language;
+
+
+        // Fetch content with Authorization header if authToken is available
         const response = await fetch(
-          `/api/content?category=tagExtractor&language=${language}`
+          `/api/content?category=tagExtractor&language=${language}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization':`Bearer ${process.env.AUTH_TOKEN}`,  // Add token to the header
+            },
+          }
         );
+
         if (!response.ok) {
           throw new Error("Failed to fetch content");
         }
+
         const data = await response.json();
         setLikes(data.reactions.likes || 0);
         setUnlikes(data.reactions.unlikes || 0);
       } catch (error) {
         console.error("Error fetching content:", error);
         setError("Failed to load content.");
+        toast.error("Failed to load content.");  // Optional: display error message using toast
       }
     };
 
-    fetchContent(i18n.language);
-  }, [i18n.language]);
-
+    fetchContent();
+  }, [i18n.language]);  // Run the effect when the language changes
 
 
   const toggleFAQ = (index) => {
@@ -555,7 +567,7 @@ const TagExtractor = ({ meta, reviews, content, relatedTools, faqs,reactions,hre
 </Script>
 
         <div className="max-w-7xl mx-auto p-4">
-          <h2 className="text-3xl text-white">{t("YouTube Tag Extractor")}</h2>
+          <h1 className="text-3xl text-white">{t("YouTube Tag Extractor")}</h1>
           <ToastContainer />
           {modalVisible && (
             <div
@@ -916,7 +928,7 @@ const TagExtractor = ({ meta, reviews, content, relatedTools, faqs,reactions,hre
                 <div className="flex items-center mb-3">
                   <div className="w-10 h-10 rounded-full overflow-hidden">
                     <Image
-                      src={`data:image/jpeg;base64,${review?.userProfile}`}
+                      src={review?.userProfile}
                       alt={review.name}
                       width={40}
                       height={40}
@@ -965,7 +977,7 @@ const TagExtractor = ({ meta, reviews, content, relatedTools, faqs,reactions,hre
                   <div className="flex items-center mb-3">
                     <div className="w-10 h-10 rounded-full overflow-hidden">
                       <Image
-                        src={`data:image/jpeg;base64,${review?.userProfile}`}
+                        src={review?.userProfile}
                         alt={review.name}
                         width={40}
                         height={40}

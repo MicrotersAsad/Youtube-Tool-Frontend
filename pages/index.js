@@ -26,6 +26,7 @@ import cloud from "../public/shape/cloud.png";
 import cloud2 from "../public/shape/cloud2.png";
 import Script from "next/script";
 import url from "url"; // Node.js module to parse URLs
+import axios from "axios";
 const StarRating = dynamic(() => import("./tools/StarRating"), { ssr: false });
 export default function Home({
   initialMeta,
@@ -248,12 +249,91 @@ export default function Home({
     document.body.removeChild(element);
   };
 
+  // const generateTitles = async () => {
+  //   if (!user) {
+  //     toast.error(t("loginToGenerateTags"));
+  //     return;
+  //   }
+
+  //   if (
+  //     user.paymentStatus !== "success" &&
+  //     user.role !== "admin" &&
+  //     generateCount <= 0
+  //   ) {
+  //     toast.error(t("upgradeForUnlimited"));
+  //     return;
+  //   }
+
+  //   setIsLoading(true);
+
+  //   try {
+  //     const response = await fetch("/api/openaiKey");
+  //     if (!response.ok)
+  //       throw new Error(`Failed to fetch API keys: ${response.status}`);
+
+  //     const keysData = await response.json();
+  //     const apiKeys = keysData.map((key) => key.token);
+
+  //     for (const key of apiKeys) {
+  //       try {
+  //         const result = await fetch(
+  //           "https://api.openai.com/v1/chat/completions",
+  //           {
+  //             method: "POST",
+  //             headers: {
+  //               "Content-Type": "application/json",
+  //               Authorization: `Bearer ${key}`,
+  //             },
+  //             body: JSON.stringify({
+  //               model: "gpt-3.5-turbo-16k",
+  //               messages: [
+  //                 {
+  //                   role: "system",
+  //                   content: `Generate a list of at least 10 SEO-friendly Tag for keywords: "${tags.join(
+  //                     ", "
+  //                   )}".`,
+  //                 },
+  //                 { role: "user", content: tags.join(", ") },
+  //               ],
+  //               temperature: 0.7,
+  //               max_tokens: 3500,
+  //             }),
+  //           }
+  //         );
+
+  //         const data = await result.json();
+  //         if (data.choices) {
+  //           const titles = data.choices[0].message.content
+  //             .trim()
+  //             .split("\n")
+  //             .map((title) => ({ text: title, selected: false }));
+  //           setGeneratedTitles(titles);
+  //           break;
+  //         }
+  //       } catch (error) {
+  //         console.error("Error with key:", key, error.message);
+  //       }
+  //     }
+
+  //     if (user.paymentStatus !== "success") {
+  //       const newCount = generateCount - 1;
+  //       setGenerateCount(newCount);
+  //       localStorage.setItem("generateCount", newCount);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error generating titles:", error);
+  //     toast.error(`Error: ${error.message}`);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const generateTitles = async () => {
     if (!user) {
       toast.error(t("loginToGenerateTags"));
       return;
     }
-
+  
     if (
       user.paymentStatus !== "success" &&
       user.role !== "admin" &&
@@ -262,58 +342,109 @@ export default function Home({
       toast.error(t("upgradeForUnlimited"));
       return;
     }
-
+  
     setIsLoading(true);
-
+  
     try {
+      // Fetch active API keys from the server
       const response = await fetch("/api/openaiKey");
-      if (!response.ok)
+      if (!response.ok) {
         throw new Error(`Failed to fetch API keys: ${response.status}`);
-
+      }
+  
       const keysData = await response.json();
-      const apiKeys = keysData.map((key) => key.token);
-
-      for (const key of apiKeys) {
+      const activeKeys = keysData.filter((key) => key.active);  // Filter out inactive keys
+  
+      if (activeKeys.length === 0) {
+        toast.error("No active API keys available.");
+        return;
+      }
+  
+      // Try each active API key
+      for (const keyData of activeKeys) {
         try {
-          const result = await fetch(
-            "https://api.openai.com/v1/chat/completions",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${key}`,
-              },
-              body: JSON.stringify({
-                model: "gpt-3.5-turbo-16k",
-                messages: [
-                  {
-                    role: "system",
-                    content: `Generate a list of at least 10 SEO-friendly Tag for keywords: "${tags.join(
-                      ", "
-                    )}".`,
-                  },
-                  { role: "user", content: tags.join(", ") },
-                ],
-                temperature: 0.7,
-                max_tokens: 3500,
-              }),
-            }
-          );
-
-          const data = await result.json();
-          if (data.choices) {
+          const { token, serviceType } = keyData;  // Extract token and serviceType
+  
+          // Determine the correct API URL and headers based on serviceType
+          let url = '';
+          let headers = {};
+          let body = {};
+  
+          if (serviceType === "openai") {
+            // For OpenAI API
+            url = "https://api.openai.com/v1/chat/completions";
+            headers = {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            };
+            body = JSON.stringify({
+              model: "gpt-3.5-turbo-16k",
+              messages: [
+                {
+                  role: "system",
+                  content: `Generate a list of at least 10 SEO-friendly Tag for keywords: "${tags.join(", ")}".`,
+                },
+                { role: "user", content: tags.join(", ") },
+              ],
+              temperature: 0.7,
+              max_tokens: 3500,
+            });
+          } else if (serviceType === "azure") {
+            // For Azure OpenAI API
+            url = "https://nazmul.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview";
+            headers = {
+              "Content-Type": "application/json",
+              "api-key": token, // Azure API key
+            };
+            body = {
+              messages: [
+                {
+                  role: "system",
+                  content: `Generate a list of at least 10 SEO-friendly Tag for keywords: "${tags.join(", ")}".`,
+                },
+                { role: "user", content: tags.join(", ") },
+              ],
+              temperature: 1,
+              max_tokens: 4096,
+              top_p: 1,
+              frequency_penalty: 0.5,
+              presence_penalty: 0.5,
+            };
+          }
+  
+          // Make the API request based on the selected service type
+          const result = await axios.post(url, body, {
+            headers: headers,
+          });
+  
+          const data = result.data;
+          
+          // Debugging log to check the response structure
+          console.log("Azure API Response Data:", data);
+  
+          // Check if data has choices or a similar property based on the API type
+          if (data && data.choices && data.choices.length > 0) {
             const titles = data.choices[0].message.content
               .trim()
               .split("\n")
               .map((title) => ({ text: title, selected: false }));
             setGeneratedTitles(titles);
-            break;
+            break; // Stop after the first successful response
+          } else if (data && data.error) {
+            console.error("Azure API Error:", data.error);
+            toast.error(`Azure API Error: ${data.error.message}`);
+            break; // Break the loop if there's an error response
+          } else {
+            console.error("No titles found in the response:", data);
+            toast.error("Failed to generate titles.");
           }
         } catch (error) {
-          console.error("Error with key:", key, error.message);
+          console.error("Error with key:", keyData.token, error.message);
+          toast.error(`Error with key: ${error.message}`);
         }
       }
-
+  
+      // Update generate count if the user doesn't have unlimited access
       if (user.paymentStatus !== "success") {
         const newCount = generateCount - 1;
         setGenerateCount(newCount);
@@ -326,7 +457,9 @@ export default function Home({
       setIsLoading(false);
     }
   };
-
+  
+  
+  
   useEffect(() => {
     // Fetch reviews on component mount
     fetchReviews();
@@ -677,9 +810,9 @@ export default function Home({
         </Script>
 
         <div className="max-w-7xl mx-auto p-4">
-          <h2 className="text-3xl text-white">
+          <h1 className="text-3xl text-white">
             {isLoading ? <Skeleton width={250} /> : t("YouTube Tag Generator")}
-          </h2>
+          </h1>
 
           <ToastContainer />
 
