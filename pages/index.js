@@ -178,11 +178,26 @@ export default function Home({
   useEffect(() => {
     const fetchConfigs = async () => {
       try {
-        const protocol =
-          window.location.protocol === "https:" ? "https" : "http";
+        const protocol = window.location.protocol === "https:" ? "https" : "http";
         const host = window.location.host;
+        
+        // Retrieve the JWT token from localStorage (or other storage mechanisms)
+        const token = process.env.AUTH_TOKEN;  // Replace 'authToken' with your key if different
 
-        const response = await fetch(`${protocol}://${host}/api/extensions`);
+        if (!token) {
+          console.error('No authentication token found!');
+          return;
+        }
+
+        // Make the API call with the Authorization header containing the JWT token
+        const response = await fetch(`${protocol}://${host}/api/extensions`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`, // Include the token in the header
+          },
+        });
+
         const result = await response.json();
 
         if (result.success) {
@@ -195,6 +210,8 @@ export default function Home({
           } else {
             console.error("ReCAPTCHA configuration not found or disabled.");
           }
+        } else {
+          console.error('Error fetching extensions:', result.message);
         }
       } catch (error) {
         console.error("Error fetching configurations:", error);
@@ -999,14 +1016,12 @@ export default function Home({
       </div>
     </div>
 {/* reCAPTCHA Section */}
-{!isLocalHost && (
-        <div className="mt-4 ms-5">
-          <ReCAPTCHA
-            sitekey={siteKey}// Replace with your Google reCAPTCHA site key
-            onChange={handleCaptchaChange} // Handle reCAPTCHA response
-          />
-        </div>
-      )}
+{!isLocalHost && siteKey && (
+  <ReCAPTCHA
+    sitekey={siteKey} // সঠিকভাবে `sitekey` পাঠানো
+    onChange={handleCaptchaChange}
+  />
+)}
 
       {/* Buttons Section */}
       <div className="flex items-center mt-4 ps-6 pe-6">

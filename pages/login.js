@@ -22,11 +22,26 @@ function LoginOrResetPassword() {
   useEffect(() => {
     const fetchConfigs = async () => {
       try {
-        const protocol =
-          window.location.protocol === "https:" ? "https" : "http";
+        const protocol = window.location.protocol === "https:" ? "https" : "http";
         const host = window.location.host;
+        
+        // Retrieve the JWT token from localStorage (or other storage mechanisms)
+        const token = process.env.AUTH_TOKEN;  // Replace 'authToken' with your key if different
 
-        const response = await fetch(`${protocol}://${host}/api/extensions`);
+        if (!token) {
+          console.error('No authentication token found!');
+          return;
+        }
+
+        // Make the API call with the Authorization header containing the JWT token
+        const response = await fetch(`${protocol}://${host}/api/extensions`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`, // Include the token in the header
+          },
+        });
+
         const result = await response.json();
 
         if (result.success) {
@@ -39,6 +54,8 @@ function LoginOrResetPassword() {
           } else {
             console.error("ReCAPTCHA configuration not found or disabled.");
           }
+        } else {
+          console.error('Error fetching extensions:', result.message);
         }
       } catch (error) {
         console.error("Error fetching configurations:", error);
