@@ -39,7 +39,7 @@ function Register() {
         const host = window.location.host;
         
         // Retrieve the JWT token from localStorage (or other storage mechanisms)
-        const token = process.env.AUTH_TOKEN;  // Replace 'authToken' with your key if different
+        const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace 'authToken' with your key if different
 
         if (!token) {
           console.error('No authentication token found!');
