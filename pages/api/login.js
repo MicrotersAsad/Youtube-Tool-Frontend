@@ -22,9 +22,21 @@ export default async function handler(req, res) {
       // Fetch reCAPTCHA secret from the extensions API
       const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
       const host = req.headers.host;
-      const extensionsResponse = await fetch(`${protocol}://${host}/api/extensions`);
-      const extensionsResult = await extensionsResponse.json();
+      const authToken ='AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Authorization token from header
+    
 
+      if (!authToken) {
+        return res.status(401).json({ message: "Authorization token is required" });
+      }
+
+      const extensionsResponse = await fetch(`${protocol}://${host}/api/extensions`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+        },
+      });
+
+      const extensionsResult = await extensionsResponse.json();
       if (!extensionsResult.success) {
         return res.status(500).json({ message: "Failed to fetch extensions configuration" });
       }
@@ -38,12 +50,9 @@ export default async function handler(req, res) {
       }
 
       const recaptchaSecret = recaptchaExtension.config.secretKey;
-    
-      
 
       // Check failed login attempts
       const attemptRecord = await db.collection("failed_logins").findOne({ ipAddress });
-
       if (attemptRecord && attemptRecord.blockUntil && new Date() < new Date(attemptRecord.blockUntil)) {
         return res.status(429).json({ message: "Too many failed attempts. Try again later." });
       }
@@ -81,7 +90,8 @@ export default async function handler(req, res) {
       // Successful login, reset failed attempts
       await db.collection("failed_logins").deleteOne({ ipAddress });
 
-      const token = jwt.sign(
+      // Create the JWT token for the user
+      const jwtToken = jwt.sign(
         { id: user._id, email: user.email, username: user.username, role: user.role },
         process.env.NEXT_PUBLIC_JWT_SECRET,
         { expiresIn: "1h" }
@@ -117,7 +127,7 @@ export default async function handler(req, res) {
 
       return res.status(200).json({
         message: "Login successful",
-        token,
+        token: jwtToken, // Send the JWT token as part of the response
         loginInfo: {
           ipAddress,
           browser,

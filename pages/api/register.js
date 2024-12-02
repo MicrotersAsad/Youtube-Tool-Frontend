@@ -12,23 +12,46 @@ export const config = {
   },
 };
 
-// Function to fetch the secret key dynamically
+// Function to fetch the secret key dynamically with Authorization
 async function fetchSecretKey() {
   try {
+    // Determine the protocol (https or http)
     const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
-    const host = process.env.API_HOST || "localhost:3000"; // Replace with your host
-    const response = await fetch(`${protocol}://${host}/api/extensions`);
+
+    // Define host, using an environment variable or localhost for development
+    const host = process.env.API_HOST || "localhost:3000"; // Replace with your host if needed
+    
+    // Fetch the JWT token from localStorage or another secure storage
+    const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // This assumes you are storing the JWT token in localStorage
+    
+    if (!token) {
+      throw new Error("Authorization token is missing");
+    }
+
+    // Make the request to the extensions API with the Authorization header
+    const response = await fetch(`${protocol}://${host}/api/extensions`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`, // Add Authorization header with Bearer token
+      },
+    });
+
+    // Parse the response
     const result = await response.json();
 
+    // If the request is successful, find the reCAPTCHA secret key from extensions data
     if (result.success) {
       const captchaExtension = result.data.find(
         (ext) => ext.key === "google_recaptcha_2" && ext.status === "Enabled"
       );
       return captchaExtension?.config?.secretKey || process.env.GOOGLE_RECAPTCHA_SECRET;
+    } else {
+      throw new Error("Failed to fetch extensions configuration");
     }
   } catch (error) {
     console.error("Error fetching secret key:", error);
-    return process.env.GOOGLE_RECAPTCHA_SECRET; // Fallback to environment variable
+    // Fallback to the environment variable if there's an error
+    return process.env.GOOGLE_RECAPTCHA_SECRET; 
   }
 }
 

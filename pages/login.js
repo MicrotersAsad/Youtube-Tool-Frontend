@@ -40,7 +40,7 @@ function LoginOrResetPassword() {
         });
   
         const result = await response.json();
-        console.log(result);
+    
   
         if (result.success && Array.isArray(result.data)) {
           const captchaExtension = result.data.find(

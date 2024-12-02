@@ -1,6 +1,6 @@
 import { connectToDatabase } from "../../utils/mongodb";
 import { ObjectId } from "mongodb";
-import jwt from "jsonwebtoken";
+
 
 // Utility function to verify the JWT token
 function checkAuthorization(req) {
