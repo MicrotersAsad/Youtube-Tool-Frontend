@@ -892,7 +892,7 @@ const isLocalHost = typeof window !== "undefined" &&
      <div>
      
      </div>
-     <div className="flex items-start justify-between space-x-4 ms-4 me-5 sm:ms-2 sm:me-2 mt-3 shadow-xl border rounded-xl pt-3 pb-3 ps-5 pe-5">
+     <div className="flex items-start justify-between space-x-4 ms-4 me-5 sm:ms-2 sm:me-2 mt-3 shadow-xl border rounde pt-3 pb-3 ps-5 pe-5">
 
 
 
