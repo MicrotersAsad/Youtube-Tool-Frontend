@@ -21,54 +21,53 @@ function LoginOrResetPassword() {
   const [sitekey, setSiteKey] = useState(null);
   useEffect(() => {
     const fetchConfigs = async () => {
+      setIsLoading(true);
       try {
         const protocol = window.location.protocol === "https:" ? "https" : "http";
         const host = window.location.host;
+        const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Assuming token is stored in localStorage
         
-        // Retrieve the JWT token from localStorage (or other storage mechanisms)
-        const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace 'authToken' with your key if different
-        
-          
         if (!token) {
           console.error('No authentication token found!');
           return;
         }
-
-        // Make the API call with the Authorization header containing the JWT token
+  
         const response = await fetch(`${protocol}://${host}/api/extensions`, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`, // Include the token in the header
+            'Authorization': `Bearer ${token}`,
           },
         });
-
+  
         const result = await response.json();
-console.log(result);
-
-
-        if (result.success) {
-          // reCAPTCHA configuration
+        console.log(result);
+  
+        if (result.success && Array.isArray(result.data)) {
           const captchaExtension = result.data.find(
             (ext) => ext.key === "google_recaptcha_2" && ext.status === "Enabled"
           );
-          if (captchaExtension && captchaExtension.config.siteKey) {
+  
+          if (captchaExtension?.config?.siteKey) {
             setSiteKey(captchaExtension.config.siteKey);
           } else {
             console.error("ReCAPTCHA configuration not found or disabled.");
+            setError("ReCAPTCHA configuration is missing or disabled.");
           }
         } else {
-          console.error('Error fetching extensions:', result.message);
+          console.error('Error fetching extensions:', result.message || 'Unknown error');
+          setError(result.message || "Error fetching extensions");
         }
       } catch (error) {
         console.error("Error fetching configurations:", error);
+        setError(error.message || "Error fetching configurations");
       } finally {
-        setIsLoading(false); // Data has been loaded
+        setIsLoading(false);
       }
     };
-
+  
     fetchConfigs();
   }, []);
-  console.log(sitekey);
+  
   
   // Check if running on localhost
   const isLocalhost =
