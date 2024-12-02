@@ -47,6 +47,14 @@ const availableLanguages = [
   { code: 'es', name: 'Español', flag: 'es' },
   { code: 'de', name: 'Deutsch', flag: 'de' },
 ];
+const availableTones = [
+    { value: 'formal', label: 'Formal' },
+    { value: 'informal', label: 'Informal' },
+    { value: 'neutral', label: 'Neutral' },
+    { value: 'friendly', label: 'Friendly' },
+    { value: 'professional', label: 'Professional' },
+  ];
+  
 
 const TagGenerator = ({ meta: initialMeta, reviews, content, relatedTools, faqs, reactions, hreflangs }) => {
     const [meta, setMeta] = useState(initialMeta);  // Now `meta` is a state
@@ -69,6 +77,7 @@ const TagGenerator = ({ meta: initialMeta, reviews, content, relatedTools, faqs,
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportText, setReportText] = useState("");
     const [selectedLanguage ,setSelectedLanguage ]=useState()
+    const [selectedTone, setSelectedTone] = useState('');
     const [siteKey, setSiteKey] = useState();
     const [isSaved, setIsSaved] = useState(false);
     const [likes, setLikes] = useState(reactions.likes || 0);
@@ -98,6 +107,10 @@ const isLocalHost = typeof window !== "undefined" &&
     // Perform additional actions based on language change if needed
   };
 
+  const handleToneChange = (event) => {
+    // টোন নির্বাচন করা হলে selectedTone আপডেট হবে
+    setSelectedTone(event.target.value);
+  };
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -831,124 +844,188 @@ const isLocalHost = typeof window !== "undefined" &&
 
           <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
           <div>
+      {/* Keywords Input Section */}
+      <div className="keywords-input-container">
+        <div className="tags-container flex flex-wrap gap-2 mb-4">
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} width={80} height={30} />
+            ))
+          ) : (
+            tags.map((tag, index) => (
+              <span
+                key={index}
+                className="bg-gray-200 px-2 py-1 rounded-md flex items-center"
+              >
+                {tag}
+                <span
+                  className="ml-2 cursor-pointer text-red-500"
+                  onClick={() =>
+                    setTags(tags.filter((_, i) => i !== index))
+                  }
+                >
+                  ×
+                </span>
+              </span>
+            ))
+          )}
+        </div>
 
-<div className="keywords-input-container">
-  <div className="tags-container flex flex-wrap gap-2 mb-4">
-    {isLoading ? (
-      Array.from({ length: 3 }).map((_, i) => (
-        <Skeleton key={i} width={80} height={30} />
-      ))
-    ) : (
-      tags.map((tag, index) => (
-        <span
-          key={index}
-          className="bg-gray-200 px-2 py-1 rounded-md flex items-center"
-        >
-          {tag}
-          <span
-            className="ml-2 cursor-pointer text-red-500"
-            onClick={() => setTags((prevTags) => prevTags.filter((_, i) => i !== index))}
+        {isLoading ? (
+          <Skeleton height={40} width="100%" />
+        ) : (
+          <input
+          type="text"
+          placeholder="Add a keyword"
+          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          value={input}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur} // If the input loses focus, process the tag
+          required
+          style={{
+            cursor: "text", // Keeps text input cursor while typing
+          }}
+        />
+        )}
+      </div>
+     <div>
+     
+     </div>
+     <div className="flex items-start justify-between space-x-4 ms-4 me-5 sm:ms-2 sm:me-2 mt-3 shadow-xl border rounded-xl pt-3 pb-3 ps-5 pe-5">
+
+
+
+  {/* Language Section */}
+  <div className="flex flex-col w-1/2">
+    <label htmlFor="language" className="text-sm font-medium mb-2">
+      Language:
+    </label>
+    <div className="relative">
+      <select
+        id="language"
+        value={selectedLanguage}
+        onChange={handleLanguageChange}
+        className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-3 pl-4 pr-10 text-sm leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      >
+        {availableLanguages.map((language) => (
+          <option
+            key={language.code}
+            value={language.code}
+            className="flex items-center"
           >
-            ×
-          </span>
-        </span>
-      ))
-    )}
+            <span className={`fi fi-${language.flag} mr-2`}></span>
+            {language.name}
+          </option>
+        ))}
+      </select>
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-600">
+        <svg
+          className="fill-current h-5 w-5"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </div>
+    </div>
   </div>
 
-  {isLoading ? (
-    <Skeleton height={40} width="100%" />
-  ) : (
-    <input
-      type="text"
-      placeholder="Add a keyword"
-      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-      value={input}
-      onChange={handleInputChange}
-      onKeyDown={handleKeyDown}
-      onBlur={handleBlur} // If the input loses focus, process the tag
-      required
-      style={{ cursor: "text" }} // Keeps text input cursor while typing
-    />
-  )}
-</div>
-
-{/* Language Selection Section */}
-<div>
-  <h6 htmlFor="language" className="relative mt-3 w-64">Select Language:</h6>
-</div>
-<div className="mb-3 ms-4 mt-3">
-  <div className="relative w-64">
-    <select
-      id="language"
-      value={selectedLanguage}
-      onChange={handleLanguageChange}
-      className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-3 pl-4 pr-10 text-sm leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-    >
-      {availableLanguages.map((language) => (
-        <option key={language.code} value={language.code} className="flex items-center">
-          <span className={`fi fi-${language.flag} mr-2`}></span>
-          {language.name}
-        </option>
-      ))}
-    </select>
-    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-600">
-      <svg
-        className="fill-current h-5 w-5"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 20 20"
+  {/* Tone Section */}
+  <div className="flex flex-col w-1/2">
+    <label htmlFor="tone" className="text-sm font-medium mb-2">
+      Tone:
+    </label>
+    <div className="relative">
+      <select
+        id="tone"
+        value={selectedTone}
+        onChange={handleToneChange}
+        className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-3 pl-4 pr-10 text-sm leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
       >
-        <path
-          fillRule="evenodd"
-          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-          clipRule="evenodd"
-        />
-      </svg>
+        {availableTones.map((tone) => (
+          <option key={tone.value} value={tone.value}>
+            {tone.label}
+          </option>
+        ))}
+      </select>
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-600">
+        <svg
+          className="fill-current h-5 w-5"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </div>
     </div>
   </div>
 </div>
-
-{/* reCAPTCHA Section */}
 <div className="ms-5">
-  {!isLocalHost && siteKey && (
-    <ReCAPTCHA
-      sitekey={siteKey} // Correctly passing `sitekey`
-      onChange={handleCaptchaChange}
-    />
-  )}
+  {/* reCAPTCHA Section */}
+{!isLocalHost && siteKey && (
+  <ReCAPTCHA
+    sitekey={siteKey} // সঠিকভাবে `sitekey` পাঠানো
+    onChange={handleCaptchaChange}
+  />
+)}
 </div>
 
-{/* Buttons Section */}
-<div className="flex items-center mt-4 ps-6 pe-6">
-  <button
-    className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-400"
-    type="button"
-    id="button-addon2"
-    onClick={generateTitles}
-    disabled={!isGenerateButtonActive()}
+      {/* Buttons Section */}
+      <div className="flex items-center mt-4 ps-6 pe-6">
+        {/* Generate Titles Button */}
+        <button
+  className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-400"
+  type="button"
+  id="button-addon2"
+  onClick={generateTitles}
+  disabled={!isGenerateButtonActive()}
+>
+  {isLoading ? (
+    <>
+     <span className="animate-spin mr-2">
+  <svg
+    aria-hidden="true"
+    className="h-5 w-5"
+    viewBox="0 0 512 512"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="white"
   >
-    {isLoading ? (
-      <>
-        <span className="animate-spin mr-2">
-          <svg
-            aria-hidden="true"
-            className="h-5 w-5"
-            viewBox="0 0 512 512"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="white"
-          >
-            <path d="M487.4 315.7l-42.6-24.6c4.3-23.2 4.3-47 0-70.2l42.6-24.6c4.9-2.8 7.1-8.6 5.5-14-11.1-35.6-30-67.8-54.7-94.6-3.8-4.1-10-5.1-14.8-2.3L380.8 110c-17.9-15.4-38.5-27.3-60.8-35.1V25.8c0-5.6-3.9-10.5-9.4-11.7-36.7-8.2-74.3-7.8-109.2 0-5.5 1.2-9.4 6.1-9.4 11.7V75c-22.2 7.9-42.8 19.8-60.8 35.1L88.7 85.5c-4.9-2.8-11-1.9-14.8 2.3-24.7 26.7-43.6 58.9-54.7 94.6-1.7 5.4.6 11.2 5.5 14L67.3 221c-4.3 23.2-4.3 47 0 70.2l-42.6 24.6c-4.9 2.8-7.1 8.6-5.5 14 11.1 35.6 30 67.8 54.7 94.6 3.8 4.1 10 5.1 14.8 2.3l42.6-24.6c17.9 15.4 38.5 27.3 60.8 35.1v49.2c0 5.6 3.9 10.5 9.4 11.7 36.7 8.2 74.3 7.8 109.2 0 5.5-1.2 9.4-6.1 9.4-11.7v-49.2c22.2-7.9 42.8-19.8 60.8-35.1l42.6 24.6c4.9 2.8 11 1.9 14.8-2.3 24.7-26.7 43.6-58.9 54.7-94.6 1.5-5.5-.7-11.3-5.6-14.1zM256 336c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z"></path>
-          </svg>
-        </span>
-        Loading...
-      </>
-    ) : (
-      <>Generate Tag</>
-    )}
-  </button>
-</div>
-</div>
+    <path d="M487.4 315.7l-42.6-24.6c4.3-23.2 4.3-47 0-70.2l42.6-24.6c4.9-2.8 7.1-8.6 5.5-14-11.1-35.6-30-67.8-54.7-94.6-3.8-4.1-10-5.1-14.8-2.3L380.8 110c-17.9-15.4-38.5-27.3-60.8-35.1V25.8c0-5.6-3.9-10.5-9.4-11.7-36.7-8.2-74.3-7.8-109.2 0-5.5 1.2-9.4 6.1-9.4 11.7V75c-22.2 7.9-42.8 19.8-60.8 35.1L88.7 85.5c-4.9-2.8-11-1.9-14.8 2.3-24.7 26.7-43.6 58.9-54.7 94.6-1.7 5.4.6 11.2 5.5 14L67.3 221c-4.3 23.2-4.3 47 0 70.2l-42.6 24.6c-4.9 2.8-7.1 8.6-5.5 14 11.1 35.6 30 67.8 54.7 94.6 3.8 4.1 10 5.1 14.8 2.3l42.6-24.6c17.9 15.4 38.5 27.3 60.8 35.1v49.2c0 5.6 3.9 10.5 9.4 11.7 36.7 8.2 74.3 7.8 109.2 0 5.5-1.2 9.4-6.1 9.4-11.7v-49.2c22.2-7.9 42.8-19.8 60.8-35.1l42.6 24.6c4.9 2.8 11 1.9 14.8-2.3 24.7-26.7 43.6-58.9 54.7-94.6 1.5-5.5-.7-11.3-5.6-14.1zM256 336c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z"></path>
+  </svg>
+</span>
 
+      Loading...
+    </>
+  ) : (
+    <>
+     <span className="animate-spin mr-2">
+  <svg
+    aria-hidden="true"
+    className="h-5 w-5"
+    viewBox="0 0 512 512"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="white"
+  >
+    <path d="M487.4 315.7l-42.6-24.6c4.3-23.2 4.3-47 0-70.2l42.6-24.6c4.9-2.8 7.1-8.6 5.5-14-11.1-35.6-30-67.8-54.7-94.6-3.8-4.1-10-5.1-14.8-2.3L380.8 110c-17.9-15.4-38.5-27.3-60.8-35.1V25.8c0-5.6-3.9-10.5-9.4-11.7-36.7-8.2-74.3-7.8-109.2 0-5.5 1.2-9.4 6.1-9.4 11.7V75c-22.2 7.9-42.8 19.8-60.8 35.1L88.7 85.5c-4.9-2.8-11-1.9-14.8 2.3-24.7 26.7-43.6 58.9-54.7 94.6-1.7 5.4.6 11.2 5.5 14L67.3 221c-4.3 23.2-4.3 47 0 70.2l-42.6 24.6c-4.9 2.8-7.1 8.6-5.5 14 11.1 35.6 30 67.8 54.7 94.6 3.8 4.1 10 5.1 14.8 2.3l42.6-24.6c17.9 15.4 38.5 27.3 60.8 35.1v49.2c0 5.6 3.9 10.5 9.4 11.7 36.7 8.2 74.3 7.8 109.2 0 5.5-1.2 9.4-6.1 9.4-11.7v-49.2c22.2-7.9 42.8-19.8 60.8-35.1l42.6 24.6c4.9 2.8 11 1.9 14.8-2.3 24.7-26.7 43.6-58.9 54.7-94.6 1.5-5.5-.7-11.3-5.6-14.1zM256 336c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z"></path>
+  </svg>
+</span>
+
+
+      Generate Tag
+    </>
+  )}
+</button>
+        </div>
+      </div>
     
 
             {/* Reaction Bar */}
