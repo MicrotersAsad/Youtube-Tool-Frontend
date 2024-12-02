@@ -9,7 +9,6 @@ import {
   FaDownload,
   FaStar,
 } from "react-icons/fa";
-import { useAuth } from "../contexts/AuthContext";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ToastContainer, toast } from "react-toastify";
@@ -17,18 +16,19 @@ import "react-toastify/dist/ReactToastify.css";
 import { format } from "date-fns";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import dynamic from "next/dynamic";
-import announce from "../public/shape/announce.png";
-import chart from "../public/shape/chart (1).png";
-import cloud from "../public/shape/cloud.png";
-import cloud2 from "../public/shape/cloud2.png";
+import announce from "../../public/shape/announce.png";
+import chart from "../../public/shape/chart (1).png";
+import cloud from "../../public/shape/cloud.png";
+import cloud2 from "../../public/shape/cloud2.png";
 import Script from "next/script";
 import 'flag-icons/css/flag-icons.min.css';
 import axios from "axios";
 import ReCAPTCHA from "react-google-recaptcha";
-const StarRating = dynamic(() => import("./tools/StarRating"), { ssr: false });
+import { getContentProps } from "../../utils/getContentProps";
+import { useAuth } from "../../contexts/AuthContext";
+
 
 const availableLanguages = [
   { code: 'en', name: 'English', flag: 'us' },
@@ -48,57 +48,41 @@ const availableLanguages = [
   { code: 'de', name: 'Deutsch', flag: 'de' },
 ];
 
-export default function Home({
-  initialMeta,
-  reactions,
-  content,
-  faqList,
-  tools,
-  headerContent,
-  translations,
-  hreflangs,
-}) {
-
-
-  
-
-  const { user, updateUserProfile } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
-  const { t, i18n } = useTranslation("common"); // i18n এখানে পেয়েছেন
-  const [tags, setTags] = useState([]);
-  const [input, setInput] = useState("");
-  const [generatedTitles, setGeneratedTitles] = useState([]);
-  const [selectAll, setSelectAll] = useState(false);
-  const [generateCount, setGenerateCount] = useState(0);
-  const [isUpdated, setIsUpdated] = useState(false);
-  const [reviews, setReviews] = useState([]);
-  const [showReviewForm, setShowReviewForm] = useState(false);
-  const [meta, setMeta] = useState(initialMeta);
-  const [existingContent, setExistingContent] = useState(content);
-  const [selectedLanguage, setSelectedLanguage] = useState('en'); // Default language
-  const [relatedTools, setRelatedTools] = useState(tools);
-  const [faqs, setFaqs] = useState(faqList);
-  const [likes, setLikes] = useState(reactions.likes || 0);
-  const [unlikes, setUnlikes] = useState(reactions.unlikes || 0);
-  const [captchaVerified, setCaptchaVerified] = useState(false); // State for reCAPTCHA
-  const [hasLiked, setHasLiked] = useState(false);
-  const [hasUnliked, setHasUnliked] = useState(false);
-  const [hasReported, setHasReported] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false);
-  const [reportText, setReportText] = useState("");
-  const [siteKey,setSiteKey]=useState()
-  const [isSaved, setIsSaved] = useState(false);
-  const [newReview, setNewReview] = useState({
-    name: "",
-    title: "",
-    rating: 0,
-    comment: "",
-    userProfile: "",
-  });
-  const [modalVisible, setModalVisible] = useState(false);
-  const [showAllReviews, setShowAllReviews] = useState(false);
-  const [openIndex, setOpenIndex] = useState(null);
+const TagGenerator = ({ meta: initialMeta, reviews, content, relatedTools, faqs, reactions, hreflangs }) => {
+    const [meta, setMeta] = useState(initialMeta);  // Now `meta` is a state
+    const [isLoading, setIsLoading] = useState(false);
+    const { isLoggedIn, user, updateUserProfile } = useAuth();
+    const router = useRouter();
+    const { t, i18n } = useTranslation("common"); // i18n here
+    const [tags, setTags] = useState([]);
+    const [input, setInput] = useState("");
+    const [generatedTitles, setGeneratedTitles] = useState([]);
+    const [selectAll, setSelectAll] = useState(false);
+    const [generateCount, setGenerateCount] = useState(0);
+    const [isUpdated, setIsUpdated] = useState(false);
+    const [showReviewForm, setShowReviewForm] = useState(false);
+    const [existingContent, setExistingContent] = useState(content);
+    const [captchaVerified, setCaptchaVerified] = useState(false); // State for reCAPTCHA
+    const [hasLiked, setHasLiked] = useState(false);
+    const [hasUnliked, setHasUnliked] = useState(false);
+    const [hasReported, setHasReported] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportText, setReportText] = useState("");
+    const [selectedLanguage ,setSelectedLanguage ]=useState()
+    const [siteKey, setSiteKey] = useState();
+    const [isSaved, setIsSaved] = useState(false);
+    const [likes, setLikes] = useState(reactions.likes || 0);
+    const [unlikes, setUnlikes] = useState(reactions.unlikes || 0);
+    const [newReview, setNewReview] = useState({
+      name: "",
+      title: "",
+      rating: 0,
+      comment: "",
+      userProfile: "",
+    });
+    const [modalVisible, setModalVisible] = useState(false);
+    const [showAllReviews, setShowAllReviews] = useState(false);
+    const [openIndex, setOpenIndex] = useState(null);
 
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -117,35 +101,19 @@ const isLocalHost = typeof window !== "undefined" &&
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = process.env.AUTH_TOKEN  // Replace with the actual token or method to get it
-  
-        const response = await fetch(
-          `/api/content?category=tagGenerator&language=${i18n.language}`,
-          {
-            method: "GET",  // Default method is GET, but you can specify it explicitly
-            headers: {
-              "Authorization": `Bearer ${token}`,  // Add Authorization header
-              "Content-Type": "application/json", // Optional, based on your API requirements
-            },
-          }
-        );
-  
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-  
+        const language = i18n.language || "en";
+        const response = await fetch(`/api/content?category=YouTube-Channel-Logo-Downloader&language=${language}`);
+        if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
-
-  
         setLikes(data.reactions.likes || 0);
         setUnlikes(data.reactions.unlikes || 0);
       } catch (error) {
         console.error("Error fetching content:", error);
-        toast.error("Failed to fetch content");
       }
     };
-  
+
     fetchData();
+   
   }, [i18n.language]);
   
   const closeModal = () => setModalVisible(false);
@@ -154,25 +122,25 @@ const isLocalHost = typeof window !== "undefined" &&
     setIsLoading(false);
   }, []);
 
-  useEffect(() => {
-    if (!headerContent) return;
+//   useEffect(() => {
+//     if (!headerContent) return;
 
-    // HTML হিসেবে ডিকোড করার জন্য একটি ডিভ তৈরি করা হচ্ছে
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = headerContent;
+//     // HTML হিসেবে ডিকোড করার জন্য একটি ডিভ তৈরি করা হচ্ছে
+//     const tempDiv = document.createElement("div");
+//     tempDiv.innerHTML = headerContent;
 
-    // `<head>` এ মেটা ট্যাগ যুক্ত করা হচ্ছে
-    const metaTags = tempDiv.querySelectorAll("meta");
-    metaTags.forEach((meta) => {
-      if (
-        !document.head.querySelector(
-          `meta[content="${meta.getAttribute("content")}"]`
-        )
-      ) {
-        document.head.appendChild(meta.cloneNode(true));
-      }
-    });
-  }, [headerContent]);
+//     // `<head>` এ মেটা ট্যাগ যুক্ত করা হচ্ছে
+//     const metaTags = tempDiv.querySelectorAll("meta");
+//     metaTags.forEach((meta) => {
+//       if (
+//         !document.head.querySelector(
+//           `meta[content="${meta.getAttribute("content")}"]`
+//         )
+//       ) {
+//         document.head.appendChild(meta.cloneNode(true));
+//       }
+//     });
+//   }, [headerContent]);
   const handleCaptchaChange = (value) => {
     // This is the callback from the reCAPTCHA widget
     if (value) {
@@ -863,144 +831,124 @@ const isLocalHost = typeof window !== "undefined" &&
 
           <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
           <div>
-      {/* Keywords Input Section */}
-      <div className="keywords-input-container">
-        <div className="tags-container flex flex-wrap gap-2 mb-4">
-          {isLoading ? (
-            Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} width={80} height={30} />
-            ))
-          ) : (
-            tags.map((tag, index) => (
-              <span
-                key={index}
-                className="bg-gray-200 px-2 py-1 rounded-md flex items-center"
-              >
-                {tag}
-                <span
-                  className="ml-2 cursor-pointer text-red-500"
-                  onClick={() =>
-                    setTags(tags.filter((_, i) => i !== index))
-                  }
-                >
-                  ×
-                </span>
-              </span>
-            ))
-          )}
-        </div>
 
-        {isLoading ? (
-          <Skeleton height={40} width="100%" />
-        ) : (
-          <input
-          type="text"
-          placeholder="Add a keyword"
-          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-          value={input}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          onBlur={handleBlur} // If the input loses focus, process the tag
-          required
-          style={{
-            cursor: "text", // Keeps text input cursor while typing
-          }}
-        />
-        )}
-      </div>
-     <div>
-     <h6 htmlFor="language" className="relative mt-3 w-64">
-    Select Language:
-  </h6>
-     </div>
-      <div className="mb-3 ms-4 mt-3">
-     
-      <div className="relative  w-64">
-        <select
-          id="language"
-          value={selectedLanguage}
-          onChange={handleLanguageChange}
-          className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-3 pl-4 pr-10 text-sm leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+<div className="keywords-input-container">
+  <div className="tags-container flex flex-wrap gap-2 mb-4">
+    {isLoading ? (
+      Array.from({ length: 3 }).map((_, i) => (
+        <Skeleton key={i} width={80} height={30} />
+      ))
+    ) : (
+      tags.map((tag, index) => (
+        <span
+          key={index}
+          className="bg-gray-200 px-2 py-1 rounded-md flex items-center"
         >
-          {availableLanguages.map((language) => (
-            <option key={language.code} value={language.code} className="flex items-center">
-              <span className={`fi fi-${language.flag} mr-2`}></span>
-              {language.name}
-            </option>
-          ))}
-        </select>
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-600">
-          <svg
-            className="fill-current h-5 w-5"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
+          {tag}
+          <span
+            className="ml-2 cursor-pointer text-red-500"
+            onClick={() => setTags((prevTags) => prevTags.filter((_, i) => i !== index))}
           >
-            <path
-              fillRule="evenodd"
-              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </div>
-      </div>
-    </div>
-<div className="ms-5">
-  {/* reCAPTCHA Section */}
-{!isLocalHost && siteKey && (
-  <ReCAPTCHA
-    sitekey={siteKey} // সঠিকভাবে `sitekey` পাঠানো
-    onChange={handleCaptchaChange}
-  />
-)}
+            ×
+          </span>
+        </span>
+      ))
+    )}
+  </div>
+
+  {isLoading ? (
+    <Skeleton height={40} width="100%" />
+  ) : (
+    <input
+      type="text"
+      placeholder="Add a keyword"
+      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+      value={input}
+      onChange={handleInputChange}
+      onKeyDown={handleKeyDown}
+      onBlur={handleBlur} // If the input loses focus, process the tag
+      required
+      style={{ cursor: "text" }} // Keeps text input cursor while typing
+    />
+  )}
 </div>
 
-      {/* Buttons Section */}
-      <div className="flex items-center mt-4 ps-6 pe-6">
-        {/* Generate Titles Button */}
-        <button
-  className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-400"
-  type="button"
-  id="button-addon2"
-  onClick={generateTitles}
-  disabled={!isGenerateButtonActive()}
->
-  {isLoading ? (
-    <>
-     <span className="animate-spin mr-2">
-  <svg
-    aria-hidden="true"
-    className="h-5 w-5"
-    viewBox="0 0 512 512"
-    xmlns="http://www.w3.org/2000/svg"
-    fill="white"
-  >
-    <path d="M487.4 315.7l-42.6-24.6c4.3-23.2 4.3-47 0-70.2l42.6-24.6c4.9-2.8 7.1-8.6 5.5-14-11.1-35.6-30-67.8-54.7-94.6-3.8-4.1-10-5.1-14.8-2.3L380.8 110c-17.9-15.4-38.5-27.3-60.8-35.1V25.8c0-5.6-3.9-10.5-9.4-11.7-36.7-8.2-74.3-7.8-109.2 0-5.5 1.2-9.4 6.1-9.4 11.7V75c-22.2 7.9-42.8 19.8-60.8 35.1L88.7 85.5c-4.9-2.8-11-1.9-14.8 2.3-24.7 26.7-43.6 58.9-54.7 94.6-1.7 5.4.6 11.2 5.5 14L67.3 221c-4.3 23.2-4.3 47 0 70.2l-42.6 24.6c-4.9 2.8-7.1 8.6-5.5 14 11.1 35.6 30 67.8 54.7 94.6 3.8 4.1 10 5.1 14.8 2.3l42.6-24.6c17.9 15.4 38.5 27.3 60.8 35.1v49.2c0 5.6 3.9 10.5 9.4 11.7 36.7 8.2 74.3 7.8 109.2 0 5.5-1.2 9.4-6.1 9.4-11.7v-49.2c22.2-7.9 42.8-19.8 60.8-35.1l42.6 24.6c4.9 2.8 11 1.9 14.8-2.3 24.7-26.7 43.6-58.9 54.7-94.6 1.5-5.5-.7-11.3-5.6-14.1zM256 336c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z"></path>
-  </svg>
-</span>
+{/* Language Selection Section */}
+<div>
+  <h6 htmlFor="language" className="relative mt-3 w-64">Select Language:</h6>
+</div>
+<div className="mb-3 ms-4 mt-3">
+  <div className="relative w-64">
+    <select
+      id="language"
+      value={selectedLanguage}
+      onChange={handleLanguageChange}
+      className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-3 pl-4 pr-10 text-sm leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+    >
+      {availableLanguages.map((language) => (
+        <option key={language.code} value={language.code} className="flex items-center">
+          <span className={`fi fi-${language.flag} mr-2`}></span>
+          {language.name}
+        </option>
+      ))}
+    </select>
+    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-600">
+      <svg
+        className="fill-current h-5 w-5"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 20 20"
+      >
+        <path
+          fillRule="evenodd"
+          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+          clipRule="evenodd"
+        />
+      </svg>
+    </div>
+  </div>
+</div>
 
-      Loading...
-    </>
-  ) : (
-    <>
-     <span className="animate-spin mr-2">
-  <svg
-    aria-hidden="true"
-    className="h-5 w-5"
-    viewBox="0 0 512 512"
-    xmlns="http://www.w3.org/2000/svg"
-    fill="white"
-  >
-    <path d="M487.4 315.7l-42.6-24.6c4.3-23.2 4.3-47 0-70.2l42.6-24.6c4.9-2.8 7.1-8.6 5.5-14-11.1-35.6-30-67.8-54.7-94.6-3.8-4.1-10-5.1-14.8-2.3L380.8 110c-17.9-15.4-38.5-27.3-60.8-35.1V25.8c0-5.6-3.9-10.5-9.4-11.7-36.7-8.2-74.3-7.8-109.2 0-5.5 1.2-9.4 6.1-9.4 11.7V75c-22.2 7.9-42.8 19.8-60.8 35.1L88.7 85.5c-4.9-2.8-11-1.9-14.8 2.3-24.7 26.7-43.6 58.9-54.7 94.6-1.7 5.4.6 11.2 5.5 14L67.3 221c-4.3 23.2-4.3 47 0 70.2l-42.6 24.6c-4.9 2.8-7.1 8.6-5.5 14 11.1 35.6 30 67.8 54.7 94.6 3.8 4.1 10 5.1 14.8 2.3l42.6-24.6c17.9 15.4 38.5 27.3 60.8 35.1v49.2c0 5.6 3.9 10.5 9.4 11.7 36.7 8.2 74.3 7.8 109.2 0 5.5-1.2 9.4-6.1 9.4-11.7v-49.2c22.2-7.9 42.8-19.8 60.8-35.1l42.6 24.6c4.9 2.8 11 1.9 14.8-2.3 24.7-26.7 43.6-58.9 54.7-94.6 1.5-5.5-.7-11.3-5.6-14.1zM256 336c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z"></path>
-  </svg>
-</span>
-
-
-      Generate Tag
-    </>
+{/* reCAPTCHA Section */}
+<div className="ms-5">
+  {!isLocalHost && siteKey && (
+    <ReCAPTCHA
+      sitekey={siteKey} // Correctly passing `sitekey`
+      onChange={handleCaptchaChange}
+    />
   )}
-</button>
-        </div>
-      </div>
+</div>
+
+{/* Buttons Section */}
+<div className="flex items-center mt-4 ps-6 pe-6">
+  <button
+    className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-400"
+    type="button"
+    id="button-addon2"
+    onClick={generateTitles}
+    disabled={!isGenerateButtonActive()}
+  >
+    {isLoading ? (
+      <>
+        <span className="animate-spin mr-2">
+          <svg
+            aria-hidden="true"
+            className="h-5 w-5"
+            viewBox="0 0 512 512"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="white"
+          >
+            <path d="M487.4 315.7l-42.6-24.6c4.3-23.2 4.3-47 0-70.2l42.6-24.6c4.9-2.8 7.1-8.6 5.5-14-11.1-35.6-30-67.8-54.7-94.6-3.8-4.1-10-5.1-14.8-2.3L380.8 110c-17.9-15.4-38.5-27.3-60.8-35.1V25.8c0-5.6-3.9-10.5-9.4-11.7-36.7-8.2-74.3-7.8-109.2 0-5.5 1.2-9.4 6.1-9.4 11.7V75c-22.2 7.9-42.8 19.8-60.8 35.1L88.7 85.5c-4.9-2.8-11-1.9-14.8 2.3-24.7 26.7-43.6 58.9-54.7 94.6-1.7 5.4.6 11.2 5.5 14L67.3 221c-4.3 23.2-4.3 47 0 70.2l-42.6 24.6c-4.9 2.8-7.1 8.6-5.5 14 11.1 35.6 30 67.8 54.7 94.6 3.8 4.1 10 5.1 14.8 2.3l42.6-24.6c17.9 15.4 38.5 27.3 60.8 35.1v49.2c0 5.6 3.9 10.5 9.4 11.7 36.7 8.2 74.3 7.8 109.2 0 5.5-1.2 9.4-6.1 9.4-11.7v-49.2c22.2-7.9 42.8-19.8 60.8-35.1l42.6 24.6c4.9 2.8 11 1.9 14.8-2.3 24.7-26.7 43.6-58.9 54.7-94.6 1.5-5.5-.7-11.3-5.6-14.1zM256 336c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z"></path>
+          </svg>
+        </span>
+        Loading...
+      </>
+    ) : (
+      <>Generate Tag</>
+    )}
+  </button>
+</div>
+</div>
+
     
 
             {/* Reaction Bar */}
@@ -1452,104 +1400,11 @@ const isLocalHost = typeof window !== "undefined" &&
   );
 }
 
-export async function getServerSideProps({ req, locale }) {
-  // Extract protocol and host, fallback to defaults if necessary
-  const protocol =
-    req.headers["x-forwarded-proto"]?.split(",")[0] ||
-    (req.connection?.encrypted ? "https" : "http") ||
-    "https"; // fallback to https
-  const host = req.headers.host || "your-default-domain.com"; // Ensure the host is correct
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || `${protocol}://${host}`;
-  
-  const contentApiUrl = `${baseUrl}/api/content?category=tagGenerator&language=${locale}`;
-  const headerApiUrl = `${baseUrl}/api/heading`;
-
-  console.log("Fetching data from:", contentApiUrl); // Debugging: Log the request URL
-
-  const AUTH_TOKEN = process.env.AUTH_TOKEN; // Authorization token from .env
-
-  try {
-    // Fetching both API data concurrently without a timeout
-    const [contentResponse, headerResponse] = await Promise.all([
-      fetch(contentApiUrl, {
-        headers: { 'Authorization': `Bearer ${AUTH_TOKEN}`, 'Content-Type': 'application/json' }
-      }),
-      fetch(headerApiUrl),
-    ]);
-
-    // If the response is OK, parse it, else use fallback data
-    const contentData = contentResponse.ok ? await contentResponse.json() : { translations: {} };
-    const headerData = headerResponse.ok ? await headerResponse.json() : [{ content: "" }];
-    
-    const headerContent = headerData[0]?.content || "";
-    const localeData = contentData.translations?.[locale] || {};
-    const translations = contentData.translations || {};
-
-    // Prepare meta data for SEO or page title
-    const meta = {
-      title: localeData.title || "Default Title",
-      description: localeData.description || "Default description",
-      url: `${baseUrl}${locale === "en" ? "" : `/${locale}`}`,
-      img: localeData.image || "Default Image",
-    };
-
-    // Hreflang for international SEO
-    const hreflangs = [
-      { rel: "alternate", hreflang: "x-default", href: baseUrl },
-      { rel: "alternate", hreflang: "en", href: baseUrl },
-      ...Object.keys(translations)
-        .filter((lang) => lang !== "en")
-        .map((lang) => ({
-          rel: "alternate",
-          hreflang: lang,
-          href: `${baseUrl}/${lang}`,
-        })),
-    ];
-
-    return {
-      props: {
-        initialMeta: meta,
-        reactions: localeData.reactions || {
-          likes: 0,
-          unlikes: 0,
-          reports: [],
-          users: {},
-        },
-        content: localeData.content || "",
-        faqList: localeData.faqs || [],
-        tools: localeData.relatedTools || [],
-        headerContent,
-        translations,
-        hreflangs,
-        ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching data:", error);
-
-    // Return fallback props in case of error
-    return {
-      props: {
-        initialMeta: {
-          title: "Default Title",
-          description: "Default description",
-          url: `${baseUrl}${locale === "en" ? "" : `/${locale}`}`,
-        },
-        reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
-        content: "",
-        faqList: [],
-        tools: [],
-        headerContent: "",
-        translations: {},
-        hreflangs: [
-          { rel: "alternate", hreflang: "x-default", href: baseUrl },
-          { rel: "alternate", hreflang: "en", href: baseUrl },
-        ],
-        ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
-      },
-    };
+export async function getServerSideProps(context) {
+    return getContentProps('tagGenerator', context.locale, context.req);
   }
-}
+  
 
 
+  export default TagGenerator;
 
