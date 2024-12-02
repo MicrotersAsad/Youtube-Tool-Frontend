@@ -10,6 +10,8 @@ class MyDocument extends Document {
       
           <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
           <link href="https://cdn.jsdelivr.net/npm/@wordpress/block-library@9.10.0/build-style/style.min.css" rel="stylesheet" />
+        
+
         </Head>
         <body>
           <Main />

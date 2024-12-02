@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import {
@@ -25,9 +25,29 @@ import chart from "../public/shape/chart (1).png";
 import cloud from "../public/shape/cloud.png";
 import cloud2 from "../public/shape/cloud2.png";
 import Script from "next/script";
-import url from "url"; // Node.js module to parse URLs
+import 'flag-icons/css/flag-icons.min.css';
 import axios from "axios";
+import ReCAPTCHA from "react-google-recaptcha";
 const StarRating = dynamic(() => import("./tools/StarRating"), { ssr: false });
+
+const availableLanguages = [
+  { code: 'en', name: 'English', flag: 'us' },
+  { code: 'fr', name: 'Français', flag: 'fr' },
+  { code: 'zh-HANT', name: '中国传统的', flag: 'cn' },
+  { code: 'zh-HANS', name: '简体中文', flag: 'cn' },
+  { code: 'nl', name: 'Nederlands', flag: 'nl' },
+  { code: 'gu', name: 'ગુજરાતી', flag: 'in' },
+  { code: 'hi', name: 'हिंदी', flag: 'in' },
+  { code: 'it', name: 'Italiano', flag: 'it' },
+  { code: 'ja', name: '日本語', flag: 'jp' },
+  { code: 'ko', name: '한국어', flag: 'kr' },
+  { code: 'pl', name: 'Polski', flag: 'pl' },
+  { code: 'pt', name: 'Português', flag: 'pt' },
+  { code: 'ru', name: 'Русский', flag: 'ru' },
+  { code: 'es', name: 'Español', flag: 'es' },
+  { code: 'de', name: 'Deutsch', flag: 'de' },
+];
+
 export default function Home({
   initialMeta,
   reactions,
@@ -40,6 +60,7 @@ export default function Home({
 }) {
 
 
+  const isLocalHost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 
   const { user, updateUserProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -55,16 +76,18 @@ export default function Home({
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [meta, setMeta] = useState(initialMeta);
   const [existingContent, setExistingContent] = useState(content);
-
+  const [selectedLanguage, setSelectedLanguage] = useState('en'); // Default language
   const [relatedTools, setRelatedTools] = useState(tools);
   const [faqs, setFaqs] = useState(faqList);
   const [likes, setLikes] = useState(reactions.likes || 0);
   const [unlikes, setUnlikes] = useState(reactions.unlikes || 0);
+  const [captchaVerified, setCaptchaVerified] = useState(false); // State for reCAPTCHA
   const [hasLiked, setHasLiked] = useState(false);
   const [hasUnliked, setHasUnliked] = useState(false);
   const [hasReported, setHasReported] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportText, setReportText] = useState("");
+  const [siteKey,setSiteKey]=useState()
   const [isSaved, setIsSaved] = useState(false);
   const [newReview, setNewReview] = useState({
     name: "",
@@ -82,6 +105,10 @@ export default function Home({
   };
 
 
+  const handleLanguageChange = (e) => {
+    setSelectedLanguage(e.target.value);
+    // Perform additional actions based on language change if needed
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -142,7 +169,42 @@ export default function Home({
       }
     });
   }, [headerContent]);
+  const handleCaptchaChange = (value) => {
+    // This is the callback from the reCAPTCHA widget
+    if (value) {
+      setCaptchaVerified(true); // Set captchaVerified to true when the user completes reCAPTCHA
+    }
+  };
+  useEffect(() => {
+    const fetchConfigs = async () => {
+      try {
+        const protocol =
+          window.location.protocol === "https:" ? "https" : "http";
+        const host = window.location.host;
 
+        const response = await fetch(`${protocol}://${host}/api/extensions`);
+        const result = await response.json();
+
+        if (result.success) {
+          // reCAPTCHA configuration
+          const captchaExtension = result.data.find(
+            (ext) => ext.key === "google_recaptcha_2" && ext.status === "Enabled"
+          );
+          if (captchaExtension && captchaExtension.config.siteKey) {
+            setSiteKey(captchaExtension.config.siteKey);
+          } else {
+            console.error("ReCAPTCHA configuration not found or disabled.");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching configurations:", error);
+      } finally {
+        setIsLoading(false); // Data has been loaded
+      }
+    };
+
+    fetchConfigs();
+  }, []);
   // Refactored code
   useEffect(() => {
     if (user) {
@@ -382,7 +444,7 @@ export default function Home({
               messages: [
                 {
                   role: "system",
-                  content: `Generate a list of at least 10 SEO-friendly Tag for keywords: "${tags.join(", ")}".`,
+                  content: `Generate a list of at least 10 SEO-friendly Tag for keywords: "${tags.join(", ")}" in this languge ${selectedLanguage}.`,
                 },
                 { role: "user", content: tags.join(", ") },
               ],
@@ -400,7 +462,7 @@ export default function Home({
               messages: [
                 {
                   role: "system",
-                  content: `Generate a list of at least 10 SEO-friendly Tag for keywords: "${tags.join(", ")}".`,
+                  content: `Generate a list of at least 10 SEO-friendly Tag for keywords: "${tags.join(", ")}" in this languge ${selectedLanguage}.`,
                 },
                 { role: "user", content: tags.join(", ") },
               ],
@@ -672,6 +734,7 @@ export default function Home({
     );
   };
 
+
   // Button color logic
   const buttonColors = {
     like: hasLiked ? "#4CAF50" : "#ccc",
@@ -679,7 +742,7 @@ export default function Home({
     report: hasReported ? "#FFD700" : "#ccc",
     save: isSaved ? "#FFD700" : "#ccc",
   };
-
+ 
   return (
     <>
       <div className="bg-box">
@@ -899,6 +962,51 @@ export default function Home({
           />
         )}
       </div>
+     <div>
+     <h6 htmlFor="language" className="relative mt-3 w-64">
+    Select Language:
+  </h6>
+     </div>
+      <div className="mb-3 ms-4 mt-3">
+     
+      <div className="relative  w-64">
+        <select
+          id="language"
+          value={selectedLanguage}
+          onChange={handleLanguageChange}
+          className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-3 pl-4 pr-10 text-sm leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          {availableLanguages.map((language) => (
+            <option key={language.code} value={language.code} className="flex items-center">
+              <span className={`fi fi-${language.flag} mr-2`}></span>
+              {language.name}
+            </option>
+          ))}
+        </select>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-600">
+          <svg
+            className="fill-current h-5 w-5"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fillRule="evenodd"
+              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+{/* reCAPTCHA Section */}
+{!isLocalHost && (
+        <div className="mt-4 ms-5">
+          <ReCAPTCHA
+            sitekey={siteKey}// Replace with your Google reCAPTCHA site key
+            onChange={handleCaptchaChange} // Handle reCAPTCHA response
+          />
+        </div>
+      )}
 
       {/* Buttons Section */}
       <div className="flex items-center mt-4 ps-6 pe-6">
@@ -1414,29 +1522,13 @@ export async function getServerSideProps({ req, locale }) {
 
   const AUTH_TOKEN = process.env.AUTH_TOKEN; // Authorization token from .env
 
-  // Function to fetch with timeout
-  const fetchWithTimeout = (url, options = {}) => {
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error("Request timed out")), 5000); // Timeout after 5 seconds
-      fetch(url, options)
-        .then(response => {
-          clearTimeout(timeout);
-          resolve(response);
-        })
-        .catch(error => {
-          clearTimeout(timeout);
-          reject(error);
-        });
-    });
-  };
-
   try {
-    // Fetching both API data concurrently
+    // Fetching both API data concurrently without a timeout
     const [contentResponse, headerResponse] = await Promise.all([
-      fetchWithTimeout(contentApiUrl, {
+      fetch(contentApiUrl, {
         headers: { 'Authorization': `Bearer ${AUTH_TOKEN}`, 'Content-Type': 'application/json' }
       }),
-      fetchWithTimeout(headerApiUrl),
+      fetch(headerApiUrl),
     ]);
 
     // If the response is OK, parse it, else use fallback data
@@ -1512,5 +1604,6 @@ export async function getServerSideProps({ req, locale }) {
     };
   }
 }
+
 
 

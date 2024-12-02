@@ -98,7 +98,7 @@ export default function Tokens() {
             {tokens.map((token, index) => (
               <tr key={token._id} className="border-t">
                 <td className="p-2">{index + 1}</td>
-                <td className="p-2">{token.token}</td>
+                <td className="p-2 text-xs">{token.token}</td>
                 <td className="p-2">
                   {token.usageCount}/{token.usageLimit}
                 </td>
