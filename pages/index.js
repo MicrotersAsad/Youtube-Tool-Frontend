@@ -279,7 +279,10 @@ const isLocalHost = typeof window !== "undefined" &&
   };
   
   
-  
+  const handleBlur = () => {
+    // If the input loses focus, we also process the tag (in case the user leaves the field)
+    processTags(input.trim());
+  };
   
 
   const handleSelectAll = () => {
@@ -757,7 +760,9 @@ const isLocalHost = typeof window !== "undefined" &&
         : "Tool saved successfully!"
     );
   };
-
+  const isGenerateButtonActive = () => {
+    return captchaVerified && selectedLanguage && tags.length > 0;
+  };
 
   // Button color logic
   const buttonColors = {
@@ -976,14 +981,18 @@ const isLocalHost = typeof window !== "undefined" &&
           <Skeleton height={40} width="100%" />
         ) : (
           <input
-            type="text"
-            placeholder="Add a keyword"
-            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={input}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            required
-          />
+          type="text"
+          placeholder="Add a keyword"
+          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          value={input}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur} // If the input loses focus, process the tag
+          required
+          style={{
+            cursor: "text", // Keeps text input cursor while typing
+          }}
+        />
         )}
       </div>
      <div>
@@ -1022,13 +1031,15 @@ const isLocalHost = typeof window !== "undefined" &&
         </div>
       </div>
     </div>
-{/* reCAPTCHA Section */}
+<div className="ms-5">
+  {/* reCAPTCHA Section */}
 {!isLocalHost && siteKey && (
   <ReCAPTCHA
     sitekey={siteKey} // সঠিকভাবে `sitekey` পাঠানো
     onChange={handleCaptchaChange}
   />
 )}
+</div>
 
       {/* Buttons Section */}
       <div className="flex items-center mt-4 ps-6 pe-6">
@@ -1038,7 +1049,7 @@ const isLocalHost = typeof window !== "undefined" &&
   type="button"
   id="button-addon2"
   onClick={generateTitles}
-  disabled={isLoading || tags.length === 0}
+  disabled={!isGenerateButtonActive()}
 >
   {isLoading ? (
     <>
