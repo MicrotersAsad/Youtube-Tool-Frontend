@@ -43,6 +43,7 @@ function LoginOrResetPassword() {
         });
 
         const result = await response.json();
+console.log(result);
 
 
         if (result.success) {
@@ -67,6 +68,7 @@ function LoginOrResetPassword() {
 
     fetchConfigs();
   }, []);
+  console.log(sitekey);
   
   // Check if running on localhost
   const isLocalhost =
