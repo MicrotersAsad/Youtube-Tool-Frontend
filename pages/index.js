@@ -60,7 +60,7 @@ export default function Home({
 }) {
 
 
-  const isLocalHost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+  
 
   const { user, updateUserProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -103,7 +103,11 @@ export default function Home({
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
-
+// Check if running on localhost
+const isLocalHost = typeof window !== "undefined" && 
+(window.location.hostname === "localhost" || 
+ window.location.hostname === "127.0.0.1" || 
+ window.location.hostname === "::1");
 
   const handleLanguageChange = (e) => {
     setSelectedLanguage(e.target.value);
