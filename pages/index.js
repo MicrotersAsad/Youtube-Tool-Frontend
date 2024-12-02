@@ -198,12 +198,12 @@ const isLocalHost = typeof window !== "undefined" &&
         const response = await fetch(`${protocol}://${host}/api/extensions`, {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`, // Include the token in the header
           },
         });
 
         const result = await response.json();
+
 
         if (result.success) {
           // reCAPTCHA configuration
@@ -227,6 +227,8 @@ const isLocalHost = typeof window !== "undefined" &&
 
     fetchConfigs();
   }, []);
+ 
+  
   // Refactored code
   useEffect(() => {
     if (user) {

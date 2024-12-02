@@ -3,31 +3,28 @@ import { ObjectId } from "mongodb";
 import jwt from "jsonwebtoken";
 
 // Utility function to verify the JWT token
-const verifyToken = (token) => {
-  try {
-    // Replace 'your-secret-key' with your actual JWT secret
-    return jwt.verify(token, process.env.AUTH_TOKEN);
-  } catch (error) {
-    return null;
+function checkAuthorization(req) {
+  const token = req.headers.authorization?.split(' ')[1]; // Expecting 'Bearer <token>'
+  const validToken = process.env.AUTH_TOKEN; // Token stored in .env file
+
+  if (!token || token !== validToken) {
+    return false; // Unauthorized
   }
-};
+  return true; // Authorized
+}
+
 
 export default async function handler(req, res) {
   const { method } = req;
   const { db } = await connectToDatabase();
   const extensionsCollection = db.collection("extensions");
 
-  // Authenticate the user based on JWT
-  const token = req.headers.authorization?.split(" ")[1]; // Extract token from the Authorization header
-  if (!token) {
-    return res.status(401).json({ success: false, message: "Authorization token missing" });
+  if (!checkAuthorization(req)) {
+    return res.status(401).json({ message: 'You Are Hacker! I am Your Father' });
   }
 
-  const decodedToken = verifyToken(token);
-  if (!decodedToken) {
-    return res.status(401).json({ success: false, message: "Invalid or expired token" });
-  }
 
+  
   // Now that the token is valid, proceed with the method handling
   if (method === "GET") {
     try {
