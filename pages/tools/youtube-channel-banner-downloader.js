@@ -32,6 +32,7 @@ const YtChannelDw =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
   const { t } = useTranslation('banner');
   const { user, updateUserProfile } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [channelUrl, setChannelUrl] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
@@ -559,9 +560,9 @@ const YtChannelDw =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
 </Script>
 
 
-          <h2 className="text-3xl pt-5 text-white">
+          <h1 className="text-3xl pt-5 text-white">
             {t('YouTube Channel Banner Download')}
-          </h2>
+          </h1>
           <ToastContainer />
           {modalVisible && (
             <div
@@ -899,7 +900,7 @@ const YtChannelDw =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
               <div key={index} className="border p-6 m-5 bg-white">
                 <div className="flex items-center mb-4">
                   <Image
-                    src={`data:image/jpeg;base64,${review?.userProfile}`}
+                  src={review?.userProfile}
                     alt={review.name}
                     className="w-12 h-12 rounded-full"
                     width={48}
@@ -944,7 +945,7 @@ const YtChannelDw =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
                 <div key={index} className="border p-6 m-5 bg-white">
                   <div className="flex items-center mb-4">
                     <Image
-                      src={`data:image/jpeg;base64,${review?.userProfile}`}
+                      src={review?.userProfile}
                       alt={review.name}
                       className="w-12 h-12 rounded-full"
                       width={48}

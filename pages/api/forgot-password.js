@@ -42,7 +42,7 @@ export default async function handler(req, res) {
     });
 
     // Password reset link
-    const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
+    const resetLink = `${process.env.NEXT_PUBLIC_API_BASE_URL}/reset-password?token=${token}`;
 
     // HTML email template
     const emailHTML = `
