@@ -26,8 +26,9 @@ function LoginOrResetPassword() {
         const host = window.location.host;
         
         // Retrieve the JWT token from localStorage (or other storage mechanisms)
-        const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Replace 'authToken' with your key if different
-
+        const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace 'authToken' with your key if different
+        
+          
         if (!token) {
           console.error('No authentication token found!');
           return;
@@ -37,12 +38,12 @@ function LoginOrResetPassword() {
         const response = await fetch(`${protocol}://${host}/api/extensions`, {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`, // Include the token in the header
           },
         });
 
         const result = await response.json();
+
 
         if (result.success) {
           // reCAPTCHA configuration
