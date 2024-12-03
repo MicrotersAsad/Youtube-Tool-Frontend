@@ -96,6 +96,9 @@
     "no-shadow-restricted-names": "off",
     "no-undef-init": "off",
     "no-undefined": "off",
-    "no-use-before-define": "off"
+    "no-use-before-define": "off",
+    "@next/next/no-img-element": "off", // If you cannot use <Image /> replace with this.
+    "react/jsx-key": "error" // Ensure key props are added to iterators
+
   }
 }

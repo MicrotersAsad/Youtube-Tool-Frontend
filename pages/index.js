@@ -378,7 +378,7 @@ const Home = ({ initialBlogs = [] }) => {
                 viewBox="0 0 20 20"
                 fill="currentColor"
                 aria-hidden="true"
-                className="h-8 w-8 text-indigo-500"
+                className="h-8 w-8 text-[#f86540]"
               >
                 <path
                   fillRule="evenodd"
@@ -397,7 +397,7 @@ const Home = ({ initialBlogs = [] }) => {
             />
             <button
               type="button"
-              className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-2 rounded-full bg-indigo-500 px-4 py-1.5 text-white hover:bg-indigo-600 disabled:cursor-not-allowed disabled:bg-indigo-300"
+              className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-2 rounded-full bg-[#f86540] px-4 py-1.5 text-white hover:bg-[#f86540] disabled:cursor-not-allowed disabled:bg-indigo-300"
             >
               {t('Search')}
             </button>
@@ -413,7 +413,7 @@ const Home = ({ initialBlogs = [] }) => {
                     className="p-3 hover:bg-indigo-100 cursor-pointer transition-colors duration-200"
                   >
                     <Link href={result.link}>
-                      <span className="text-blue-600 font-medium">
+                      <span className="text-[#f86540] font-medium">
                         {result.title}
                         <span className="text-sm text-gray-500">
                           {" "}
@@ -447,7 +447,7 @@ const Home = ({ initialBlogs = [] }) => {
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                 <div className="relative flex flex-col items-center justify-center">
-                  <span className="mb-2 text-6xl font-black tracking-tight text-indigo-600">
+                  <span className="mb-2 text-6xl font-black tracking-tight text-[#f86540]">
                     {/* If the value contains non-numeric characters, animate the count */}
                     {hasNonNumericChars(stat.value) ? (
                       <>
@@ -515,12 +515,14 @@ const Home = ({ initialBlogs = [] }) => {
                   <div className="group h-full cursor-pointer rounded-xl bg-white p-6 shadow-sm transition-all duration-200 hover:scale-[102%] hover:shadow-xl hover:ring-2 hover:ring-indigo-500 hover:border-2 hover:border-indigo-500 hover:bg-indigo-500 hover:bg-opacity-10 hover:backdrop-blur-md">
                     <div className="mb-4 flex items-center">
                       <div className="flex h-12 w-12 items-center justify-center rounded-2xl border bg-white shadow-sm group-hover:shadow-md">
-                        <img
-                          alt={tool?.name}
-                          className="rounded-full"
-                          src={tool?.logo?.src}
-                          height="28"
-                        />
+                      <Image
+  alt={tool?.name}
+  className="rounded-full"
+  src={tool?.logo?.src}
+  height={28}
+  width={28} // Add width for proper optimization
+/>
+
                       </div>
                       <h3 className="ml-4 text-lg font-bold text-gray-900 group-hover:text-indigo-600">
                         {tool?.name}
