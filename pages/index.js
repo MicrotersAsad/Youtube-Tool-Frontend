@@ -59,9 +59,6 @@ export default function Home({
   hreflangs,
 }) {
 
-
-  
-
   const { user, updateUserProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
