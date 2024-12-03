@@ -52,14 +52,14 @@ const Home = ({ initialBlogs = [] }) => {
   };
   const allTools = [
     {
-      name: t("YouTube Tag Generator"),
+      name: "YouTube Tag Generator",
       link: "http://www.ytubetools.com/",
       logo: TagGenerator,
       description:
         "Generate optimized YouTube tags to boost your video discoverability and SEO.",
     },
     {
-      name:t("Youtube Tag Extractor"),
+      name:"Youtube Tag Extractor",
       link: "http://www.ytubetools.com/tools/tag-extractor",
       logo: TagExtractor,
       description:
@@ -331,21 +331,7 @@ const Home = ({ initialBlogs = [] }) => {
         <link rel="alternate" href="https://www.ytubetools.com/nl" hreflang="nl" />
         <link rel="alternate" href="https://www.ytubetools.com/pl" hreflang="pl" />
         <link rel="alternate" href="https://www.ytubetools.com/ru" hreflang="ru" />
-          {/* Alternate hreflang Tags for SEO */}
-          {/* {hreflangs &&
-            hreflangs.map((hreflang, index) => (
-              <link
-                key={index}
-                rel={hreflang.rel}
-                hreflang={hreflang.hreflang}
-                href={`${hreflang.href}`}
-              />
-            ))} */}
-          {/* <link
-            rel="alternate"
-            hreflang="en"
-            href={meta?.url?.replace(/\/$/, "").replace(/\/$/, "")}
-          /> */}
+          
         </Head>
       {/* Top Bar */}
       <div className="topbar bg-indigo-600 py-2">
@@ -509,134 +495,129 @@ const Home = ({ initialBlogs = [] }) => {
           </div>
 
           <div className="mb-16">
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {allTools.map((tool, index) => (
-                <a key={index} href={tool?.link}>
-                  <div className="group h-full cursor-pointer rounded-xl bg-white p-6 shadow-sm transition-all duration-200 hover:scale-[102%] hover:shadow-xl hover:ring-2 hover:ring-indigo-500 hover:border-2 hover:border-indigo-500 hover:bg-indigo-500 hover:bg-opacity-10 hover:backdrop-blur-md">
-                    <div className="mb-4 flex items-center">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl border bg-white shadow-sm group-hover:shadow-md">
-                      <Image
-  alt={tool?.name}
-  className="rounded-full"
-  src={tool?.logo?.src}
-  height={28}
-  width={28} // Add width for proper optimization
-/>
-
-                      </div>
-                      <h3 className="ml-4 text-lg font-bold text-gray-900 group-hover:text-indigo-600">
-                        {tool?.name}
-                      </h3>
-                    </div>
-                    <p className="text-sm leading-relaxed text-gray-600">
-                      {tool?.description}
-                    </p>
-                  </div>
-                </a>
-              ))}
+  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    {allTools.map((tool, index) => (
+      <a key={tool?.id || index} href={tool?.link}>
+        <div className="group h-full cursor-pointer rounded-xl bg-white p-6 shadow-sm transition-all duration-200 hover:scale-[102%] hover:shadow-xl hover:ring-2 hover:ring-indigo-500 hover:border-2 hover:border-indigo-500 hover:bg-indigo-500 hover:bg-opacity-10 hover:backdrop-blur-md">
+          <div className="mb-4 flex items-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border bg-white shadow-sm group-hover:shadow-md">
+              <Image
+                alt={tool?.name}
+                className="rounded-full"
+                src={tool?.logo?.src}
+                height={28}
+                width={28} // Add width for proper optimization
+              />
             </div>
+            <h3 className="ml-4 text-lg font-bold text-gray-900 group-hover:text-indigo-600">
+              {tool?.name}
+            </h3>
           </div>
+          <p className="text-sm leading-relaxed text-gray-600">
+            {tool?.description}
+          </p>
+        </div>
+      </a>
+    ))}
+  </div>
+</div>
+
         </div>
       </div>
 
       {/* Blogs Grid */}
       <div className="mx-auto max-w-7xl px-4 py-4 lg:py-12">
-        <div class="mx-auto max-w-3xl text-center px-4">
-          <h2 class="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl lg:text-6xl">
-            {t("YtubeTools Article")}
-          </h2>
+  <div className="mx-auto max-w-3xl text-center px-4">
+    <h2 className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl lg:text-6xl">
+      {t("YtubeTools Article")}
+    </h2>
 
-          <p class="mt-6 text-xs sm:text-sm font-medium  leading-8 sm:leading-9 md:text-sm md:leading-10">
-            {t("Explore how AI enhances content creation, reshapes social media, and beyond. Dive in with us to discover AI's practical applications and its transformative impact on various industries.")}
-          </p>
+    <p className="mt-6 text-xs sm:text-sm font-medium leading-8 sm:leading-9 md:text-sm md:leading-10">
+      {t(
+        "Explore how AI enhances content creation, reshapes social media, and beyond. Dive in with us to discover AI's practical applications and its transformative impact on various industries."
+      )}
+    </p>
+  </div>
+
+  <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    {processedBlogs.length === 0 ? (
+      <p>{t("No blogs found")}</p>
+    ) : (
+      processedBlogs.slice(0, 6).map((blog) => (
+        <div key={blog?.id} className="bg-white shadow-md rounded-lg overflow-hidden relative">
+          <div className="w-full" style={{ height: "260px" }}>
+            <Image
+              src={blog.translations[currentLanguage]?.image}
+              alt={blog.translations[currentLanguage]?.title}
+              width={400}
+              height={260}
+              className="blog-img"
+              quality={50} // Image quality reduced
+            />
+            <div className="absolute top-2 left-2 bg-blue-500 text-white text-sm rounded-full px-2 py-1">
+              <span className="mr-2">
+                {blog.translations[currentLanguage]?.category || "Unknown category"}
+              </span>
+            </div>
+          </div>
+
+          <div className="pe-3 ps-3 pt-2">
+            <h6 className="text-lg font-semibold">
+              <Link href={`/youtube/${blog.translations[currentLanguage]?.slug}`}>
+                <span className="text-blue-500 text-xl font-bold hover:underline">
+                  {blog.translations[currentLanguage]?.title}
+                </span>
+              </Link>
+            </h6>
+            <p className="text-xs mb-4">
+              {blog.translations[currentLanguage]?.description}
+            </p>
+          </div>
+          <div className="ps-3 pe-3 pb-2 d-flex">
+            <p className="text-sm text-gray-500">
+              <FaUserCircle className="text-center fs-6 text-red-400 inline" />{" "}
+              {blog.author}
+            </p>
+            <p className="text-sm text-gray-500 ms-auto">
+              <FaCalendar className="text-center text-red-400 inline me-2" />
+              <span className="text-xs">{blog?.createdAt}</span>
+            </p>
+          </div>
         </div>
+      ))
+    )}
+  </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {processedBlogs.length === 0 ? (
-            <p>{t("No blogs found")}</p>
-          ) : (
-            processedBlogs.slice(0, 6).map((blog) => (
-              <div className="bg-white shadow-md rounded-lg overflow-hidden relative">
-                <div className="w-full" style={{ height: "260px" }}>
-                  <Image
-                    src={blog.translations[currentLanguage]?.image}
-                    alt={blog.translations[currentLanguage]?.title}
-                    width={400}
-                    height={260}
-                    className="blog-img"
-                    quality={50} // Image quality reduced
-                  />
-                  <div className="absolute top-2 left-2 bg-blue-500 text-white text-sm rounded-full px-2 py-1">
-                    <span className="mr-2">
-                      {blog.translations[currentLanguage]?.category ||
-                        "Unknown category"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="pe-3 ps-3 pt-2">
-                  <h6 className="text-lg font-semibold">
-                    <Link
-                      href={`/youtube/${blog.translations[currentLanguage]?.slug}`}
-                    >
-                      <span className="text-blue-500 text-xl font-bold hover:underline">
-                        {blog.translations[currentLanguage]?.title}
-                      </span>
-                    </Link>
-                  </h6>
-                  <p className="text-xs mb-4">
-                    {" "}
-                    {blog.translations[currentLanguage]?.description}
-                  </p>
-                </div>
-                <div className="ps-3 pe-3 pb-2 d-flex">
-                  <p className="text-sm text-gray-500">
-                    <FaUserCircle className="text-center fs-6 text-red-400 inline" />{" "}
-                    {blog.author}
-                  </p>
-                  <p className="text-sm text-gray-500 ms-auto">
-                    <FaCalendar className="text-center text-red-400 inline me-2" />
-                    <span className="text-xs">{blog?.createdAt}</span>
-                  </p>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-        <div className="mt-10 flex justify-center">
-  <Link
-    href="/youtube"
-    style={{ cursor: "pointer" }}
-    aria-label="View all blog posts"
-  >
-    <span className="group inline-flex items-center justify-center rounded-full bg-white/80 px-8 py-4 text-sm font-semibold text-indigo-600 shadow-sm ring-1 ring-indigo-200 backdrop-blur-sm transition-all duration-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:shadow-md hover:shadow-indigo-100/40 hover:ring-indigo-300">
-      {t('View All Posts')}
-      <svg
-        className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-2"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        aria-hidden="true"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M13 7l5 5m0 0l-5 5m5-5H6"
-        ></path>
-      </svg>
-    </span>
-  </Link>
+  <div className="mt-10 flex justify-center">
+    <Link href="/youtube" style={{ cursor: "pointer" }} aria-label="View all blog posts">
+      <span className="group inline-flex items-center justify-center rounded-full bg-white/80 px-8 py-4 text-sm font-semibold text-indigo-600 shadow-sm ring-1 ring-indigo-200 backdrop-blur-sm transition-all duration-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:shadow-md hover:shadow-indigo-100/40 hover:ring-indigo-300">
+        {t("View All Posts")}
+        <svg
+          className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-2"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M13 7l5 5m0 0l-5 5m5-5H6"
+          ></path>
+        </svg>
+      </span>
+    </Link>
+  </div>
 </div>
 
-      </div>
     </div>
   );
 };
 export async function getServerSideProps({ locale = "en", req, query }) {
   const { page = 1, category = "" } = query;
 
-  // Get the base URL from the request headers
+  // Get the base URL from the request header
   const protocol =
     req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
   const host = req.headers.host;
