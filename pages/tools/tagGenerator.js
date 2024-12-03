@@ -969,7 +969,7 @@ const isLocalHost = typeof window !== "undefined" &&
     </div>
   </div>
 </div>
-<div className="ms-5">
+<div className="ms-3 mt-3">
   {/* reCAPTCHA Section */}
 {!isLocalHost && siteKey && (
   <ReCAPTCHA
