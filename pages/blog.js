@@ -281,6 +281,23 @@ const BlogSection = ({ initialBlogs = [],availableLanguages, metaUrl  }) => {
                           </div>
                         </div>
                       )}
+                     
+                      <div className="pe-3 ps-3 pt-2">
+                        <h6 className="text-lg font-semibold">
+                          <Link href={`/blog/${content.slug}`} passHref>
+                            <span className="text-blue-500 text-xl font-bold hover:underline">{content.title}</span>
+                          </Link>
+                        </h6>
+                        <p className="text-gray-600 mb-4">{content.description || content.Description}</p>
+                       
+                        <div className="mt-2">
+                          {parseCategories(blog.category).map((category, i) => (
+                            <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">
+                              {category}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                       <div className="border-t ps-3 pe-3 pt-3 d-flex">
                         <p className="text-sm text-gray-500">
                           <FaUserCircle className="text-center fs-6 text-red-400 inline" /> {blog.author}
@@ -289,24 +306,6 @@ const BlogSection = ({ initialBlogs = [],availableLanguages, metaUrl  }) => {
                           <FaCalendar className="text-center text-red-400 inline" />
                           {format(new Date(blog.createdAt), 'dd/MM/yyyy')}
                         </p>
-                      </div>
-                      <div className="pe-3 ps-3 pt-2">
-                        <h6 className="text-lg font-semibold">
-                          <Link href={`/blog/${content.slug}`} passHref>
-                            <span className="text-blue-500 text-xl font-bold hover:underline">{content.title}</span>
-                          </Link>
-                        </h6>
-                        <p className="text-gray-600 mb-4">{content.description || content.Description}</p>
-                        <Link href={`/blog/${content.slug}`} passHref>
-                          <span className="text-red-500 mt-4 block">Read More →</span>
-                        </Link>
-                        <div className="mt-2">
-                          {parseCategories(blog.category).map((category, i) => (
-                            <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">
-                              {category}
-                            </span>
-                          ))}
-                        </div>
                       </div>
                     </div>
                   );

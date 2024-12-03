@@ -19,27 +19,26 @@ import Comment from "../public/Comment-Picker-icon.png";
 import Hashtag from "../public/youtube-hastag-generator.png";
 import Embed from "../public/youtube-embad-code-generator.png";
 import { useRouter } from 'next/router'
-import Link from "next/link";;
+import Link from "next/link";
 import { i18n } from 'next-i18next';
 import axios from 'axios';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import Image from 'next/image';
+import { FaCalendar, FaUserCircle } from 'react-icons/fa';
+import { format } from 'path';
 
-const Home = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) => {
-  const router = useRouter();
-  const { category: selectedCategory } = router.query;
-  const [loading, setLoading] = useState(!initialBlogs.length);
-  const blogsPerPage = 6;
-  const [error, setError] = useState('');
+const Home = ({ initialBlogs = [] }) => {
   const [blogsData, setBlogsData] = useState(initialBlogs);
   const [categories, setCategories] = useState([]);
-  const [currentPage, setCurrentPage] = useState(meta?.currentPage || 1);  // Safe fallback
-  const [currentCategory, setCurrentCategory] = useState(selectedCategory || '');
+  const [searchQuery,setSearchQuery ]=useState()
+  const [searchResults, setSearchResults] = useState([]); // Search results state
   const stats = [
     { value: '10M+', label: 'Global Users' },
     { value: '300+', label: 'AI-Powered Tools' },
     { value: '100%', label: 'Forever Free' },
     { value: '30+', label: 'Languages Available' }
   ];
+
   const allTools = [
     { 
       name: 'YouTube Tag Generator', 
@@ -155,11 +154,47 @@ const Home = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) => {
       logo: Embed, 
       description: 'Generate embed codes for YouTube videos for easy sharing on websites and blogs.'
     }
-    // Add more tools as needed
   ];
+
   const currentLanguage = i18n.language || 'en';
+
+  // Handle search input changes
   const handleSearchChange = (e) => {
-    setSearch(e.target.value);
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    if (query.length > 2) {
+      // Filter tools
+      const filteredTools = allTools.filter((tool) =>
+        tool.name.toLowerCase().includes(query.toLowerCase()) ||
+        tool.description.toLowerCase().includes(query.toLowerCase())
+      );
+      
+      // Filter blogs
+      const filteredBlogs = processedBlogs.filter((blog) =>
+        blog.translations[currentLanguage]?.title.toLowerCase().includes(query.toLowerCase()) ||
+        blog.translations[currentLanguage]?.slug.toLowerCase().includes(query.toLowerCase())
+      );
+
+      // Combine results from both tools and blogs
+      const combinedResults = [
+        ...filteredTools.map((tool) => ({
+          title: tool?.name,
+          link: tool?.link,  // Adjust the URL based on your routing
+          collectionName: 'Tool',
+        })),
+        ...filteredBlogs.map((blog) => ({
+          title: blog.translations[currentLanguage]?.title,
+          link: `/youtube/${blog.translations[currentLanguage]?.slug}`,  // Adjust the URL based on your routing
+          collectionName: 'Blog',
+        }))
+      ];
+
+      setSearchResults(combinedResults);
+    } else {
+      // Clear results if search query is less than 3 characters
+      setSearchResults([]);
+    }
   };
   const fetchCategories = useCallback(async () => {
     try {
@@ -176,49 +211,12 @@ const Home = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) => {
     } catch (error) {
       console.error('Error fetching categories:', error.message);
     }
-  }, [currentLanguage]);;
+  }, [currentLanguage]);
 
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
 
-  const extractFirstImage = (content) => {
-    const regex = /<img.*?src="(.*?)"/;
-    const match = regex.exec(content);
-    return match ? match[1] : null;
-  };
-  const fetchBlogs = useCallback(
-    async (page = 1, category = '') => {
-      setLoading(true);
-      try {
-        const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
-  
-        if (!token) {
-          throw new Error('No authorization token found');
-        }
-  
-        const response = await axios.get(`/api/youtube`, {
-         
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-  
-        const { data: blogs, meta = { currentPage: 1, totalPages: 1 } } = response.data;
-  
-        // Ensure blogsData is always an array
-        setBlogsData(Array.isArray(blogs) ? blogs : []);
-
-      } catch (error) {
-        console.error('Error fetching blogs:', error);
-        setError('Failed to fetch blogs.');
-      } finally {
-        setLoading(false);
-      }
-    },
-    [blogsPerPage]
-  );
-  
   const processedBlogs = useMemo(() => {
     return blogsData
       .map((blog) => {
@@ -227,22 +225,13 @@ const Home = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) => {
 
         const { title, category } = translation;
 
-        // Normalize category and currentCategory for comparison
-    
-
-        // Generate slug if it doesn't exist
         if (!translation.slug && title) {
           translation.slug = createSlug(title);
         }
 
-        // Extract first image if it doesn't exist
         if (!translation.image && translation.content) {
           translation.image = extractFirstImage(translation.content);
         }
-
-        
-
-     
 
         return {
           _id: blog._id,
@@ -255,17 +244,15 @@ const Home = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) => {
           },
         };
       })
-      .filter((blog) => blog); // Remove null entries after filtering
-  }, [blogsData, currentLanguage, currentCategory]);
+      .filter((blog) => blog); 
+  }, [blogsData, currentLanguage]);
 
-  useEffect(() => {
-    fetchBlogs(currentPage, currentCategory);
-  }, [currentPage, currentCategory, fetchBlogs]);
+
   return (
-    <div className="bg-white">
+    <div className="">
     {/* Top Bar */}
-    <div className="topbar bg-indigo-600 py-3">
-      <h6 className="text-white text-center">Empower Your Work and Learning with Our Free AI Tools →</h6>
+    <div className="topbar bg-indigo-600 py-2">
+      <p className="text-white text-center">Empower Your Work and Learning with Our Free AI Tools →</p>
     </div>
   
     {/* Main Content */}
@@ -279,8 +266,10 @@ const Home = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) => {
       </p>
     </div>
   
-    {/* Search Bar */}
-    <div className="mx-auto mb-6 max-w-2xl rounded-full border border-indigo-100 bg-gray-50 px-4 py-2 xl:mb-10">
+    
+        {/* Search Input for Desktop */}
+      
+        <div className="relative mx-auto mb-6 max-w-2xl rounded-full border border-indigo-100 bg-gray-50 px-4 py-2 xl:mb-10">
       <div className="relative mt-2">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="h-8 w-8 text-indigo-500">
@@ -292,6 +281,8 @@ const Home = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) => {
           aria-label="Search"
           type="text"
           placeholder="Search..."
+          value={searchQuery}
+          onChange={handleSearchChange}
         />
         <button
           type="button"
@@ -300,10 +291,33 @@ const Home = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) => {
           Search
         </button>
       </div>
+
+      {/* Display search results when query matches tools or blogs */}
+      <div className="relative mt-2">
+        {searchResults?.length > 0 ? (
+          <ul className="absolute z-10 bg-white text-black w-full mt-1 max-h-60 overflow-auto shadow-lg rounded-lg border border-gray-200">
+            {searchResults?.map((result, index) => (
+              <li key={index} className="p-3 hover:bg-indigo-100 cursor-pointer transition-colors duration-200">
+                <Link href={result.link}>
+                  <span className="text-blue-600 font-medium">
+                    {result.title}
+                    <span className="text-sm text-gray-500"> - {result.collectionName}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          searchQuery?.length > 2 && (
+            <div className="absolute z-10 bg-white text-gray-500 w-full mt-1 max-h-60 overflow-auto shadow-lg rounded-lg border border-gray-200 p-3">
+              No results found
+            </div>
+          )
+        )}
+      </div>
     </div>
-  
     {/* Statistics Section */}
-    <div className="my-16 bg-gradient-to-b from-white to-indigo-50/30">
+    <div className="my-16 ">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl lg:max-w-none">
           <ul className="mt-16 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -339,50 +353,105 @@ const Home = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) => {
         </div>
   
         <div className="mb-16">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {allTools.map((tool, index) => (
-              <a key={index} href={tool?.link}>
-                <div className="group h-full cursor-pointer rounded-xl bg-white p-6 shadow-sm transition-all duration-200 hover:scale-[102%] hover:shadow-xl hover:ring-2 hover:ring-indigo-500">
-                  <div className="mb-4 flex items-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border bg-white shadow-sm group-hover:shadow-md">
-                      <img alt={tool?.name} className="rounded-full" src={tool?.logo?.src} height="28" />
-                    </div>
-                    <h3 className="ml-4 text-lg font-bold text-gray-900 group-hover:text-indigo-600">{tool?.name}</h3>
-                  </div>
-                  <p className="text-sm leading-relaxed text-gray-600">{tool?.description}</p>
-                </div>
-              </a>
-            ))}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+  {allTools.map((tool, index) => (
+    <a key={index} href={tool?.link}>
+      <div className="group h-full cursor-pointer rounded-xl bg-white p-6 shadow-sm transition-all duration-200 hover:scale-[102%] hover:shadow-xl hover:ring-2 hover:ring-indigo-500 hover:border-2 hover:border-indigo-500 hover:bg-indigo-500 hover:bg-opacity-10 hover:backdrop-blur-md">
+
+        <div className="mb-4 flex items-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border bg-white shadow-sm group-hover:shadow-md">
+            <img alt={tool?.name} className="rounded-full" src={tool?.logo?.src} height="28" />
           </div>
+          <h3 className="ml-4 text-lg font-bold text-gray-900 group-hover:text-indigo-600">{tool?.name}</h3>
+        </div>
+        <p className="text-sm leading-relaxed text-gray-600">{tool?.description}</p>
+      </div>
+    </a>
+  ))}
+</div>
+
         </div>
       </div>
     </div>
   
     {/* Blogs Grid */}
     <div className="mx-auto max-w-7xl px-4 py-4 lg:py-12">
+    <div class="mx-auto max-w-3xl text-center px-4">
+
+  <h2 class="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl lg:text-6xl">
+    YtubeTools Article
+  </h2>
+  
+  
+  <p class="mt-6 text-xs sm:text-sm font-medium  leading-8 sm:leading-9 md:text-sm md:leading-10">
+    Explore how AI enhances content creation, reshapes social media, and beyond. 
+    Dive in with us to discover AI's practical applications and its transformative impact on various industries.
+  </p>
+</div>
+
       <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {processedBlogs.length === 0 ? (
           <p>No blogs found</p>
         ) : (
           processedBlogs.slice(0, 6).map((blog) => (
-            <div key={blog._id} className="group cursor-pointer rounded-xl bg-white p-6 shadow-sm transition-all duration-200 hover:scale-[102%] hover:shadow-xl hover:ring-2 hover:ring-indigo-500">
-              <img src={blog.translations[currentLanguage]?.image} alt={blog.translations[currentLanguage]?.title} />
-              <div className="flex items-center gap-x-4 text-xs">
-                <time dateTime={blog?.createdAt} className="rounded-full bg-gradient-to-r from-indigo-50/80 to-purple-50/80 px-4 py-1.5 font-medium text-indigo-600 ring-1 ring-indigo-100/50">
-                  {blog?.createdAt}
-                </time>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 group-hover:text-indigo-600">
-                <Link href={`/youtube/${blog.translations[currentLanguage]?.slug}`}>
+           
+            <div  className="bg-white shadow-md rounded-lg overflow-hidden relative">
+                     
+                        <div className="w-full" style={{ height: '260px'}}>
+                          <Image
+                            src={blog.translations[currentLanguage]?.image} 
+                            alt={blog.translations[currentLanguage]?.title}
+                            width={400}
+                            height={260}
+                            className='blog-img'
+                            quality={50} // Image quality reduced
+                          />
+                          <div className="absolute top-2 left-2 bg-blue-500 text-white text-sm rounded-full px-2 py-1">
+                          <span className="mr-2">
+  {blog.translations[currentLanguage]?.category || 'Unknown category'}
+</span>
+
+                          </div>
+                        </div>
+                     
+                    
+                      <div className="pe-3 ps-3 pt-2">
+                        <h6 className="text-lg font-semibold">
+                        <Link href={`/youtube/${blog.translations[currentLanguage]?.slug}`}>
                   <span className="text-blue-500 text-xl font-bold hover:underline">
                     {blog.translations[currentLanguage]?.title}
                   </span>
                 </Link>
-              </h3>
-            </div>
+                        </h6>
+                        <p className="text-xs mb-4">  {blog.translations[currentLanguage]?.description}</p>
+                       
+                       
+                      </div>
+                      <div className="ps-3 pe-3 pb-2 d-flex">
+                        <p className="text-sm text-gray-500">
+                          <FaUserCircle className="text-center fs-6 text-red-400 inline" /> {blog.author}
+                        </p>
+                        <p className="text-sm text-gray-500 ms-auto">
+                          <FaCalendar className="text-center text-red-400 inline me-2" />
+                          <span className='text-xs'>{blog?.createdAt}</span>
+                        </p>
+                      </div>
+                    </div>
           ))
         )}
       </div>
+      <div className="mt-10 flex justify-center">
+  <Link href="/youtube" contenteditable="false" style={{ cursor: 'pointer' }} aria-label="View all blog posts">
+    <span className="group inline-flex items-center justify-center rounded-full bg-white/80 px-8 py-4 text-sm font-semibold text-indigo-600 shadow-sm ring-1 ring-indigo-200 backdrop-blur-sm transition-all duration-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:shadow-md hover:shadow-indigo-100/40 hover:ring-indigo-300">
+      View All Posts
+      <svg className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+      </svg>
+    </span>
+  </Link>
+</div>
+
+
     </div>
   </div>
   
