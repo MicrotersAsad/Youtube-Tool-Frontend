@@ -507,6 +507,8 @@ const Home = ({ initialBlogs = [] }) => {
                 src={tool?.logo?.src}
                 height={28}
                 width={28} // Add width for proper optimization
+                quality={50} // reduce quality if needed
+  loading="lazy" // lazy load
               />
             </div>
             <h3 className="ml-4 text-lg font-bold text-gray-900 group-hover:text-indigo-600">
@@ -553,6 +555,8 @@ const Home = ({ initialBlogs = [] }) => {
               height={260}
               className="blog-img"
               quality={50} // Image quality reduced
+             
+  loading="lazy" // lazy load
             />
             <div className="absolute top-2 left-2 bg-blue-500 text-white text-sm rounded-full px-2 py-1">
               <span className="mr-2">
