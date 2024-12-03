@@ -18,7 +18,8 @@ import research from "../public/youtube-keyword-research.png";
 import Comment from "../public/Comment-Picker-icon.png";
 import Hashtag from "../public/youtube-hastag-generator.png";
 import Embed from "../public/youtube-embad-code-generator.png";
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/router'
+import Link from "next/link";;
 import { i18n } from 'next-i18next';
 import axios from 'axios';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
@@ -375,7 +376,14 @@ const Home = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) => {
           <img src={blog.translations[currentLanguage]?.image}/>
           <div class="flex items-center gap-x-4 text-xs">
             <time datetime="9/18/2024, 10:29:50 AM" class="rounded-full bg-gradient-to-r from-indigo-50/80 to-purple-50/80 px-4 py-1.5 font-medium text-indigo-600 ring-1 ring-indigo-100/50">{blog?.createdAt}</time></div>
-          <h3 className="text-xl font-semibold text-gray-900 group-hover:text-indigo-600">{blog.translations[currentLanguage]?.title}</h3>
+          <h3 className="text-xl font-semibold text-gray-900 group-hover:text-indigo-600">
+            
+          <Link href={`/youtube/${blog.translations[currentLanguage]?.slug}`}>
+                        <span className="text-blue-500 text-xl font-bold hover:underline">
+                        {blog.translations[currentLanguage]?.title}
+                        </span>
+                      </Link>
+            </h3>
            
           </div>
         ))
