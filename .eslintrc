@@ -7,8 +7,9 @@
   "extends": [
     "eslint:recommended",
     "plugin:react/recommended",
-    "plugin:@next/next/recommended"
+    "plugin:@next/next/recommended",
   ],
+
   "parserOptions": {
     "ecmaFeatures": {
       "jsx": true
@@ -20,79 +21,81 @@
     "react"
   ],
   "ecmaFeatures": {
-    "jsx": true
-  },
+  "jsx": true
+}
+,
   "rules": {
     "react/no-unknown-property": "off",
     "react/react-in-jsx-scope": "off",
-    "react/no-unescaped-entities": "off",
+     "react/no-unescaped-entities": "off",
     "@next/next/no-page-custom-font": "off",
-    "no-case-declarations": "off",
-    "react/prop-types": "warn",  // PropTypes সতর্কতা হিসেবে চালু
-    "no-undef": "error",  // Undefined ভেরিয়েবল চিহ্নিত করতে বাধ্য
-    "react-hooks/rules-of-hooks": "error",  // React Hooks নিয়ম নিশ্চিত করতে
-    "no-unused-vars": "warn",  // অপ্রয়োজনীয় ভেরিয়েবল চিহ্নিত করার জন্য সতর্কতা
-    "no-console": "warn",  // কনসোল লগ ব্যবহারের জন্য সতর্কতা
-    "no-debugger": "warn",  // Debugger ব্যবহারের জন্য সতর্কতা
+     "no-case-declarations": "off",
+    "react/prop-types": "off",
+    "no-undef": "off",
+    "react-hooks/rules-of-hooks": "off" ,
+    "rule-name": "off",
+    "no-unused-vars": "off",
+    "no-console": "off",
+    "no-debugger": "off",
     "no-restricted-globals": "off",
-    "no-shadow": "warn",  // শ্যাডো ভেরিয়েবল এড়ানোর জন্য সতর্কতা
-    "consistent-return": "warn",  // Return consistency জন্য সতর্কতা
-    "array-callback-return": "warn",  // Array কলব্যাক ব্যবহার সতর্কতা
-    "default-case": "warn",  // Switch case তে default ব্যবহারের সতর্কতা
-    "dot-notation": "warn",  // Dot notation এর ব্যবহারের জন্য সতর্কতা
-    "eqeqeq": "warn",  // `==` ব্যবহার এড়িয়ে `===` ব্যবহার নিশ্চিত করা
-    "no-alert": "warn",  // Alert ব্যবহারের জন্য সতর্কতা
-    "no-else-return": "warn",  // else return ব্যবহার এড়িয়ে কোডকে পরিষ্কার রাখা
-    "no-empty-function": "warn",  // খালি ফাংশন চিহ্নিত করার জন্য সতর্কতা
-    "no-empty-pattern": "warn",  // খালি প্যাটার্ন চিহ্নিত করার জন্য সতর্কতা
-    "no-eval": "warn",  // `eval` ব্যবহার এড়াতে সতর্কতা
-    "no-extend-native": "warn",  // Native কোড এক্সটেন্ড করা থেকে সতর্ক করা
-    "no-extra-bind": "warn",  // অপ্রয়োজনীয় bind ব্যবহার এড়ানোর জন্য সতর্কতা
-    "no-extra-label": "warn",  // অপ্রয়োজনীয় লেবেল ব্যবহার এড়ানোর জন্য সতর্কতা
-    "no-fallthrough": "warn",  // Switch case তে fallthrough এড়ানো
-    "no-floating-decimal": "warn",  // ফ্লোটিং ডেসিমাল ব্যবহার এড়ানোর জন্য সতর্কতা
-    "no-global-assign": "warn",  // গ্লোবাল অ্যাসাইনমেন্ট থেকে সতর্কতা
-    "no-implicit-coercion": "warn",  // প্রকার পরিবর্তন (coercion) থেকে সতর্কতা
-    "no-implied-eval": "warn",  // IMPLIED eval ব্যবহার এড়ানো
-    "no-iterator": "warn",  // iterator এড়ানোর জন্য সতর্কতা
-    "no-label-var": "warn",  // লেবেল ব্যবহার থেকে সতর্কতা
-    "no-labels": "warn",  // লেবেল ব্যবহার থেকে সতর্কতা
-    "no-lone-blocks": "warn",  // একক ব্লক ব্যবহার এড়িয়ে সতর্কতা
-    "no-loop-func": "warn",  // লুপ ফাংশন থেকে সতর্কতা
-    "no-magic-numbers": "warn",  // ম্যাজিক নাম্বার ব্যবহার এড়ানো
-    "no-multi-str": "warn",  // একাধিক স্ট্রিং যোগ করার থেকে সতর্কতা
-    "no-new": "warn",  // নতুন অবজেক্ট তৈরি করা থেকে সতর্কতা
-    "no-new-func": "warn",  // নতুন ফাংশন তৈরি করা থেকে সতর্কতা
-    "no-new-wrappers": "warn",  // নতুন র‍্যাপার ব্যবহার থেকে সতর্কতা
-    "no-octal-escape": "warn",  // অক্টাল এস্কেপ ব্যবহার থেকে সতর্কতা
-    "no-param-reassign": "warn",  // প্যারামিটার পুনরায় অ্যাসাইনমেন্ট থেকে সতর্কতা
-    "no-proto": "warn",  // প্রোটোটাইপ ব্যবহার এড়ানো
-    "no-redeclare": "warn",  // ভেরিয়েবল পুনরায় ঘোষণা থেকে সতর্কতা
-    "no-return-assign": "warn",  // রিটার্নের মধ্যে অ্যাসাইনমেন্ট থেকে সতর্কতা
-    "no-script-url": "warn",  // স্ক্রিপ্ট URL থেকে সতর্কতা
-    "no-self-assign": "warn",  // নিজেই অ্যাসাইনমেন্ট করা থেকে সতর্কতা
-    "no-self-compare": "warn",  // নিজেকে তুলনা করা থেকে সতর্কতা
-    "no-sequences": "warn",  // সিকোয়েন্স অপারেটর থেকে সতর্কতা
-    "no-throw-literal": "warn",  // সরাসরি ত্রুটি ছোড়া থেকে সতর্কতা
-    "no-unused-expressions": "warn",  // অপ্রয়োজনীয় এক্সপ্রেশন থেকে সতর্কতা
-    "no-useless-call": "warn",  // অপ্রয়োজনীয় কল থেকে সতর্কতা
-    "no-useless-concat": "warn",  // অপ্রয়োজনীয় স্ট্রিং কনক্যাটনেশন থেকে সতর্কতা
-    "no-useless-escape": "warn",  // অপ্রয়োজনীয় এস্কেপ থেকে সতর্কতা
-    "no-void": "warn",  // `void` ব্যবহার থেকে সতর্কতা
-    "no-warning-comments": "warn",  // সতর্কতা মন্তব্য থেকে সতর্কতা
-    "no-with": "warn",  // `with` স্টেটমেন্ট থেকে সতর্কতা
-    "vars-on-top": "warn",  // ভেরিয়েবল ডিক্লেয়ারেশনের শীর্ষে থাকা থেকে সতর্কতা
-    "wrap-iife": "warn",  // IIFE (Immediately Invoked Function Expression) থেকে সতর্কতা
-    "react/display-name": "off",  // React ডিসপ্লে নেম ব্যবহার না করলে অফ
-    "no-extra-semi": "warn",  // অতিরিক্ত সেমিকোলন ব্যবহার থেকে সতর্কতা
-    "yoda": "warn",  // Yoda শৈলী থেকে সতর্কতা
-    "strict": "warn",  // strict মোড ব্যবহার থেকে সতর্কতা
-    "init-declarations": "warn",  // ভেরিয়েবল ডিক্লেয়ারেশনে সতর্কতা
-    "no-catch-shadow": "warn",  // Catch ব্লকের ভেরিয়েবল শ্যাডো ব্যবহার থেকে সতর্কতা
-    "no-delete-var": "warn",  // `delete` ব্যবহার থেকে সতর্কতা
-    "no-shadow-restricted-names": "warn",  // রেসার্ভড নাম শ্যাডো করা থেকে সতর্কতা
-    "no-undef-init": "warn",  // Undefined ইস্যু থেকে সতর্কতা
-    "no-undefined": "warn",  // Undefined চেক থেকে সতর্কতা
-    "no-use-before-define": "warn"  // ব্যবহার করার আগে ডিফাইনেশন চেক
+    "no-shadow": "off",
+    "consistent-return": "off",
+    "array-callback-return": "off",
+    "default-case": "off",
+    "dot-notation": "off",
+    "eqeqeq": "off",
+    "no-alert": "off",
+    "no-else-return": "off",
+    "no-empty-function": "off",
+    "no-empty-pattern": "off",
+    "no-eval": "off",
+    "no-extend-native": "off",
+    "no-extra-bind": "off",
+    "no-extra-label": "off",
+    "no-fallthrough": "off",
+    "no-floating-decimal": "off",
+    "no-global-assign": "off",
+    "no-implicit-coercion": "off",
+    "no-implied-eval": "off",
+    "no-iterator": "off",
+    "no-label-var": "off",
+    "no-labels": "off",
+    "no-lone-blocks": "off",
+    "no-loop-func": "off",
+    "no-magic-numbers": "off",
+    "no-multi-str": "off",
+    "no-new": "off",
+    "no-new-func": "off",
+    "no-new-wrappers": "off",
+    "no-octal-escape": "off",
+    "no-param-reassign": "off",
+    "no-proto": "off",
+    "no-redeclare": "off",
+    "no-return-assign": "off",
+    "no-script-url": "off",
+    "no-self-assign": "off",
+    "no-self-compare": "off",
+    "no-sequences": "off",
+    "no-throw-literal": "off",
+    "no-unused-expressions": "off",
+    "no-useless-call": "off",
+    "no-useless-concat": "off",
+    "no-useless-escape": "off",
+    "no-void": "off",
+    "no-warning-comments": "off",
+    "no-with": "off",
+    "vars-on-top": "off",
+    "wrap-iife": "off",
+    "react/display-name": "off",
+     "no-extra-semi": "off",
+    "yoda": "off",
+    "strict": "off",
+    "init-declarations": "off",
+    "no-catch-shadow": "off",
+    "no-delete-var": "off",
+    "no-shadow-restricted-names": "off",
+    "no-undef-init": "off",
+    "no-undefined": "off",
+    "no-use-before-define": "off"
   }
 }

@@ -368,109 +368,111 @@ const Home = ({ initialBlogs = [] }) => {
       </div>
 
       {/* Search Input for Desktop */}
-
-      <div className="relative mx-auto mb-6 max-w-2xl rounded-full border border-indigo-100 bg-gray-50 px-4 py-2 xl:mb-10">
-        <div className="relative mt-2">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
-              className="h-8 w-8 text-indigo-500"
+      <div className="my-16">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="relative mx-auto mb-6 max-w-2xl rounded-full border border-indigo-100 bg-gray-50 px-4 py-2 xl:mb-10">
+          <div className="relative mt-2">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+                className="h-8 w-8 text-indigo-500"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z"
+                  clipRule="evenodd"
+                ></path>
+              </svg>
+            </div>
+            <input
+              className="block w-full border-0 bg-transparent py-1.5 pl-14 pr-24 text-gray-500 ring-0 placeholder:text-xl placeholder:text-gray-400 focus:outline-none sm:text-sm sm:leading-6 md:text-xl md:leading-7 lg:text-2xl lg:leading-7"
+              aria-label={t('Search')}
+              type="text"
+              placeholder={t('Search...')}
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+            <button
+              type="button"
+              className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-2 rounded-full bg-indigo-500 px-4 py-1.5 text-white hover:bg-indigo-600 disabled:cursor-not-allowed disabled:bg-indigo-300"
             >
-              <path
-                fillRule="evenodd"
-                d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z"
-                clipRule="evenodd"
-              ></path>
-            </svg>
+              {t('Search')}
+            </button>
           </div>
-          <input
-            className="block w-full border-0 bg-transparent py-1.5 pl-14 pr-24 text-gray-500 ring-0 placeholder:text-xl placeholder:text-gray-400 focus:outline-none sm:text-sm sm:leading-6 md:text-xl md:leading-7 lg:text-2xl lg:leading-7"
-            aria-label="Search"
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-          />
-          <button
-            type="button"
-            className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-2 rounded-full bg-indigo-500 px-4 py-1.5 text-white hover:bg-indigo-600 disabled:cursor-not-allowed disabled:bg-indigo-300"
-          >
-           {t('Search')}
-          </button>
-        </div>
 
-        {/* Display search results when query matches tools or blogs */}
-        <div className="relative mt-2">
-          {searchResults?.length > 0 ? (
-            <ul className="absolute z-10 bg-white text-black w-full mt-1 max-h-60 overflow-auto shadow-lg rounded-lg border border-gray-200">
-              {searchResults?.map((result, index) => (
-                <li
-                  key={index}
-                  className="p-3 hover:bg-indigo-100 cursor-pointer transition-colors duration-200"
-                >
-                  <Link href={result.link}>
-                    <span className="text-blue-600 font-medium">
-                      {result.title}
-                      <span className="text-sm text-gray-500">
-                        {" "}
-                        - {result.collectionName}
+          {/* Display search results when query matches tools or blogs */}
+          <div className="relative mt-2">
+            {searchResults?.length > 0 ? (
+              <ul className="absolute z-10 bg-white text-black w-full mt-1 max-h-60 overflow-auto shadow-lg rounded-lg border border-gray-200">
+                {searchResults?.map((result, index) => (
+                  <li
+                    key={index}
+                    className="p-3 hover:bg-indigo-100 cursor-pointer transition-colors duration-200"
+                  >
+                    <Link href={result.link}>
+                      <span className="text-blue-600 font-medium">
+                        {result.title}
+                        <span className="text-sm text-gray-500">
+                          {" "}
+                          - {result.collectionName}
+                        </span>
                       </span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            searchQuery?.length > 2 && (
-              <div className="absolute z-10 bg-white text-gray-500 w-full mt-1 max-h-60 overflow-auto shadow-lg rounded-lg border border-gray-200 p-3">
-                {t('No results found')}
-              </div>
-            )
-          )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              searchQuery?.length > 2 && (
+                <div className="absolute z-10 bg-white text-gray-500 w-full mt-1 max-h-60 overflow-auto shadow-lg rounded-lg border border-gray-200 p-3">
+                  {t('No results found')}
+                </div>
+              )
+            )}
+          </div>
         </div>
       </div>
+    </div>
       {/* Statistics Section */}
       <div className="my-16">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl lg:max-w-none">
-            <ul className="mt-16 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {stats.map((stat, index) => (
-                <li
-                  key={index}
-                  className="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-                  <div className="relative flex flex-col items-center justify-center">
-                    <span className="mb-2 text-6xl font-black tracking-tight text-indigo-600">
-                      {/* If the value contains only numbers, animate the count */}
-                      {hasNonNumericChars(stat.value) ? (
-                        // If the value contains non-numeric characters, do not animate, just display it
-                        <>
-                          <CountUp
-                            end={parseInt(cleanValue(stat.value), 10)} // CountUp only on the numeric part
-                            duration={2}
-                          />
-                          {stat.value.replace(cleanValue(stat.value), "")}{" "}
-                          {/* Add the non-numeric part (like M, +) */}
-                        </>
-                      ) : (
-                        // If the value contains only numbers, animate it
-                        <CountUp end={parseInt(stat.value, 10)} duration={2} />
-                      )}
-                    </span>
-                    <span className="text-lg font-medium text-zinc-600">
-                      {stat.label}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl lg:max-w-none">
+          <ul className="mt-16 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {stats.map((stat, index) => (
+              <li
+                key={index}
+                className="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                <div className="relative flex flex-col items-center justify-center">
+                  <span className="mb-2 text-6xl font-black tracking-tight text-indigo-600">
+                    {/* If the value contains non-numeric characters, animate the count */}
+                    {hasNonNumericChars(stat.value) ? (
+                      <>
+                        <CountUp
+                          end={parseInt(cleanValue(stat.value), 10)} // Only animate the numeric part
+                          duration={2}
+                        />
+                        {stat.value.replace(cleanValue(stat.value), "")}{" "}
+                        {/* Add the non-numeric part (like M, +) */}
+                      </>
+                    ) : (
+                      // If the value contains only numbers, animate it normally
+                      <CountUp end={parseInt(stat.value, 10)} duration={2} />
+                    )}
+                  </span>
+                  <span className="text-lg font-medium text-zinc-600">
+                    {stat.label}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
+    </div>
       {/* AI Tools Section */}
       <div className="mt-4 bg-indigo-50 py-4 md:mt-8 md:py-8 xl:mt-12">
         <div className="mx-auto max-w-7xl px-4 py-4 lg:py-12">
@@ -600,31 +602,31 @@ const Home = ({ initialBlogs = [] }) => {
           )}
         </div>
         <div className="mt-10 flex justify-center">
-          <Link
-            href="/youtube"
-            contenteditable="false"
-            style={{ cursor: "pointer" }}
-            aria-label="View all blog posts"
-          >
-            <span className="group inline-flex items-center justify-center rounded-full bg-white/80 px-8 py-4 text-sm font-semibold text-indigo-600 shadow-sm ring-1 ring-indigo-200 backdrop-blur-sm transition-all duration-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:shadow-md hover:shadow-indigo-100/40 hover:ring-indigo-300">
-              {t('View All Posts')}
-              <svg
-                className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M13 7l5 5m0 0l-5 5m5-5H6"
-                ></path>
-              </svg>
-            </span>
-          </Link>
-        </div>
+  <Link
+    href="/youtube"
+    style={{ cursor: "pointer" }}
+    aria-label="View all blog posts"
+  >
+    <span className="group inline-flex items-center justify-center rounded-full bg-white/80 px-8 py-4 text-sm font-semibold text-indigo-600 shadow-sm ring-1 ring-indigo-200 backdrop-blur-sm transition-all duration-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:shadow-md hover:shadow-indigo-100/40 hover:ring-indigo-300">
+      {t('View All Posts')}
+      <svg
+        className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-2"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M13 7l5 5m0 0l-5 5m5-5H6"
+        ></path>
+      </svg>
+    </span>
+  </Link>
+</div>
+
       </div>
     </div>
   );
