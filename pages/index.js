@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import TagGenerator from "../public/tagGenerator.png";
 import TagExtractor from "../public/youtube-tag-extractor.png";
 import TitleGenerator from "../public/title-bar.png";
@@ -18,7 +18,21 @@ import research from "../public/youtube-keyword-research.png";
 import Comment from "../public/Comment-Picker-icon.png";
 import Hashtag from "../public/youtube-hastag-generator.png";
 import Embed from "../public/youtube-embad-code-generator.png";
-const Home = () => {
+import { useRouter } from 'next/router';
+import { i18n } from 'next-i18next';
+import axios from 'axios';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+
+const Home = ({ initialBlogs = [], availableLanguages, metaUrl, meta }) => {
+  const router = useRouter();
+  const { category: selectedCategory } = router.query;
+  const [loading, setLoading] = useState(!initialBlogs.length);
+  const blogsPerPage = 6;
+  const [error, setError] = useState('');
+  const [blogsData, setBlogsData] = useState(initialBlogs);
+  const [categories, setCategories] = useState([]);
+  const [currentPage, setCurrentPage] = useState(meta?.currentPage || 1);  // Safe fallback
+  const [currentCategory, setCurrentCategory] = useState(selectedCategory || '');
   const stats = [
     { value: '10M+', label: 'Global Users' },
     { value: '300+', label: 'AI-Powered Tools' },
@@ -142,50 +156,154 @@ const Home = () => {
     }
     // Add more tools as needed
   ];
+  const currentLanguage = i18n.language || 'en';
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+  };
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await axios.get('/api/yt-categories');
+      const filteredCategories = response.data.map((category) => {
+        const translation = category.translations[currentLanguage];
+        return {
+          ...category,
+          name: translation ? translation.name : category.name,
+          slug: translation ? translation.slug : category.slug,
+        };
+      });
+      setCategories(filteredCategories);
+    } catch (error) {
+      console.error('Error fetching categories:', error.message);
+    }
+  }, [currentLanguage]);;
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  const extractFirstImage = (content) => {
+    const regex = /<img.*?src="(.*?)"/;
+    const match = regex.exec(content);
+    return match ? match[1] : null;
+  };
+  const fetchBlogs = useCallback(
+    async (page = 1, category = '') => {
+      setLoading(true);
+      try {
+        const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
   
+        if (!token) {
+          throw new Error('No authorization token found');
+        }
+  
+        const response = await axios.get(`/api/youtube`, {
+         
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        const { data: blogs, meta = { currentPage: 1, totalPages: 1 } } = response.data;
+  
+        // Ensure blogsData is always an array
+        setBlogsData(Array.isArray(blogs) ? blogs : []);
+        setCurrentPage(meta.currentPage || 1);
+        setTotalPages(meta.totalPages || 1);
+      } catch (error) {
+        console.error('Error fetching blogs:', error);
+        setError('Failed to fetch blogs.');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [blogsPerPage]
+  );
+  
+  const processedBlogs = useMemo(() => {
+    return blogsData
+      .map((blog) => {
+        const translation = blog.translations[currentLanguage];
+        if (!translation) return null;
+
+        const { title, category } = translation;
+
+        // Normalize category and currentCategory for comparison
+        const normalizedCategory = category ? category.toLowerCase().replace(/\s+/g, '-') : '';
+        const normalizedCurrentCategory = currentCategory ? currentCategory.toLowerCase() : '';
+
+        // Generate slug if it doesn't exist
+        if (!translation.slug && title) {
+          translation.slug = createSlug(title);
+        }
+
+        // Extract first image if it doesn't exist
+        if (!translation.image && translation.content) {
+          translation.image = extractFirstImage(translation.content);
+        }
+
+        
+
+     
+
+        return {
+          _id: blog._id,
+          createdAt: blog.createdAt,
+          author: blog.author,
+          ...blog,
+          translations: {
+            ...blog.translations,
+            [currentLanguage]: translation,
+          },
+        };
+      })
+      .filter((blog) => blog); // Remove null entries after filtering
+  }, [blogsData, currentLanguage, currentCategory]);
+
+  useEffect(() => {
+    fetchBlogs(currentPage, currentCategory);
+  }, [currentPage, currentCategory, fetchBlogs]);
   return (
     <div className="bg-white">
-      {/* Top Bar */}
-      <div className="topbar bg-indigo-600 py-3">
-        <h6 className="text-white text-center">Empower Your Work and Learning with Our Free AI Tools →</h6>
-      </div>
+    {/* Top Bar */}
+    <div className="topbar bg-indigo-600 py-3">
+      <h6 className="text-white text-center">Empower Your Work and Learning with Our Free AI Tools →</h6>
+    </div>
 
-      {/* Main Content */}
-      <div className="w-full py-12 text-center lg:px-8 lg:py-20">
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-zinc-900 md:text-5xl">
-          YtubeTools: Unlimited Creation,
-          <span className="bg-gradient-to-r from-indigo-600 to-pink-500 bg-clip-text text-transparent">100% Free</span>
-        </h1>
-        <p className="mt-6 text-lg leading-8 text-neutral-500">
-          ytubetools.com is a free AI website designed to enhance your work and learning by offering free, unlimited access to all our tools.
-        </p>
-      </div>
+    {/* Main Content */}
+    <div className="w-full py-12 text-center lg:px-8 lg:py-20">
+      <h1 className="mt-2 text-3xl font-bold tracking-tight text-zinc-900 md:text-5xl">
+        YtubeTools: Unlimited Creation,
+        <span className="bg-gradient-to-r from-indigo-600 to-pink-500 bg-clip-text text-transparent">100% Free</span>
+      </h1>
+      <p className="mt-6 text-lg leading-8 text-neutral-500">
+        ytubetools.com is a free AI website designed to enhance your work and learning by offering free, unlimited access to all our tools.
+      </p>
+    </div>
 
-      {/* Search Bar */}
-      <div className="mx-auto mb-6 max-w-2xl rounded-full border border-indigo-100 bg-gray-50 px-4 py-2 xl:mb-10">
-        <div className="relative mt-2">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="h-8 w-8 text-indigo-500">
-              <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clipRule="evenodd"></path>
-            </svg>
-          </div>
-          <input
-            className="block w-full border-0 bg-transparent py-1.5 pl-14 pr-24 text-gray-500 ring-0 placeholder:text-xl placeholder:text-gray-400 focus:outline-none sm:text-sm sm:leading-6 md:text-xl md:leading-7 lg:text-2xl lg:leading-7"
-            aria-label="Search"
-            type="text"
-            placeholder="Search..."
-          />
-          <button
-            type="button"
-            className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-2 rounded-full bg-indigo-500 px-4 py-1.5 text-white hover:bg-indigo-600 disabled:cursor-not-allowed disabled:bg-indigo-300"
-          >
-            Search
-          </button>
+    {/* Search Bar */}
+    <div className="mx-auto mb-6 max-w-2xl rounded-full border border-indigo-100 bg-gray-50 px-4 py-2 xl:mb-10">
+      <div className="relative mt-2">
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="h-8 w-8 text-indigo-500">
+            <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clipRule="evenodd"></path>
+          </svg>
         </div>
+        <input
+          className="block w-full border-0 bg-transparent py-1.5 pl-14 pr-24 text-gray-500 ring-0 placeholder:text-xl placeholder:text-gray-400 focus:outline-none sm:text-sm sm:leading-6 md:text-xl md:leading-7 lg:text-2xl lg:leading-7"
+          aria-label="Search"
+          type="text"
+          placeholder="Search..."
+        />
+        <button
+          type="button"
+          className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-2 rounded-full bg-indigo-500 px-4 py-1.5 text-white hover:bg-indigo-600 disabled:cursor-not-allowed disabled:bg-indigo-300"
+        >
+          Search
+        </button>
       </div>
-
-      {/* Statistics Section */}
-      <div className="my-16 bg-gradient-to-b from-white to-indigo-50/30">
+    </div>
+{/* Statistics Section */}
+<div className="my-16 bg-gradient-to-b from-white to-indigo-50/30">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:max-w-none">
             <ul className="mt-16 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -202,7 +320,11 @@ const Home = () => {
           </div>
         </div>
       </div>
-      <div class="mt-4 bg-indigo-50 py-4 md:mt-8 md:py-8 xl:mt-12">
+   
+
+    
+
+    <div class="mt-4 bg-indigo-50 py-4 md:mt-8 md:py-8 xl:mt-12">
         <div class="mx-auto max-w-7xl px-4 py-4 lg:py-12">
         <div class="mx-auto my-4 max-w-2xl text-center"><h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">AI Tools That Work For You</h2><p class="mt-6 text-lg leading-8 text-gray-600">Exceptionally Useful, Completely Free — No Hidden Costs.</p></div>
         <div class="mb-8 flex items-center justify-between">
@@ -240,14 +362,76 @@ const Home = () => {
 
   </div>
 </div>
-       
-        </div>
-        
 </div>
-
-
+</div>
+ {/* Blogs Grid */}
+ <div class="mx-auto max-w-7xl px-4 py-4 lg:py-12">
+ <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {processedBlogs.length === 0 ? (
+        <p>No blogs found</p>
+      ) : (
+        processedBlogs.slice(0,6).map((blog) => (
+          <div key={blog._id} className="group cursor-pointer rounded-xl bg-white p-6 shadow-sm transition-all duration-200 hover:scale-[102%] hover:shadow-xl hover:ring-2 hover:ring-indigo-500">
+          <img src={blog.translations[currentLanguage]?.image}/>
+          <div class="flex items-center gap-x-4 text-xs">
+            <time datetime="9/18/2024, 10:29:50 AM" class="rounded-full bg-gradient-to-r from-indigo-50/80 to-purple-50/80 px-4 py-1.5 font-medium text-indigo-600 ring-1 ring-indigo-100/50">{blog?.createdAt}</time></div>
+          <h3 className="text-xl font-semibold text-gray-900 group-hover:text-indigo-600">{blog.translations[currentLanguage]?.title}</h3>
+           
+          </div>
+        ))
+      )}
     </div>
+    </div>
+
+  </div>
   );
 };
+export async function getServerSideProps({ locale = 'en', req, query }) {
+  const { page = 1, category = '' } = query;
 
+  // Get the base URL from the request headers
+  const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+  const host = req.headers.host;
+  const baseUrl = `${protocol}://${host}`;
+
+  // Fetch the token securely (e.g., from cookies, environment variables)
+  const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace with a secure way of managing the token
+
+  if (!token) {
+    throw new Error('No authorization token found');
+  }
+
+  try {
+    // Make the API request to fetch data
+    const { data } = await axios.get(`${baseUrl}/api/youtube`, {
+      headers: {
+        Authorization: `Bearer ${token}`,  // Add the Bearer token
+      },
+      params: { page, limit: 9, category },
+    });
+
+    // Construct the meta URL (to avoid duplication and ensure correct locale)
+    const metaUrl = `${baseUrl}${req.url}`;
+
+    return {
+      props: {
+        initialBlogs: data.data || [],  // Safely access `data`
+        meta: data.meta || { currentPage: 1, totalPages: 0 },
+        availableLanguages: ['en', 'es'],  // Add any other languages you want to support
+        metaUrl,
+        ...(await serverSideTranslations(locale, ['blog', 'navbar', 'footer'])),  // Add translations
+      },
+    };
+  } catch (error) {
+    console.error('Error in getServerSideProps:', error);
+    return {
+      props: {
+        initialBlogs: [],
+        meta: { currentPage: 1, totalPages: 0 },
+        availableLanguages: [],  // If error occurs, return an empty languages array
+        metaUrl: `${baseUrl}${req.url}`,
+      },
+    };
+  }
+}
 export default Home;
