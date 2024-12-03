@@ -56,6 +56,7 @@ const TagExtractor = ({ meta, reviews, content, relatedTools, faqs,reactions,hre
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [siteKey,setSiteKey]=useState()
   const [error, setError] = useState("");
   const [newReview, setNewReview] = useState({
     name: "",
