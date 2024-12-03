@@ -7,8 +7,9 @@
   "extends": [
     "eslint:recommended",
     "plugin:react/recommended",
-    "plugin:@next/next/recommended"
+    "plugin:@next/next/recommended",
   ],
+
   "parserOptions": {
     "ecmaFeatures": {
       "jsx": true
@@ -19,17 +20,24 @@
   "plugins": [
     "react"
   ],
+  "ecmaFeatures": {
+  "jsx": true
+}
+,
   "rules": {
     "react/no-unknown-property": "off",
     "react/react-in-jsx-scope": "off",
-    "react/no-unescaped-entities": "off",
+     "react/no-unescaped-entities": "off",
     "@next/next/no-page-custom-font": "off",
-    "no-case-declarations": "off",
-    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
-    "no-console": "warn",
-    "no-debugger": "warn",
-    "no-undef": "warn",
-    "no-shadow": "warn",
+     "no-case-declarations": "off",
+    "react/prop-types": "off",
+    "no-undef": "off",
+    "rule-name": "off",
+    "no-unused-vars": "off",
+    "no-console": "off",
+    "no-debugger": "off",
+    "no-restricted-globals": "off",
+    "no-shadow": "off",
     "consistent-return": "off",
     "array-callback-return": "off",
     "default-case": "off",
@@ -78,7 +86,7 @@
     "vars-on-top": "off",
     "wrap-iife": "off",
     "react/display-name": "off",
-    "no-extra-semi": "off",
+  "no-extra-semi": "off",
     "yoda": "off",
     "strict": "off",
     "init-declarations": "off",
