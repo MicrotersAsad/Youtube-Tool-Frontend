@@ -1,0 +1,144 @@
+{
+  "Access 50+ free AI-powered YouTube tools | Unlimited | No Credit Card Required": "50以上の無料AI駆動のYouTubeツールにアクセス | 無制限 | クレジットカード不要",
+  "YtubeTools | Free YouTube Tools For Creators,": "YtubeTools | クリエイター向け無料YouTubeツール, 100%無料",
+  "100% Free": "100%無料",
+  "Access 50+ free AI-powered YouTube tools for creators with unlimited usage—no credit card required!": "クリエイター向けに50以上の無料AI駆動のYouTubeツールを無制限で利用可能—クレジットカード不要！",
+  "ytubetools.com is a free AI website designed to enhance your work and learning by offering free, unlimited access to all our tools.": "ytubetools.comは、すべてのツールに無料で無制限にアクセスできる無料のAIウェブサイトで、あなたの仕事と学習を向上させることを目的としています。",
+  
+  "Search": "検索",
+  "No results found": "結果は見つかりませんでした",
+  "AI YouTube Tools That Work For You": "あなたのためのAI YouTubeツール",
+  "Exceptionally Useful, Completely Free — No Hidden Costs.": "非常に有用、完全に無料 — 隠れた費用はありません。",
+  "Featured Tools": "おすすめツール",
+  "YtubeTools Article": "YtubeTools 記事",
+  "Explore how AI enhances content creation, reshapes social media, and beyond. Dive in with us to discover AI's practical applications and its transformative impact on various industries.": "AIがコンテンツ作成を改善し、ソーシャルメディアを再構築する方法を探求し、それ以上の可能性を発見しましょう。AIの実用的な応用と、さまざまな業界に与える変革的な影響について一緒に学びましょう。",
+  "No blogs found": "ブログは見つかりませんでした",
+  "View All Posts": "すべての記事を見る",
+  
+  "stats": [
+    { "value": "100K+", "label": "世界中のユーザー" },
+    { "value": "50+", "label": "AI駆動ツール" },
+    { "value": "100%", "label": "永遠に無料" },
+    { "value": "30+", "label": "対応言語" }
+  ],
+
+  "allTools": [
+    {
+      "name": "YouTubeタグジェネレーター",
+      "link": "http://www.ytubetools.com/",
+      "logo": "TagGenerator",
+      "description": "YouTubeの動画の可視性とSEOを向上させるための最適化されたタグを生成します。"
+    },
+    {
+      "name": "YouTubeタグ抽出ツール",
+      "link": "http://www.ytubetools.com/tools/tag-extractor",
+      "logo": "TagExtractor",
+      "description": "YouTubeの動画からタグを抽出して簡単に参照および分析できます。"
+    },
+    {
+      "name": "YouTubeタイトルジェネレーター",
+      "link": "http://www.ytubetools.com/tools/title-generator",
+      "logo": "TitleGenerator",
+      "description": "クリック率を増加させる魅力的なYouTubeタイトルを生成します。"
+    },
+    {
+      "name": "YouTube説明ジェネレーター",
+      "link": "http://www.ytubetools.com/tools/description-generator",
+      "logo": "DescriptionGenerator",
+      "description": "YouTubeの動画SEOを改善する魅力的な説明を作成します。"
+    },
+    {
+      "name": "YouTubeタイトル＆説明抽出ツール",
+      "link": "http://www.ytubetools.com/tools/youtube-title-and-description-extractor",
+      "logo": "TitleDescriptionExtractor",
+      "description": "YouTubeの動画タイトルと説明を抽出し、素早くアクセスして分析できます。"
+    },
+    {
+      "name": "YouTubeチャンネルバナーダウンローダー",
+      "link": "http://www.ytubetools.com/tools/youtube-channel-banner-downloader",
+      "logo": "BannerDownloader",
+      "description": "ワンクリックで高品質なYouTubeチャンネルバナーをダウンロードします。"
+    },
+    {
+      "name": "YouTubeハッシュタグジェネレーター",
+      "link": "http://www.ytubetools.com/tools/youtube-hashtag-generator",
+      "logo": "Hashtag",
+      "description": "YouTube動画の視認性を高めるために関連するハッシュタグを生成します。"
+    },
+    {
+      "name": "YouTubeチャンネルロゴダウンローダー",
+      "link": "http://www.ytubetools.com/tools/youtube-channel-logo-downloader",
+      "logo": "LogoDownloader",
+      "description": "高解像度のYouTubeチャンネルロゴを簡単にダウンロードできます。"
+    },
+    {
+      "name": "YouTubeサムネイルダウンローダー",
+      "link": "http://www.ytubetools.com/tools/youtube-thumbnail",
+      "logo": "ThumbnailDownloader",
+      "description": "YouTubeの動画サムネイルを高解像度でダウンロードします。"
+    },
+    {
+      "name": "YouTubeチャンネルIDファインダー",
+      "link": "http://www.ytubetools.com/tools/channel-id-finder",
+      "logo": "ChannelIDFinder",
+      "description": "指定されたYouTubeチャンネルURLのチャンネルIDを探します。"
+    },
+    {
+      "name": "YouTubeビデオデータビューアー",
+      "link": "http://www.ytubetools.com/tools/video-data-viewer",
+      "logo": "VideoDataViewer",
+      "description": "任意のYouTubeビデオの詳細なデータと統計を表示します。"
+    },
+    {
+      "name": "YouTube収益確認ツール",
+      "link": "http://www.ytubetools.com/tools/monetization-checker",
+      "logo": "MonetizationChecker",
+      "description": "YouTubeチャンネルまたは動画が収益化できるかどうかを確認します。"
+    },
+    {
+      "name": "YouTubeチャンネル検索ツール",
+      "link": "http://www.ytubetools.com/tools/youtube-channel-search",
+      "logo": "ChannelSearch",
+      "description": "キーワードや名前に基づいてYouTubeチャンネルを検索します。"
+    },
+    {
+      "name": "YouTubeビデオサマリー生成ツール",
+      "link": "http://www.ytubetools.com/tools/youtube-video-summary-generator",
+      "logo": "SummaryGenerator",
+      "description": "任意のYouTubeビデオの簡潔なサマリーを生成して、素早くインサイトを得ます。"
+    },
+    {
+      "name": "YouTubeトレンドビデオ",
+      "link": "http://www.ytubetools.com/tools/trending-videos",
+      "logo": "TrendingVideos",
+      "description": "世界中の最新のYouTubeトレンドビデオを発見します。"
+    },
+    {
+      "name": "YouTube収益計算機",
+      "link": "http://www.ytubetools.com/tools/youtube-money-calculator",
+      "logo": "MoneyCalculator",
+      "description": "YouTubeビデオの視聴数とエンゲージメントに基づいて、収益の予測を行います。"
+    },
+    {
+      "name": "YouTubeコメントピッカー",
+      "link": "http://www.ytubetools.com/tools/youtube-comment-picker",
+      "logo": "Comment",
+      "description": "YouTubeビデオからランダムにコメントを選択し、プレゼントやコンテストに使用できます。"
+    },
+    {
+      "name": "YouTubeキーワードリサーチ",
+      "link": "http://www.ytubetools.com/tools/keyword-research",
+      "logo": "research",
+      "description": "YouTube向けにキーワードリサーチを行い、高評価の検索語を識別します。"
+    },
+    {
+      "name": "YouTube埋め込みコード生成ツール",
+      "link": "http://www.ytubetools.com/tools/youtube-embed-code-generator",
+      "logo": "Embed",
+      "description": "ウェブサイトやブログで簡単に共有できるようにYouTubeビデオの埋め込みコードを生成します。"
+    }
+  ],
+
+  "Meta Title": "YtubeTools | YouTubeクリエイター向け無料ツール (クレジットカード不要)",
+  "Meta Description": "50以上の無料AI駆動のYouTubeツールに無制限でアクセス—クレジットカード不要！"
+}

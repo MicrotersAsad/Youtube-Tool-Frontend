@@ -19,14 +19,16 @@ import Comment from "../public/Comment-Picker-icon.png";
 import Hashtag from "../public/youtube-hastag-generator.png";
 import Embed from "../public/youtube-embad-code-generator.png";
 import Link from "next/link";
-import { i18n } from "next-i18next";
+import { i18n, useTranslation } from "next-i18next";
 import axios from "axios";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Image from "next/image";
 import { FaCalendar, FaUserCircle } from "react-icons/fa";
 import CountUp from "react-countup";
+import Head from "next/head";
 
 const Home = ({ initialBlogs = [] }) => {
+  const { t, i18n } = useTranslation("home");
   const [blogsData, setBlogsData] = useState(initialBlogs);
   const [categories, setCategories] = useState([]);
   const [searchQuery, setSearchQuery] = useState();
@@ -50,14 +52,14 @@ const Home = ({ initialBlogs = [] }) => {
   };
   const allTools = [
     {
-      name: "YouTube Tag Generator",
+      name: t("YouTube Tag Generator"),
       link: "http://www.ytubetools.com/",
       logo: TagGenerator,
       description:
         "Generate optimized YouTube tags to boost your video discoverability and SEO.",
     },
     {
-      name: "Youtube Tag Extractor",
+      name:t("Youtube Tag Extractor"),
       link: "http://www.ytubetools.com/tools/tag-extractor",
       logo: TagExtractor,
       description:
@@ -183,6 +185,8 @@ const Home = ({ initialBlogs = [] }) => {
 
   const currentLanguage = i18n.language || "en";
 
+
+
   // Handle search input changes
   const handleSearchChange = (e) => {
     const query = e.target.value;
@@ -280,25 +284,86 @@ const Home = ({ initialBlogs = [] }) => {
 
   return (
     <div className="">
+      <Head>
+          {/* SEO Meta Tags */}
+          <title>{t("Meta Title")}</title>
+          <meta name="description" content={t("Meta Description")} />
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+          />
+          <meta name="robots" content="index, follow" />
+
+          {/* Canonical URL */}
+          <link rel="canonical" href="https://ytubetools.com/" />
+
+          {/* Open Graph Meta Tags */}
+          <meta property="og:type" content="website" />
+          <meta property="og:url"  content="https://ytubetools.com/"/>
+          <meta property="og:title" content={t("Meta Title")} />
+          <meta property="og:description" content={t("Meta Description")} />
+          <meta property="og:image" content="" />
+          <meta property="og:image:secure_url" content="" />
+          <meta property="og:site_name" content="Ytubetools" />
+          <meta property="og:locale" content="en_US" />
+
+          {/* Twitter Meta Tags */}
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:domain" content="https://ytubetools.com/" />
+          <meta property="twitter:url" content="https://ytubetools.com/"/>
+          <meta name="twitter:title" content={t("Meta Title")} />
+          <meta name="twitter:description" content={t("Meta Description")} />
+          <meta name="twitter:image" content="" />
+          <meta name="twitter:site" content="@ytubetools" />
+          <meta name="twitter:image:alt" content="" />
+   {/* Hreflang Meta Tags (for multilingual SEO) */}
+   <link rel="alternate" hreflang="x-default" href="https://www.ytubetools.com"></link>
+   <link rel="alternate" href="https://www.ytubetools.com" hreflang="en" />
+        <link rel="alternate" href="https://www.ytubetools.com/fr" hreflang="fr" />
+        <link rel="alternate" href="https://www.ytubetools.com/es" hreflang="es" />
+        <link rel="alternate" href="https://www.ytubetools.com/zh-hans" hreflang="zh-HANS" />
+        <link rel="alternate" href="https://www.ytubetools.com/de" hreflang="de" />
+        <link rel="alternate" href="https://www.ytubetools.com/gu" hreflang="gu" />
+        <link rel="alternate" href="https://www.ytubetools.com/hi" hreflang="hi" />
+        <link rel="alternate" href="https://www.ytubetools.com/it" hreflang="it" />
+        <link rel="alternate" href="https://www.ytubetools.com/ja" hreflang="ja" />
+        <link rel="alternate" href="https://www.ytubetools.com/ko" hreflang="ko" />
+        <link rel="alternate" href="https://www.ytubetools.com/nl" hreflang="nl" />
+        <link rel="alternate" href="https://www.ytubetools.com/pl" hreflang="pl" />
+        <link rel="alternate" href="https://www.ytubetools.com/ru" hreflang="ru" />
+          {/* Alternate hreflang Tags for SEO */}
+          {/* {hreflangs &&
+            hreflangs.map((hreflang, index) => (
+              <link
+                key={index}
+                rel={hreflang.rel}
+                hreflang={hreflang.hreflang}
+                href={`${hreflang.href}`}
+              />
+            ))} */}
+          {/* <link
+            rel="alternate"
+            hreflang="en"
+            href={meta?.url?.replace(/\/$/, "").replace(/\/$/, "")}
+          /> */}
+        </Head>
       {/* Top Bar */}
       <div className="topbar bg-indigo-600 py-2">
         <p className="text-white text-center">
-          Access 50+ free AI-powered YouTube tools | Unlimited | No Credit Card
-          Required
+        {t('Access 50+ free AI-powered YouTube tools | Unlimited | No Credit Card Required')}
         </p>
       </div>
 
       {/* Main Content */}
       <div className="w-full py-12 text-center lg:px-8 lg:py-20">
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-zinc-900 md:text-5xl">
-          YtubeTools: Unlimited Creation,
+        {t("YtubeTools | Free YouTube Tools For Creators,")}
           <span className="bg-gradient-to-r from-indigo-600 to-pink-500 bg-clip-text text-transparent">
-            100% Free
+            {t('100% Free')}
           </span>
         </h1>
         <p className="mt-6 text-lg leading-8 text-neutral-500">
-          ytubetools.com is a free AI website designed to enhance your work and
-          learning by offering free, unlimited access to all our tools.
+        {t("Access 50+ free AI-powered YouTube tools for creators with unlimited usage—no credit card required!")}
         </p>
       </div>
 
@@ -333,7 +398,7 @@ const Home = ({ initialBlogs = [] }) => {
             type="button"
             className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-2 rounded-full bg-indigo-500 px-4 py-1.5 text-white hover:bg-indigo-600 disabled:cursor-not-allowed disabled:bg-indigo-300"
           >
-            Search
+           {t('Search')}
           </button>
         </div>
 
@@ -361,7 +426,7 @@ const Home = ({ initialBlogs = [] }) => {
           ) : (
             searchQuery?.length > 2 && (
               <div className="absolute z-10 bg-white text-gray-500 w-full mt-1 max-h-60 overflow-auto shadow-lg rounded-lg border border-gray-200 p-3">
-                No results found
+                {t('No results found')}
               </div>
             )
           )}
@@ -411,10 +476,10 @@ const Home = ({ initialBlogs = [] }) => {
         <div className="mx-auto max-w-7xl px-4 py-4 lg:py-12">
           <div className="mx-auto my-4 max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              AI YouTube Tools That Work For You
+              {t("AI YouTube Tools That Work For You")}
             </h2>
             <p className="mt-6 text-lg leading-8 text-gray-600">
-              Exceptionally Useful, Completely Free — No Hidden Costs.
+              {t("Exceptionally Useful, Completely Free — No Hidden Costs.")}
             </p>
           </div>
           <div className="mb-8 flex items-center justify-between">
@@ -436,7 +501,7 @@ const Home = ({ initialBlogs = [] }) => {
                 ></path>
               </svg>
               <h2 className="text-2xl font-semibold text-gray-900">
-                Featured Tools
+                {t("Featured Tools")}
               </h2>
             </div>
           </div>
@@ -474,19 +539,17 @@ const Home = ({ initialBlogs = [] }) => {
       <div className="mx-auto max-w-7xl px-4 py-4 lg:py-12">
         <div class="mx-auto max-w-3xl text-center px-4">
           <h2 class="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl lg:text-6xl">
-            YtubeTools Article
+            {t("YtubeTools Article")}
           </h2>
 
           <p class="mt-6 text-xs sm:text-sm font-medium  leading-8 sm:leading-9 md:text-sm md:leading-10">
-            Explore how AI enhances content creation, reshapes social media, and
-            beyond. Dive in with us to discover AI's practical applications and
-            its transformative impact on various industries.
+            {t("Explore how AI enhances content creation, reshapes social media, and beyond. Dive in with us to discover AI's practical applications and its transformative impact on various industries.")}
           </p>
         </div>
 
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {processedBlogs.length === 0 ? (
-            <p>No blogs found</p>
+            <p>{t("No blogs found")}</p>
           ) : (
             processedBlogs.slice(0, 6).map((blog) => (
               <div className="bg-white shadow-md rounded-lg overflow-hidden relative">
@@ -544,7 +607,7 @@ const Home = ({ initialBlogs = [] }) => {
             aria-label="View all blog posts"
           >
             <span className="group inline-flex items-center justify-center rounded-full bg-white/80 px-8 py-4 text-sm font-semibold text-indigo-600 shadow-sm ring-1 ring-indigo-200 backdrop-blur-sm transition-all duration-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:shadow-md hover:shadow-indigo-100/40 hover:ring-indigo-300">
-              View All Posts
+              {t('View All Posts')}
               <svg
                 className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-2"
                 fill="none"
@@ -600,7 +663,7 @@ export async function getServerSideProps({ locale = "en", req, query }) {
         meta: data.meta || { currentPage: 1, totalPages: 0 },
         availableLanguages: ["en", "es"], // Add any other languages you want to support
         metaUrl,
-        ...(await serverSideTranslations(locale, ["blog", "navbar", "footer"])), // Add translations
+        ...(await serverSideTranslations(locale, ["home", "navbar", "footer"])), // Add translations
       },
     };
   } catch (error) {

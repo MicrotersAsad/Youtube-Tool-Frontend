@@ -1,0 +1,144 @@
+{
+  "Access 50+ free AI-powered YouTube tools | Unlimited | No Credit Card Required": "Toegang tot 50+ gratis AI-gestuurde YouTube-tools | Onbeperkt | Geen creditcard vereist",
+  "YtubeTools | Free YouTube Tools For Creators,": "YtubeTools | Gratis YouTube-tools voor makers, 100% gratis",
+  "100% Free": "100% Gratis",
+  "Access 50+ free AI-powered YouTube tools for creators with unlimited usage—no credit card required!": "Toegang tot 50+ gratis AI-gestuurde YouTube-tools voor makers met onbeperkt gebruik — geen creditcard vereist!",
+  "ytubetools.com is a free AI website designed to enhance your work and learning by offering free, unlimited access to all our tools.": "ytubetools.com is een gratis AI-website die is ontworpen om je werk en leren te verbeteren door gratis, onbeperkte toegang te bieden tot al onze tools.",
+  
+  "Search": "Zoeken",
+  "No results found": "Geen resultaten gevonden",
+  "AI YouTube Tools That Work For You": "AI YouTube-tools die voor jou werken",
+  "Exceptionally Useful, Completely Free — No Hidden Costs.": "Bijzonder nuttig, volledig gratis — Geen verborgen kosten.",
+  "Featured Tools": "Aanbevolen tools",
+  "YtubeTools Article": "YtubeTools Artikel",
+  "Explore how AI enhances content creation, reshapes social media, and beyond. Dive in with us to discover AI's practical applications and its transformative impact on various industries.": "Ontdek hoe AI het maken van content verbetert, sociale media hervormt en meer. Duik met ons in de praktische toepassingen van AI en de transformerende impact ervan op verschillende industrieën.",
+  "No blogs found": "Geen blogs gevonden",
+  "View All Posts": "Bekijk alle berichten",
+  
+  "stats": [
+    { "value": "100K+", "label": "Wereldwijde gebruikers" },
+    { "value": "50+", "label": "AI-gestuurde tools" },
+    { "value": "100%", "label": "Altijd gratis" },
+    { "value": "30+", "label": "Beschikbare talen" }
+  ],
+
+  "allTools": [
+    {
+      "name": "YouTube Tag Generator",
+      "link": "http://www.ytubetools.com/",
+      "logo": "TagGenerator",
+      "description": "Genereer geoptimaliseerde YouTube-tags om de zichtbaarheid van je video's en SEO te verbeteren."
+    },
+    {
+      "name": "YouTube Tag Extractor",
+      "link": "http://www.ytubetools.com/tools/tag-extractor",
+      "logo": "TagExtractor",
+      "description": "Extraheer tags van elke YouTube-video voor gemakkelijke verwijzing en analyse."
+    },
+    {
+      "name": "YouTube Title Generator",
+      "link": "http://www.ytubetools.com/tools/title-generator",
+      "logo": "TitleGenerator",
+      "description": "Genereer aantrekkelijke YouTube-titels die de klikfrequentie verhogen."
+    },
+    {
+      "name": "YouTube Description Generator",
+      "link": "http://www.ytubetools.com/tools/description-generator",
+      "logo": "DescriptionGenerator",
+      "description": "Maak overtuigende video-beschrijvingen om de YouTube SEO van je video te verbeteren."
+    },
+    {
+      "name": "YouTube Title & Description Extractor",
+      "link": "http://www.ytubetools.com/tools/youtube-title-and-description-extractor",
+      "logo": "TitleDescriptionExtractor",
+      "description": "Extraheer YouTube-video-titels en -beschrijvingen voor snelle toegang en analyse."
+    },
+    {
+      "name": "YouTube Channel Banner Downloader",
+      "link": "http://www.ytubetools.com/tools/youtube-channel-banner-downloader",
+      "logo": "BannerDownloader",
+      "description": "Download YouTube-kanaalbanners in hoge kwaliteit met één klik."
+    },
+    {
+      "name": "YouTube Hashtag Generator",
+      "link": "http://www.ytubetools.com/tools/youtube-hashtag-generator",
+      "logo": "Hashtag",
+      "description": "Genereer relevante hashtags om de zichtbaarheid van je YouTube-video's te vergroten."
+    },
+    {
+      "name": "YouTube Channel Logo Downloader",
+      "link": "http://www.ytubetools.com/tools/youtube-channel-logo-downloader",
+      "logo": "LogoDownloader",
+      "description": "Download YouTube-kanaallogo's in hoge resolutie."
+    },
+    {
+      "name": "YouTube Thumbnail Downloader",
+      "link": "http://www.ytubetools.com/tools/youtube-thumbnail",
+      "logo": "ThumbnailDownloader",
+      "description": "Download miniaturen van YouTube-video's in hoge resolutie."
+    },
+    {
+      "name": "YouTube Channel ID Finder",
+      "link": "http://www.ytubetools.com/tools/channel-id-finder",
+      "logo": "ChannelIDFinder",
+      "description": "Vind de YouTube-kanaal-ID voor een opgegeven YouTube-kanaal-URL."
+    },
+    {
+      "name": "YouTube Video Data Viewer",
+      "link": "http://www.ytubetools.com/tools/video-data-viewer",
+      "logo": "VideoDataViewer",
+      "description": "Bekijk gedetailleerde gegevens en statistieken van elke YouTube-video."
+    },
+    {
+      "name": "YouTube Monetization Checker",
+      "link": "http://www.ytubetools.com/tools/monetization-checker",
+      "logo": "MonetizationChecker",
+      "description": "Controleer of een YouTube-kanaal of video in aanmerking komt voor monetisatie."
+    },
+    {
+      "name": "YouTube Channel Search",
+      "link": "http://www.ytubetools.com/tools/youtube-channel-search",
+      "logo": "ChannelSearch",
+      "description": "Zoek naar YouTube-kanalen op basis van zoekwoorden of namen."
+    },
+    {
+      "name": "YouTube Video Summary Generator",
+      "link": "http://www.ytubetools.com/tools/youtube-video-summary-generator",
+      "logo": "SummaryGenerator",
+      "description": "Genereer een beknopte samenvatting van elke YouTube-video voor snelle inzichten."
+    },
+    {
+      "name": "YouTube Trending Videos",
+      "link": "http://www.ytubetools.com/tools/trending-videos",
+      "logo": "TrendingVideos",
+      "description": "Ontdek de laatste trending YouTube-video's van over de hele wereld."
+    },
+    {
+      "name": "YouTube Money Calculator",
+      "link": "http://www.ytubetools.com/tools/youtube-money-calculator",
+      "logo": "MoneyCalculator",
+      "description": "Schatte de potentiële inkomsten van YouTube-video's op basis van weergaven en betrokkenheid."
+    },
+    {
+      "name": "YouTube Comment Picker",
+      "link": "http://www.ytubetools.com/tools/youtube-comment-picker",
+      "logo": "Comment",
+      "description": "Kies willekeurige opmerkingen uit elke YouTube-video voor prijsvragen of wedstrijden."
+    },
+    {
+      "name": "YouTube Keyword Research",
+      "link": "http://www.ytubetools.com/tools/keyword-research",
+      "logo": "research",
+      "description": "Voer zoekwoordenonderzoek uit voor YouTube om hoog scorende zoektermen te identificeren."
+    },
+    {
+      "name": "YouTube Embed Code Generator",
+      "link": "http://www.ytubetools.com/tools/youtube-embed-code-generator",
+      "logo": "Embed",
+      "description": "Genereer embed-codes voor YouTube-video's voor eenvoudig delen op websites en blogs."
+    }
+  ],
+
+  "Meta Title": "YtubeTools | Gratis YouTube-tools voor makers (Geen creditcard vereist)",
+  "Meta Description": "Toegang tot 50+ gratis YouTube-tools met AI-ondersteuning voor makers met onbeperkt gebruik — geen creditcard vereist!"
+}

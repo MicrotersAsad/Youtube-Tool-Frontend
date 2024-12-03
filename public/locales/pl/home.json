@@ -1,0 +1,144 @@
+{
+  "Access 50+ free AI-powered YouTube tools | Unlimited | No Credit Card Required": "Dostęp do 50+ darmowych narzędzi YouTube wspomaganych AI | Nielimitowany | Brak wymogu karty kredytowej",
+  "YtubeTools | Free YouTube Tools For Creators,": "YtubeTools | Darmowe narzędzia YouTube dla twórców, 100% darmowe",
+  "100% Free": "100% Darmowe",
+  "Access 50+ free AI-powered YouTube tools for creators with unlimited usage—no credit card required!": "Dostęp do 50+ darmowych narzędzi YouTube wspomaganych AI dla twórców z nieograniczoną liczbą użytkowań — brak wymogu karty kredytowej!",
+  "ytubetools.com is a free AI website designed to enhance your work and learning by offering free, unlimited access to all our tools.": "ytubetools.com to darmowa strona internetowa wspomagana przez AI, zaprojektowana w celu poprawy twojej pracy i nauki, oferując darmowy, nieograniczony dostęp do wszystkich naszych narzędzi.",
+  
+  "Search": "Szukaj",
+  "No results found": "Brak wyników",
+  "AI YouTube Tools That Work For You": "Narzędzia YouTube wspomagane AI, które działają dla Ciebie",
+  "Exceptionally Useful, Completely Free — No Hidden Costs.": "Wyjątkowo przydatne, całkowicie darmowe — bez ukrytych kosztów.",
+  "Featured Tools": "Polecane narzędzia",
+  "YtubeTools Article": "Artykuł YtubeTools",
+  "Explore how AI enhances content creation, reshapes social media, and beyond. Dive in with us to discover AI's practical applications and its transformative impact on various industries.": "Poznaj, jak AI poprawia tworzenie treści, przekształca media społecznościowe i nie tylko. Zanurz się z nami, aby odkryć praktyczne zastosowania AI oraz jej transformacyjny wpływ na różne branże.",
+  "No blogs found": "Nie znaleziono blogów",
+  "View All Posts": "Zobacz wszystkie posty",
+  
+  "stats": [
+    { "value": "100K+", "label": "Użytkownicy na całym świecie" },
+    { "value": "50+", "label": "Narzędzia wspomagane przez AI" },
+    { "value": "100%", "label": "Zawsze za darmo" },
+    { "value": "30+", "label": "Dostępne języki" }
+  ],
+
+  "allTools": [
+    {
+      "name": "Generator tagów YouTube",
+      "link": "http://www.ytubetools.com/",
+      "logo": "TagGenerator",
+      "description": "Generuj zoptymalizowane tagi YouTube, aby zwiększyć widoczność swoich filmów i SEO."
+    },
+    {
+      "name": "Extractor tagów YouTube",
+      "link": "http://www.ytubetools.com/tools/tag-extractor",
+      "logo": "TagExtractor",
+      "description": "Wyodrębnij tagi z dowolnego filmu na YouTube w celu łatwego odniesienia i analizy."
+    },
+    {
+      "name": "Generator tytułów YouTube",
+      "link": "http://www.ytubetools.com/tools/title-generator",
+      "logo": "TitleGenerator",
+      "description": "Generuj chwytliwe tytuły YouTube, które zwiększą współczynnik kliknięć."
+    },
+    {
+      "name": "Generator opisów YouTube",
+      "link": "http://www.ytubetools.com/tools/description-generator",
+      "logo": "DescriptionGenerator",
+      "description": "Twórz przyciągające opisy filmów, aby poprawić SEO swoich filmów na YouTube."
+    },
+    {
+      "name": "Extractor tytułów i opisów YouTube",
+      "link": "http://www.ytubetools.com/tools/youtube-title-and-description-extractor",
+      "logo": "TitleDescriptionExtractor",
+      "description": "Wyodrębnij tytuły i opisy filmów YouTube w celu szybkiego dostępu i analizy."
+    },
+    {
+      "name": "Pobieracz banerów kanałów YouTube",
+      "link": "http://www.ytubetools.com/tools/youtube-channel-banner-downloader",
+      "logo": "BannerDownloader",
+      "description": "Pobierz banery kanałów YouTube w wysokiej jakości za jednym kliknięciem."
+    },
+    {
+      "name": "Generator hashtagów YouTube",
+      "link": "http://www.ytubetools.com/tools/youtube-hashtag-generator",
+      "logo": "Hashtag",
+      "description": "Generuj odpowiednie hashtagi, aby zwiększyć widoczność swoich filmów na YouTube."
+    },
+    {
+      "name": "Pobieracz logo kanału YouTube",
+      "link": "http://www.ytubetools.com/tools/youtube-channel-logo-downloader",
+      "logo": "LogoDownloader",
+      "description": "Pobierz logo kanału YouTube w wysokiej rozdzielczości łatwo."
+    },
+    {
+      "name": "Pobieracz miniatur YouTube",
+      "link": "http://www.ytubetools.com/tools/youtube-thumbnail",
+      "logo": "ThumbnailDownloader",
+      "description": "Pobierz miniatury dowolnych filmów YouTube w wysokiej rozdzielczości."
+    },
+    {
+      "name": "Finder ID kanału YouTube",
+      "link": "http://www.ytubetools.com/tools/channel-id-finder",
+      "logo": "ChannelIDFinder",
+      "description": "Znajdź ID kanału YouTube dla dowolnego podanego URL kanału."
+    },
+    {
+      "name": "Viewer danych wideo YouTube",
+      "link": "http://www.ytubetools.com/tools/video-data-viewer",
+      "logo": "VideoDataViewer",
+      "description": "Zobacz szczegółowe dane i statystyki dowolnego filmu na YouTube."
+    },
+    {
+      "name": "Sprawdzacz monetyzacji YouTube",
+      "link": "http://www.ytubetools.com/tools/monetization-checker",
+      "logo": "MonetizationChecker",
+      "description": "Sprawdź, czy kanał lub film na YouTube jest uprawniony do monetyzacji."
+    },
+    {
+      "name": "Wyszukiwarka kanałów YouTube",
+      "link": "http://www.ytubetools.com/tools/youtube-channel-search",
+      "logo": "ChannelSearch",
+      "description": "Szukaj kanałów YouTube na podstawie słów kluczowych lub nazw."
+    },
+    {
+      "name": "Generator podsumowań filmów YouTube",
+      "link": "http://www.ytubetools.com/tools/youtube-video-summary-generator",
+      "logo": "SummaryGenerator",
+      "description": "Generuj zwięzłe podsumowanie dowolnego filmu na YouTube dla szybkich informacji."
+    },
+    {
+      "name": "Trendy wideo YouTube",
+      "link": "http://www.ytubetools.com/tools/trending-videos",
+      "logo": "TrendingVideos",
+      "description": "Odkrywaj najnowsze popularne filmy na YouTube z całego świata."
+    },
+    {
+      "name": "Kalkulator zarobków YouTube",
+      "link": "http://www.ytubetools.com/tools/youtube-money-calculator",
+      "logo": "MoneyCalculator",
+      "description": "Szacuj potencjalne zarobki filmów YouTube na podstawie liczby wyświetleń i zaangażowania."
+    },
+    {
+      "name": "Wybieracz komentarzy YouTube",
+      "link": "http://www.ytubetools.com/tools/youtube-comment-picker",
+      "logo": "Comment",
+      "description": "Wybieraj losowe komentarze z dowolnego filmu na YouTube na potrzeby konkursów lub losowań."
+    },
+    {
+      "name": "Badanie słów kluczowych YouTube",
+      "link": "http://www.ytubetools.com/tools/keyword-research",
+      "logo": "research",
+      "description": "Przeprowadzaj badania słów kluczowych na YouTube, aby zidentyfikować wysoko pozycjonowane frazy."
+    },
+    {
+      "name": "Generator kodu osadzenia YouTube",
+      "link": "http://www.ytubetools.com/tools/youtube-embed-code-generator",
+      "logo": "Embed",
+      "description": "Generuj kody osadzania dla filmów YouTube do łatwego udostępniania na stronach internetowych i blogach."
+    }
+  ],
+
+  "Meta Title": "YtubeTools | Darmowe narzędzia YouTube dla twórców (Brak wymaganej karty kredytowej)",
+  "Meta Description": "Dostęp do 50+ darmowych narzędzi YouTube wspomaganych AI dla twórców z nieograniczonym użytkowaniem—brak wymogu karty kredytowej!"
+}

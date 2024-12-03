@@ -21,6 +21,7 @@ const NextI18NextInstance = new NextI18Next({
   ],
   localePath: path.resolve("./public/locales"), // Path to locales folder
   ns: [
+    "home",
     "common",
     "tagextractor",
     "navbar",
@@ -43,8 +44,8 @@ const NextI18NextInstance = new NextI18Next({
     "pricing",
     "description"
   ], // List of namespaces you will be using
-  defaultNS: "common",   // The default namespace that will be used
-  fallbackNS: "common",  // Fallback namespace when translation is missing
+  defaultNS: "home",   // The default namespace that will be used
+  fallbackNS: "home",  // Fallback namespace when translation is missing
   fallbackLng: "en",     // Fallback language in case the translation is missing in the current language
   debug: process.env.NODE_ENV === "development",  // Enable debug mode in development
   detection: {

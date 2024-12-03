@@ -1,0 +1,144 @@
+{
+  "Access 50+ free AI-powered YouTube tools | Unlimited | No Credit Card Required": "50+ મફત AI-સંચાલિત YouTube ટૂલ્સ સુધી પહોંચો | અનલિમિટેડ | ક્રેડિટ કાર્ડની જરૂર નથી",
+  "YtubeTools | Free YouTube Tools For Creators,": "YtubeTools | રચયિતાઓ માટે મફત YouTube ટૂલ્સ, 100% મફત",
+  "100% Free": "100% મફત",
+  "Access 50+ free AI-powered YouTube tools for creators with unlimited usage—no credit card required!": "ક્રિએટરો માટે 50+ મફત AI-સંચાલિત YouTube ટૂલ્સ સુધી અનલિમિટેડ પहुँચ—ક્રેડિટ કાર્ડની જરૂર નથી!",
+  "ytubetools.com is a free AI website designed to enhance your work and learning by offering free, unlimited access to all our tools.": "ytubetools.com એ મફત AI વેબસાઇટ છે જે તમારા કાર્ય અને અભ્યાસને વધારવા માટે મફત અને અનલિમિટેડ ઍક્સેસ પ્રદાન કરે છે.",
+  
+  "Search": "શોધો",
+  "No results found": "કોઈ પરિણામો મળ્યા નથી",
+  "AI YouTube Tools That Work For You": "તમારા માટે કામ કરતા AI YouTube ટૂલ્સ",
+  "Exceptionally Useful, Completely Free — No Hidden Costs.": "વિશેષ રીતે ઉપયોગી, સંપૂર્ણ મફત — કોઈ છુપાવેલી કિંમત નહીં.",
+  "Featured Tools": "વિશિષ્ટ ટૂલ્સ",
+  "YtubeTools Article": "YtubeTools લેખ",
+  "Explore how AI enhances content creation, reshapes social media, and beyond. Dive in with us to discover AI's practical applications and its transformative impact on various industries.": "જાણો કે કેવી રીતે AI સામગ્રી સર્જનને સક્ષમ બનાવે છે, સામાજિક મીડીયાને નવો રૂપ આપે છે અને વધુ. અમારાં સાથે જોડાઈને AI ના વાસ્તવિક ઉપયોગ અને વિવિધ ઉદ્યોગોમાં તેની પરિવર્તનાત્મક અસર શોધો.",
+  "No blogs found": "કોઈ બ્લોગ્સ નથી મળ્યા",
+  "View All Posts": "બધા પોસ્ટ્સ જુઓ",
+  
+  "stats": [
+    { "value": "100K+", "label": "વિશ્વવ્યાપી વપરાશકર્તા" },
+    { "value": "50+", "label": "AI-સંચાલિત ટૂલ્સ" },
+    { "value": "100%", "label": "હંમેશા મફત" },
+    { "value": "30+", "label": "ઉપલબ્ધ ભાષાઓ" }
+  ],
+
+  "allTools": [
+    {
+      "name": "YouTube ટેગ જનરેટર",
+      "link": "http://www.ytubetools.com/",
+      "logo": "TagGenerator",
+      "description": "તમારા વિડિયોને વધુ દ્રશ્યમાન અને SEO સક્ષમ બનાવવા માટે ઑપ્ટિમાઇઝ કરેલા YouTube ટેગ્સ જનરેટ કરો."
+    },
+    {
+      "name": "YouTube ટેગ એક્સટ્રેક્ટર",
+      "link": "http://www.ytubetools.com/tools/tag-extractor",
+      "logo": "TagExtractor",
+      "description": "કોઈપણ YouTube વિડિયોથી ટેગ્સ કાઢો જેથી તમે તેને સરળતાથી સંદર્ભિત અને વિશ્લેષણ કરી શકો."
+    },
+    {
+      "name": "YouTube ટાઈટલ જનરેટર",
+      "link": "http://www.ytubetools.com/tools/title-generator",
+      "logo": "TitleGenerator",
+      "description": "આકર્ષક YouTube ટાઇટલ જનરેટ કરો જે ક્લિક થ્રૂ રેટ્સ વધારવા માટે મદદ કરે છે."
+    },
+    {
+      "name": "YouTube વર્ણન જનરેટર",
+      "link": "http://www.ytubetools.com/tools/description-generator",
+      "logo": "DescriptionGenerator",
+      "description": "YouTube વિડિયો SEOને સુધારવા માટે આકર્ષક વિડિયો વર્ણનો બનાવો."
+    },
+    {
+      "name": "YouTube ટાઈટલ & વર્ણન એક્સટ્રેક્ટર",
+      "link": "http://www.ytubetools.com/tools/youtube-title-and-description-extractor",
+      "logo": "TitleDescriptionExtractor",
+      "description": "YouTube વિડિયો ટાઈટલ અને વર્ણનો ઝડપી ઍક્સેસ અને વિશ્લેષણ માટે કાઢી લો."
+    },
+    {
+      "name": "YouTube ચેનલ બેનર ડાઉનલોડર",
+      "link": "http://www.ytubetools.com/tools/youtube-channel-banner-downloader",
+      "logo": "BannerDownloader",
+      "description": "એક ક્લિકમાં ઉચ્ચ ગુણવત્તાવાળા YouTube ચેનલ બેનર ડાઉનલોડ કરો."
+    },
+    {
+      "name": "YouTube હેશટેગ જનરેટર",
+      "link": "http://www.ytubetools.com/tools/youtube-hashtag-generator",
+      "logo": "Hashtag",
+      "description": "તમારા YouTube વિડિયોની દ્રશ્યમાનતા વધારવા માટે સંલગ્ન હેશટેગ્સ જનરેટ કરો."
+    },
+    {
+      "name": "YouTube ચેનલ લોગો ડાઉનલોડર",
+      "link": "http://www.ytubetools.com/tools/youtube-channel-logo-downloader",
+      "logo": "LogoDownloader",
+      "description": "આસાનીથી YouTube ચેનલ લોગોઝ ઉચ્ચ રિઝોલ્યુશનમાં ડાઉનલોડ કરો."
+    },
+    {
+      "name": "YouTube થંબનેલ ડાઉનલોડર",
+      "link": "http://www.ytubetools.com/tools/youtube-thumbnail",
+      "logo": "ThumbnailDownloader",
+      "description": "કોઈપણ YouTube વિડિયો થંબનેલ્સ ઉચ્ચ ગુણવત્તામાં ડાઉનલોડ કરો."
+    },
+    {
+      "name": "YouTube ચેનલ ID ફાઈન્ડર",
+      "link": "http://www.ytubetools.com/tools/channel-id-finder",
+      "logo": "ChannelIDFinder",
+      "description": "કોઈપણ YouTube ચેનલ URL માટે ચેનલ ID શોધો."
+    },
+    {
+      "name": "YouTube વિડિયો ડેટા વ્યૂવર",
+      "link": "http://www.ytubetools.com/tools/video-data-viewer",
+      "logo": "VideoDataViewer",
+      "description": "કોઈપણ YouTube વિડિયો માટેની વિગતવાર ડેટા અને આંકડા જુઓ."
+    },
+    {
+      "name": "YouTube મોનેટાઈઝેશન ચેકર",
+      "link": "http://www.ytubetools.com/tools/monetization-checker",
+      "logo": "MonetizationChecker",
+      "description": "જોયે છે કે શું YouTube ચેનલ અથવા વિડિયો મોનેટાઈઝેશન માટે યોગ્ય છે."
+    },
+    {
+      "name": "YouTube ચેનલ સર્ચ",
+      "link": "http://www.ytubetools.com/tools/youtube-channel-search",
+      "logo": "ChannelSearch",
+      "description": "કીવર્ડ્સ અથવા નામોના આધાર પર YouTube ચેનલ શોધો."
+    },
+    {
+      "name": "YouTube વિડિયો સારાંશ જનરેટર",
+      "link": "http://www.ytubetools.com/tools/youtube-video-summary-generator",
+      "logo": "SummaryGenerator",
+      "description": "કોઈપણ YouTube વિડિયોનું સંક્ષિપ્ત સારાંશ જનરેટ કરો જેથી તમે ઝડપથી ઝાંખી મેળવી શકો."
+    },
+    {
+      "name": "YouTube ટ્રેન્ડિંગ વિડિયો",
+      "link": "http://www.ytubetools.com/tools/trending-videos",
+      "logo": "TrendingVideos",
+      "description": "વિશ્વભરના તાજા ટ્રેન્ડિંગ YouTube વિડિયોને શોધો."
+    },
+    {
+      "name": "YouTube મની કેલ્ક્યુલેટર",
+      "link": "http://www.ytubetools.com/tools/youtube-money-calculator",
+      "logo": "MoneyCalculator",
+      "description": "YouTube વિડિયોના દર્શન અને એન્ગેજમેન્ટના આધારે સંભવિત આવકની અંદાજપત્ર બનાવો."
+    },
+    {
+      "name": "YouTube કોમેન્ટ પિકર",
+      "link": "http://www.ytubetools.com/tools/youtube-comment-picker",
+      "logo": "Comment",
+      "description": "કોઈપણ YouTube વિડિયોમાંથી રેન્ડમ કોમેન્ટ્સ પસંદ કરો અને ગિવઅવે અથવા સ્પર્ધાઓ માટે ઉપયોગ કરો."
+    },
+    {
+      "name": "YouTube કીવર્ડ રિસર્ચ",
+      "link": "http://www.ytubetools.com/tools/keyword-research",
+      "logo": "research",
+      "description": "YouTube માટે કીવર્ડ રિસર્ચ કરો અને ઉચ્ચ રેન્કિંગ સર્ચ શબ્દો ઓળખો."
+    },
+    {
+      "name": "YouTube એંબેડ કોડ જનરેટર",
+      "link": "http://www.ytubetools.com/tools/youtube-embed-code-generator",
+      "logo": "Embed",
+      "description": "YouTube વિડિયોના એંબેડ કોડ્સ જનરેટ કરો જેથી તમે તેને વેબસાઇટ્સ અને બ્લોગ્સ પર સરળતાથી શેર કરી શકો."
+    }
+  ],
+
+  "Meta Title": "YtubeTools | ક્રિએટરો માટે મફત YouTube ટૂલ્સ (ક્રેડિટ કાર્ડની જરૂર નથી)",
+  "Meta Description": "50+ મફત AI-સંચાલિત YouTube ટૂલ્સ સુધી અનલિમિટેડ पहुँच — ક્રેડિટ કાર્ડની જરૂર નથી!"
+}

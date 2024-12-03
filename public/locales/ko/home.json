@@ -1,0 +1,144 @@
+{
+  "Access 50+ free AI-powered YouTube tools | Unlimited | No Credit Card Required": "50개 이상의 무료 AI 기반 YouTube 도구에 접근 | 무제한 | 신용카드 필요 없음",
+  "YtubeTools | Free YouTube Tools For Creators,": "YtubeTools | 창작자를 위한 무료 YouTube 도구, 100% 무료",
+  "100% Free": "100% 무료",
+  "Access 50+ free AI-powered YouTube tools for creators with unlimited usage—no credit card required!": "창작자를 위한 50개 이상의 무료 AI 기반 YouTube 도구에 무제한 접근—신용카드 필요 없음!",
+  "ytubetools.com is a free AI website designed to enhance your work and learning by offering free, unlimited access to all our tools.": "ytubetools.com은 무료로 무제한 접근을 제공하여 작업과 학습을 향상시키도록 설계된 무료 AI 웹사이트입니다.",
+  
+  "Search": "검색",
+  "No results found": "결과 없음",
+  "AI YouTube Tools That Work For You": "당신을 위한 AI YouTube 도구",
+  "Exceptionally Useful, Completely Free — No Hidden Costs.": "매우 유용하며, 완전히 무료 — 숨겨진 비용 없음.",
+  "Featured Tools": "추천 도구",
+  "YtubeTools Article": "YtubeTools 기사",
+  "Explore how AI enhances content creation, reshapes social media, and beyond. Dive in with us to discover AI's practical applications and its transformative impact on various industries.": "AI가 콘텐츠 생성 방식을 개선하고, 소셜 미디어를 재구성하며 그 이상을 어떻게 변화시키는지 탐구하십시오. AI의 실용적인 응용 프로그램과 다양한 산업에 미치는 변화적인 영향을 함께 발견해 보세요.",
+  "No blogs found": "블로그를 찾을 수 없습니다.",
+  "View All Posts": "모든 게시글 보기",
+  
+  "stats": [
+    { "value": "100K+", "label": "전 세계 사용자" },
+    { "value": "50+", "label": "AI 기반 도구" },
+    { "value": "100%", "label": "영구 무료" },
+    { "value": "30+", "label": "지원되는 언어" }
+  ],
+
+  "allTools": [
+    {
+      "name": "YouTube 태그 생성기",
+      "link": "http://www.ytubetools.com/",
+      "logo": "TagGenerator",
+      "description": "YouTube 비디오의 가시성과 SEO를 향상시키기 위해 최적화된 YouTube 태그를 생성합니다."
+    },
+    {
+      "name": "YouTube 태그 추출기",
+      "link": "http://www.ytubetools.com/tools/tag-extractor",
+      "logo": "TagExtractor",
+      "description": "YouTube 비디오에서 태그를 추출하여 쉽게 참조하고 분석할 수 있습니다."
+    },
+    {
+      "name": "YouTube 제목 생성기",
+      "link": "http://www.ytubetools.com/tools/title-generator",
+      "logo": "TitleGenerator",
+      "description": "클릭률을 높일 수 있는 주목을 끌 수 있는 YouTube 제목을 생성합니다."
+    },
+    {
+      "name": "YouTube 설명 생성기",
+      "link": "http://www.ytubetools.com/tools/description-generator",
+      "logo": "DescriptionGenerator",
+      "description": "YouTube 비디오 SEO를 개선할 수 있는 강력한 설명을 작성합니다."
+    },
+    {
+      "name": "YouTube 제목 & 설명 추출기",
+      "link": "http://www.ytubetools.com/tools/youtube-title-and-description-extractor",
+      "logo": "TitleDescriptionExtractor",
+      "description": "YouTube 비디오 제목 및 설명을 추출하여 빠르게 액세스하고 분석할 수 있습니다."
+    },
+    {
+      "name": "YouTube 채널 배너 다운로드기",
+      "link": "http://www.ytubetools.com/tools/youtube-channel-banner-downloader",
+      "logo": "BannerDownloader",
+      "description": "YouTube 채널 배너를 한 번의 클릭으로 고화질로 다운로드합니다."
+    },
+    {
+      "name": "YouTube 해시태그 생성기",
+      "link": "http://www.ytubetools.com/tools/youtube-hashtag-generator",
+      "logo": "Hashtag",
+      "description": "YouTube 비디오의 가시성을 높일 수 있는 관련 해시태그를 생성합니다."
+    },
+    {
+      "name": "YouTube 채널 로고 다운로드기",
+      "link": "http://www.ytubetools.com/tools/youtube-channel-logo-downloader",
+      "logo": "LogoDownloader",
+      "description": "고해상도의 YouTube 채널 로고를 쉽게 다운로드합니다."
+    },
+    {
+      "name": "YouTube 썸네일 다운로드기",
+      "link": "http://www.ytubetools.com/tools/youtube-thumbnail",
+      "logo": "ThumbnailDownloader",
+      "description": "YouTube 비디오의 썸네일을 고화질로 다운로드합니다."
+    },
+    {
+      "name": "YouTube 채널 ID 찾기",
+      "link": "http://www.ytubetools.com/tools/channel-id-finder",
+      "logo": "ChannelIDFinder",
+      "description": "주어진 YouTube 채널 URL의 채널 ID를 찾습니다."
+    },
+    {
+      "name": "YouTube 비디오 데이터 보기기",
+      "link": "http://www.ytubetools.com/tools/video-data-viewer",
+      "logo": "VideoDataViewer",
+      "description": "YouTube 비디오에 대한 상세 데이터 및 통계를 봅니다."
+    },
+    {
+      "name": "YouTube 수익 확인기",
+      "link": "http://www.ytubetools.com/tools/monetization-checker",
+      "logo": "MonetizationChecker",
+      "description": "YouTube 채널 또는 비디오가 수익 창출 자격이 있는지 확인합니다."
+    },
+    {
+      "name": "YouTube 채널 검색기",
+      "link": "http://www.ytubetools.com/tools/youtube-channel-search",
+      "logo": "ChannelSearch",
+      "description": "키워드나 이름을 기반으로 YouTube 채널을 검색합니다."
+    },
+    {
+      "name": "YouTube 비디오 요약 생성기",
+      "link": "http://www.ytubetools.com/tools/youtube-video-summary-generator",
+      "logo": "SummaryGenerator",
+      "description": "빠른 통찰력을 위해 YouTube 비디오의 간략한 요약을 생성합니다."
+    },
+    {
+      "name": "YouTube 인기 비디오",
+      "link": "http://www.ytubetools.com/tools/trending-videos",
+      "logo": "TrendingVideos",
+      "description": "전 세계에서 최신 트렌드 YouTube 비디오를 발견합니다."
+    },
+    {
+      "name": "YouTube 수익 계산기",
+      "link": "http://www.ytubetools.com/tools/youtube-money-calculator",
+      "logo": "MoneyCalculator",
+      "description": "조회수와 참여도를 기반으로 YouTube 비디오의 잠재적 수익을 추정합니다."
+    },
+    {
+      "name": "YouTube 댓글 선택기",
+      "link": "http://www.ytubetools.com/tools/youtube-comment-picker",
+      "logo": "Comment",
+      "description": "YouTube 비디오에서 임의의 댓글을 선택하여 경품이나 대회에 사용합니다."
+    },
+    {
+      "name": "YouTube 키워드 연구",
+      "link": "http://www.ytubetools.com/tools/keyword-research",
+      "logo": "research",
+      "description": "YouTube용 키워드 연구를 수행하여 높은 순위를 차지하는 검색어를 식별합니다."
+    },
+    {
+      "name": "YouTube 임베드 코드 생성기",
+      "link": "http://www.ytubetools.com/tools/youtube-embed-code-generator",
+      "logo": "Embed",
+      "description": "웹사이트나 블로그에서 쉽게 공유할 수 있도록 YouTube 비디오의 임베드 코드를 생성합니다."
+    }
+  ],
+
+  "Meta Title": "YtubeTools | 창작자를 위한 무료 YouTube 도구 (신용카드 필요 없음)",
+  "Meta Description": "AI 기반 50개 이상의 무료 YouTube 도구에 대한 무제한 액세스 제공—신용카드 필요 없음!"
+}
