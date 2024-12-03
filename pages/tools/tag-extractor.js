@@ -58,6 +58,7 @@ const TagExtractor = ({ meta, reviews, content, relatedTools, faqs,reactions,hre
   const [loading, setLoading] = useState(false);
   const [siteKey,setSiteKey]=useState()
   const [error, setError] = useState("");
+  const [captchaVerified, setCaptchaVerified] = useState(false); // State for reCAPTCHA
   const [newReview, setNewReview] = useState({
     name: "",
     title: "",
@@ -129,6 +130,9 @@ useEffect(() => {
   fetchConfigs();
 }, []);
 
+const isGenerateButtonActive = () => {
+  return captchaVerified && fetchLimitExceeded 
+};
 
 
   useEffect(() => {
@@ -705,7 +709,7 @@ useEffect(() => {
   type="button"
   id="button-addon2"
   onClick={fetchTags}
-  disabled={loading || fetchLimitExceeded}
+  disabled={!isGenerateButtonActive()}
 >
   {loading ? (
     <>

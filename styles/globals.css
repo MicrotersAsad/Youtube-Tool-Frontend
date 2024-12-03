@@ -37,6 +37,11 @@ body {
   font-display: swap;
 }
 /* Ensure the toolbar button is visible */
+.topbar{
+  background: linear-gradient(45deg, #fa6742, #e5532c);
+padding-top: 3px;
+padding-bottom: 3px;
+}
 /* Ensure that the Quill editor is visible */
 .ql-editor {
   visibility: visible !important;
