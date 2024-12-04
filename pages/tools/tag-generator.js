@@ -685,7 +685,7 @@ console.log(initialMeta);
           <meta property="og:url" content={meta?.url} />
           <meta property="og:title" content={meta?.title} />
           <meta property="og:description" content={meta?.description} />
-          <meta property="og:image" content={meta?.image|| "NA"} />
+          <meta property="og:image" content={meta?.image} />
           <meta property="og:image:secure_url" content={meta?.image} />
           <meta property="og:site_name" content="Ytubetools" />
           <meta property="og:locale" content="en_US" />
@@ -698,7 +698,7 @@ console.log(initialMeta);
           <meta name="twitter:description" content={meta?.description} />
           <meta name="twitter:image" content={meta?.image} />
           <meta name="twitter:site" content="@ytubetools" />
-          <meta name="twitter:image:alt" content={meta?.imageAlt} />
+          <meta name="twitter:image:alt" content={meta?.image} />
 
           {/* Alternate hreflang Tags for SEO */}
           {hreflangs &&

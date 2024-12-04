@@ -34,7 +34,7 @@ const Home = ({ initialBlogs = [] }) => {
   const allTools = [
     {
       name: "YouTube Tag Generator",
-      link: "http://www.ytubetools.com/",
+      link: "https://ytubetools.com/tools/tag-generator",
       logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1733289894208-taggenerator.png",
       description:
         "Generate optimized YouTube tags to boost your video discoverability and SEO.",
