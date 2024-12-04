@@ -1,23 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import TagGenerator from "../public/tagGenerator.png";
-import TagExtractor from "../public/youtube-tag-extractor.png";
-import TitleGenerator from "../public/title-bar.png";
-import DescriptionGenerator from "../public/description.png";
-import TitleDescriptionExtractor from "../public/title-and-description-extractor.png";
-import BannerDownloader from "../public/youtube-channel-banner-download.png";
-import LogoDownloader from "../public/Youtube-channel-logo-downloader.png";
-import ThumbnailDownloader from "../public/Youtube-thumbnail-downloader.png";
-import ChannelIDFinder from "../public/Channel-ID-Finder.png";
-import VideoDataViewer from "../public/Video-Data-Viewer.png";
-import MonetizationChecker from "../public/Monetization-Checker.png";
-import ChannelSearch from "../public/Youtube-channel-search.png";
-import SummaryGenerator from "../public/Youtube-Video-Summary-generator.png";
-import TrendingVideos from "../public/youtube-trending-videos.png";
-import MoneyCalculator from "../public/Youtube-Money-Calculator.png";
-import research from "../public/youtube-keyword-research.png";
-import Comment from "../public/Comment-Picker-icon.png";
-import Hashtag from "../public/youtube-hastag-generator.png";
-import Embed from "../public/youtube-embad-code-generator.png";
 import Link from "next/link";
 import { i18n, useTranslation } from "next-i18next";
 import axios from "axios";
@@ -54,130 +35,130 @@ const Home = ({ initialBlogs = [] }) => {
     {
       name: "YouTube Tag Generator",
       link: "http://www.ytubetools.com/",
-      logo: TagGenerator,
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1733289894208-taggenerator.png",
       description:
         "Generate optimized YouTube tags to boost your video discoverability and SEO.",
     },
     {
       name:"Youtube Tag Extractor",
       link: "http://www.ytubetools.com/tools/tag-extractor",
-      logo: TagExtractor,
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/title-and-description-extractor.png",
       description:
         "Extract tags from any YouTube video for easy reference and analysis.",
     },
     {
       name: "Youtube Title Generator",
       link: "http://www.ytubetools.com/tools/title-generator",
-      logo: TitleGenerator,
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/title-bar.png",
       description:
         "Generate attention-grabbing YouTube titles that increase click-through rates.",
     },
     {
       name: "Youtube Description Generator",
       link: "http://www.ytubetools.com/tools/description-generator",
-      logo: DescriptionGenerator,
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/Title-And-Description-Generator.png",
       description:
         "Create compelling video descriptions to improve your YouTube video SEO.",
     },
     {
       name: "Youtube Title&Description Extractor",
       link: "http://www.ytubetools.com/tools/youtube-title-and-description-extractor",
-      logo: TitleDescriptionExtractor,
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/title-and-description-extractor.png",
       description:
         "Extract YouTube video titles and descriptions for quick access and analysis.",
     },
     {
       name: "YouTube Channel Banner Downloader",
       link: "http://www.ytubetools.com/tools/youtube-channel-banner-downloader",
-      logo: BannerDownloader,
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/youtube-channel-banner-download.png",
       description:
         "Download high-quality YouTube channel banners with just one click.",
     },
     {
       name: "YouTube Hashtag Generator",
       link: "http://www.ytubetools.com/tools/youtube-hashtag-generator",
-      logo: Hashtag,
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/youtube-hastag-generator.png",
       description:
         "Generate relevant hashtags to boost the visibility of your YouTube videos.",
     },
     {
       name: "YouTube Channel Logo Downloader",
       link: "http://www.ytubetools.com/tools/youtube-channel-logo-downloader",
-      logo: LogoDownloader,
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/Youtube-channel-logo-downloader.png",
       description: "Download high-resolution YouTube channel logos easily.",
     },
     {
       name: "YouTube Thumbnail Downloader",
       link: "http://www.ytubetools.com/tools/youtube-thumbnail",
-      logo: ThumbnailDownloader,
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/Youtube-thumbnail-downloader.png",
       description:
         "Download the thumbnails of any YouTube video in high resolution.",
     },
     {
       name: "YouTube Channel ID Finder",
       link: "http://www.ytubetools.com/tools/channel-id-finder",
-      logo: ChannelIDFinder,
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/Channel-ID-Finder.png",
       description:
         "Find the YouTube channel ID for any given YouTube channel URL.",
     },
     {
       name: "YouTube Video Data Viewer",
       link: "http://www.ytubetools.com/tools/video-data-viewer",
-      logo: VideoDataViewer,
+      logo: 'https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/Video-Data-Viewer.png',
       description: "View detailed data and stats about any YouTube video.",
     },
     {
       name: "YouTube Monetization Checker",
       link: "http://www.ytubetools.com/tools/monetization-checker",
-      logo: MonetizationChecker,
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/Monetization-Checker.png",
       description:
         "Check if a YouTube channel or video is eligible for monetization.",
     },
     {
       name: "YouTube Channel Search",
       link: "http://www.ytubetools.com/tools/youtube-channel-search",
-      logo: ChannelSearch,
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/Youtube-channel-search.png",
       description: "Search for YouTube channels based on keywords or names.",
     },
     {
       name: "YouTube Video Summary Generator",
       link: "http://www.ytubetools.com/tools/youtube-video-summary-generator",
-      logo: SummaryGenerator,
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/Youtube-Video-Summary-generator.png",
       description:
         "Generate a concise summary of any YouTube video for quick insights.",
     },
     {
       name: "YouTube Trending Videos",
       link: "http://www.ytubetools.com/tools/trending-videos",
-      logo: TrendingVideos,
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/youtube-trending-videos.png",
       description:
         "Discover the latest trending YouTube videos from around the world.",
     },
     {
       name: "YouTube Money Calculator",
       link: "http://www.ytubetools.com/tools/youtube-money-calculator",
-      logo: MoneyCalculator,
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/Youtube-Money-Calculator.png",
       description:
         "Estimate the potential earnings of YouTube videos based on views and engagement.",
     },
     {
       name: "Youtube Comment Picker",
       link: "http://www.ytubetools.com/tools/youtube-comment-picker",
-      logo: Comment,
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/Comment-Picker-icon.png",
       description:
         "Pick random comments from any YouTube video for giveaways or contests.",
     },
     {
       name: "YouTube Keyword Research",
       link: "http://www.ytubetools.com/tools/keyword-research",
-      logo: research,
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/youtube-keyword-research.png",
       description:
         "Conduct keyword research for YouTube to identify high-ranking search terms.",
     },
     {
       name: "YouTube Embed Code Generator",
       link: "http://www.ytubetools.com/tools/youtube-embed-code-generator",
-      logo: Embed,
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/youtube-embad-code-generator.png",
       description:
         "Generate embed codes for YouTube videos for easy sharing on websites and blogs.",
     },
@@ -504,7 +485,7 @@ const Home = ({ initialBlogs = [] }) => {
               <Image
                 alt={tool?.name}
                 className="rounded-full"
-                src={tool?.logo?.src}
+                src={tool?.logo}
                 height={28}
                 width={28} // Add width for proper optimization
                 quality={50} // reduce quality if needed
