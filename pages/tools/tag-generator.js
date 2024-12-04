@@ -58,6 +58,7 @@ const availableTones = [
 
 const TagGenerator = ({ meta: initialMeta, reviews, content, relatedTools, faqs, reactions, hreflangs }) => {
     const [meta, setMeta] = useState(initialMeta);  // Now `meta` is a state
+    const [metaImage, setMetaImage] = useState();  // Now `meta` is a state
     const [isLoading, setIsLoading] = useState(false);
     const { isLoggedIn, user, updateUserProfile } = useAuth();
     const router = useRouter();
@@ -116,9 +117,13 @@ console.log(initialMeta);
     const fetchData = async () => {
       try {
         const language = i18n.language || "en";
-        const response = await fetch(`/api/content?category=YouTube-Channel-Logo-Downloader&language=${language}`);
+        const response = await fetch(`/api/content?category=tagGenerator&language=${language}`);
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
+        setMetaImage(data.translations[language].image); 
+     
+        
+        
         setLikes(data.reactions.likes || 0);
         setUnlikes(data.reactions.unlikes || 0);
       } catch (error) {
@@ -685,8 +690,8 @@ console.log(initialMeta);
           <meta property="og:url" content={meta?.url} />
           <meta property="og:title" content={meta?.title} />
           <meta property="og:description" content={meta?.description} />
-          <meta property="og:image" content={meta?.image} />
-          <meta property="og:image:secure_url" content={meta?.image} />
+          <meta property="og:image" content={metaImage} />
+          <meta property="og:image:secure_url" content={metaImage} />
           <meta property="og:site_name" content="Ytubetools" />
           <meta property="og:locale" content="en_US" />
 
@@ -696,9 +701,9 @@ console.log(initialMeta);
           <meta property="twitter:url" content={meta?.url} />
           <meta name="twitter:title" content={meta?.title} />
           <meta name="twitter:description" content={meta?.description} />
-          <meta name="twitter:image" content={meta?.image} />
+          <meta name="twitter:image" content={metaImage} />
           <meta name="twitter:site" content="@ytubetools" />
-          <meta name="twitter:image:alt" content={meta?.image} />
+          <meta name="twitter:image:alt" content={metaImage} />
 
           {/* Alternate hreflang Tags for SEO */}
           {hreflangs &&
