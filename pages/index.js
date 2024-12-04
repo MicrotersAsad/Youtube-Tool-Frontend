@@ -283,8 +283,8 @@ const Home = ({ initialBlogs = [] }) => {
           <meta property="og:url"  content="https://ytubetools.com/"/>
           <meta property="og:title" content={t("Meta Title")} />
           <meta property="og:description" content={t("Meta Description")} />
-          <meta property="og:image" content="" />
-          <meta property="og:image:secure_url" content="" />
+          <meta property="og:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1733308755615-ytubetools-homepage.png" />
+          <meta property="og:image:secure_url" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1733308755615-ytubetools-homepage.png" />
           <meta property="og:site_name" content="Ytubetools" />
           <meta property="og:locale" content="en_US" />
 
@@ -296,14 +296,14 @@ const Home = ({ initialBlogs = [] }) => {
           <meta name="twitter:description" content={t("Meta Description")} />
           <meta name="twitter:image" content="" />
           <meta name="twitter:site" content="@ytubetools" />
-          <meta name="twitter:image:alt" content="" />
+          <meta name="twitter:image:alt" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1733308755615-ytubetools-homepage.png" />
    {/* Hreflang Meta Tags (for multilingual SEO) */}
    <link rel="alternate" hreflang="x-default" href="https://www.ytubetools.com"></link>
    <link rel="alternate" href="https://www.ytubetools.com" hreflang="en" />
         <link rel="alternate" href="https://www.ytubetools.com/fr" hreflang="fr" />
         <link rel="alternate" href="https://www.ytubetools.com/es" hreflang="es" />
-        <link rel="alternate" href="https://www.ytubetools.com/zh-hans" hreflang="zh-hans" />
-        <link rel="alternate" href="https://www.ytubetools.com/zh-hant" hreflang="zh-hant" />
+        <link rel="alternate" href="https://www.ytubetools.com/zh-HANS" hreflang="zh-HANS" />
+        <link rel="alternate" href="https://www.ytubetools.com/zh-HANT" hreflang="zh-HANT" />
         <link rel="alternate" href="https://www.ytubetools.com/de" hreflang="de" />
         <link rel="alternate" href="https://www.ytubetools.com/gu" hreflang="gu" />
         <link rel="alternate" href="https://www.ytubetools.com/hi" hreflang="hi" />

@@ -18,8 +18,8 @@ function classNames(...classes) {
 const availableLanguages = [
   { code: 'en', name: 'English', flag: 'us' },
   { code: 'fr', name: 'Français', flag: 'fr' },
-  { code: 'zh-hant', name: '中国传统的', flag: 'cn' },
-  { code: 'zh-hans', name: '简体中文', flag: 'cn' },
+  { code: 'zh-HANT', name: '中国传统的', flag: 'cn' },
+  { code: 'zh-HANS', name: '简体中文', flag: 'cn' },
   { code: 'nl', name: 'Nederlands', flag: 'nl' },
   { code: 'gu', name: 'ગુજરાતી', flag: 'in' },
   { code: 'hi', name: 'हिंदी', flag: 'in' },
@@ -75,6 +75,7 @@ function Navbar() {
     { key: "Home", href: '/', dropdown: false },
     {
       key: 'YouTube Tools', href: '#', dropdown: true, children: [
+        { key: 'YouTube Tag Generator', href: '/tools/tag-generator', icon: '🔍' },
         { key: 'YouTube Tag Extractor', href: '/tools/tag-extractor', icon: '🔍' },
         { key: 'Description Generator', href: '/tools/description-generator', icon: '📝' },
         { key: 'Title Generator', href: '/tools/title-generator', icon: '📝' },
@@ -93,6 +94,7 @@ function Navbar() {
         { key: 'YouTube Money Calculator', href: '/tools/youtube-money-calculator', icon: '💰' },
         { key: 'YouTube Keyword Research', href: '/tools/keyword-research', icon: '🔍' },
         { key: 'YouTube Comment Picker', href: '/tools/youtube-comment-picker', icon: '🎲' }
+        
       ]
     },
     { key: 'Pricing', href: '/pricing', dropdown: false },

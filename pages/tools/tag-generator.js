@@ -106,6 +106,7 @@ const isLocalHost = typeof window !== "undefined" &&
     setSelectedLanguage(e.target.value);
     // Perform additional actions based on language change if needed
   };
+console.log(initialMeta);
 
   const handleToneChange = (event) => {
     // টোন নির্বাচন করা হলে selectedTone আপডেট হবে

@@ -66,33 +66,22 @@ const ChannelIdFinder = ({  meta,
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const language = i18n.language;
-   
-        
+        const language = i18n.language || "en";
         const response = await fetch(
-          `/api/content?category=channel-id-finder&language=${language}`,
-          {
-            method: 'GET',  // or 'POST' depending on your API
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization':`Bearer ${process.env.AUTH_TOKEN}`  // Add token to the header
-            },
-          }
+          `/api/content?category=channel-id-finder&language=${language}`
         );
-
         if (!response.ok) throw new Error("Failed to fetch content");
-
         const data = await response.json();
-        setLikes(data.reactions.likes || 0);
-        setUnlikes(data.reactions.unlikes || 0);
+
+        setLikes(data.reactions?.likes || 0);
+        setUnlikes(data.reactions?.unlikes || 0);
       } catch (error) {
         console.error("Error fetching content:", error);
-        toast.error("Failed to fetch content");  // Display an error message if fetch fails
       }
     };
 
     fetchContent();
-  }, [i18n.language]);  // Rerun the effect when the language changes
+  }, [i18n.language]);
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {

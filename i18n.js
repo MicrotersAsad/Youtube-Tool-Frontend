@@ -5,8 +5,8 @@ const NextI18NextInstance = new NextI18Next({
   defaultLanguage: "en",
   otherLanguages: [
     "fr",
-    "zh-hant",   // Traditional Chinese
-    "zh-hans",   // Simplified Chinese
+    "zh-HANS",   // Traditional Chinese
+    "zh-HANT",   // Simplified Chinese
     "nl",        // Dutch
     "gu",        // Gujarati
     "hi",        // Hindi

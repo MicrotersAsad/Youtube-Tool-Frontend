@@ -134,41 +134,25 @@ const isGenerateButtonActive = () => {
   return captchaVerified && fetchLimitExceeded 
 };
 
+useEffect(() => {
+  const fetchContent = async () => {
+    try {
+      const language = i18n.language || "en";
+      const response = await fetch(
+        `/api/content?category=tagExtractor&language=${language}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch content");
+      const data = await response.json();
 
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const language = i18n.language;
+      setLikes(data.reactions?.likes || 0);
+      setUnlikes(data.reactions?.unlikes || 0);
+    } catch (error) {
+      console.error("Error fetching content:", error);
+    }
+  };
 
-
-        // Fetch content with Authorization header if authToken is available
-        const response = await fetch(
-          `/api/content?category=tagExtractor&language=${language}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization':`Bearer ${process.env.AUTH_TOKEN}`,  // Add token to the header
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch content");
-        }
-
-        const data = await response.json();
-        setLikes(data.reactions.likes || 0);
-        setUnlikes(data.reactions.unlikes || 0);
-      } catch (error) {
-        console.error("Error fetching content:", error);
-        setError("Failed to load content.");
-        toast.error("Failed to load content.");  // Optional: display error message using toast
-      }
-    };
-
-    fetchContent();
-  }, [i18n.language]);  // Run the effect when the language changes
+  fetchContent();
+}, [i18n.language]);
 
 
   const toggleFAQ = (index) => {

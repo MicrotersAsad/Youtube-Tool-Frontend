@@ -3,11 +3,10 @@ import { connectToDatabase } from '../../utils/mongodb';
 import multer from 'multer';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import multerS3 from 'multer-s3';
-import multiparty from 'multiparty';
 
 export const config = {
   api: {
-    bodyParser: false,
+    bodyParser: false, // Disable default body parser for file uploads
   },
 };
 
@@ -21,7 +20,7 @@ const s3 = new S3Client({
 });
 
 if (!process.env.AWS_S3_BUCKET_NAME) {
-  throw new Error("AWS_S3_BUCKET_NAME environment variable is not set");
+  throw new Error("AWS_S3_BUCKET environment variable is not set");
 }
 
 // Configure multer to use S3 for image storage
@@ -37,19 +36,19 @@ const upload = multer({
       cb(null, `uploads/${uniqueSuffix}-${file.originalname}`);
     },
   }),
+  fileFilter: (req, file, cb) => {
+    // Validate file type (e.g., allow only images)
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(file.mimetype)) {
+      return cb(new Error('Invalid file type'), false);
+    }
+    // Validate file size (e.g., limit to 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      return cb(new Error('File is too large. Max size is 5MB'), false);
+    }
+    cb(null, true);
+  }
 });
-
-// Utility function to upload files to S3
-const uploadFileToS3 = async (filePath, filename) => {
-  const fileContent = fs.readFileSync(filePath);
-  const params = {
-    Bucket: process.env.AWS_S3_BUCKET_NAME,
-    Key: `uploads/${Date.now()}-${filename}`,
-    Body: fileContent,
-    ContentType: 'image/jpeg', // or any other content type
-  };
-  return s3.upload(params).promise();
-};
 
 // Run middleware for file upload
 const runMiddleware = (req, res, fn) => {
@@ -133,9 +132,8 @@ const handleGet = async (req, res) => {
 
 // Handle POST request
 const handlePost = async (req, res) => {
-  await runMiddleware(req, res, upload.single('image'));
-
   try {
+    await runMiddleware(req, res, upload.single('image'));
     const { category, language } = req.query;
     const { content, title, description } = req.body;
     const faqs = req.body.faqs ? JSON.parse(req.body.faqs) : [];
@@ -145,16 +143,13 @@ const handlePost = async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    let imageUrl;
-    if (req.file) {
-      imageUrl = req.file.location; // Get the image URL from S3
-    }
+    const image = req.file ? req.file.location : null;
 
     const translation = {
       content,
       title,
       description,
-      image: imageUrl,
+      image,
       faqs,
       relatedTools,
       reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
@@ -179,62 +174,44 @@ const handlePost = async (req, res) => {
 // Handle PUT request
 const handlePut = async (req, res) => {
   try {
-    const form = new multiparty.Form();
+    await runMiddleware(req, res, upload.single('image'));
+    
+    const { category, language } = req.query;
+    const { content, title, description, faqs, relatedTools } = req.body;
 
-    form.parse(req, async (err, fields, files) => {
-      if (err) {
-        return res.status(400).json({ message: 'Failed to parse form data', error: err.message });
-      }
+    // Parse faqs and relatedTools if they exist in body
+    const parsedFaqs = faqs ? JSON.parse(faqs) : [];
+    const parsedRelatedTools = relatedTools ? JSON.parse(relatedTools) : [];
 
-      const { category, language } = req.query;
+    if (!category || !content || !title || !description || !language) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
 
-      const content = fields.content ? fields.content[0] : null;
-      const title = fields.title ? fields.title[0] : null;
-      const description = fields.description ? fields.description[0] : null;
-      const faqs = fields.faqs ? JSON.parse(fields.faqs[0]) : [];
-      const relatedTools = fields.relatedTools ? JSON.parse(fields.relatedTools[0]) : [];
+    const imageUrl = req.file ? req.file.location : null;
 
-      if (!category || !content || !title || !description || !language) {
-        return res.status(400).json({ message: 'Missing required fields' });
-      }
+    const translation = {
+      content,
+      title,
+      description,
+      ...(imageUrl && { image: imageUrl }), // Add image URL if available
+      faqs: parsedFaqs,
+      relatedTools: parsedRelatedTools,
+    };
 
-      let imageUrl;
-      if (files.file && files.file[0]) {
-        const file = files.file[0];
-        const uploadResult = await uploadFileToS3({
-          originalname: file.originalFilename,
-          buffer: file.path,
-          mimetype: file.headers['content-type'],
-        });
-        imageUrl = uploadResult.Location; // Get the image URL from S3
-      }
+    const { db } = await connectToDatabase();
+    const filter = { category };
+    const updateDoc = { $set: { [`translations.${language}`]: translation } };
+    const options = { upsert: true };
 
-      const translation = {
-        content,
-        title,
-        description,
-        ...(imageUrl && { image: imageUrl }), // Add image URL if available
-        faqs,
-        relatedTools,
-      };
+    const result = await db.collection('content').updateOne(filter, updateDoc, options);
+    if (!result.matchedCount && !result.upsertedCount) {
+      return res.status(500).json({ message: 'Failed to update document' });
+    }
 
-      const { db } = await connectToDatabase();
-      const filter = { category };
-      const updateDoc = { $set: { [`translations.${language}`]: translation } };
-      const options = { upsert: true };
-
-      const result = await db.collection('content').updateOne(filter, updateDoc, options);
-      if (!result.matchedCount && !result.upsertedCount) {
-        return res.status(500).json({ message: 'Failed to update document' });
-      }
-
-      res.status(200).json({ message: 'Document updated successfully' });
-    });
+    res.status(200).json({ message: 'Document updated successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Failed to handle PUT request', error: error.message });
   }
 };
-
-
 
 export default handler;
