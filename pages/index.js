@@ -650,7 +650,6 @@ export async function getServerSideProps({ locale = "en", req, query }) {
       props: {
         initialBlogs: data.data || [], // Safely access `data`
         meta: data.meta || { currentPage: 1, totalPages: 0 },
-        availableLanguages: ["en", "es", "fr", "de"], // Add any other languages you want to support
         metaUrl,
         ...(await serverSideTranslations(locale, ["home", "navbar", "footer"])), // Add translations
       },
