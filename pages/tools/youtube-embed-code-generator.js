@@ -28,6 +28,7 @@ import Script from "next/script";
 import dynamic from "next/dynamic";
 import { getContentProps } from "../../utils/getContentProps";
 import { i18n } from "next-i18next";
+import { useRouter } from "next/router";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const YtEmbedCode =  ({ meta, reviews, content, relatedTools, faqs,reactions,hreflangs}) => {
   const { t } = useTranslation("embed");
@@ -52,6 +53,8 @@ const YtEmbedCode =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportText, setReportText] = useState("");
   const [isSaved, setIsSaved] = useState(false);
+  const router =useRouter()
+  const closeRform = () => setShowReviewForm(false);
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -166,8 +169,8 @@ const YtEmbedCode =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
   };
 
   const handleReviewSubmit = async () => {
-    if (!newReview.rating || !newReview.embed) {
-      toast.error(t("All fields are required."));
+    if (!newReview.rating || !newReview.comment) {
+      toast.error("All fields are required.");
       return;
     }
 
@@ -185,21 +188,21 @@ const YtEmbedCode =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
         }),
       });
 
-      if (!response.ok) throw new Error(t("Failed to submit review"));
+      if (!response.ok) throw new Error("Failed to submit review");
 
-      toast.success(t("Review submitted successfully!"));
+      toast.success("Review submitted successfully!");
       setNewReview({
         name: "",
         rating: 0,
-        embed: "",
+        comment: "",
         userProfile: "",
         userName: "",
       });
       setShowReviewForm(false);
-      fetchReviews("YouTube-Embed-Code-Generator");
+      fetchReviews("Youtube-Thumbnails-Generator");
     } catch (error) {
       console.error("Failed to submit review:", error);
-      toast.error(t("Failed to submit review"));
+      toast.error("Failed to submit review");
     }
   };
 
@@ -827,8 +830,8 @@ const YtEmbedCode =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
             {reviews?.slice(0, 5).map((review, index) => (
               <div key={index} className="border p-6 m-5 bg-white">
                 <div className="flex items-center mb-4">
-                  <Image
-                    src={`data:image/jpeg;base64,${review?.userProfile}`}
+                <Image
+                    src={review?.userProfile}
                     alt={review.name}
                     className="w-12 h-12 rounded-full"
                     width={48}
@@ -857,7 +860,7 @@ const YtEmbedCode =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
                 <div className="text-gray-500 text-sm mb-4">
                   {t("Reviewed On")} {review.createdAt}
                 </div>
-                <div className="text-lg mb-4">{review.embed}</div>
+                <div className="text-lg mb-4">{review.comment}</div>
               </div>
             ))}
             {!showAllReviews && reviews.length > 5 && (
@@ -872,13 +875,13 @@ const YtEmbedCode =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
               reviews?.slice(5).map((review, index) => (
                 <div key={index} className="border p-6 m-5 bg-white">
                   <div className="flex items-center mb-4">
-                    <Image
-                      src={`data:image/jpeg;base64,${review?.userProfile}`}
-                      alt={review.name}
-                      className="w-12 h-12 rounded-full"
-                      width={48}
-                      height={48}
-                    />
+                  <Image
+                    src={review?.userProfile}
+                    alt={review.name}
+                    className="w-12 h-12 rounded-full"
+                    width={48}
+                    height={48}
+                  />
                     <div className="ml-4">
                       <div className="font-bold">{review?.userName}</div>
                       <div className="text-gray-500 text-sm">
@@ -891,7 +894,7 @@ const YtEmbedCode =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
                   </div>
                   <div className="text-lg font-semibold">{review.title}</div>
                   <div className="text-gray-500 mb-4">{review.date}</div>
-                  <div className="text-lg mb-4">{review.embed}</div>
+                  <div className="text-lg mb-4">{review.comment}</div>
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (
                       <FaStar
@@ -910,9 +913,7 @@ const YtEmbedCode =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="fixed inset-0 bg-black opacity-50"></div>
             <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
-              <h2 className="text-2xl font-semibold mb-4">
-                {t("Leave a Review")}
-              </h2>
+              <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
               <div className="mb-4">
                 <StarRating
                   rating={newReview.rating}
@@ -923,7 +924,7 @@ const YtEmbedCode =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
                 <input
                   type="text"
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder={t("Title")}
+                  placeholder="Title"
                   value={newReview.title}
                   onChange={(e) =>
                     setNewReview({ ...newReview, title: e.target.value })
@@ -933,10 +934,10 @@ const YtEmbedCode =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
               <div className="mb-4">
                 <textarea
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder={t("Your Review")}
-                  value={newReview.embed}
+                  placeholder="Your Review"
+                  value={newReview.comment}
                   onChange={(e) =>
-                    setNewReview({ ...newReview, embed: e.target.value })
+                    setNewReview({ ...newReview, comment: e.target.value })
                   }
                 />
               </div>
@@ -948,7 +949,7 @@ const YtEmbedCode =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
               </button>
               <button
                 className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
-                onClick={closeReviewForm}
+                onClick={closeRform}
               >
                 {t("Cancel")}
               </button>

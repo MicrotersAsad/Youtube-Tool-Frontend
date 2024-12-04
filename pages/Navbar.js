@@ -18,8 +18,8 @@ function classNames(...classes) {
 const availableLanguages = [
   { code: 'en', name: 'English', flag: 'us' },
   { code: 'fr', name: 'Français', flag: 'fr' },
-  { code: 'zh-HANT', name: '中国传统的', flag: 'cn' },
-  { code: 'zh-HANS', name: '简体中文', flag: 'cn' },
+  { code: 'zh-hant', name: '中国传统的', flag: 'cn' },
+  { code: 'zh-hans', name: '简体中文', flag: 'cn' },
   { code: 'nl', name: 'Nederlands', flag: 'nl' },
   { code: 'gu', name: 'ગુજરાતી', flag: 'in' },
   { code: 'hi', name: 'हिंदी', flag: 'in' },

@@ -28,6 +28,7 @@ import { i18n, useTranslation } from "next-i18next";
 import { getContentProps } from "../../utils/getContentProps";
 import Script from "next/script";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/router";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const YtThumbnailDw = ({
   meta,
@@ -61,6 +62,7 @@ const YtThumbnailDw = ({
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportText, setReportText] = useState("");
   const [isSaved, setIsSaved] = useState(false);
+  const router =useRouter()
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
@@ -860,8 +862,8 @@ const YtThumbnailDw = ({
             {reviews?.slice(0, 5).map((review, index) => (
               <div key={index} className="border p-6 m-5 bg-white">
                 <div className="flex items-center mb-4">
-                  <Image
-                    src={`data:image/jpeg;base64,${review?.userProfile}`}
+                <Image
+                    src={review?.userProfile}
                     alt={review.name}
                     className="w-12 h-12 rounded-full"
                     width={48}
@@ -905,13 +907,13 @@ const YtThumbnailDw = ({
               reviews?.slice(5).map((review, index) => (
                 <div key={index} className="border p-6 m-5 bg-white">
                   <div className="flex items-center mb-4">
-                    <Image
-                      src={`data:image/jpeg;base64,${review?.userProfile}`}
-                      alt={review.name}
-                      className="w-12 h-12 rounded-full"
-                      width={48}
-                      height={48}
-                    />
+                  <Image
+                    src={review?.userProfile}
+                    alt={review.name}
+                    className="w-12 h-12 rounded-full"
+                    width={48}
+                    height={48}
+                  />
                     <div className="ml-4">
                       <div className="font-bold">{review?.userName}</div>
                       <div className="text-gray-500 text-sm">

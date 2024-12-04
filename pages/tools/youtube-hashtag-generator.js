@@ -973,7 +973,7 @@ const YouTubeHashtagGenerator = ({ meta, reviews, content, relatedTools, faqs,re
               <div key={index} className="border p-6 m-5 bg-white">
                 <div className="flex items-center mb-4">
                   <Image
-                    src={`data:image/jpeg;base64,${review?.userProfile}`}
+                    src={review?.userProfile}
                     alt={review.name}
                     className="w-12 h-12 rounded-full"
                     width={48}
@@ -1018,7 +1018,7 @@ const YouTubeHashtagGenerator = ({ meta, reviews, content, relatedTools, faqs,re
                 <div key={index} className="border p-6 m-5 bg-white">
                   <div className="flex items-center mb-4">
                     <Image
-                      src={`data:image/jpeg;base64,${review?.userProfile}`}
+                      src={review?.userProfile}
                       alt={review.name}
                       className="w-12 h-12 rounded-full"
                       width={48}

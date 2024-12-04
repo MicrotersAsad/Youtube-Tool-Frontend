@@ -356,8 +356,8 @@ function Content() {
             >
               <option value="en">English</option>
               <option value="fr">French</option>
-              <option value="zh-HANT">中国传统的</option>
-              <option value="zh-HANS">简体中文</option>
+              <option value="zh-hant">中国传统的</option>
+              <option value="zh-hans">简体中文</option>
               <option value="nl">Nederlands</option>
               <option value="gu">ગુજરાતી</option>
               <option value="hi">हिंदी</option>

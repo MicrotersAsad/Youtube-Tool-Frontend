@@ -302,7 +302,8 @@ const Home = ({ initialBlogs = [] }) => {
    <link rel="alternate" href="https://www.ytubetools.com" hreflang="en" />
         <link rel="alternate" href="https://www.ytubetools.com/fr" hreflang="fr" />
         <link rel="alternate" href="https://www.ytubetools.com/es" hreflang="es" />
-        <link rel="alternate" href="https://www.ytubetools.com/zh-hans" hreflang="zh-HANS" />
+        <link rel="alternate" href="https://www.ytubetools.com/zh-hans" hreflang="zh-hans" />
+        <link rel="alternate" href="https://www.ytubetools.com/zh-hant" hreflang="zh-hant" />
         <link rel="alternate" href="https://www.ytubetools.com/de" hreflang="de" />
         <link rel="alternate" href="https://www.ytubetools.com/gu" hreflang="gu" />
         <link rel="alternate" href="https://www.ytubetools.com/hi" hreflang="hi" />
@@ -335,7 +336,7 @@ const Home = ({ initialBlogs = [] }) => {
       </div>
 
       {/* Search Input for Desktop */}
-      <div className="my-16">
+      <div>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="relative mx-auto mb-6 max-w-2xl rounded-full border border-indigo-100 bg-gray-50 px-4 py-2 xl:mb-10">
           <div className="relative mt-2">

@@ -1,0 +1,140 @@
+{
+  "Access 50+ free AI-powered YouTube tools | Unlimited | No Credit Card Required": "訪問50+個免費的AI驅動的YouTube工具 | 無限使用 | 無需信用卡",
+  "YtubeTools | Free YouTube Tools For Creators,": "YtubeTools | 為創作者提供的免費YouTube工具,",
+  "100% Free": "100% 免費",
+  "Access 50+ free AI-powered YouTube tools for creators with unlimited usage—no credit card required!": "訪問50+個免費的AI驅動的YouTube工具，創作者可享無限使用——無需信用卡！",
+  "ytubetools.com is a free AI website designed to enhance your work and learning by offering free, unlimited access to all our tools.": "ytubetools.com是一個免費的AI網站，旨在通過提供所有工具的免費、無限訪問來增強您的工作和學習。",
+  "Search": "搜索",
+  "No results found": "未找到結果",
+  "AI YouTube Tools That Work For You": "為您提供的AI YouTube工具",
+  "Exceptionally Useful, Completely Free — No Hidden Costs.": "極其有用，完全免費 — 無隱藏費用。",
+  "Featured Tools": "精選工具",
+  "YtubeTools Article": "YtubeTools 文章",
+  "Explore how AI enhances content creation, reshapes social media, and beyond. Dive in with us to discover AI's practical applications and its transformative impact on various industries.": "探索AI如何提升內容創作，重塑社交媒體等。與我們一起深入了解AI的實際應用及其對各行各業的變革性影響。",
+  "No blogs found": "未找到博客",
+  "View All Posts": "查看所有帖子",
+  "stats": [
+    { "value": "100K+", "label": "全球用戶" },
+    { "value": "50+", "label": "AI驅動工具" },
+    { "value": "100%", "label": "永久免费" },
+    { "value": "30+", "label": "可用語言" }
+  ],
+  "allTools": [
+    {
+      "name": "YouTube標籤生成器",
+      "link": "http://www.ytubetools.com/",
+      "logo": "TagGenerator",
+      "description": "生成優化的YouTube標籤，提高視頻的可見性和SEO。"
+    },
+    {
+      "name": "YouTube標籤提取器",
+      "link": "http://www.ytubetools.com/tools/tag-extractor",
+      "logo": "TagExtractor",
+      "description": "從任何YouTube視頻中提取標籤，方便參考和分析。"
+    },
+    {
+      "name": "YouTube標題生成器",
+      "link": "http://www.ytubetools.com/tools/title-generator",
+      "logo": "TitleGenerator",
+      "description": "生成引人注目的YouTube標題，增加點擊率。"
+    },
+    {
+      "name": "YouTube描述生成器",
+      "link": "http://www.ytubetools.com/tools/description-generator",
+      "logo": "DescriptionGenerator",
+      "description": "創建引人入勝的視頻描述，提高YouTube視頻的SEO。"
+    },
+    {
+      "name": "YouTube標題與描述提取器",
+      "link": "http://www.ytubetools.com/tools/youtube-title-and-description-extractor",
+      "logo": "TitleDescriptionExtractor",
+      "description": "提取YouTube視頻的標題和描述，方便快速訪問和分析。"
+    },
+    {
+      "name": "YouTube頻道橫幅下載器",
+      "link": "http://www.ytubetools.com/tools/youtube-channel-banner-downloader",
+      "logo": "BannerDownloader",
+      "description": "一鍵下載高質量的YouTube頻道橫幅。"
+    },
+    {
+      "name": "YouTube標籤生成器",
+      "link": "http://www.ytubetools.com/tools/youtube-hashtag-generator",
+      "logo": "Hashtag",
+      "description": "生成相關標籤，增加YouTube視頻的可見性。"
+    },
+    {
+      "name": "YouTube頻道Logo下載器",
+      "link": "http://www.ytubetools.com/tools/youtube-channel-logo-downloader",
+      "logo": "LogoDownloader",
+      "description": "輕鬆下載高解析度的YouTube頻道Logo。"
+    },
+    {
+      "name": "YouTube縮略圖下載器",
+      "link": "http://www.ytubetools.com/tools/youtube-thumbnail",
+      "logo": "ThumbnailDownloader",
+      "description": "下載任何YouTube視頻的高清縮略圖。"
+    },
+    {
+      "name": "YouTube頻道ID查找器",
+      "link": "http://www.ytubetools.com/tools/channel-id-finder",
+      "logo": "ChannelIDFinder",
+      "description": "查找任何給定YouTube頻道URL的頻道ID。"
+    },
+    {
+      "name": "YouTube視頻數據查看器",
+      "link": "http://www.ytubetools.com/tools/video-data-viewer",
+      "logo": "VideoDataViewer",
+      "description": "查看任何YouTube視頻的詳細數據和統計信息。"
+    },
+    {
+      "name": "YouTube盈利檢查器",
+      "link": "http://www.ytubetools.com/tools/monetization-checker",
+      "logo": "MonetizationChecker",
+      "description": "檢查YouTube頻道或視頻是否符合盈利條件。"
+    },
+    {
+      "name": "YouTube頻道搜索",
+      "link": "http://www.ytubetools.com/tools/youtube-channel-search",
+      "logo": "ChannelSearch",
+      "description": "根據關鍵字或名稱搜索YouTube頻道。"
+    },
+    {
+      "name": "YouTube視頻摘要生成器",
+      "link": "http://www.ytubetools.com/tools/youtube-video-summary-generator",
+      "logo": "SummaryGenerator",
+      "description": "生成任何YouTube視頻的簡潔摘要，快速獲取見解。"
+    },
+    {
+      "name": "YouTube趨勢視頻",
+      "link": "http://www.ytubetools.com/tools/trending-videos",
+      "logo": "TrendingVideos",
+      "description": "發現全球最新的YouTube趨勢視頻。"
+    },
+    {
+      "name": "YouTube收益計算器",
+      "link": "http://www.ytubetools.com/tools/youtube-money-calculator",
+      "logo": "MoneyCalculator",
+      "description": "根據觀看次數和參與度估算YouTube視頻的潛在收益。"
+    },
+    {
+      "name": "YouTube評論抽獎器",
+      "link": "http://www.ytubetools.com/tools/youtube-comment-picker",
+      "logo": "Comment",
+      "description": "從任何YouTube視頻中隨機選擇評論，用於抽獎或競賽。"
+    },
+    {
+      "name": "YouTube關鍵詞研究",
+      "link": "http://www.ytubetools.com/tools/keyword-research",
+      "logo": "research",
+      "description": "進行YouTube關鍵詞研究，識別高排名搜索詞。"
+    },
+    {
+      "name": "YouTube嵌入代碼生成器",
+      "link": "http://www.ytubetools.com/tools/youtube-embed-code-generator",
+      "logo": "Embed",
+      "description": "為YouTube視頻生成嵌入代碼，方便在網站和博客上分享。"
+    }
+  ],
+  "Meta Title": "YtubeTools | 免費YouTube工具為創作者提供（無需信用卡）",
+  "Meta Description": "訪問50+個免費的AI驅動的YouTube工具，為創作者提供無限制的使用——無需信用卡！"
+}

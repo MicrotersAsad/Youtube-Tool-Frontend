@@ -15,14 +15,20 @@ import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
 import Image from "next/image";
 import Head from "next/head";
-import { format } from "date-fns";
 import { i18n, useTranslation } from "next-i18next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Script from "next/script";
+import { useRouter } from "next/router";
+import { getContentProps } from "../../utils/getContentProps";
 
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
-const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions,hreflangs }) => {
+const ChannelIdFinder = ({  meta,
+  reviews,
+  content,
+  relatedTools,
+  faqs,
+  reactions,
+  hreflangs, }) => {
   const { user, updateUserProfile } = useAuth();
  
   const [modalVisible, setModalVisible] = useState(true);
@@ -33,7 +39,6 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions,
   const [error, setError] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
-  const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({
     name: "",
     rating: 0,
@@ -52,7 +57,7 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions,
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
-
+  const router =useRouter()
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
@@ -165,28 +170,24 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions,
     }
   };
 
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch("/api/reviews?tool=channel-id-finder");
-      const data = await response.json();
-      const formattedData = data.map((review) => ({
-        ...review,
-        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"),
-      }));
-      setReviews(formattedData);
-    } catch (error) {
-      console.error(t("Failed to fetch reviews:"), error);
-    }
-  };
+  // const fetchReviews = async () => {
+  //   try {
+  //     const response = await fetch("/api/reviews?tool=channel-id-finder");
+  //     const data = await response.json();
+  //     const formattedData = data.map((review) => ({
+  //       ...review,
+  //       createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"),
+  //     }));
+  //     setReviews(formattedData);
+  //   } catch (error) {
+  //     console.error(t("Failed to fetch reviews:"), error);
+  //   }
+  // };
 
+  
   const handleReviewSubmit = async () => {
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
     if (!newReview.rating || !newReview.comment) {
-      toast.error(t("All fields are required."));
+      toast.error("All fields are required.");
       return;
     }
 
@@ -204,9 +205,9 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions,
         }),
       });
 
-      if (!response.ok) throw new Error(t("Failed to submit review"));
+      if (!response.ok) throw new Error("Failed to submit review");
 
-      toast.success(t("Review submitted successfully!"));
+      toast.success("Review submitted successfully!");
       setNewReview({
         name: "",
         rating: 0,
@@ -215,10 +216,10 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions,
         userName: "",
       });
       setShowReviewForm(false);
-      fetchReviews();
+      fetchReviews("Youtube-Thumbnails-Generator");
     } catch (error) {
-      console.error(t("Failed to submit review:"), error);
-      toast.error(t("Failed to submit review"));
+      console.error("Failed to submit review:", error);
+      toast.error("Failed to submit review");
     }
   };
 
@@ -759,7 +760,7 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions,
         )}
         <div className="content pt-6 pb-5">
           <article
-            dangerouslySetInnerHTML={{ __html: existingContent }}
+            dangerouslySetInnerHTML={{ __html: content }}
             style={{ listStyleType: "none" }}
           ></article>
         </div>
@@ -863,7 +864,7 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions,
               <div key={index} className="border p-6 m-5 bg-white">
                 <div className="flex items-center mb-4">
                   <Image
-                    src={`data:image/jpeg;base64,${review?.userProfile}`}
+                    src={review?.userProfile}
                     alt={review.name}
                     className="w-12 h-12 rounded-full"
                     width={48}
@@ -907,13 +908,13 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions,
               reviews.slice(5).map((review, index) => (
                 <div key={index} className="border p-6 m-5 bg-white">
                   <div className="flex items-center mb-4">
-                    <Image
-                      src={`data:image/jpeg;base64,${review?.userProfile}`}
-                      alt={review.name}
-                      className="w-12 h-12 rounded-full"
-                      width={48}
-                      height={48}
-                    />
+                  <Image
+                    src={review?.userProfile}
+                    alt={review.name}
+                    className="w-12 h-12 rounded-full"
+                    width={48}
+                    height={48}
+                  />
                     <div className="ml-4">
                       <div className="font-bold">{review?.userName}</div>
                       <div className="text-gray-500 text-sm">
@@ -1024,136 +1025,12 @@ const ChannelIdFinder = ({ meta, faqs, relatedTools, existingContent, reactions,
 };
 
 
-
-export async function getServerSideProps({ req, locale }) {
-  // Retrieve the auth token from the cookies (or headers if needed)
- 
-
-  // Determine protocol
-  const protocol =
-    req.headers["x-forwarded-proto"]?.split(",")[0] ||
-    (req.connection.encrypted ? "https" : "http");
-  const host = req.headers.host || "your-default-domain.com";
-  
-  // Define base URL (language-specific part added here)
-  const basePath = `${protocol}://${host}/tools/channel-id-finder`;
-  const baseUrl = locale === "en" ? basePath : `${protocol}://${host}/${locale}/tools/channel-id-finder`;
-  
-  // Define content and header API URLs
-  const contentApiUrl = `${protocol}://${host}/api/content?category=channel-id-finder&language=${locale}`;
-  const headerApiUrl = `${protocol}://${host}/api/heading`;
-
-  try {
-    // Fetch content and header data in parallel with auth token in headers
-    const [contentResponse, headerResponse] = await Promise.all([
-      fetch(contentApiUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization':`Bearer ${process.env.AUTH_TOKEN}`// Add token to the header
-        },
-      }),
-      fetch(headerApiUrl, {
-        method: 'GET',
-       
-      }),
-    ]);
-
-    if (!contentResponse.ok || !headerResponse.ok) {
-      throw new Error("Failed to fetch data from APIs");
-    }
-
-    const contentData = await contentResponse.json();
-    const headerData = await headerResponse.json();
-
-    // Extract header content and localized data with fallbacks
-    const headerContent = headerData[0]?.content || "";
-    const localeData = contentData.translations?.[locale] || {};
-
-    // Meta information with fallback defaults
-    const meta = {
-      title: localeData.title || "Default Title",
-      description: localeData.description || "Default description",
-      image: localeData.image || "",
-      url: baseUrl, // Canonical URL includes language-specific path if needed
-    };
-
-    // Extract reactions with default values
-    const reactions = localeData.reactions || {
-      likes: 0,
-      unlikes: 0,
-      reports: [],
-      users: {},
-    };
-
-    // Generate hreflang links
-    const translations = contentData.translations || {};
-    const hreflangs = [
-      { rel: "alternate", hreflang: "x-default", href: `${basePath}` },
-      { rel: "alternate", hreflang: "en", href: `${basePath}` },
-      ...Object.keys(translations)
-        .filter((lang) => lang !== "en")
-        .map((lang) => ({
-          rel: "alternate",
-          hreflang: lang,
-          href: `${protocol}://${host}/${lang}/tools/channel-id-finder`,
-        })),
-    ];
-
-    // Return props for the page
-    return {
-      props: {
-        meta,
-        faqs: contentData.translations[locale]?.faqs || [],
-        relatedTools: contentData.translations[locale]?.relatedTools || [],
-        existingContent: contentData.translations[locale]?.content || "",
-        reactions,
-        hreflangs, // Pass hreflang data as props
-        headerContent,
-        ...(await serverSideTranslations(locale, [
-          "common",
-          "tagextractor",
-          "navbar",
-          "channelId",
-          "footer",
-        ])),
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching data:", error);
-
-    // Fallback props in case of error
-    return {
-      props: {
-        meta: {
-          title: "Default Title",
-          description: "Default description",
-          image: "",
-          url: `${protocol}://${host}/tools/channel-id-finder${locale === "en" ? "" : `/${locale}`}`,
-        },
-        reactions: {
-          likes: 0,
-          unlikes: 0,
-          reports: [],
-          users: {},
-        },
-        existingContent: "",
-        faqList: [],
-        relatedTools: [],
-        headerContent: "",
-        translations: {},
-        hreflangs: [
-          { rel: "alternate", hreflang: "x-default", href: `${basePath}` },
-          { rel: "alternate", hreflang: "en", href: `${basePath}` },
-        ],
-        ...(await serverSideTranslations(locale, [
-          "channelId",
-          "navbar",
-          "footer",
-        ])),
-      },
-    };
-  }
+export async function getServerSideProps(context) {
+  return getContentProps(
+    "channel-id-finder",
+    context.locale,
+    context.req
+  );
 }
 
 
