@@ -438,8 +438,8 @@ const YouTubeChannelScraper = ({
             />
             <meta property="og:title" content={meta?.title} />
             <meta property="og:description" content={meta?.description} />
-            <meta property="og:image" content={meta?.image} />
-            <meta property="og:image:secure_url" content={meta?.image} />
+            <meta property="og:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732964967955-youtubechannelsearchb.png" />
+            <meta property="og:image:secure_url" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732964967955-youtubechannelsearchb.png" />
             <meta property="og:site_name" content="Ytubetools" />
             <meta property="og:locale" content="en_US" />
 
@@ -458,9 +458,9 @@ const YouTubeChannelScraper = ({
             />
             <meta name="twitter:title" content={meta?.title} />
             <meta name="twitter:description" content={meta?.description} />
-            <meta name="twitter:image" content={meta?.image} />
+            <meta name="twitter:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732964967955-youtubechannelsearchb.png" />
             <meta name="twitter:site" content="@ytubetools" />
-            <meta name="twitter:image:alt" content={meta?.imageAlt} />
+            <meta name="twitter:image:alt" content="youtube-channel-search"/>
 
             {/* Alternate hreflang Tags for SEO */}
             {hreflangs &&

@@ -372,8 +372,8 @@ const MonetizationChecker = ({ meta, reviews, content, relatedTools, faqs,reacti
           <meta property="og:url"  content={`${meta?.url}`}/>
           <meta property="og:title" content={meta?.title} />
           <meta property="og:description" content={meta?.description} />
-          <meta property="og:image" content={meta?.image} />
-          <meta property="og:image:secure_url" content={meta?.image} />
+          <meta property="og:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732963669347-youtubemonetizationcheckera.png" />
+          <meta property="og:image:secure_url" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732963669347-youtubemonetizationcheckera.png" />
           <meta property="og:site_name" content="Ytubetools" />
           <meta property="og:locale" content="en_US" />
 
@@ -383,9 +383,9 @@ const MonetizationChecker = ({ meta, reviews, content, relatedTools, faqs,reacti
           <meta property="twitter:url" content={`${meta?.url}`}/>
           <meta name="twitter:title" content={meta?.title} />
           <meta name="twitter:description" content={meta?.description} />
-          <meta name="twitter:image" content={meta?.image} />
+          <meta name="twitter:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732963669347-youtubemonetizationcheckera.png" />
           <meta name="twitter:site" content="@ytubetools" />
-          <meta name="twitter:image:alt" content={meta?.imageAlt} />
+          <meta name="twitter:image:alt" content="monetization-checker" />
 
           {/* Alternate hreflang Tags for SEO */}
           {hreflangs &&

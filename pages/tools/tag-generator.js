@@ -57,8 +57,9 @@ const availableTones = [
   
 
 const TagGenerator = ({ meta: initialMeta, reviews, content, relatedTools, faqs, reactions, hreflangs }) => {
-    const [meta, setMeta] = useState(initialMeta);  // Now `meta` is a state
-    const [metaImage, setMetaImage] = useState();  // Now `meta` is a state
+
+  const [meta, setMeta] = useState(initialMeta);  // Now `meta` is a state
+ 
     const [isLoading, setIsLoading] = useState(false);
     const { isLoggedIn, user, updateUserProfile } = useAuth();
     const router = useRouter();
@@ -107,7 +108,7 @@ const isLocalHost = typeof window !== "undefined" &&
     setSelectedLanguage(e.target.value);
     // Perform additional actions based on language change if needed
   };
-console.log(initialMeta);
+
 
   const handleToneChange = (event) => {
     // টোন নির্বাচন করা হলে selectedTone আপডেট হবে
@@ -120,9 +121,7 @@ console.log(initialMeta);
         const response = await fetch(`/api/content?category=tagGenerator&language=${language}`);
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
-        setMetaImage(data.translations[language].image); 
-     
-        
+       
         
         setLikes(data.reactions.likes || 0);
         setUnlikes(data.reactions.unlikes || 0);
@@ -690,8 +689,8 @@ console.log(initialMeta);
           <meta property="og:url" content={meta?.url} />
           <meta property="og:title" content={meta?.title} />
           <meta property="og:description" content={meta?.description} />
-          <meta property="og:image" content={metaImage} />
-          <meta property="og:image:secure_url" content={metaImage} />
+          <meta property="og:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732692006970-youtubetaggeneratora.png"/>
+          <meta property="og:image:secure_url" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732692006970-youtubetaggeneratora.png"/>
           <meta property="og:site_name" content="Ytubetools" />
           <meta property="og:locale" content="en_US" />
 
@@ -701,20 +700,22 @@ console.log(initialMeta);
           <meta property="twitter:url" content={meta?.url} />
           <meta name="twitter:title" content={meta?.title} />
           <meta name="twitter:description" content={meta?.description} />
-          <meta name="twitter:image" content={metaImage} />
+          <meta name="twitter:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732692006970-youtubetaggeneratora.png"/>
           <meta name="twitter:site" content="@ytubetools" />
-          <meta name="twitter:image:alt" content={metaImage} />
+          <meta name="twitter:image:alt" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732692006970-youtubetaggeneratora.png"/>
 
           {/* Alternate hreflang Tags for SEO */}
           {hreflangs &&
-            hreflangs.map((hreflang, index) => (
-              <link
-                key={index}
-                rel={hreflang.rel}
-                hreflang={hreflang.hreflang}
-                href={hreflang.href}
-              />
-            ))}
+              hreflangs.map((hreflang, index) => (
+                <link
+                  key={index}
+                  rel={hreflang.rel}
+                  hreflang={hreflang.hreflang}
+                  href={`${hreflang.href
+                    .toLowerCase()
+                    .replace("tagGenerator", "tag-generator")}`}
+                />
+              ))}
           <link
             rel="alternate"
             hreflang="en"

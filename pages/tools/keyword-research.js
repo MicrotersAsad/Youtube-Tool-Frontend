@@ -422,8 +422,8 @@ const KeywordSearch = ({ initialMeta,meta, faqList, tools, content, reactions,hr
           <meta property="og:url"  content={`${initialMeta?.url}`}/>
           <meta property="og:title" content={initialMeta?.title} />
           <meta property="og:description" content={initialMeta?.description} />
-          <meta property="og:image" content={initialMeta?.image} />
-          <meta property="og:image:secure_url" content={initialMeta?.image} />
+          <meta property="og:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1733031708192-youtubekeywordresearchb.png"/>
+          <meta property="og:image:secure_url" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1733031708192-youtubekeywordresearchb.png"/>
           <meta property="og:site_name" content="Ytubetools" />
           <meta property="og:locale" content="en_US" />
 
@@ -438,9 +438,9 @@ const KeywordSearch = ({ initialMeta,meta, faqList, tools, content, reactions,hr
           <meta property="twitter:url" content={`${initialMeta?.url}`}/>
           <meta name="twitter:title" content={initialMeta?.title} />
           <meta name="twitter:description" content={initialMeta?.description} />
-          <meta name="twitter:image" content={initialMeta?.image} />
+          <meta name="twitter:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1733031708192-youtubekeywordresearchb.png"/>
           <meta name="twitter:site" content="@ytubetools" />
-          <meta name="twitter:image:alt" content={initialMeta?.imageAlt} />
+          <meta name="twitter:image:alt" content="keyword-research" />
 
           {/* Alternate hreflang Tags for SEO */}
           {hreflangs &&
