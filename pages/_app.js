@@ -131,16 +131,15 @@ function MyApp({ Component, pageProps }) {
           "@type": "Organization",
           name: "YouTube Tools",
           url: "http://www.ytubetools.com/",
-          logo: "https://yourwebsite.com/logo.png",
+          logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1733391907509-yticon.png",
           contactPoint: {
             "@type": "ContactPoint",
-            telephone: "+880 162-519-2766",
+            telephone: "+13072255635",
             contactType: "Customer Service",
           },
           sameAs: [
-            "https://www.facebook.com/yourprofile",
-            "https://www.twitter.com/yourprofile",
-            "https://www.linkedin.com/in/yourprofile",
+            "https://www.facebook.com/ytubetools",
+            "https://www.linkedin.com/company/ytubetools",
           ],
         })}
       </Script>

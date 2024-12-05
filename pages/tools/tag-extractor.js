@@ -526,7 +526,7 @@ useEffect(() => {
             <meta name="twitter:card" content="summary_large_image" />
             <meta
   name="twitter:domain"
-  content={meta?.url.replace("tools/tagExtractor", "")}
+  content={meta?.url.replace("tools/tag-extractor", "")}
 />
 
             <meta
@@ -621,6 +621,7 @@ useEffect(() => {
 
         <div className="max-w-7xl mx-auto p-4">
           <h1 className="text-3xl text-white">{t("YouTube Tag Extractor")}</h1>
+          <p className="text-white">YouTube Tag Extractor: A Simple and Effective Tool to Find the Best Tags for Your Videos and Boost Your Reach</p>
           <ToastContainer />
           {modalVisible && (
             <div
@@ -678,7 +679,7 @@ useEffect(() => {
         onChange={handleUrlChange}
       />
     </div>
-    <div className="ms-5">
+    <div className="ms-4">
   {/* reCAPTCHA Section */}
 {!isLocalHost && siteKey && (
   <ReCAPTCHA

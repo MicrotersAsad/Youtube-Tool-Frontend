@@ -141,7 +141,7 @@ const BlogPost = ({
             "name": "ytubetools",
             "logo": {
               "@type": "ImageObject",
-              "url": "https://example.com/logo.jpg"
+              "url": "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1733391907509-yticon.png"
             }
           },
           "description": description,
