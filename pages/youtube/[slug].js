@@ -8,7 +8,7 @@ import Comments from "../../components/Comments";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { ReplaceShortcodes } from "../../components/replaceShortcodes";
-import { FaCheckCircle } from "react-icons/fa";
+import { FaCheckCircle, FaClock, FaTimes } from "react-icons/fa";
 
 const BlogPost = ({
   initialBlog,
@@ -31,26 +31,35 @@ const BlogPost = ({
   const [relatedBlogs, setRelatedBlogs] = useState([]); // State for related blogs
   const [loadingRelatedBlogs, setLoadingRelatedBlogs] = useState(true); // Loading state for related blogs
 
+  const [schemaData, setSchemaData] = useState(null);
+  const [breadcrumbSchema, setBreadcrumbSchema] = useState(null);
+
   const translation = blog?.translations?.[locale];
+  const content = translation?.content || t("Content not available.");
+  const categoryName = translation?.category || t("Blog");
+
+  // Define or import getTitle function
+  const getTitle = (translation) => {
+    return translation.title || "Default Title";
+  };
 
   useEffect(() => {
     const titleElement = document.querySelector("title");
   
-    // যদি title ট্যাগে কোনো ক্লাস থাকে, তা সরিয়ে ফেলবে
+    // Remove class attribute if present
     if (titleElement) {
-      titleElement.removeAttribute("class"); // ক্লাস অ্যাট্রিবিউট রিমুভ করবে
+      titleElement.removeAttribute("class");
     }
   }, []);
-
 
   useEffect(() => {
     const fetchRelatedBlogs = async () => {
       try {
         // Set up the initial page and limit for the request
         const page = 1; // Start from page 1
-        const limit = 600; // Fetch 300 blogs at a time
+        const limit = 600; // Fetch 600 blogs at a time
 
-        // Get the token from localStorage or other secure places
+        // Get the token from secure places
         const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
         if (!token) {
           throw new Error('Authorization token not found');
@@ -71,10 +80,8 @@ const BlogPost = ({
 
         const data = await response.json();
 
-
         if (Array.isArray(data.data)) {
           const allBlogs = data.data;
-    
 
           // Filter out the current blog and match the category of related blogs
           const filteredBlogs = allBlogs.filter(
@@ -102,9 +109,78 @@ const BlogPost = ({
       fetchRelatedBlogs();
     }
   }, [blog, locale]);
-  
-  
-  
+
+  // Define breadcrumb data
+  const breadcrumbItems = [
+    { label: t("Home"), link: "/" },
+    { label: "Youtube", link: `/youtube` }, // Adjust the link as per your routing
+    { label: translation?.title }
+  ];
+
+  useEffect(() => {
+    if (blog && blog.translations) {
+      const translation = blog.translations[locale] || {};
+      const title = getTitle(translation);
+      const description = translation.description || translation.Description || '';
+      const image = translation.image || "https://example.com/photos/1x1/photo.jpg";
+
+      if (content) {
+        const schemaDataObj = {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": title,
+          "image": [image],
+          "datePublished": blog.createdAt,
+          "dateModified": blog.updatedAt || blog.createdAt,
+          "author": {
+            "@type": "Person",
+            "name": blog.author
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "ytubetools",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://example.com/logo.jpg"
+            }
+          },
+          "description": description,
+          "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog/${slug}`
+          }
+        };
+
+        const breadcrumbSchemaObj = {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://www.ytubetools.com/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Youtube",
+              "item": `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/youtube`
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": title,
+              "item": `https://${typeof window !== 'undefined' ? window.location.host : 'localhost:3000'}/blog/${slug}`
+            }
+          ]
+        };
+
+        setSchemaData(schemaDataObj);
+        setBreadcrumbSchema(breadcrumbSchemaObj);
+      }
+    }
+  }, [blog, locale, slug, content, categoryName]);
 
   if (!translation) {
     return (
@@ -115,13 +191,10 @@ const BlogPost = ({
   }
 
   const metaUrl = `https://${router.host || "localhost:3000"}/youtube/${slug}`;
-  const content = translation.content || t("Content not available.");
-  const categoryName = translation.category || t("Blog");
+
   const publicationDate = blog?.createdAt
     ? format(new Date(blog.createdAt), "MMMM dd, yyyy")
     : "";
-
-
 
   const renderContentWithShortcodes = () => {
     return <ReplaceShortcodes content={content} shortcodes={shortcodes} />;
@@ -129,42 +202,86 @@ const BlogPost = ({
 
   return (
     <div className="relative">
-     <Head>
-  <title>{metaTitle}</title> {/* এখানে কোনো ক্লাস লাগবে না */}
-  <meta name="description" content={metaDescription} />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="robots" content="index, follow" />
+      <Head>
+        <title>{metaTitle}</title> {/* No class needed */}
+        <meta name="description" content={metaDescription} />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="index, follow" />
 
-  {/* Canonical URL */}
-  <link rel="canonical" href={metaUrl} />
-  <meta property="og:type" content="article" />
-  <meta property="og:title" content={metaTitle} />
-  <meta property="og:description" content={metaDescription} />
-  <meta property="og:image" content={metaImage} />
-  <meta property="og:url" content={metaUrl} />
-  <meta property="og:site_name" content="ytubetools" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content={metaTitle} />
-  <meta property="twitter:url" content={metaUrl} />
-  <meta name="twitter:description" content={metaDescription} />
-  <meta name="twitter:image" content={metaImage} />
-  <meta name="author" content={author?.name || "ytubetools"} />
-  <meta property="article:published_time" content={blog?.createdAt || ""} />
-  <meta property="article:author" content={author?.name || ""} />
-  <meta property="article:section" content={categoryName} />
-  <meta property="article:tag" content={categoryName} />
+        {/* Canonical URL */}
+        <link rel="canonical" href={metaUrl} />
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={metaTitle} />
+        <meta property="og:description" content={metaDescription} />
+        <meta property="og:image" content={metaImage} />
+        <meta property="og:url" content={metaUrl} />
+        <meta property="og:site_name" content="ytubetools" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={metaTitle} />
+        <meta property="twitter:url" content={metaUrl} />
+        <meta name="twitter:description" content={metaDescription} />
+        <meta name="twitter:image" content={metaImage} />
+        <meta name="author" content={author?.name || "ytubetools"} />
+        <meta property="article:published_time" content={blog?.createdAt || ""} />
+        <meta property="article:author" content={author?.name || ""} />
+        <meta property="article:section" content={categoryName} />
+        <meta property="article:tag" content={categoryName} />
 
-  {/* Alternate hreflang Tags for SEO */}
-  {hreflangs.map((hreflang, index) => (
-    <link key={index} rel={hreflang.rel} hreflang={hreflang.hreflang} href={hreflang.href} />
-  ))}
-</Head>
+        {/* Alternate hreflang Tags for SEO */}
+        {hreflangs.map((hreflang, index) => (
+          <link key={index} rel={hreflang.rel} hreflang={hreflang.hreflang} href={hreflang.href} />
+        ))}
 
+        {/* Inject Schema.org Article JSON-LD */}
+        {schemaData && (
+          <script type="application/ld+json">
+            {JSON.stringify(schemaData)}
+          </script>
+        )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
+        {/* Inject BreadcrumbList JSON-LD */}
+        {breadcrumbSchema && (
+          <script type="application/ld+json">
+            {JSON.stringify(breadcrumbSchema)}
+          </script>
+        )}
+      </Head>
+
+      {/* Breadcrumb Navigation */}
+      
+        <ol className="flex mt-5 items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-x-2">
+          {breadcrumbItems.map((item, index) => (
+            <li key={index} className="flex items-center">
+              {item.link ? (
+                <a href={item.link} className="text-blue-600 hover:underline">
+                  {item.label}
+                </a>
+              ) : (
+                <span className="text-gray-500">{item.label}</span>
+              )}
+              {index < breadcrumbItems.length - 1 && (
+                <svg
+                  className="h-5 w-5 mx-2 text-gray-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                </svg>
+              )}
+            </li>
+          ))}
+        </ol>
+      
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Blog Title and Description */}
         <h1 className="md:text-5xl text-xl font-bold mb-2">{translation.title}</h1>
         <p className="text-gray-600 mb-4">{translation.description}</p>
-        <h6>{t("Updated on")} {publicationDate}</h6>
+        <h6 className="flex items-center text-gray-600 mb-4">
+          <FaClock className="text-[#f00] me-2" /> {t("Updated on")} {publicationDate}
+        </h6>
 
         <div className="overflow-hidden sm:rounded-lg mb-8">
           <div className="border-b border-gray-200">
@@ -184,7 +301,7 @@ const BlogPost = ({
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-1">
                   {relatedBlogs.length > 0 ? (
-                    relatedBlogs.slice(0,30).map((relatedBlog, index) => {
+                    relatedBlogs.slice(0, 30).map((relatedBlog, index) => {
                       const relatedTranslation = relatedBlog.translations[locale];
                       if (!relatedTranslation) return null;
 
@@ -213,7 +330,7 @@ const BlogPost = ({
           </div>
         </div>
       </div>
-      <style>{`
+      <style >{`
           .result-content h2 {
             padding-top: 12px !important;
           }
@@ -279,7 +396,6 @@ const BlogPost = ({
     </div>
   );
 };
-
 
 export async function getServerSideProps({ locale, params, req }) {
   try {
@@ -360,7 +476,6 @@ export async function getServerSideProps({ locale, params, req }) {
     // Prepare the meta information
     const metaTitle = currentTranslation.metaTitle || 'Default Blog Title';
  
-    
     const metaDescription = currentTranslation.metaDescription || 'This is a brief description of the blog content. Customize it for SEO purposes.';
     const metaImage = currentTranslation.image || 'https://yourdomain.com/default-image.jpg'; // Add a fallback image URL if no image is found.
 
@@ -383,11 +498,5 @@ export async function getServerSideProps({ locale, params, req }) {
     };
   }
 }
-
-
-
-
-
-
 
 export default BlogPost;

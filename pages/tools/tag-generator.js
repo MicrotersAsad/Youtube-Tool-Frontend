@@ -8,6 +8,9 @@ import {
   FaCopy,
   FaDownload,
   FaStar,
+  FaFile,
+  FaLanguage,
+  FaPhoneVolume,
 } from "react-icons/fa";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -57,7 +60,7 @@ const availableTones = [
 
 const TagGenerator = ({ meta: initialMeta, reviews, content, relatedTools, faqs, reactions, hreflangs }) => {
 
-  const [meta, setMeta] = useState(initialMeta);  // Now `meta` is a state
+  const [meta] = useState(initialMeta);  // Now `meta` is a state
  
     const [isLoading, setIsLoading] = useState(false);
     const { isLoggedIn, user, updateUserProfile } = useAuth();
@@ -377,7 +380,8 @@ const isLocalHost = typeof window !== "undefined" &&
               messages: [
                 {
                   role: "system",
-                  content: `Generate a list of at least 10 SEO-friendly Tag for keywords: "${tags.join(", ")}" in this languge ${selectedLanguage}.`,
+    
+                  content: `Generate a list of at least 10 SEO-friendly Tag for keywords: "${tags.join(", ")}" in this ${selectedTone} & languge ${selectedLanguage}.`,
                 },
                 { role: "user", content: tags.join(", ") },
               ],
@@ -454,23 +458,7 @@ const isLocalHost = typeof window !== "undefined" &&
   };
   
   
-  useEffect(() => {
-    fetchReviews();
-  }, [reviews]); // Refetch when reviews change
 
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch("/api/reviews?tool=tagGenerator");
-      const data = await response.json();
-      const formattedData = data.map((review) => ({
-        ...review,
-        createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"),
-      }));
-      setReviews(formattedData);
-    } catch (error) {
-      console.error("Failed to fetch reviews:", error);
-    }
-  };
 
   const handleReviewSubmit = async () => {
     if (!user) {
@@ -486,7 +474,9 @@ const isLocalHost = typeof window !== "undefined" &&
     try {
       const response = await fetch("/api/reviews", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           tool: "tagGenerator",
           ...newReview,
@@ -498,9 +488,15 @@ const isLocalHost = typeof window !== "undefined" &&
       if (!response.ok) throw new Error("Failed to submit review");
 
       toast.success(t("reviewSubmitted"));
-      setNewReview({ name: "", rating: 0, comment: "", title: "", userProfile: "" });
+      setNewReview({
+        name: "",
+        rating: 0,
+        comment: "",
+        title: "", // Reset title field
+        userProfile: "",
+      });
       setShowReviewForm(false);
-      fetchReviews(); // Refresh reviews after submission
+      fetchReviews("tagGenerator");
     } catch (error) {
       console.error("Failed to submit review:", error);
       toast.error(t("reviewSubmitFailed"));
@@ -524,7 +520,7 @@ const isLocalHost = typeof window !== "undefined" &&
       }
       setShowReviewForm(true);
     };
-    console.log(reviews);
+    
 
   useEffect(() => {
     if (user) {
@@ -704,14 +700,14 @@ const isLocalHost = typeof window !== "undefined" &&
           <meta name="twitter:image:alt" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732692006970-youtubetaggeneratora.png"/>
 
           {/* Alternate hreflang Tags for SEO */}
-          {hreflangs &&
+    {/* Alternate hreflang Tags for SEO */}
+    {hreflangs &&
               hreflangs.map((hreflang, index) => (
                 <link
                   key={index}
                   rel={hreflang.rel}
                   hreflang={hreflang.hreflang}
                   href={`${hreflang.href
-                    .toLowerCase()
                     .replace("tagGenerator", "tag-generator")}`}
                 />
               ))}
@@ -802,22 +798,19 @@ const isLocalHost = typeof window !== "undefined" &&
         </Script>
 
         <div className="max-w-7xl mx-auto p-4">
-          <h1 className="text-3xl text-white">
-            {isLoading ? <Skeleton width={250} /> : t("YouTube Tag Generator")}
-          </h1>
-          <p className="text-center text-white">The YouTube Tag Generator helps creators generate relevant and optimized tags for their videos. By inputting keywords or video details, the tool suggests a list of tags that can improve video discoverability, SEO, and ranking on YouTube's search results. It simplifies the process of finding the most effective tags to attract more viewers and grow your channel.</p>
+         
 
           <ToastContainer />
 
           {modalVisible && (
             <div
-              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
+              className="bg-yellow-100 border-t-4 border-[#fa6742] rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
               role="alert"
             >
               <div className="flex justify-between items-center">
                 <div className="flex items-center">
                   <svg
-                    className="fill-current h-6 w-6 text-yellow-500 mr-4"
+                    className="fill-current h-6 w-6 text-[#fa6742] mr-4"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                   ></svg>
@@ -848,11 +841,22 @@ const isLocalHost = typeof window !== "undefined" &&
               </div>
             </div>
           )}
+  <div className=" max-w-4xl mx-auto ">
 
+  <h1 className="text-3xl text-white">
+            {isLoading ? <Skeleton width={250} /> : t("YouTube Tag Generator")}
+          </h1>
+          <p className=" text-white pb-3">The YouTube Tag Generator is an essential tool for video creators  to optimize their content for better visibility on the platform. </p>
+  </div>
           <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
           <div>
       {/* Keywords Input Section */}
+      <h6 htmlFor="tone" className="text-lg font-medium mb-2 mt-2 fw-bold">
+     <FaFile  className="text-[#fa6742]"/> Enter Your Video Keywords
+</h6>
+
       <div className="keywords-input-container">
+     
         <div className="tags-container flex flex-wrap gap-2 mb-4">
           {isLoading ? (
             Array.from({ length: 3 }).map((_, i) => (
@@ -881,10 +885,11 @@ const isLocalHost = typeof window !== "undefined" &&
         {isLoading ? (
           <Skeleton height={40} width="100%" />
         ) : (
+         
           <input
           type="text"
           placeholder="Add a keyword"
-          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full p-2 border-none border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
           value={input}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
@@ -899,21 +904,53 @@ const isLocalHost = typeof window !== "undefined" &&
      <div>
      
      </div>
-     <div className="flex items-start justify-between space-x-4 ms-4 me-5 sm:ms-2 sm:me-2 mt-3 shadow-xl border rounde pt-3 pb-3 ps-5 pe-5">
+     <div className="flex items-start justify-between space-x-4 ms-4 me-4 sm:ms-2 sm:me-2 mt-3 shadow-xl border rounded-lg pt-3 pb-3 ps-5 pe-5">
 
-
+ {/* Tone Section */}
+ <div className="flex flex-col w-1/2">
+    <label htmlFor="tone" className="text-sm font-medium mb-2">
+     <FaPhoneVolume className="text-[#fa6742]"/>  Tone:
+    </label>
+    <div className="relative">
+      <select
+        id="tone"
+        value={selectedTone}
+        onChange={handleToneChange}
+        className="block shadow-lg appearance-none w-full bg-white border border-gray-300 rounded-md py-3 pl-4 pr-10 text-sm leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      >
+        {availableTones.map((tone) => (
+          <option key={tone.value} value={tone.value}>
+            {tone.label}
+          </option>
+        ))}
+      </select>
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-600">
+        <svg
+          className="fill-current h-5 w-5"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </div>
+    </div>
+  </div>
 
   {/* Language Section */}
   <div className="flex flex-col w-1/2">
     <label htmlFor="language" className="text-sm font-medium mb-2">
-      Language:
+     <FaLanguage className="text-[#fa6742]"/> Language:
     </label>
     <div className="relative">
       <select
         id="language"
         value={selectedLanguage}
         onChange={handleLanguageChange}
-        className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-3 pl-4 pr-10 text-sm leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        className="block shadow-lg  appearance-none w-full bg-white border border-gray-300 rounded-md py-3 pl-4 pr-10 text-sm leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
       >
         {availableLanguages.map((language) => (
           <option
@@ -942,39 +979,7 @@ const isLocalHost = typeof window !== "undefined" &&
     </div>
   </div>
 
-  {/* Tone Section */}
-  <div className="flex flex-col w-1/2">
-    <label htmlFor="tone" className="text-sm font-medium mb-2">
-      Tone:
-    </label>
-    <div className="relative">
-      <select
-        id="tone"
-        value={selectedTone}
-        onChange={handleToneChange}
-        className="block appearance-none w-full bg-white border border-gray-300 rounded-md py-3 pl-4 pr-10 text-sm leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-      >
-        {availableTones.map((tone) => (
-          <option key={tone.value} value={tone.value}>
-            {tone.label}
-          </option>
-        ))}
-      </select>
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-600">
-        <svg
-          className="fill-current h-5 w-5"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-            clipRule="evenodd"
-          />
-        </svg>
-      </div>
-    </div>
-  </div>
+ 
 </div>
 <div className="ms-3 mt-3">
   {/* reCAPTCHA Section */}
@@ -1250,7 +1255,7 @@ const isLocalHost = typeof window !== "undefined" &&
                   <div className="w-16 text-right mr-2">{rating}-star</div>
                   <div className="flex-1 h-3 bg-gray-200 rounded-full relative">
                     <div
-                      className="h-3 bg-yellow-500 rounded-full absolute top-0 left-0"
+                      className="h-3 bg-yellow-400 rounded-full absolute top-0 left-0"
                       style={{
                         width: isLoading
                           ? "100%"
@@ -1443,7 +1448,7 @@ const isLocalHost = typeof window !== "undefined" &&
         )}
 
         {/* Related Tools Section */}
-        <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
+        <div className="related-tools mt-10">
           <h2 className="text-2xl font-bold mb-5 text-center">
             {isLoading ? <Skeleton width={200} /> : t("Related Tools")}
           </h2>
@@ -1460,22 +1465,27 @@ const isLocalHost = typeof window !== "undefined" &&
                     />
                   ))
               : relatedTools.map((tool, index) => (
-                  <a
-                    key={index}
-                    href={tool.link}
-                    className="flex items-center border rounded-lg p-4 bg-gray-100 transition"
-                  >
-                    <Image
-                      src={tool.logo.src}
-                      alt={`${tool.name} Icon`}
-                      width={64}
-                      height={64}
-                      className="mr-4"
-                    />
-                    <span className="text-blue-600 font-medium">
-                      {tool.name}
-                    </span>
-                  </a>
+                <a key={tool?.id || index} href={tool?.link}>
+                <div className="group h-full cursor-pointer rounded-xl bg-indigo-50  p-6 shadow-sm transition-all duration-200 hover:scale-[102%] hover:shadow-xl hover:ring-2 hover:ring-indigo-500 hover:border-2 hover:border-indigo-500 hover:bg-indigo-500 hover:bg-opacity-10 hover:backdrop-blur-md">
+                  <div className="mb-4 flex items-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border bg-white shadow-sm group-hover:shadow-md">
+                      <Image
+                        alt={tool?.name}
+                        className="rounded-full"
+                        src={tool?.logo}
+                        height={28}
+                        width={28} // Add width for proper optimization
+                        quality={50} // reduce quality if needed
+          loading="lazy" // lazy load
+                      />
+                    </div>
+                    <h3 className="m-4 text-lg font-bold text-gray-900 group-hover:text-indigo-600">
+                      {tool?.name}
+                    </h3>
+                  </div>
+                 
+                </div>
+              </a>
                 ))}
           </div>
         </div>
