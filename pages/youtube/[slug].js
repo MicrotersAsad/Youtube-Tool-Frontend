@@ -15,7 +15,11 @@ const BlogPost = ({
   authorData,
   initialShortcodes,
   hreflangs,
+  metaTitle,
+  metaDescription,
+  metaImage
 }) => {
+
   const { t } = useTranslation("blog");
   const router = useRouter();
   const { slug } = router.query;
@@ -30,11 +34,21 @@ const BlogPost = ({
   const translation = blog?.translations?.[locale];
 
   useEffect(() => {
+    const titleElement = document.querySelector("title");
+  
+    // যদি title ট্যাগে কোনো ক্লাস থাকে, তা সরিয়ে ফেলবে
+    if (titleElement) {
+      titleElement.removeAttribute("class"); // ক্লাস অ্যাট্রিবিউট রিমুভ করবে
+    }
+  }, []);
+
+
+  useEffect(() => {
     const fetchRelatedBlogs = async () => {
       try {
         // Set up the initial page and limit for the request
         const page = 1; // Start from page 1
-        const limit = 300; // Fetch 300 blogs at a time
+        const limit = 600; // Fetch 300 blogs at a time
 
         // Get the token from localStorage or other secure places
         const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
@@ -56,11 +70,11 @@ const BlogPost = ({
         }
 
         const data = await response.json();
-        console.log("Fetched blogs data:", data);
+
 
         if (Array.isArray(data.data)) {
           const allBlogs = data.data;
-          console.log("All blogs:", allBlogs);
+    
 
           // Filter out the current blog and match the category of related blogs
           const filteredBlogs = allBlogs.filter(
@@ -73,7 +87,7 @@ const BlogPost = ({
           );
 
           setRelatedBlogs(filteredBlogs);
-          console.log("Filtered related blogs:", filteredBlogs);
+      
         } else {
           console.error("Blogs data is not an array:", data);
         }
@@ -107,9 +121,7 @@ const BlogPost = ({
     ? format(new Date(blog.createdAt), "MMMM dd, yyyy")
     : "";
 
-  const renderMetaTitle = () => translation.metaTitle || t("Blog Post");
-  const renderMetaDescription = () => translation.metaDescription || t("Read this amazing blog post.");
-  const renderMetaImage = () => translation.image || "/default.jpg";
+
 
   const renderContentWithShortcodes = () => {
     return <ReplaceShortcodes content={content} shortcodes={shortcodes} />;
@@ -117,36 +129,37 @@ const BlogPost = ({
 
   return (
     <div className="relative">
-      <Head>
-        <title>{renderMetaTitle()}</title>
-        <meta name="description" content={renderMetaDescription()} />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="robots" content="index, follow" />
+     <Head>
+  <title>{metaTitle}</title> {/* এখানে কোনো ক্লাস লাগবে না */}
+  <meta name="description" content={metaDescription} />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="index, follow" />
 
-        {/* Canonical URL */}
-        <link rel="canonical" href={metaUrl} />
-        <meta property="og:type" content="article" />
-        <meta property="og:title" content={renderMetaTitle()} />
-        <meta property="og:description" content={renderMetaDescription()} />
-        <meta property="og:image" content={renderMetaImage()} />
-        <meta property="og:url" content={metaUrl} />
-        <meta property="og:site_name" content="ytubetools" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={renderMetaTitle()} />
-        <meta property="twitter:url" content={metaUrl} />
-        <meta name="twitter:description" content={renderMetaDescription()} />
-        <meta name="twitter:image" content={renderMetaImage()} />
-        <meta name="author" content={author?.name || "ytubetools"} />
-        <meta property="article:published_time" content={blog?.createdAt || ""} />
-        <meta property="article:author" content={author?.name || ""} />
-        <meta property="article:section" content={categoryName} />
-        <meta property="article:tag" content={categoryName} />
+  {/* Canonical URL */}
+  <link rel="canonical" href={metaUrl} />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content={metaTitle} />
+  <meta property="og:description" content={metaDescription} />
+  <meta property="og:image" content={metaImage} />
+  <meta property="og:url" content={metaUrl} />
+  <meta property="og:site_name" content="ytubetools" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={metaTitle} />
+  <meta property="twitter:url" content={metaUrl} />
+  <meta name="twitter:description" content={metaDescription} />
+  <meta name="twitter:image" content={metaImage} />
+  <meta name="author" content={author?.name || "ytubetools"} />
+  <meta property="article:published_time" content={blog?.createdAt || ""} />
+  <meta property="article:author" content={author?.name || ""} />
+  <meta property="article:section" content={categoryName} />
+  <meta property="article:tag" content={categoryName} />
 
-        {/* Alternate hreflang Tags for SEO */}
-        {hreflangs.map((hreflang, index) => (
-          <link key={index} rel={hreflang.rel} hreflang={hreflang.hreflang} href={hreflang.href} />
-        ))}
-      </Head>
+  {/* Alternate hreflang Tags for SEO */}
+  {hreflangs.map((hreflang, index) => (
+    <link key={index} rel={hreflang.rel} hreflang={hreflang.hreflang} href={hreflang.href} />
+  ))}
+</Head>
+
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
         <h1 className="md:text-5xl text-xl font-bold mb-2">{translation.title}</h1>
@@ -200,7 +213,7 @@ const BlogPost = ({
           </div>
         </div>
       </div>
-      <style jsx global>{`
+      <style>{`
           .result-content h2 {
             padding-top: 12px !important;
           }
@@ -285,10 +298,10 @@ export async function getServerSideProps({ locale, params, req }) {
     const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token  // You can change this to suit where you store the token
     if (!token) {
       console.error("Authorization token is missing.");
-      return { notFound: true };  // You can also return an error page if the token is missing
+      return { notFound: true };
     }
 
-    // Fetch youtube data from the API with the Authorization header
+    // Fetch YouTube data from the API with the Authorization header
     const { data } = await axios.get(`${apiUrl}?slug=${slug.trim().toLowerCase()}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -303,8 +316,11 @@ export async function getServerSideProps({ locale, params, req }) {
     }
 
     const blog = data;
+
     const currentTranslation =
       blog.translations[locale] || blog.translations[blog.defaultLanguage];
+      
+      
     if (!currentTranslation) {
       console.error(`Translation for locale "${locale}" not found.`);
       return { notFound: true };
@@ -312,7 +328,7 @@ export async function getServerSideProps({ locale, params, req }) {
 
     const currentSlug = currentTranslation.slug;
     if (currentSlug.trim().toLowerCase() !== slug.trim().toLowerCase()) {
-      console.log("Slug mismatch detected. Redirecting...");
+  
       return {
         redirect: {
           destination: `/youtube/${currentSlug}`,
@@ -337,16 +353,26 @@ export async function getServerSideProps({ locale, params, req }) {
       })),
     ];
 
-    // Fetch shortcodes
+    // Fetch shortcodes (if any)
     const shortcodesResponse = await axios.get(`${protocol}://${host}/api/shortcodes-tools`);
     const initialShortcodes = shortcodesResponse.data;
+
+    // Prepare the meta information
+    const metaTitle = currentTranslation.metaTitle || 'Default Blog Title';
+ 
+    
+    const metaDescription = currentTranslation.metaDescription || 'This is a brief description of the blog content. Customize it for SEO purposes.';
+    const metaImage = currentTranslation.image || 'https://yourdomain.com/default-image.jpg'; // Add a fallback image URL if no image is found.
 
     return {
       props: {
         initialBlog: blog,
         initialShortcodes,
-        metaUrl, // Pass meta URL to component
-        hreflangs, // Pass hreflangs to component
+        metaUrl,
+        hreflangs,
+        metaTitle,        // Pass meta title to component
+        metaDescription,  // Pass meta description to component
+        metaImage,        // Pass meta image to component
         ...(await serverSideTranslations(locale, ["blog", "navbar", "footer"])),
       },
     };
@@ -357,6 +383,7 @@ export async function getServerSideProps({ locale, params, req }) {
     };
   }
 }
+
 
 
 

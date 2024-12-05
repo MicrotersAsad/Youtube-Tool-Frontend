@@ -12,9 +12,6 @@ class MyDocument extends Document {
           <Main />
           <NextScript />
 
-          {/* React and ReactDOM scripts with defer */}
-          <script src="https://unpkg.com/react@17.0.2/umd/react.production.min.js" defer></script>
-          <script src="https://unpkg.com/react-dom@17.0.2/umd/react-dom.production.min.js" defer></script>
           
           {/* jQuery script with defer */}
           <script

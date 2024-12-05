@@ -17,7 +17,6 @@ import { format } from "date-fns";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import Head from "next/head";
-import dynamic from "next/dynamic";
 import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
@@ -806,6 +805,7 @@ const isLocalHost = typeof window !== "undefined" &&
           <h1 className="text-3xl text-white">
             {isLoading ? <Skeleton width={250} /> : t("YouTube Tag Generator")}
           </h1>
+          <p className="text-center text-white">The YouTube Tag Generator helps creators generate relevant and optimized tags for their videos. By inputting keywords or video details, the tool suggests a list of tags that can improve video discoverability, SEO, and ranking on YouTube's search results. It simplifies the process of finding the most effective tags to attract more viewers and grow your channel.</p>
 
           <ToastContainer />
 

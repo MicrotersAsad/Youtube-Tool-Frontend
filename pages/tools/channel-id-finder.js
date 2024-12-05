@@ -159,19 +159,6 @@ const ChannelIdFinder = ({  meta,
     }
   };
 
-  // const fetchReviews = async () => {
-  //   try {
-  //     const response = await fetch("/api/reviews?tool=channel-id-finder");
-  //     const data = await response.json();
-  //     const formattedData = data.map((review) => ({
-  //       ...review,
-  //       createdAt: format(new Date(review.createdAt), "MMMM dd, yyyy"),
-  //     }));
-  //     setReviews(formattedData);
-  //   } catch (error) {
-  //     console.error(t("Failed to fetch reviews:"), error);
-  //   }
-  // };
 
   
   const handleReviewSubmit = async () => {
@@ -486,7 +473,10 @@ const ChannelIdFinder = ({  meta,
           <ToastContainer />
           <h1 className="text-3xl font-bold text-center text-white mb-6">
             {t("YouTube Channel ID Finder")}
+          <p className="text-center pt-2">The YouTube Channel ID Finder is a useful tool for easily locating the unique identifier (Channel ID) of any YouTube channel. By simply entering the channel's URL , users can quickly retrieve the channel's ID,  managing video content, or linking to specific channels directly.</p>
+            
           </h1>
+          <p></p>
           {modalVisible && (
             <div
               className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
