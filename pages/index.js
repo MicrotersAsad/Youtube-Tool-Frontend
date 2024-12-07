@@ -565,9 +565,12 @@ const Home = ({ initialBlogs = [] }) => {
               {blog.author}
             </p>
             <p className="text-sm text-gray-500 ms-auto">
-              <FaCalendar className="text-center text-red-400 inline me-2" />
-              <span className="text-xs">{blog?.createdAt}</span>
-            </p>
+  <FaCalendar className="text-center text-red-400 inline me-2" />
+  <span className="text-xs">
+    {new Date(blog?.createdAt).toLocaleDateString('en-US')}
+  </span>
+</p>
+
           </div>
         </div>
       ))
