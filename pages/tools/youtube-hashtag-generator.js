@@ -597,9 +597,10 @@ const YouTubeHashtagGenerator = ({ meta, reviews, content, relatedTools, faqs,re
 </Script>
 
 
-          <h2 className="text-3xl text-white">
+          <h1 className="text-3xl text-white">
             {t("YouTube Hashtag Generator")}
-          </h2>
+          </h1>
+          <p className="text-white pb-3">The YouTube Hashtag Generator is a powerful tool designed to help content creators  by generating  trending hashtags</p>
           <ToastContainer />
           {modalVisible && (
             <div

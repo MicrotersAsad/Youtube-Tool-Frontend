@@ -527,7 +527,8 @@ const KeywordSearch = ({ initialMeta,meta, faqList, tools, content, reactions,hr
 
 
           <h1 className="text-3xl pt-5 text-white">{t('YouTube Keyword Research')}</h1>
-        
+          <p className="text-white pb-3">A YouTube Keyword Research Tool helps content creators identify the most relevant and high-ranking keywords for their videos</p>
+         
           {modalVisible && (
             <div
               className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"

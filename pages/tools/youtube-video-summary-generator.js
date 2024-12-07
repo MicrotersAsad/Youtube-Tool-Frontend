@@ -438,9 +438,12 @@ const VideoSummarizer = ({ meta, reviews, content, relatedTools, faqs,reactions,
 
 
           <ToastContainer />
-          <h1 className="text-3xl font-bold text-center mb-6 text-white">
+          <h1 className="text-3xl font-bold text-center mb-3 text-white">
             {t("YouTube Video Summarizer")}
           </h1>
+          <p className="text-white pb-3">
+          The YouTube Video Summary Generator is a tool that automatically creates concise summaries of YouTube videos
+          </p>
           {modalVisible && (
             <div
               className="bottom-0 right-0 bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3 z-50"

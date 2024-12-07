@@ -499,6 +499,7 @@ const VideoDataViewer =  ({ meta, reviews, content, relatedTools, faqs,reactions
 
 
           <h1 className="text-3xl pt-5 text-white">{t("YouTube Video Data Viewer")}</h1>
+          <p className="text-white pb-3">The YouTube Video Data Viewer is a tool designed to provide detailed insights and analytics for YouTube videos</p>
           <ToastContainer />
           {modalVisible && (
             <div

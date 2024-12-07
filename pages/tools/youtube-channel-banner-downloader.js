@@ -563,6 +563,7 @@ const YtChannelDw =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
           <h1 className="text-3xl pt-5 text-white">
             {t('YouTube Channel Banner Download')}
           </h1>
+          <p className="text-white">A YouTube Channel Banner Download Tool is a handy resource for downloading channel banners from YouTube profiles</p>
           <ToastContainer />
           {modalVisible && (
             <div

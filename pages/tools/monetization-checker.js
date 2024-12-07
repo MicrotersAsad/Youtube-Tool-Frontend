@@ -475,6 +475,7 @@ const MonetizationChecker = ({ meta, reviews, content, relatedTools, faqs,reacti
           <h1 className="text-3xl font-bold text-center mb-6 text-white">
             {t("YouTube Monetization Checker")}
           </h1>
+          <p className="text-white pb-3">The YouTube Monetization Checker  helps creators determine if their  channel meets the eligibility requirements for monetization. </p>
           {modalVisible && (
             <div
               className="bottom-0 right-0 bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3 z-50"

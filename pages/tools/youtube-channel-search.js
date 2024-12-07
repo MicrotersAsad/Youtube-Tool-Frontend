@@ -546,6 +546,10 @@ const YouTubeChannelScraper = ({
           <h1 className="text-center text-white text-2xl font-bold mb-4">
             {t("YouTube Channel Search")}
           </h1>
+          <p className="text-white pb-3">
+          YouTube Channel Search is a tool that helps you discover and explore YouTube channels based on keywords, niches, or topics.
+          </p>
+        
           {modalVisible && (
             <div
               className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"

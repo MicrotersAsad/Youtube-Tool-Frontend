@@ -23,7 +23,6 @@ import announce from "../../public/shape/announce.png";
 import chart from "../../public/shape/chart (1).png";
 import cloud from "../../public/shape/cloud.png";
 import cloud2 from "../../public/shape/cloud2.png";
-import { format } from "date-fns";
 import { i18n, useTranslation } from "next-i18next";
 import { getContentProps } from '../../utils/getContentProps';
 import Script from "next/script";
@@ -539,9 +538,10 @@ const YouTubeChannelLogoDownloader =  ({ meta, reviews, content, relatedTools, f
 </Script>
 
 
-          <h2 className="text-3xl pt-5 text-white">
+          <h1 className="text-3xl pt-5 text-white">
             {t('YouTube Channel Logo Download')}
-          </h2>
+          </h1>
+          <p className="text-white pb-2">A YouTube Channel Logo Downloader is a tool that enables users to quickly and easily download the profile logo</p>
           <ToastContainer />
           {modalVisible && (
             <div

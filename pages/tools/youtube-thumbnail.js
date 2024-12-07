@@ -509,9 +509,10 @@ const YtThumbnailDw = ({
 </Script>
 
         
-          <h2 className="text-3xl pt-5 text-white">
+          <h1 className="text-3xl pt-5 text-white">
             {t("YouTube Thumbnails Downloader")}
-          </h2>
+          </h1>
+          <p className="pb-3 text-white">YouTube Thumbnails Download is a user-friendly tool that allows you to  save high-quality thumbnails from any YouTube video</p>
           <ToastContainer />
           {modalVisible && (
             <div

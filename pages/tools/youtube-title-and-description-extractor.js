@@ -28,6 +28,7 @@ import { i18n, useTranslation } from "next-i18next";
 import Script from "next/script";
 import dynamic from 'next/dynamic';
 import { getContentProps } from "../../utils/getContentProps";
+import { useRouter } from "next/router";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const TitleDescriptionExtractor =({ meta, reviews, content, relatedTools, faqs,reactions,hreflangs})  => {
   const { user, updateUserProfile } = useAuth();
@@ -58,6 +59,7 @@ const TitleDescriptionExtractor =({ meta, reviews, content, relatedTools, faqs,r
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportText, setReportText] = useState("");
   const [isSaved, setIsSaved] = useState(false);
+  const router=useRouter()
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -495,9 +497,10 @@ const TitleDescriptionExtractor =({ meta, reviews, content, relatedTools, faqs,r
 
 
 
-          <h2 className="text-3xl text-white">
+          <h1 className="text-3xl text-white">
             {t("YouTube Title & Description Extractor")}
-          </h2>
+          </h1>
+          <p className="text-white pb-3">Easily retrieve titles and descriptions from any YouTube video with our YouTube Title and Description Extractor</p>
           <ToastContainer />
           {modalVisible && (
             <div

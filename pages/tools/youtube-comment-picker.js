@@ -478,6 +478,8 @@ const YouTubeCommentPicker =  ({ meta, reviews, content, relatedTools, faqs,reac
           <ToastContainer />
           <div className="bg-white p-4 rounded-lg shadow-md">
             <h1 className="text-center">{t("YouTube Comment Picker")}</h1>
+            <p className=" pb-3">
+            A YouTube Comment Picker is an online tool that randomly selects winners from the comments of a YouTube video.</p>
             {modalVisible && (
               <div
                 className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"

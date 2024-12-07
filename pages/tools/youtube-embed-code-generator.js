@@ -41,7 +41,7 @@ const YtEmbedCode =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
   const [embedCode, setEmbedCode] = useState("");
   const [isUpdated, setIsUpdated] = useState(false);
   const [newReview, setNewReview] = useState({ rating: 0, embed: "" });
-  const [modalVisable, setModalVisable] = useState(true);
+  const [modalVisable, setModalVisible] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
@@ -53,6 +53,7 @@ const YtEmbedCode =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportText, setReportText] = useState("");
   const [isSaved, setIsSaved] = useState(false);
+
   const router =useRouter()
   const closeRform = () => setShowReviewForm(false);
   useEffect(() => {
@@ -501,9 +502,10 @@ const YtEmbedCode =  ({ meta, reviews, content, relatedTools, faqs,reactions,hre
 </Script>
 
 
-          <h2 className="text-3xl pt-5 text-white">
+          <h1 className="text-3xl pt-5 text-white">
             {t("YouTube Embed Code Generator")}
-          </h2>
+          </h1>
+          <p className="text-white pb-3">YouTube Embed Code Generator is a user-friendly tool that allows you to easily create HTML embed codes for YouTube videos.</p>
           <ToastContainer />
           {modalVisable && (
             <div

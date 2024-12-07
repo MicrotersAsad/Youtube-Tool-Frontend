@@ -36,7 +36,6 @@ const YTTitleGenerator = ({
   reviews = [], // Default to an empty array here
   relatedTools,
   content,
-  translations,
   hreflangs,
   reactions: initialReactions = { likes: 0, unlikes: 0, users: {} },
 }) => {
@@ -677,6 +676,7 @@ const YTTitleGenerator = ({
           </Script>
 
           <h1 className="text-3xl text-white">{"YouTube Title Generator"}</h1>
+          <p className="text-white">Easily create catchy, SEO-friendly titles that boost your video’s visibility and attract more viewers.</p>
 
           {modalVisible && (
             <div

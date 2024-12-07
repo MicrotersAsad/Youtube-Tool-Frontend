@@ -537,6 +537,7 @@ const TrendingVideos =  ({ meta, reviews, content, relatedTools, faqs,reactions,
 
 <div className="border max-w-4xl mx-auto shadow-sm rounded p-5 bg-light">
   <h1 className="text-center">{t('YouTube Trending Videos')}</h1>
+  <p className=" pb-3">The YouTube Trending Videos tool shows the most popular videos currently on YouTube, based on factors like views, likes, comments, and shares.</p>
   <div className="flex flex-col sm:flex-row items-center justify-center mx-auto w-full sm:w-3/4 space-x-0 sm:space-x-4 space-y-4 sm:space-y-0 mb-4 mt-5">
     <select
       value={country}
