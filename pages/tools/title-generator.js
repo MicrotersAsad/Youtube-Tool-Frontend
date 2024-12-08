@@ -29,6 +29,7 @@ import { i18n, useTranslation } from "next-i18next";
 import dynamic from "next/dynamic";
 import Script from "next/script";
 import StarRating from "./StarRating";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const YTTitleGenerator = ({
   meta,
