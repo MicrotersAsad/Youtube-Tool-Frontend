@@ -22,7 +22,7 @@ import dynamic from "next/dynamic";
 import Script from "next/script";
 import { getContentProps } from "../../utils/getContentProps";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
-
+import ReCAPTCHA from "react-google-recaptcha";
 const MonetizationChecker = ({ meta, reviews, content, relatedTools, faqs,reactions,hreflangs}) => {
   const { user, updateUserProfile } = useAuth();
   const router = useRouter();
@@ -51,7 +51,69 @@ const MonetizationChecker = ({ meta, reviews, content, relatedTools, faqs,reacti
   const [generateCount, setGenerateCount] = useState(0);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
+  const [siteKey,setSiteKey]=useState()
+ const [captchaVerified, setCaptchaVerified] = useState(false); 
 
+
+ // Check if running on localhost
+const isLocalHost = typeof window !== "undefined" && 
+(window.location.hostname === "localhost" || 
+ window.location.hostname === "127.0.0.1" || 
+ window.location.hostname === "::1");
+ const handleCaptchaChange = (value) => {
+  // This is the callback from the reCAPTCHA widget
+  if (value) {
+    setCaptchaVerified(true); // Set captchaVerified to true when the user completes reCAPTCHA
+  }
+};
+useEffect(() => {
+  const fetchConfigs = async () => {
+    try {
+      const protocol = window.location.protocol === "https:" ? "https" : "http";
+      const host = window.location.host;
+      
+      // Retrieve the JWT token from localStorage (or other storage mechanisms)
+      const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace 'authToken' with your key if different
+      
+        
+      if (!token) {
+        console.error('No authentication token found!');
+        return;
+      }
+
+      // Make the API call with the Authorization header containing the JWT token
+      const response = await fetch(`${protocol}://${host}/api/extensions`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Include the token in the header
+        },
+      });
+
+      const result = await response.json();
+
+
+      if (result.success) {
+        // reCAPTCHA configuration
+        const captchaExtension = result.data.find(
+          (ext) => ext.key === "google_recaptcha_2" && ext.status === "Enabled"
+        );
+        if (captchaExtension && captchaExtension.config.siteKey) {
+          setSiteKey(captchaExtension.config.siteKey);
+        } else {
+          console.error("ReCAPTCHA configuration not found or disabled.");
+        }
+      } else {
+        console.error('Error fetching extensions:', result.message);
+      }
+    } catch (error) {
+      console.error("Error fetching configurations:", error);
+    } finally {
+      setLoading(false); // Data has been loaded
+    }
+  };
+
+  fetchConfigs();
+}, []);
 
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -137,6 +199,14 @@ const MonetizationChecker = ({ meta, reviews, content, relatedTools, faqs,reacti
   const handleFetchClick = async () => {
     if (!url.trim()) {
       toast.error(t("Please enter a valid URL."));
+      return;
+    }
+    if (!user) {
+      toast.error(t("Please log in to fetch channel data."));
+      return;
+    }
+    if (!captchaVerified) {
+      toast.error(t("Pls Complete this captcha"));
       return;
     }
 
@@ -538,6 +608,16 @@ const MonetizationChecker = ({ meta, reviews, content, relatedTools, faqs,reacti
         onChange={handleInputChange}
       />
     </div>
+
+    <div className="ms-4">
+  {/* reCAPTCHA Section */}
+{!isLocalHost && siteKey && (
+  <ReCAPTCHA
+    sitekey={siteKey} // সঠিকভাবে `sitekey` পাঠানো
+    onChange={handleCaptchaChange}
+  />
+)}
+</div>
     <div className="flex items-center mt-4 md:mt-0 ps-6 pe-6">
     <button
   className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-purple-400"

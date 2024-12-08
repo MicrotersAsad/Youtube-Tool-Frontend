@@ -130,9 +130,6 @@ useEffect(() => {
   fetchConfigs();
 }, []);
 
-const isGenerateButtonActive = () => {
-  return captchaVerified && fetchLimitExceeded 
-};
 
 useEffect(() => {
   const fetchContent = async () => {
