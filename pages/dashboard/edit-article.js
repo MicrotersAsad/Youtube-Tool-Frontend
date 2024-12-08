@@ -37,6 +37,28 @@ function EditBlog() {
       fetchBlogData(id, language);
     }
   }, [id, language]);
+  
+  // Fetch categories and set the state
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/yt-categories');
+      if (!response.ok) {
+        throw new Error('Failed to fetch categories');
+      }
+      const data = await response.json();
+      
+      // Check if data is an array and contains the expected structure
+      if (Array.isArray(data)) {
+        setCategories(data);
+      } else {
+        console.error('Invalid categories data:', data);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error.message);
+    }
+  };
+  
+  
 
   useEffect(() => {
     // Automatically generate a slug from the title
@@ -56,25 +78,16 @@ function EditBlog() {
       .replace(/-+$/, ''); // Trim - from end of text
   };
 
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch('/api/yt-categories');
-      if (!response.ok) {
-        throw new Error('Failed to fetch categories');
-      }
-      const data = await response.json();
-      setCategories(data);
-    } catch (error) {
-      console.error('Error fetching categories:', error.message);
+  useEffect(() => {
+    if (selectedCategory) {
+      fetchBlogData();
     }
-  };
+  }, [selectedCategory]);
 
   const fetchAuthors = async () => {
     try {
       const response = await fetch('/api/authors');
-      if (!response.ok) {
-        throw new Error('Failed to fetch authors');
-      }
+      
       const data = await response.json();
       setAuthors(data);
     } catch (error) {
@@ -96,19 +109,22 @@ function EditBlog() {
           'Authorization': `Bearer ${token}`, // Add Bearer token for authentication
         },
       });
+  console.log(response);
   
       if (!response.ok) {
-        throw new Error('Failed to fetch blog data');
+        throw new Error('');
       }
   
       const data = await response.json();
   
       if (data.translations && data.translations[lang]) {
         const translation = data.translations[lang];
+     
+        
   
         // Set the state with the fetched data
         setQuillContent(translation.content || '');
-        setSelectedCategory(translation.category?._id || '');
+        setSelectedCategory(translation?.category || '');
         setTitle(translation.title || '');
         setMetaTitle(translation.metaTitle || '');
         setSlug(translation.slug || '');
@@ -140,81 +156,81 @@ function EditBlog() {
   };
   
 
-  const handleSave = useCallback(async () => {
-    try {
-      console.log('Selected Category ID being sent:', selectedCategory); // Debugging
-  
-      // Ensure category is selected and has a valid length
-      if (!selectedCategory || selectedCategory.length !== 24) throw new Error('Please select a valid category');
-  
-      // Prepare the form data for the request
-      const formData = new FormData();
-      formData.append('content', quillContent);
-      formData.append('title', title);
-      formData.append('slug', slug);
-      formData.append('metaTitle', metaTitle);
-      formData.append('metaDescription', metaDescription);
-      formData.append('description', description);
-      
-      // Handle image file (either the new one or the initial one)
-      if (image) {
-        formData.append('image', image);
-      } else if (initialImage) {
-        formData.append('image', initialImage);
-      }
-  
-      formData.append('category', selectedCategory);
-      formData.append('author', selectedAuthor);
-      formData.append('editor', selectedEditor);
-      formData.append('developer', selectedDeveloper);
-      formData.append('isDraft', JSON.stringify(isDraft));
-      formData.append('language', language);
-  
-      // Retrieve the authentication token (adjust this based on your app's storage method)
-      const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
-  
-      if (!token) {
-        throw new Error('You are not authenticated. Please log in.');
-      }
-  
-      // Send the PUT request with the authorization header
-      const response = await fetch(`/api/youtube?id=${id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,  // Adding the Bearer token for authentication
-        },
-        body: formData,
-      });
-  
-      if (!response.ok) {
-        const errorMessage = await response.text();
-        throw new Error(`Failed to update content: ${errorMessage}`);
-      }
-  
-      // Reset any errors and show success message
-      setError(null);
-      toast.success('Content updated successfully!');
-      
-      // Redirect to the dashboard or desired location
-      router.push('/dashboard/all-article');
-    } catch (error) {
-      console.error('Error updating content:', error.message);
-      setError(error.message);
+
+
+
+const handleSave = useCallback(async () => {
+  try {
+ 
+
+    // ক্যাটাগরি নাম যাচাই করা
+    if (!selectedCategory || selectedCategory === 'Uncategorized') {
+      throw new Error('Please select a valid category');
     }
-  }, [
-    quillContent, selectedCategory, metaTitle, metaDescription, description, 
-    title, slug, image, initialImage, isDraft, id, router, language, 
-    selectedAuthor, selectedEditor, selectedDeveloper
-  ]);
-  
+
+    // FormData তৈরি করা
+    const formData = new FormData();
+    formData.append('content', quillContent);
+    formData.append('title', title);
+    formData.append('slug', slug);
+    formData.append('metaTitle', metaTitle);
+    formData.append('metaDescription', metaDescription);
+    formData.append('description', description);
+
+    // ইমেজ ফাইল (যদি থাকে) অ্যাড করা
+    if (image) {
+      formData.append('image', image);
+    } else if (initialImage) {
+      formData.append('image', initialImage);
+    }
+
+    formData.append('category', selectedCategory);  // এখানে নাম পাঠানো হচ্ছে
+    formData.append('author', selectedAuthor);
+    formData.append('editor', selectedEditor);
+    formData.append('developer', selectedDeveloper);
+    formData.append('isDraft', JSON.stringify(isDraft));
+    formData.append('language', language);
+
+    // API কল করা
+    const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // উদাহরণ টোকেন
+
+    if (!token) {
+      throw new Error('You are not authenticated. Please log in.');
+    }
+
+    const response = await fetch(`/api/youtube?id=${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorMessage = await response.text();
+      throw new Error(`Failed to update content: ${errorMessage}`);
+    }
+
+    toast.success('Content updated successfully!');
+    router.push('/dashboard/all-article');
+  } catch (error) {
+    console.error('Error updating content:', error.message);
+    setError(error.message);
+  }
+}, [
+  quillContent, selectedCategory, metaTitle, metaDescription, description, 
+  title, slug, image, initialImage, isDraft, id, router, language, 
+  selectedAuthor, selectedEditor, selectedDeveloper
+]);
+
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
   }, []);
 
   const handleCategoryChange = (e) => {
-    const selectedId = e.target.value;
-    console.log('Selected Category ID:', selectedId); // Debugging line
-    setSelectedCategory(selectedId);
+    const selectedName = e.target.value;
+   
+    setSelectedCategory(selectedName); // Set the category name instead of the ID
   };
   
   
@@ -295,25 +311,32 @@ function EditBlog() {
               className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
             />
           </div>
-          <div className="mb-3">
-            <label htmlFor="category" className="block mb-2 text-lg font-medium">Categories*</label>
-            <select
-  id="category"
-  value={selectedCategory || ''}
-  onChange={handleCategoryChange}
-  className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
->
-  <option value="" disabled>Select a category</option>
-  {categories
-    .filter((category) => category.translations && category.translations[language])
-    .map((category) => (
-      <option key={category._id} value={category._id}>
-        {category.translations[language].name || category.translations['en'].name}
-      </option>
-    ))}
-</select>
+          
+ 
+<div className="mb-3">
+  <label htmlFor="category" className="block mb-2 text-lg font-medium">Categories*</label>
+  <div className="mb-3">
+  <label htmlFor="category" className="block mb-2 text-lg font-medium">Categories*</label>
+  <select
+    id="category"
+    value={selectedCategory || ''}  // এখানে selectedCategory নাম থাকবে
+    onChange={handleCategoryChange}
+    className="w-full border border-gray-300 rounded-lg p-3 shadow-sm"
+    disabled={categories.length === 0} // যদি ক্যাটাগরি না থাকে
+  >
+    <option value="" disabled>Select a category</option>
+    {categories
+      .filter((category) => category.translations && category.translations[language]) // ক্যাটাগরি ট্রান্সলেশন চেক করুন
+      .map((category) => (
+        <option key={category._id} value={category.translations[language]?.name || category.translations['en'].name}> {/* এখানে নামটিই ব্যবহার করুন */}
+          {category.translations[language]?.name || category.translations['en'].name}
+        </option>
+      ))}
+  </select>
+</div>
 
-          </div>
+</div>
+
           <div className="mb-3">
             <label htmlFor="metaDescription" className="block mb-2 text-lg font-medium">Meta Description</label>
             <textarea

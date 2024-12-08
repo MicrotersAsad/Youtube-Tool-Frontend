@@ -311,19 +311,29 @@ const handleGetRequest = async (req, res, youtube, query) => {
 
 const handlePutRequest = async (req, res, youtube, query) => {
   try {
-    await runMiddleware(req, res, upload.single('image'));
+    await runMiddleware(req, res, upload.single('image'));  // মিডলওয়্যার রান
 
-    const id = query.id;
+    const id = query.id;  // ইউটিউব আইডি
     const { language, category, ...updatedData } = req.body;
 
+    // আইডি যাচাই
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid youtube ID format' });
     }
 
+    // যদি ক্যাটাগরি নাম প্রদান করা থাকে, তাহলে সেটি সরাসরি আপডেট করা হবে
+    if (category && category !== 'Uncategorized') {
+      updatedData.category = category;  // ক্যাটাগরি নাম হিসাবে আপডেট করা হচ্ছে
+    } else {
+      delete updatedData.category;  // ক্যাটাগরি যদি না থাকে তবে রিমুভ করা হবে
+    }
+
+    // যদি ছবি আপলোড করা থাকে, সেটি আপডেট করা হবে
     if (req.file) {
       updatedData.image = req.file.location;
     }
 
+    // ডাটা আপডেটের জন্য ডকুমেন্ট তৈরি
     const updateDoc = {
       $set: {
         [`translations.${language}.title`]: updatedData.title,
@@ -331,7 +341,7 @@ const handlePutRequest = async (req, res, youtube, query) => {
         [`translations.${language}.metaTitle`]: updatedData.metaTitle,
         [`translations.${language}.description`]: updatedData.description,
         [`translations.${language}.metaDescription`]: updatedData.metaDescription,
-        [`translations.${language}.category`]: updatedData.category,
+        [`translations.${language}.category`]: updatedData.category,  // ক্যাটাগরি নাম এখানে ব্যবহার করা হবে
         [`translations.${language}.image`]: updatedData.image,
         [`translations.${language}.slug`]: updatedData.slug,
         author: updatedData.author,
@@ -340,20 +350,26 @@ const handlePutRequest = async (req, res, youtube, query) => {
       },
     };
 
+
+
+    // ইউটিউব ব্লগ আপডেট করা
     const result = await youtube.updateOne(
       { _id: new ObjectId(id) },
       updateDoc
     );
 
+    // যদি আপডেট সফল হয়
     if (result.modifiedCount === 1) {
       res.status(200).json({ message: 'Data updated successfully' });
     } else {
       res.status(404).json({ message: 'Data not found or no changes made' });
     }
   } catch (error) {
-    errorHandler(res, error);
+    errorHandler(res, error);  // যদি কোনো ত্রুটি ঘটে
   }
 };
+
+
 
 const handleDeleteRequest = async (req, res, youtube, query) => {
   try {
