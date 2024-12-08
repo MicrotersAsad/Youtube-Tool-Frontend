@@ -76,7 +76,7 @@ const YTtagGenerator = ({
   const router = useRouter();
   const [tags, setTags] = useState([]);
   const [input, setInput] = useState("");
-  const [generatedtags, setGeneratedtags] = useState([]);
+  const [generatedTitles, setGeneratedTitles] = useState([]);
   const [isLoading, setIsLoading] = useState(false)
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
@@ -85,7 +85,7 @@ const YTtagGenerator = ({
   const [captchaVerified, setCaptchaVerified] = useState(false); // State for reCAPTCHA
   const [newReview, setNewReview] = useState({
     name: "",
-    tag: "",
+    title: "",
     rating: 0,
     comment: "",
     userProfile: "",
@@ -305,9 +305,9 @@ const isLocalHost = typeof window !== "undefined" &&
   const handleSelectAll = () => {
     const newSelection = !selectAll;
     setSelectAll(newSelection);
-    setGeneratedtags(
-      generatedtags.map((tag) => ({
-        ...tag,
+    setGeneratedTitles(
+      generatedTitles.map((title) => ({
+        ...title,
         selected: newSelection,
       }))
     );
@@ -334,11 +334,11 @@ const isLocalHost = typeof window !== "undefined" &&
     setShowShareIcons(!showShareIcons);
   };
 
-  const toggletagSelect = (index) => {
-    const newtags = [...generatedtags];
-    newtags[index].selected = !newtags[index].selected;
-    setGeneratedtags(newtags);
-    setSelectAll(newtags.every((tag) => tag.selected));
+  const toggleTitleSelect = (index) => {
+    const newTitles = [...generatedTitles];
+    newTitles[index].selected = !newTitles[index].selected;
+    setGeneratedTitles(newTitles);
+    setSelectAll(newTitles.every((title) => title.selected));
   };
 
   const copyToClipboard = (text) => {
@@ -352,29 +352,29 @@ const isLocalHost = typeof window !== "undefined" &&
     );
   };
 
-  const copySelectedtags = () => {
-    const selectedtagsText = generatedtags
-      .filter((tag) => tag.selected)
-      .map((tag) => tag.text.replace(/^\d+\.\s*/, "")) // Remove leading numbers and dots
+  const copySelectedTitles = () => {
+    const selectedTitlesText = generatedTitles
+      .filter((title) => title.selected)
+      .map((title) => title.text.replace(/^\d+\.\s*/, "")) // Remove leading numbers and dots
       .join("\n");
-    copyToClipboard(selectedtagsText);
+    copyToClipboard(selectedTitlesText);
   };
 
-  const downloadSelectedtags = () => {
-    const selectedtagsText = generatedtags
-      .filter((tag) => tag.selected)
-      .map((tag) => tag.text.replace(/^\d+\.\s*/, "")) // Remove leading numbers and dots
+  const downloadSelectedTitles = () => {
+    const selectedTitlesText = generatedTitles
+      .filter((title) => title.selected)
+      .map((title) => title.text.replace(/^\d+\.\s*/, "")) // Remove leading numbers and dots
       .join("\n");
     const element = document.createElement("a");
-    const file = new Blob([selectedtagsText], { type: "text/plain" });
+    const file = new Blob([selectedTitlesText], { type: "text/plain" });
     element.href = URL.createObjectURL(file);
-    element.download = "selected_tags.txt";
+    element.download = "selected_titles.txt";
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
   };
 
-  const generatetags = async () => {
+  const generateTitles = async () => {
     if (!user) {
       toast.error(t("loginToGenerateTags"));
       return;
@@ -429,7 +429,7 @@ const isLocalHost = typeof window !== "undefined" &&
                 {
                   role: "system",
     
-                  content: `Generate a list of at least 10 SEO-friendly tag for keywords: "${tags.join(", ")}" in this ${selectedTone} & languge ${selectedLanguage}.`,
+                  content: `Generate a list of at least 10 SEO-friendly Title for keywords: "${tags.join(", ")}" in this ${selectedTone} & languge ${selectedLanguage}.`,
                 },
                 { role: "user", content: tags.join(", ") },
               ],
@@ -447,7 +447,7 @@ const isLocalHost = typeof window !== "undefined" &&
               messages: [
                 {
                   role: "system",
-                  content: `Generate a list of at least 10 SEO-friendly tag for keywords: "${tags.join(", ")}" in this languge ${selectedLanguage}.`,
+                  content: `Generate a list of at least 10 SEO-friendly Title for keywords: "${tags.join(", ")}" in this languge ${selectedLanguage}.`,
                 },
                 { role: "user", content: tags.join(", ") },
               ],
@@ -471,19 +471,19 @@ const isLocalHost = typeof window !== "undefined" &&
   
           // Check if data has choices or a similar property based on the API type
           if (data && data.choices && data.choices.length > 0) {
-            const tags = data.choices[0].message.content
+            const titles = data.choices[0].message.content
               .trim()
               .split("\n")
-              .map((tag) => ({ text: tag, selected: false }));
-            setGeneratedtags(tags);
+              .map((title) => ({ text: title, selected: false }));
+            setGeneratedTitles(titles);
             break; // Stop after the first successful response
           } else if (data && data.error) {
             console.error("Azure API Error:", data.error);
             toast.error(`Azure API Error: ${data.error.message}`);
             break; // Break the loop if there's an error response
           } else {
-            console.error("No tags found in the response:", data);
-            toast.error("Failed to generate tags.");
+            console.error("No titles found in the response:", data);
+            toast.error("Failed to generate titles.");
           }
         } catch (error) {
           console.error("Error with key:", keyData.token, error.message);
@@ -498,7 +498,7 @@ const isLocalHost = typeof window !== "undefined" &&
         localStorage.setItem("generateCount", newCount);
       }
     } catch (error) {
-      console.error("Error generating tags:", error);
+      console.error("Error generating titles:", error);
       toast.error(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
@@ -537,7 +537,7 @@ const isLocalHost = typeof window !== "undefined" &&
         name: "",
         rating: 0,
         comment: "",
-        tag: "",
+        title: "",
         userProfile: "",
       });
       setShowReviewForm(false);
@@ -693,7 +693,7 @@ const isLocalHost = typeof window !== "undefined" &&
         <div className="max-w-7xl mx-auto p-4">
           <Head>
             {/* SEO Meta Tags */}
-            <tag>{meta?.tag}</tag>
+            <title>{meta?.title}</title>
             <meta name="description" content={meta?.description} />
             <meta
               name="viewport"
@@ -706,7 +706,7 @@ const isLocalHost = typeof window !== "undefined" &&
               rel="canonical"
               href={`${meta?.url
                 .toLowerCase()
-                .replace("tagGenerator", "tag-generator")}`}
+                .replace("tagGenerator", "title-generator")}`}
             />
 
             {/* Open Graph Meta Tags */}
@@ -715,9 +715,9 @@ const isLocalHost = typeof window !== "undefined" &&
               property="og:url"
               content={`${meta?.url
                 .toLowerCase()
-                .replace("tagGenerator", "tag-generator")}`}
+                .replace("tagGenerator", "title-generator")}`}
             />
-            <meta property="og:tag" content={meta?.tag} />
+            <meta property="og:title" content={meta?.title} />
             <meta property="og:description" content={meta?.description} />
             <meta property="og:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732697885773-youtubetagGeneratora.png" />
             <meta property="og:image:secure_url" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732697885773-youtubetagGeneratora.png" />
@@ -736,9 +736,9 @@ const isLocalHost = typeof window !== "undefined" &&
               property="twitter:url"
               content={`${meta?.url
                 .toLowerCase()
-                .replace("tagGenerator", "tag-generator")}`}
+                .replace("tagGenerator", "title-generator")}`}
             />
-            <meta name="twitter:tag" content={meta?.tag} />
+            <meta name="twitter:title" content={meta?.title} />
             <meta name="twitter:description" content={meta?.description} />
             <meta name="twitter:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732697885773-youtubetagGeneratora.png" />
             <meta name="twitter:site" content="@ytubetools" />
@@ -753,27 +753,27 @@ const isLocalHost = typeof window !== "undefined" &&
                   hreflang={hreflang.hreflang}
                   href={`${hreflang.href
                     .toLowerCase()
-                    .replace("tagGenerator", "tag-generator")}`}
+                    .replace("tagGenerator", "title-generator")}`}
                 />
               ))}
           </Head>
 
           {/* JSON-LD Structured Data */}
-          <Script id="webpage-tag-generator" type="application/ld+json">
+          <Script id="webpage-title-generator" type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebPage",
-              name: meta?.tag,
+              name: meta?.title,
               url: `${meta?.url}${
                 i18n.language !== "en" ? `/${i18n.language}` : ""
-              }/tools/tag-generator`,
+              }/tools/title-generator`,
               description: meta?.description,
               breadcrumb: {
                 "@id": `${meta?.url}#breadcrumb`,
               },
               about: {
                 "@type": "Thing",
-                name: meta?.tag,
+                name: meta?.title,
               },
               isPartOf: {
                 "@type": "WebSite",
@@ -783,16 +783,16 @@ const isLocalHost = typeof window !== "undefined" &&
           </Script>
 
           <Script
-            id="software-application-tag-generator"
+            id="software-application-title-generator"
             type="application/ld+json"
           >
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
-              name: meta?.tag,
+              name: meta?.title,
               url: `${meta?.url}${
                 i18n.language !== "en" ? `/${i18n.language}` : ""
-              }/tools/tag-generator`,
+              }/tools/title-generator`,
               applicationCategory: "Multimedia",
               aggregateRating: {
                 "@type": "AggregateRating",
@@ -808,7 +808,7 @@ const isLocalHost = typeof window !== "undefined" &&
                 },
                 datePublished: review.createdAt,
                 reviewBody: review.comment,
-                name: review.tag,
+                name: review.title,
                 reviewRating: {
                   "@type": "Rating",
                   ratingValue: review.rating,
@@ -817,7 +817,7 @@ const isLocalHost = typeof window !== "undefined" &&
             })}
           </Script>
 
-          <Script id="faq-tag-generator" type="application/ld+json">
+          <Script id="faq-title-generator" type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "FAQPage",
@@ -833,7 +833,7 @@ const isLocalHost = typeof window !== "undefined" &&
           </Script>
 
           <h1 className="text-3xl text-white">{"Youtube Tag Generator"}</h1>
-          <p className="text-white">Easily create catchy, SEO-friendly tags that boost your video’s visibility and attract more viewers.</p>
+          <p className="text-white">Easily create catchy, SEO-friendly titles that boost your video’s visibility and attract more viewers.</p>
 
           {modalVisible && (
             <div
@@ -847,13 +847,13 @@ const isLocalHost = typeof window !== "undefined" &&
                     user.role === "admin" ? (
                       <p className="text-center p-3 alert-warning">
                         {t(
-                          "Congratulations! Now you can generate unlimited tags."
+                          "Congratulations! Now you can generate unlimited titles."
                         )}
                       </p>
                     ) : (
                       <p className="text-center p-3 alert-warning">
                         {t(
-                          "You are not upgraded. You can generate tags {{remaining}} more times. Upgrade",
+                          "You are not upgraded. You can generate titles {{remaining}} more times. Upgrade",
                           { remaining: 5 - generateCount }
                         )}
                         <Link href="/pricing" className="btn btn-warning ms-3">
@@ -1022,12 +1022,12 @@ const isLocalHost = typeof window !== "undefined" &&
 
       {/* Buttons Section */}
       <div className="flex items-center mt-4 ps-6 pe-6">
-        {/* Generate tags Button */}
+        {/* Generate Titles Button */}
         <button
   className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-400"
   type="button"
   id="button-addon2"
-  onClick={generatetags}
+  onClick={generateTitles}
   
 >
   {isLoading ? (
@@ -1144,8 +1144,8 @@ const isLocalHost = typeof window !== "undefined" &&
         </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
-        <div className="generated-tags-container">
-          {generatedtags.length > 0 && (
+        <div className="generated-titles-container">
+          {generatedTitles.length > 0 && (
             <div className="select-all-checkbox">
               <input
                 type="checkbox"
@@ -1155,32 +1155,32 @@ const isLocalHost = typeof window !== "undefined" &&
               <span>{t("Select All")}</span>
             </div>
           )}
-          {generatedtags.map((tag, index) => (
-            <div key={index} className="tag-checkbox">
+          {generatedTitles.map((title, index) => (
+            <div key={index} className="title-checkbox">
               <input
                 className="me-2"
                 type="checkbox"
-                checked={tag.selected}
-                onChange={() => toggletagSelect(index)}
+                checked={title.selected}
+                onChange={() => toggleTitleSelect(index)}
               />
-              {tag.text}
+              {title.text}
               <FaCopy
                 className="copy-icon"
-                onClick={() => copyToClipboard(tag.text)}
+                onClick={() => copyToClipboard(title.text)}
               />
             </div>
           ))}
-          {generatedtags.some((tag) => tag.selected) && (
-            <button className="btn btn-primary" onClick={copySelectedtags}>
-              {t("Copy All tags")} <FaCopy />
+          {generatedTitles.some((title) => title.selected) && (
+            <button className="btn btn-primary" onClick={copySelectedTitles}>
+              {t("Copy All Tag")} <FaCopy />
             </button>
           )}
-          {generatedtags.some((tag) => tag.selected) && (
+          {generatedTitles.some((title) => title.selected) && (
             <button
               className="btn btn-primary ms-2"
-              onClick={downloadSelectedtags}
+              onClick={downloadSelectedTitles}
             >
-              {t("Download tags")} <FaDownload />
+              {t("Download Tag")} <FaDownload />
             </button>
           )}
         </div>
@@ -1193,8 +1193,8 @@ const isLocalHost = typeof window !== "undefined" &&
         </div>
 
         <div className="accordion shadow p-5">
-          <h2 className="faq-tag">{t("Frequently Asked Questions")}</h2>
-          <p className="faq-subtag">
+          <h2 className="faq-title">{t("Frequently Asked Questions")}</h2>
+          <p className="faq-subtitle">
             {t(
               "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us"
             )}
@@ -1311,7 +1311,7 @@ const isLocalHost = typeof window !== "undefined" &&
                     />
                   ))}
                   <div>
-                    <span className="fw-bold mt-2 ms-2">{review?.tag}</span>
+                    <span className="fw-bold mt-2 ms-2">{review?.title}</span>
                   </div>
                 </div>
                 <div className="text-gray-500 text-sm mb-4">
@@ -1349,7 +1349,7 @@ const isLocalHost = typeof window !== "undefined" &&
                       </p>
                     </div>
                   </div>
-                  <div className="text-lg font-semibold">{review.tag}</div>
+                  <div className="text-lg font-semibold">{review.title}</div>
                   <div className="text-gray-500 mb-4">{review.date}</div>
                   <div className="text-lg mb-4">{review.comment}</div>
                   <div className="flex items-center">
@@ -1383,10 +1383,10 @@ const isLocalHost = typeof window !== "undefined" &&
                 <input
                   type="text"
                   className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder={t("tag")}
-                  value={newReview.tag}
+                  placeholder={t("Title")}
+                  value={newReview.title}
                   onChange={(e) =>
-                    setNewReview({ ...newReview, tag: e.target.value })
+                    setNewReview({ ...newReview, title: e.target.value })
                   }
                 />
               </div>
