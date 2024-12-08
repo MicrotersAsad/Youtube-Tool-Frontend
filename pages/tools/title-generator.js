@@ -872,7 +872,7 @@ const isLocalHost = typeof window !== "undefined" &&
           <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
           <div>
       {/* Keywords Input Section */}
-      <h6 htmlFor="tone" className="text-lg text-left ps-4 font-medium mb-2 mt-2 fw-bold">
+      <h6 htmlFor="tone" className="text-lg text-left ps-4 font-medium mb-2 mt-5 fw-bold">
      <FaFile  className="text-[#fa6742]"/> Enter Your Video Keywords
 </h6>
 
@@ -1523,4 +1523,4 @@ const isLocalHost = typeof window !== "undefined" &&
 export async function getServerSideProps(context) {
   return getContentProps("Titlegenerator", context.locale, context.req);
 }
-export default YTtagGenerator;
+export default YTTitleGenerator;

@@ -243,11 +243,17 @@ useEffect(() => {
       toast.error("Please enter a valid YouTube URL");
       return;
     }
-
     if (!user) {
-      toast.error("You need to be logged in to generate tags.");
+      toast.error(t("login to extract"));
       return;
     }
+  
+    if (!captchaVerified) {
+      toast.error(t("Pls Complete this capctha"));
+      return;
+    }
+  
+  
 
     if (user && user.paymentStatus !== "success" && generateCount <= 0) {
       toast.error(
@@ -694,7 +700,7 @@ useEffect(() => {
   type="button"
   id="button-addon2"
   onClick={fetchTags}
-  disabled={!isGenerateButtonActive()}
+  
 >
   {loading ? (
     <>

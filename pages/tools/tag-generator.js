@@ -372,7 +372,7 @@ const isLocalHost = typeof window !== "undefined" &&
   const generateTitles = async () => {
     // Check if required fields are filled
     if (!user || !captchaVerified || tags.length === 0 || !selectedLanguage || !selectedTone) {
-      toast.error(t("complete all fields"));
+      toast.error(t(" all fields  reqiuerd"));
       return;
     }
   
@@ -872,7 +872,7 @@ const isLocalHost = typeof window !== "undefined" &&
           <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
           <div>
       {/* Keywords Input Section */}
-      <h6 htmlFor="tone" className="text-lg text-left ps-4 font-medium mb-2 mt-2 fw-bold">
+      <h6 htmlFor="tone" className="text-lg text-left ps-4 font-medium mb-2 mt-5 fw-bold">
      <FaFile  className="text-[#fa6742]"/> Enter Your Video Keywords
 </h6>
 
