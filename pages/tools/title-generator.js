@@ -880,7 +880,7 @@ const isLocalHost = typeof window !== "undefined" &&
           <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
           <div>
       {/* Keywords Input Section */}
-      <h6 htmlFor="tone" className="text-lg font-medium mb-2 mt-2 fw-bold">
+      <h6 htmlFor="tone" className="text-lg text-left ps-4 font-medium mb-2 mt-2 fw-bold">
      <FaFile  className="text-[#fa6742]"/> Enter Your Video Keywords
 </h6>
 
@@ -933,11 +933,11 @@ const isLocalHost = typeof window !== "undefined" &&
      <div>
      
      </div>
-     <div className="flex items-start justify-between space-x-4 ms-4 me-4 sm:ms-2 sm:me-2 mt-3 shadow-xl border rounded-lg pt-3 pb-3 ps-5 pe-5">
+     <div className="flex items-start justify-between space-x-4 ms-4 me-4 sm:ms-2 sm:me-2 mt-3 shadow-xl border rounded-lg pt-3 pb-3 ps-3 pe-3">
 
  {/* Tone Section */}
  <div className="flex flex-col w-1/2">
-    <label htmlFor="tone" className="text-sm font-medium mb-2">
+    <label htmlFor="tone" className="text-sm text-left font-medium mb-2">
      <FaPhoneVolume className="text-[#fa6742]"/>  Tone:
     </label>
     <div className="relative">
@@ -971,7 +971,7 @@ const isLocalHost = typeof window !== "undefined" &&
 
   {/* Language Section */}
   <div className="flex flex-col w-1/2">
-    <label htmlFor="language" className="text-sm font-medium mb-2">
+    <label htmlFor="language" className="text-sm text-left font-medium mb-2">
      <FaLanguage className="text-[#fa6742]"/> Language:
     </label>
     <div className="relative">

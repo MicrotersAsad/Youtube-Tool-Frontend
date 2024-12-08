@@ -166,6 +166,8 @@ const isLocalHost = typeof window !== "undefined" &&
     if (value) {
       setCaptchaVerified(true); // Set captchaVerified to true when the user completes reCAPTCHA
     }
+    console.log(captchaVerified);
+    
   };
   useEffect(() => {
     const fetchConfigs = async () => {
@@ -327,11 +329,12 @@ const isLocalHost = typeof window !== "undefined" &&
   };
 
   const generateTitles = async () => {
-    if (!user) {
-      toast.error(t("loginToGenerateTags"));
+    if (!user && !isLocalHost && !captchaVerified && selectedLanguage && tags.length > 0) {
+      toast.error(t("Please complete the Required Box"));
       return;
     }
   
+    
     if (
       user.paymentStatus !== "success" &&
       user.role !== "admin" &&
@@ -651,9 +654,7 @@ const isLocalHost = typeof window !== "undefined" &&
     }
   }, []);
 
-  const isGenerateButtonActive = () => {
-    return captchaVerified && selectedLanguage && tags.length > 0;
-  };
+
   
 
   // Button color logic
@@ -1007,7 +1008,7 @@ const isLocalHost = typeof window !== "undefined" &&
   type="button"
   id="button-addon2"
   onClick={generateTitles}
-  disabled={!isGenerateButtonActive()}
+  
 >
   {isLoading ? (
     <>
