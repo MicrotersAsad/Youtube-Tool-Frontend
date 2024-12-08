@@ -4,11 +4,6 @@ import {
   FaThumbsUp,
   FaThumbsDown,
   FaFlag,
-  FaBookmark,
-  FaFacebook,
-  FaLinkedin,
-  FaInstagram,
-  FaTwitter,
   FaCopy,
   FaDownload,
   FaStar,
@@ -375,11 +370,13 @@ const isLocalHost = typeof window !== "undefined" &&
   };
 
   const generateTitles = async () => {
-    if (!user) {
-      toast.error(t("loginToGenerateTags"));
+    // Check if required fields are filled
+    if (!user || !captchaVerified || tags.length === 0 || !selectedLanguage || !selectedTone) {
+      toast.error(t("complete all fields"));
       return;
     }
   
+    // Check if user has access or needs to upgrade
     if (
       user.paymentStatus !== "success" &&
       user.role !== "admin" &&
@@ -428,8 +425,7 @@ const isLocalHost = typeof window !== "undefined" &&
               messages: [
                 {
                   role: "system",
-    
-                  content: `Generate a list of at least 10 SEO-friendly Title for keywords: "${tags.join(", ")}" in this ${selectedTone} & languge ${selectedLanguage}.`,
+                  content: `Generate a list of at least 10 SEO-friendly tags for keywords: "${tags.join(", ")}" in this ${selectedTone} tone & language ${selectedLanguage}.`,
                 },
                 { role: "user", content: tags.join(", ") },
               ],
@@ -447,7 +443,7 @@ const isLocalHost = typeof window !== "undefined" &&
               messages: [
                 {
                   role: "system",
-                  content: `Generate a list of at least 10 SEO-friendly Title for keywords: "${tags.join(", ")}" in this languge ${selectedLanguage}.`,
+                  content: `Generate a list of at least 10 SEO-friendly tags for keywords: "${tags.join(", ")}" in this language ${selectedLanguage}.`,
                 },
                 { role: "user", content: tags.join(", ") },
               ],
@@ -465,9 +461,6 @@ const isLocalHost = typeof window !== "undefined" &&
           });
   
           const data = result.data;
-          
-          // Debugging log to check the response structure
-          console.log("Azure API Response Data:", data);
   
           // Check if data has choices or a similar property based on the API type
           if (data && data.choices && data.choices.length > 0) {
@@ -483,7 +476,7 @@ const isLocalHost = typeof window !== "undefined" &&
             break; // Break the loop if there's an error response
           } else {
             console.error("No titles found in the response:", data);
-            toast.error("Failed to generate titles.");
+            toast.error(t("failedToGenerateTitles"));
           }
         } catch (error) {
           console.error("Error with key:", keyData.token, error.message);
@@ -504,6 +497,7 @@ const isLocalHost = typeof window !== "undefined" &&
       setIsLoading(false);
     }
   };
+  
 
   const handleReviewSubmit = async () => {
     if (!user) {
@@ -667,9 +661,7 @@ const isLocalHost = typeof window !== "undefined" &&
       toast.success("Tool removed from saved list.");
     }
   };
-  const isGenerateButtonActive = () => {
-    return captchaVerified && selectedLanguage && tags.length > 0;
-  };
+
 
 
   // Button color logic
@@ -706,7 +698,7 @@ const isLocalHost = typeof window !== "undefined" &&
               rel="canonical"
               href={`${meta?.url
                 .toLowerCase()
-                .replace("tagGenerator", "title-generator")}`}
+                .replace("tagGenerator", "tag-generator")}`}
             />
 
             {/* Open Graph Meta Tags */}
@@ -719,8 +711,8 @@ const isLocalHost = typeof window !== "undefined" &&
             />
             <meta property="og:title" content={meta?.title} />
             <meta property="og:description" content={meta?.description} />
-            <meta property="og:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732697885773-youtubetagGeneratora.png" />
-            <meta property="og:image:secure_url" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732697885773-youtubetagGeneratora.png" />
+            <meta property="og:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732692006970-youtubetaggeneratora.png" />
+            <meta property="og:image:secure_url" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732692006970-youtubetaggeneratora.png" />
             <meta property="og:site_name" content="Ytubetools" />
             <meta property="og:locale" content="en_US" />
 
@@ -740,7 +732,7 @@ const isLocalHost = typeof window !== "undefined" &&
             />
             <meta name="twitter:title" content={meta?.title} />
             <meta name="twitter:description" content={meta?.description} />
-            <meta name="twitter:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732697885773-youtubetagGeneratora.png" />
+            <meta name="twitter:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1732692006970-youtubetaggeneratora.png" />
             <meta name="twitter:site" content="@ytubetools" />
             <meta name="twitter:image:alt" content={meta?.imageAlt} />
 
@@ -933,12 +925,12 @@ const isLocalHost = typeof window !== "undefined" &&
      <div>
      
      </div>
-     <div className="flex items-start justify-between space-x-4 ms-4 me-4 sm:ms-2 sm:me-2 mt-3 shadow-xl border rounded-lg pt-3 pb-3 ps-3 pe-3">
-
- {/* Tone Section */}
- <div className="flex flex-col w-1/2">
+     <div className="flex flex-col sm:flex-row items-start justify-between space-x-4 ms-4 me-4 sm:ms-2 sm:me-2 mt-3 shadow-xl border rounded-lg pt-3 pb-3 ps-3 pe-3">
+  
+  {/* Tone Section */}
+  <div className="flex flex-col sm:w-1/2 w-full">
     <label htmlFor="tone" className="text-sm text-left font-medium mb-2">
-     <FaPhoneVolume className="text-[#fa6742]"/>  Tone:
+      <FaPhoneVolume className="text-[#fa6742]"/> Tone:
     </label>
     <div className="relative">
       <select
@@ -970,9 +962,9 @@ const isLocalHost = typeof window !== "undefined" &&
   </div>
 
   {/* Language Section */}
-  <div className="flex flex-col w-1/2">
+  <div className="flex flex-col sm:w-1/2 w-full">
     <label htmlFor="language" className="text-sm text-left font-medium mb-2">
-     <FaLanguage className="text-[#fa6742]"/> Language:
+      <FaLanguage className="text-[#fa6742]"/> Language:
     </label>
     <div className="relative">
       <select
@@ -1008,8 +1000,8 @@ const isLocalHost = typeof window !== "undefined" &&
     </div>
   </div>
 
- 
 </div>
+
 <div className="ms-4 mt-3">
   {/* reCAPTCHA Section */}
   {!isLocalHost && siteKey && (
@@ -1023,13 +1015,14 @@ const isLocalHost = typeof window !== "undefined" &&
       {/* Buttons Section */}
       <div className="flex items-center mt-4 ps-6 pe-6">
         {/* Generate Titles Button */}
-        <button
-  className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-400"
-  type="button"
-  id="button-addon2"
-  onClick={generateTitles}
-  
->
+       {/* Generate Titles Button */}
+    <button
+      className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-400"
+      type="button"
+      id="button-addon2"
+      onClick={generateTitles}
+      disabled={isLoading}
+    >
   {isLoading ? (
     <>
      <span className="animate-spin mr-2">
