@@ -65,7 +65,7 @@ const YTTitleGenerator = ({
   const [openIndex, setOpenIndex] = useState(null);
   const [likes, setLikes] = useState(initialReactions?.likes || 0);
   const [unlikes, setUnlikes] = useState(initialReactions?.unlikes || 0);
-
+  const [siteKey, setSiteKey] = useState();
   const [hasLiked, setHasLiked] = useState(false);
   const [hasUnliked, setHasUnliked] = useState(false);
   const [hasReported, setHasReported] = useState(false);
@@ -82,6 +82,60 @@ const YTTitleGenerator = ({
   const closeModal = () => {
     setModalVisible(false);
   };
+  useEffect(() => {
+    const fetchConfigs = async () => {
+      try {
+        const protocol = window.location.protocol === "https:" ? "https" : "http";
+        const host = window.location.host;
+        
+        // Retrieve the JWT token from localStorage (or other storage mechanisms)
+        const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace 'authToken' with your key if different
+        
+          
+        if (!token) {
+          console.error('No authentication token found!');
+          return;
+        }
+
+        // Make the API call with the Authorization header containing the JWT token
+        const response = await fetch(`${protocol}://${host}/api/extensions`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`, // Include the token in the header
+          },
+        });
+
+        const result = await response.json();
+
+
+        if (result.success) {
+          // reCAPTCHA configuration
+          const captchaExtension = result.data.find(
+            (ext) => ext.key === "google_recaptcha_2" && ext.status === "Enabled"
+          );
+          if (captchaExtension && captchaExtension.config.siteKey) {
+            setSiteKey(captchaExtension.config.siteKey);
+          } else {
+            console.error("ReCAPTCHA configuration not found or disabled.");
+          }
+        } else {
+          console.error('Error fetching extensions:', result.message);
+        }
+      } catch (error) {
+        console.error("Error fetching configurations:", error);
+      } finally {
+        setIsLoading(false); // Data has been loaded
+      }
+    };
+
+    fetchConfigs();
+  }, []);
+
+  // Check if running on localhost
+const isLocalHost = typeof window !== "undefined" && 
+(window.location.hostname === "localhost" || 
+ window.location.hostname === "127.0.0.1" || 
+ window.location.hostname === "::1");
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -750,7 +804,15 @@ const YTTitleGenerator = ({
                 required
               />
             </div>
-
+            <div className="ms-3 mt-3">
+  {/* reCAPTCHA Section */}
+{!isLocalHost && siteKey && (
+  <ReCAPTCHA
+    sitekey={siteKey} // সঠিকভাবে `sitekey` পাঠানো
+    onChange={handleCaptchaChange}
+  />
+)}
+</div>
             <div className="flex items-center mt-4 md:mt-0 ps-6 pe-6">
               <button
                 className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-500"
