@@ -12,6 +12,9 @@ import {
   FaCopy,
   FaDownload,
   FaStar,
+  FaFile,
+  FaPhoneVolume,
+  FaLanguage,
 } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 import { getContentProps } from "../../utils/getContentProps";
@@ -30,7 +33,33 @@ import dynamic from "next/dynamic";
 import Script from "next/script";
 import StarRating from "./StarRating";
 import ReCAPTCHA from "react-google-recaptcha";
-
+import Skeleton from "react-loading-skeleton";
+import axios from "axios";
+const availableLanguages = [
+  { code: 'en', name: 'English', flag: 'us' },
+  { code: 'fr', name: 'Français', flag: 'fr' },
+  { code: 'zh-HANT', name: '中国传统的', flag: 'cn' },
+  { code: 'zh-HANS', name: '简体中文', flag: 'cn' },
+  { code: 'nl', name: 'Nederlands', flag: 'nl' },
+  { code: 'gu', name: 'ગુજરાતી', flag: 'in' },
+  { code: 'hi', name: 'हिंदी', flag: 'in' },
+  { code: 'it', name: 'Italiano', flag: 'it' },
+  { code: 'ja', name: '日本語', flag: 'jp' },
+  { code: 'ko', name: '한국어', flag: 'kr' },
+  { code: 'pl', name: 'Polski', flag: 'pl' },
+  { code: 'pt', name: 'Português', flag: 'pt' },
+  { code: 'ru', name: 'Русский', flag: 'ru' },
+  { code: 'es', name: 'Español', flag: 'es' },
+  { code: 'de', name: 'Deutsch', flag: 'de' },
+];
+const availableTones = [
+    { value: 'formal', label: 'Formal' },
+    { value: 'informal', label: 'Informal' },
+    { value: 'neutral', label: 'Neutral' },
+    { value: 'friendly', label: 'Friendly' },
+    { value: 'professional', label: 'Professional' },
+  ];
+  
 const YTTitleGenerator = ({
   meta,
   faqs,
@@ -53,6 +82,7 @@ const YTTitleGenerator = ({
   const [selectAll, setSelectAll] = useState(false);
   const [generateCount, setGenerateCount] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);
+  const [captchaVerified, setCaptchaVerified] = useState(false); // State for reCAPTCHA
   const [newReview, setNewReview] = useState({
     name: "",
     title: "",
@@ -60,6 +90,8 @@ const YTTitleGenerator = ({
     comment: "",
     userProfile: "",
   });
+  const [selectedLanguage ,setSelectedLanguage ]=useState()
+  const [selectedTone, setSelectedTone] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
@@ -131,12 +163,28 @@ const YTTitleGenerator = ({
 
     fetchConfigs();
   }, []);
+  const handleLanguageChange = (e) => {
+    setSelectedLanguage(e.target.value);
+    // Perform additional actions based on language change if needed
+  };
+
+
+  const handleToneChange = (event) => {
+    // টোন নির্বাচন করা হলে selectedTone আপডেট হবে
+    setSelectedTone(event.target.value);
+  };
 
   // Check if running on localhost
 const isLocalHost = typeof window !== "undefined" && 
 (window.location.hostname === "localhost" || 
  window.location.hostname === "127.0.0.1" || 
  window.location.hostname === "::1");
+
+ 
+ const onRecaptchaChange = (token) => {
+  setRecaptchaToken(token);
+};
+
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -231,22 +279,29 @@ const isLocalHost = typeof window !== "undefined" &&
 
   const handleKeyDown = (event) => {
     if (event.key === "Enter" || event.key === "," || event.key === ".") {
+      // Enter, Comma বা Dot প্রেস করলে ট্যাগ প্রসেস হবে
       event.preventDefault();
-      const newTag = input.trim();
-      if (newTag) {
-        const newTags = [
-          ...tags,
-          ...newTag
-            .split(/[,\.]/)
-            .map((tag) => tag.trim())
-            .filter((tag) => tag),
-        ];
-        setTags(newTags);
-        setInput("");
-      }
+      processTags(input.trim());
+    } 
+  };;
+  
+  const handleBlur = () => {
+    // If the input loses focus, we also process the tag (in case the user leaves the field)
+    processTags(input.trim());
+  };
+  
+  const processTags = (inputValue) => {
+    const parts = inputValue
+      .split(/[,.\n]/) // Comma, Dot, বা Newline দিয়ে ট্যাগ আলাদা করুন
+      .map((part) => part.trim()) // প্রতিটি অংশ ট্রিম করুন
+      .filter((part) => part && !tags.includes(part)); // ফাঁকা বা ডুপ্লিকেট ট্যাগ বাদ দিন
+  
+    if (parts.length > 0) {
+      setTags([...tags, ...parts]); // নতুন ট্যাগ অ্যাড করুন
+      setInput(""); // ইনপুট ক্লিয়ার করুন
     }
   };
-
+  
   const handleSelectAll = () => {
     const newSelection = !selectAll;
     setSelectAll(newSelection);
@@ -321,88 +376,129 @@ const isLocalHost = typeof window !== "undefined" &&
 
   const generateTitles = async () => {
     if (!user) {
-      toast.error(t("Please sign in to use this tool."));
+      toast.error(t("loginToGenerateTags"));
       return;
     }
-
+  
     if (
       user.paymentStatus !== "success" &&
       user.role !== "admin" &&
       generateCount <= 0
     ) {
-      toast.error(
-        t(
-          "You are not upgraded. You can generate titles {{remaining}} more times. Upgrade",
-          {
-            remaining: generateCount,
-          }
-        )
-      );
+      toast.error(t("upgradeForUnlimited"));
       return;
     }
-
+  
     setIsLoading(true);
-
+  
     try {
+      // Fetch active API keys from the server
       const response = await fetch("/api/openaiKey");
-      if (!response.ok)
+      if (!response.ok) {
         throw new Error(`Failed to fetch API keys: ${response.status}`);
-
+      }
+  
       const keysData = await response.json();
-      const apiKeys = keysData.map((key) => key.token);
-      let titles = [];
-      let success = false;
-
-      for (const key of apiKeys) {
+      const activeKeys = keysData.filter((key) => key.active);  // Filter out inactive keys
+  
+      if (activeKeys.length === 0) {
+        toast.error("No active API keys available.");
+        return;
+      }
+  
+      // Try each active API key
+      for (const keyData of activeKeys) {
         try {
-          const result = await fetch(
-            "https://api.openai.com/v1/chat/completions",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${key}`,
-              },
-              body: JSON.stringify({
-                model: "gpt-3.5-turbo-16k",
-                messages: [
-                  {
-                    role: "system",
-                    content: `Generate a list of at least 20 SEO-friendly Title for keywords: "${tags.join(
-                      ", "
-                    )}".`,
-                  },
-                  { role: "user", content: tags.join(", ") },
-                ],
-                temperature: 0.7,
-                max_tokens: 3500,
-              }),
-            }
-          );
-
-          const data = await result.json();
-          if (data.choices) {
-            titles = data.choices[0].message.content
+          const { token, serviceType } = keyData;  // Extract token and serviceType
+  
+          // Determine the correct API URL and headers based on serviceType
+          let url = '';
+          let headers = {};
+          let body = {};
+  
+          if (serviceType === "openai") {
+            // For OpenAI API
+            url = "https://api.openai.com/v1/chat/completions";
+            headers = {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            };
+            body = JSON.stringify({
+              model: "gpt-3.5-turbo-16k",
+              messages: [
+                {
+                  role: "system",
+    
+                  content: `Generate a list of at least 10 SEO-friendly Title for keywords: "${tags.join(", ")}" in this ${selectedTone} & languge ${selectedLanguage}.`,
+                },
+                { role: "user", content: tags.join(", ") },
+              ],
+              temperature: 0.7,
+              max_tokens: 3500,
+            });
+          } else if (serviceType === "azure") {
+            // For Azure OpenAI API
+            url = "https://nazmul.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview";
+            headers = {
+              "Content-Type": "application/json",
+              "api-key": token, // Azure API key
+            };
+            body = {
+              messages: [
+                {
+                  role: "system",
+                  content: `Generate a list of at least 10 SEO-friendly Title for keywords: "${tags.join(", ")}" in this languge ${selectedLanguage}.`,
+                },
+                { role: "user", content: tags.join(", ") },
+              ],
+              temperature: 1,
+              max_tokens: 4096,
+              top_p: 1,
+              frequency_penalty: 0.5,
+              presence_penalty: 0.5,
+            };
+          }
+  
+          // Make the API request based on the selected service type
+          const result = await axios.post(url, body, {
+            headers: headers,
+          });
+  
+          const data = result.data;
+          
+          // Debugging log to check the response structure
+          console.log("Azure API Response Data:", data);
+  
+          // Check if data has choices or a similar property based on the API type
+          if (data && data.choices && data.choices.length > 0) {
+            const titles = data.choices[0].message.content
               .trim()
               .split("\n")
               .map((title) => ({ text: title, selected: false }));
-            success = true;
-            break;
+            setGeneratedTitles(titles);
+            break; // Stop after the first successful response
+          } else if (data && data.error) {
+            console.error("Azure API Error:", data.error);
+            toast.error(`Azure API Error: ${data.error.message}`);
+            break; // Break the loop if there's an error response
+          } else {
+            console.error("No titles found in the response:", data);
+            toast.error("Failed to generate titles.");
           }
         } catch (error) {
-          console.error("Error with key:", key, error.message);
+          console.error("Error with key:", keyData.token, error.message);
+          toast.error(`Error with key: ${error.message}`);
         }
       }
-
-      if (!success) throw new Error("All API keys exhausted or error occurred");
-
-      setGeneratedTitles(titles);
+  
+      // Update generate count if the user doesn't have unlimited access
       if (user.paymentStatus !== "success") {
         const newCount = generateCount - 1;
         setGenerateCount(newCount);
         localStorage.setItem("generateCount", newCount);
       }
     } catch (error) {
+      console.error("Error generating titles:", error);
       toast.error(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
@@ -571,12 +667,18 @@ const isLocalHost = typeof window !== "undefined" &&
       toast.success("Tool removed from saved list.");
     }
   };
+  const isGenerateButtonActive = () => {
+    return captchaVerified && selectedLanguage && tags.length > 0;
+  };
+
 
   // Button color logic
-  const likeButtonColor = hasLiked ? "#4CAF50" : "#ccc"; // Green if liked
-  const unlikeButtonColor = hasUnliked ? "#F44336" : "#ccc"; // Red if disliked
-  const reportButtonColor = hasReported ? "#FFD700" : "#ccc"; // Yellow if reported
-  const saveButtonColor = isSaved ? "#FFD700" : "#ccc";
+  const buttonColors = {
+    like: hasLiked ? "#4CAF50" : "#ccc",
+    unlike: hasUnliked ? "#F44336" : "#ccc",
+    report: hasReported ? "#FFD700" : "#ccc",
+    save: isSaved ? "#FFD700" : "#ccc",
+  };
 
   return (
     <>
@@ -776,143 +878,248 @@ const isLocalHost = typeof window !== "undefined" &&
           )}
           <ToastContainer />
           <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
-            <div className="keywords-input-container">
-              <div className="tags-container flex flex-wrap gap-2 mb-4">
-                {tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="bg-gray-200 px-2 py-1 rounded-md flex items-center"
-                  >
-                    {tag}
-                    <span
-                      className="ml-2 cursor-pointer"
-                      onClick={() =>
-                        setTags(tags.filter((_, i) => i !== index))
-                      }
-                    >
-                      ×
-                    </span>
-                  </span>
-                ))}
-              </div>
-              <input
-                type="text"
-                placeholder={t("addKeyword")}
-                className="w-full p-2"
-                value={input}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                required
-              />
-            </div>
-            <div className="ms-3 mt-3">
+          <div>
+      {/* Keywords Input Section */}
+      <h6 htmlFor="tone" className="text-lg font-medium mb-2 mt-2 fw-bold">
+     <FaFile  className="text-[#fa6742]"/> Enter Your Video Keywords
+</h6>
+
+      <div className="keywords-input-container">
+     
+        <div className="tags-container flex flex-wrap gap-2 mb-4">
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} width={80} height={30} />
+            ))
+          ) : (
+            tags.map((tag, index) => (
+              <span
+                key={index}
+                className="bg-gray-200 px-2 py-1 rounded-md flex items-center"
+              >
+                {tag}
+                <span
+                  className="ml-2 cursor-pointer text-red-500"
+                  onClick={() =>
+                    setTags(tags.filter((_, i) => i !== index))
+                  }
+                >
+                  ×
+                </span>
+              </span>
+            ))
+          )}
+        </div>
+
+        {isLoading ? (
+          <Skeleton height={40} width="100%" />
+        ) : (
+         
+          <input
+          type="text"
+          placeholder="Add a keyword"
+          className="w-full p-2 border-none border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          value={input}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur} // If the input loses focus, process the tag
+          required
+          style={{
+            cursor: "text", // Keeps text input cursor while typing
+          }}
+        />
+        )}
+      </div>
+     <div>
+     
+     </div>
+     <div className="flex items-start justify-between space-x-4 ms-4 me-4 sm:ms-2 sm:me-2 mt-3 shadow-xl border rounded-lg pt-3 pb-3 ps-5 pe-5">
+
+ {/* Tone Section */}
+ <div className="flex flex-col w-1/2">
+    <label htmlFor="tone" className="text-sm font-medium mb-2">
+     <FaPhoneVolume className="text-[#fa6742]"/>  Tone:
+    </label>
+    <div className="relative">
+      <select
+        id="tone"
+        value={selectedTone}
+        onChange={handleToneChange}
+        className="block shadow-lg appearance-none w-full bg-white border border-gray-300 rounded-md py-3 pl-4 pr-10 text-sm leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      >
+        {availableTones.map((tone) => (
+          <option key={tone.value} value={tone.value}>
+            {tone.label}
+          </option>
+        ))}
+      </select>
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-600">
+        <svg
+          className="fill-current h-5 w-5"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  {/* Language Section */}
+  <div className="flex flex-col w-1/2">
+    <label htmlFor="language" className="text-sm font-medium mb-2">
+     <FaLanguage className="text-[#fa6742]"/> Language:
+    </label>
+    <div className="relative">
+      <select
+        id="language"
+        value={selectedLanguage}
+        onChange={handleLanguageChange}
+        className="block shadow-lg  appearance-none w-full bg-white border border-gray-300 rounded-md py-3 pl-4 pr-10 text-sm leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      >
+        {availableLanguages.map((language) => (
+          <option
+            key={language.code}
+            value={language.code}
+            className="flex items-center"
+          >
+            <span className={`fi fi-${language.flag} mr-2`}></span>
+            {language.name}
+          </option>
+        ))}
+      </select>
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-600">
+        <svg
+          className="fill-current h-5 w-5"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+ 
+</div>
+<div className="ms-4 mt-3">
   {/* reCAPTCHA Section */}
-{!isLocalHost && siteKey && (
+  {!isLocalHost && siteKey && (
   <ReCAPTCHA
-    sitekey={siteKey} // সঠিকভাবে `sitekey` পাঠানো
-    onChange={handleCaptchaChange}
+    sitekey={siteKey} 
+    onChange={onRecaptchaChange}
   />
 )}
 </div>
-            <div className="flex items-center mt-4 md:mt-0 ps-6 pe-6">
-              <button
-                className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-500"
-                type="button"
-                id="button-addon2"
-                onClick={generateTitles}
-                disabled={isLoading || tags.length === 0}
-              >
-                <span className="animate-spin mr-2">
-                  <svg
-                    aria-hidden="true"
-                    className="h-5 w-5"
-                    viewBox="0 0 512 512"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="white"
-                  >
-                    <path d="M487.4 315.7l-42.6-24.6c4.3-23.2 4.3-47 0-70.2l42.6-24.6c4.9-2.8 7.1-8.6 5.5-14-11.1-35.6-30-67.8-54.7-94.6-3.8-4.1-10-5.1-14.8-2.3L380.8 110c-17.9-15.4-38.5-27.3-60.8-35.1V25.8c0-5.6-3.9-10.5-9.4-11.7-36.7-8.2-74.3-7.8-109.2 0-5.5 1.2-9.4 6.1-9.4 11.7V75c-22.2 7.9-42.8 19.8-60.8 35.1L88.7 85.5c-4.9-2.8-11-1.9-14.8 2.3-24.7 26.7-43.6 58.9-54.7 94.6-1.7 5.4.6 11.2 5.5 14L67.3 221c-4.3 23.2-4.3 47 0 70.2l-42.6 24.6c-4.9 2.8-7.1 8.6-5.5 14 11.1 35.6 30 67.8 54.7 94.6 3.8 4.1 10 5.1 14.8 2.3l42.6-24.6c17.9 15.4 38.5 27.3 60.8 35.1v49.2c0 5.6 3.9 10.5 9.4 11.7 36.7 8.2 74.3 7.8 109.2 0 5.5-1.2 9.4-6.1 9.4-11.7v-49.2c22.2-7.9 42.8-19.8 60.8-35.1l42.6 24.6c4.9 2.8 11 1.9 14.8-2.3 24.7-26.7 43.6-58.9 54.7-94.6 1.5-5.5-.7-11.3-5.6-14.1zM256 336c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z"></path>
-                  </svg>
-                </span>
-                {isLoading ? "Loading..." : "Generate Tag"}
-              </button>
 
-              <div className="ms-auto">
-                <button
-                  className="flex items-center justify-center"
-                  onClick={saveChannel}
-                  style={{ color: saveButtonColor }}
-                >
-                  <FaBookmark
-                    className={`text-lg ${
-                      isSaved ? "text-purple-600" : "text-red-500"
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
+      {/* Buttons Section */}
+      <div className="flex items-center mt-4 ps-6 pe-6">
+        {/* Generate Titles Button */}
+        <button
+  className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-400"
+  type="button"
+  id="button-addon2"
+  onClick={generateTitles}
+  
+>
+  {isLoading ? (
+    <>
+     <span className="animate-spin mr-2">
+  <svg
+    aria-hidden="true"
+    className="h-5 w-5"
+    viewBox="0 0 512 512"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="white"
+  >
+    <path d="M487.4 315.7l-42.6-24.6c4.3-23.2 4.3-47 0-70.2l42.6-24.6c4.9-2.8 7.1-8.6 5.5-14-11.1-35.6-30-67.8-54.7-94.6-3.8-4.1-10-5.1-14.8-2.3L380.8 110c-17.9-15.4-38.5-27.3-60.8-35.1V25.8c0-5.6-3.9-10.5-9.4-11.7-36.7-8.2-74.3-7.8-109.2 0-5.5 1.2-9.4 6.1-9.4 11.7V75c-22.2 7.9-42.8 19.8-60.8 35.1L88.7 85.5c-4.9-2.8-11-1.9-14.8 2.3-24.7 26.7-43.6 58.9-54.7 94.6-1.7 5.4.6 11.2 5.5 14L67.3 221c-4.3 23.2-4.3 47 0 70.2l-42.6 24.6c-4.9 2.8-7.1 8.6-5.5 14 11.1 35.6 30 67.8 54.7 94.6 3.8 4.1 10 5.1 14.8 2.3l42.6-24.6c17.9 15.4 38.5 27.3 60.8 35.1v49.2c0 5.6 3.9 10.5 9.4 11.7 36.7 8.2 74.3 7.8 109.2 0 5.5-1.2 9.4-6.1 9.4-11.7v-49.2c22.2-7.9 42.8-19.8 60.8-35.1l42.6 24.6c4.9 2.8 11 1.9 14.8-2.3 24.7-26.7 43.6-58.9 54.7-94.6 1.5-5.5-.7-11.3-5.6-14.1zM256 336c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z"></path>
+  </svg>
+</span>
+
+      Loading...
+    </>
+  ) : (
+    <>
+     <span className="animate-spin mr-2">
+  <svg
+    aria-hidden="true"
+    className="h-5 w-5"
+    viewBox="0 0 512 512"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="white"
+  >
+    <path d="M487.4 315.7l-42.6-24.6c4.3-23.2 4.3-47 0-70.2l42.6-24.6c4.9-2.8 7.1-8.6 5.5-14-11.1-35.6-30-67.8-54.7-94.6-3.8-4.1-10-5.1-14.8-2.3L380.8 110c-17.9-15.4-38.5-27.3-60.8-35.1V25.8c0-5.6-3.9-10.5-9.4-11.7-36.7-8.2-74.3-7.8-109.2 0-5.5 1.2-9.4 6.1-9.4 11.7V75c-22.2 7.9-42.8 19.8-60.8 35.1L88.7 85.5c-4.9-2.8-11-1.9-14.8 2.3-24.7 26.7-43.6 58.9-54.7 94.6-1.7 5.4.6 11.2 5.5 14L67.3 221c-4.3 23.2-4.3 47 0 70.2l-42.6 24.6c-4.9 2.8-7.1 8.6-5.5 14 11.1 35.6 30 67.8 54.7 94.6 3.8 4.1 10 5.1 14.8 2.3l42.6-24.6c17.9 15.4 38.5 27.3 60.8 35.1v49.2c0 5.6 3.9 10.5 9.4 11.7 36.7 8.2 74.3 7.8 109.2 0 5.5-1.2 9.4-6.1 9.4-11.7v-49.2c22.2-7.9 42.8-19.8 60.8-35.1l42.6 24.6c4.9 2.8 11 1.9 14.8-2.3 24.7-26.7 43.6-58.9 54.7-94.6 1.5-5.5-.7-11.3-5.6-14.1zM256 336c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z"></path>
+  </svg>
+</span>
+
+
+      Generate Tag
+    </>
+  )}
+</button>
+        </div>
+      </div>
+    
 
             {/* Reaction Bar */}
             <div className="w-full flex items-center justify-between mt-4 p-3 bg-gray-100 rounded-md">
               <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => handleReaction("like")}
-                  className="flex items-center space-x-1"
-                  style={{ color: likeButtonColor }}
-                >
-                  <FaThumbsUp className="text-xl text-green-600" />
-                  <span className="text-black">{likes}</span>
-                </button>
-                <button
-                  onClick={() => handleReaction("unlike")}
-                  className="flex items-center space-x-1"
-                  style={{ color: unlikeButtonColor }}
-                >
-                  <FaThumbsDown className="text-xl text-red-400" />
-                  <span className="text-black">{unlikes}</span>
-                </button>
-                <button
-                  onClick={() => setShowReportModal(true)}
-                  className="flex items-center space-x-1"
-                  style={{ color: reportButtonColor }}
-                >
-                  <FaFlag className="text-xl text-red-500" />
-                  <span className="text-black">Report</span>
-                </button>
-              </div>
-              <div className="text-center">
-                <div className="flex justify-center items-center gap-2">
-                  <FaShareAlt className="text-red-500 text-xl" />
-
-                  <FaFacebook
-                    className="text-blue-600 text-xl cursor-pointer"
-                    onClick={() => shareOnSocialMedia("facebook")}
-                  />
-                  <FaInstagram
-                    className="text-pink-500 text-xl cursor-pointer"
-                    onClick={() => shareOnSocialMedia("instagram")}
-                  />
-                  <FaTwitter
-                    className="text-blue-400 text-xl cursor-pointer"
-                    onClick={() => shareOnSocialMedia("twitter")}
-                  />
-                  <FaLinkedin
-                    className="text-blue-700 text-xl cursor-pointer"
-                    onClick={() => shareOnSocialMedia("linkedin")}
-                  />
-                </div>
+                {isLoading ? (
+                  <>
+                    <Skeleton width={60} height={30} />
+                    <Skeleton width={60} height={30} />
+                    <Skeleton width={60} height={30} />
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => handleReaction("like")}
+                      className="flex items-center space-x-1"
+                      style={{ color: buttonColors.like }}
+                    >
+                      <FaThumbsUp className="text-xl text-green-600" />
+                      <span className="text-black">{likes}</span>
+                    </button>
+                    <button
+                      onClick={() => handleReaction("unlike")}
+                      className="flex items-center space-x-1"
+                      style={{ color: buttonColors.unlike }}
+                    >
+                      <FaThumbsDown className="text-xl text-red-400" />
+                      <span className="text-black">{unlikes}</span>
+                    </button>
+                    <button
+                      onClick={() => setShowReportModal(true)}
+                      className="flex items-center space-x-1"
+                      style={{ color: buttonColors.report }}
+                    >
+                      <FaFlag className="text-xl text-red-500" />
+                      <span className="text-black">{t("Report")}</span>
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
+            {/* Show Report Modal */}
             {showReportModal && (
               <div className="fixed inset-0 flex items-center justify-center z-50">
                 <div className="fixed inset-0 bg-black opacity-50"></div>
                 <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
                   <h2 className="text-2xl font-semibold mb-4">
-                    Report This Tool
+                    {t("Report This Tool")}
                   </h2>
                   <textarea
                     className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                    placeholder="Describe your issue..."
+                    placeholder={t("Describe your issue...")}
                     value={reportText}
                     onChange={(e) => setReportText(e.target.value)}
                   />
@@ -921,13 +1128,13 @@ const isLocalHost = typeof window !== "undefined" &&
                       className="btn btn-secondary text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline"
                       onClick={() => setShowReportModal(false)}
                     >
-                      Cancel
+                      {t("Cancel")}
                     </button>
                     <button
                       className="btn btn-primary text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
                       onClick={() => handleReaction("report")}
                     >
-                      Submit Report
+                      {t("Submit Report")}
                     </button>
                   </div>
                 </div>
