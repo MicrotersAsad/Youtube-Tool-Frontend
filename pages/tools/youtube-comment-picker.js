@@ -19,6 +19,7 @@ import Script from "next/script";
 import dynamic from 'next/dynamic';
 import { getContentProps } from "../../utils/getContentProps";
 import { i18n } from "next-i18next";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const YouTubeCommentPicker =  ({ meta, reviews, content, relatedTools, faqs,reactions,hreflangs}) => {
@@ -47,9 +48,72 @@ const YouTubeCommentPicker =  ({ meta, reviews, content, relatedTools, faqs,reac
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportText, setReportText] = useState("");
   const [isSaved, setIsSaved] = useState(false);
+  const [siteKey,setSiteKey]=useState()
+  const [error, setError] = useState("");
+  const [captchaVerified, setCaptchaVerified] = useState(false);
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+
+// Check if running on localhost
+const isLocalHost = typeof window !== "undefined" && 
+(window.location.hostname === "localhost" || 
+ window.location.hostname === "127.0.0.1" || 
+ window.location.hostname === "::1");
+ const handleCaptchaChange = (value) => {
+  // This is the callback from the reCAPTCHA widget
+  if (value) {
+    setCaptchaVerified(true); // Set captchaVerified to true when the user completes reCAPTCHA
+  }
+};
+useEffect(() => {
+  const fetchConfigs = async () => {
+    try {
+      const protocol = window.location.protocol === "https:" ? "https" : "http";
+      const host = window.location.host;
+      
+      // Retrieve the JWT token from localStorage (or other storage mechanisms)
+      const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace 'authToken' with your key if different
+      
+        
+      if (!token) {
+        console.error('No authentication token found!');
+        return;
+      }
+
+      // Make the API call with the Authorization header containing the JWT token
+      const response = await fetch(`${protocol}://${host}/api/extensions`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Include the token in the header
+        },
+      });
+
+      const result = await response.json();
+
+
+      if (result.success) {
+        // reCAPTCHA configuration
+        const captchaExtension = result.data.find(
+          (ext) => ext.key === "google_recaptcha_2" && ext.status === "Enabled"
+        );
+        if (captchaExtension && captchaExtension.config.siteKey) {
+          setSiteKey(captchaExtension.config.siteKey);
+        } else {
+          console.error("ReCAPTCHA configuration not found or disabled.");
+        }
+      } else {
+        console.error('Error fetching extensions:', result.message);
+      }
+    } catch (error) {
+      console.error("Error fetching configurations:", error);
+    } finally {
+      setLoading(false); // Data has been loaded
+    }
+  };
+
+  fetchConfigs();
+}, []);
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -161,7 +225,11 @@ const YouTubeCommentPicker =  ({ meta, reviews, content, relatedTools, faqs,reac
       toast.error(t("Please log in to use this tool."));
       return;
     }
-
+    if (!captchaVerified) {
+      toast.error(t("Pls Complete this capctha"));
+      return;
+    }
+  
     if (
       generateCount >= 5 &&
       user?.paymentStatus !== "success" &&
@@ -631,6 +699,15 @@ Pick a Winner
                       ))}
                     </select>
                   </div>
+                  <div className="ms-4">
+  {/* reCAPTCHA Section */}
+{!isLocalHost && siteKey && (
+  <ReCAPTCHA
+    sitekey={siteKey} // সঠিকভাবে `sitekey` পাঠানো
+    onChange={handleCaptchaChange}
+  />
+)}
+</div>
                 </div>
               </div>
                 {/* Reaction Bar */}
@@ -1014,7 +1091,7 @@ Pick a Winner
       
       </div>
       {/* Related Tools Section */}
-      <div className="bg-indigo-50 p-5">
+       <div className="bg-indigo-50 p-5">
           <h2 className="text-2xl font-bold mb-5 pt-5 text-center">
             {t("Related Tools")}
           </h2>
@@ -1048,7 +1125,7 @@ Pick a Winner
 
 </div>    
         {/* End of Related Tools Section */}
-    
+
     </>
   );
 };

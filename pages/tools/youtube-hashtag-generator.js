@@ -12,6 +12,8 @@ import {
   FaBookmark, 
   FaThumbsUp,
   FaThumbsDown,
+  FaPhoneVolume,
+  FaLanguage,
 } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
@@ -28,7 +30,32 @@ import Script from "next/script";
 import dynamic from "next/dynamic";
 import { getContentProps } from "../../utils/getContentProps";
 import { i18n } from "next-i18next";
+import ReCAPTCHA from "react-google-recaptcha";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
+const availableLanguages = [
+  { code: 'en', name: 'English', flag: 'us' },
+  { code: 'fr', name: 'Français', flag: 'fr' },
+  { code: 'zh-HANT', name: '中国传统的', flag: 'cn' },
+  { code: 'zh-HANS', name: '简体中文', flag: 'cn' },
+  { code: 'nl', name: 'Nederlands', flag: 'nl' },
+  { code: 'gu', name: 'ગુજરાતી', flag: 'in' },
+  { code: 'hi', name: 'हिंदी', flag: 'in' },
+  { code: 'it', name: 'Italiano', flag: 'it' },
+  { code: 'ja', name: '日本語', flag: 'jp' },
+  { code: 'ko', name: '한국어', flag: 'kr' },
+  { code: 'pl', name: 'Polski', flag: 'pl' },
+  { code: 'pt', name: 'Português', flag: 'pt' },
+  { code: 'ru', name: 'Русский', flag: 'ru' },
+  { code: 'es', name: 'Español', flag: 'es' },
+  { code: 'de', name: 'Deutsch', flag: 'de' },
+];
+const availableTones = [
+    { value: 'formal', label: 'Formal' },
+    { value: 'informal', label: 'Informal' },
+    { value: 'neutral', label: 'Neutral' },
+    { value: 'friendly', label: 'Friendly' },
+    { value: 'professional', label: 'Professional' },
+  ];
 const YouTubeHashtagGenerator = ({ meta, reviews, content, relatedTools, faqs,reactions,hreflangs})  => {
   const { user, updateUserProfile } = useAuth();
   const { t } = useTranslation("hashtag");
@@ -54,10 +81,83 @@ const YouTubeHashtagGenerator = ({ meta, reviews, content, relatedTools, faqs,re
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportText, setReportText] = useState("");
   const [isSaved, setIsSaved] = useState(false);
-
+  const [captchaVerified, setCaptchaVerified] = useState(false);
+  const [selectedLanguage ,setSelectedLanguage ]=useState()
+  const [selectedTone, setSelectedTone] = useState('');
+  const [siteKey, setSiteKey] = useState();
+  const [input, setInput] = useState("");
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+  useEffect(() => {
+    const fetchConfigs = async () => {
+      try {
+        const protocol = window.location.protocol === "https:" ? "https" : "http";
+        const host = window.location.host;
+        
+        // Retrieve the JWT token from localStorage (or other storage mechanisms)
+        const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace 'authToken' with your key if different
+        
+          
+        if (!token) {
+          console.error('No authentication token found!');
+          return;
+        }
+
+        // Make the API call with the Authorization header containing the JWT token
+        const response = await fetch(`${protocol}://${host}/api/extensions`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`, // Include the token in the header
+          },
+        });
+
+        const result = await response.json();
+
+
+        if (result.success) {
+          // reCAPTCHA configuration
+          const captchaExtension = result.data.find(
+            (ext) => ext.key === "google_recaptcha_2" && ext.status === "Enabled"
+          );
+          if (captchaExtension && captchaExtension.config.siteKey) {
+            setSiteKey(captchaExtension.config.siteKey);
+          } else {
+            console.error("ReCAPTCHA configuration not found or disabled.");
+          }
+        } else {
+          console.error('Error fetching extensions:', result.message);
+        }
+      } catch (error) {
+        console.error("Error fetching configurations:", error);
+      } finally {
+        setIsLoading(false); // Data has been loaded
+      }
+    };
+
+    fetchConfigs();
+  }, []);
+  const handleLanguageChange = (e) => {
+    setSelectedLanguage(e.target.value);
+    // Perform additional actions based on language change if needed
+  };
+
+
+  const handleToneChange = (event) => {
+    // টোন নির্বাচন করা হলে selectedTone আপডেট হবে
+    setSelectedTone(event.target.value);
+  };
+
+  // Check if running on localhost
+const isLocalHost = typeof window !== "undefined" && 
+(window.location.hostname === "localhost" || 
+ window.location.hostname === "127.0.0.1" || 
+ window.location.hostname === "::1");
+
+ 
+ const onRecaptchaChange = (token) => {
+  setRecaptchaToken(token);
+};
   const closeModal = () => setModalVisible(false);
   useEffect(() => {
     const fetchContent = async () => {
@@ -110,15 +210,45 @@ const YouTubeHashtagGenerator = ({ meta, reviews, content, relatedTools, faqs,re
   }, [generateCount]);
 
   const handleKeyDown = (event) => {
-    if (event.key === "Enter" || event.key === ",") {
+    if (event.key === "Enter" || event.key === "," || event.key === ".") {
+      // Enter, Comma বা Dot প্রেস করলে ট্যাগ প্রসেস হবে
       event.preventDefault();
-      const newTag = keyword.trim();
-      if (newTag && !tags.includes(newTag)) {
-        setTags([...tags, newTag]);
-        setKeyword("");
-      }
+      processTags(input.trim());
+    } 
+  };;
+  const handleInputChange = (e) => {
+    const { value } = e.target;
+    setInput(value);
+
+    const delimiters = [",", "."];
+    const parts = value
+      .split(new RegExp(`[${delimiters.join("")}]`))
+      .map((part) => part.trim())
+      .filter((part) => part);
+
+    if (parts.length > 1) {
+      const newTags = [...tags, ...parts];
+      setTags(newTags);
+      setInput("");
     }
   };
+  const handleBlur = () => {
+    // If the input loses focus, we also process the tag (in case the user leaves the field)
+    processTags(input.trim());
+  };
+  
+  const processTags = (inputValue) => {
+    const parts = inputValue
+      .split(/[,.\n]/) // Comma, Dot, বা Newline দিয়ে ট্যাগ আলাদা করুন
+      .map((part) => part.trim()) // প্রতিটি অংশ ট্রিম করুন
+      .filter((part) => part && !tags.includes(part)); // ফাঁকা বা ডুপ্লিকেট ট্যাগ বাদ দিন
+  
+    if (parts.length > 0) {
+      setTags([...tags, ...parts]); // নতুন ট্যাগ অ্যাড করুন
+      setInput(""); // ইনপুট ক্লিয়ার করুন
+    }
+  };
+  
 
   const handleSelectAll = () => {
     const newSelection = !selectAll;
@@ -188,79 +318,124 @@ const YouTubeHashtagGenerator = ({ meta, reviews, content, relatedTools, faqs,re
     document.body.removeChild(element);
   };
 
+
+ 
   const generateHashTags = async () => {
-    if (!user) {
-      toast.error(t("You need to be logged in to generate hashtags"));
+    // Check if required fields are filled
+    if (!user || !captchaVerified || tags.length === 0 || !selectedLanguage || !selectedTone) {
+      toast.error(t(" all fields  reqiuerd"));
       return;
     }
-
+  
+    // Check if user has access or needs to upgrade
     if (
       user.paymentStatus !== "success" &&
       user.role !== "admin" &&
       generateCount <= 0
     ) {
-      toast.error(t("Upgrade your plan for unlimited use."));
+      toast.error(t("upgradeForUnlimited"));
       return;
     }
-
+  
     setIsLoading(true);
-
+  
     try {
+      // Fetch active API keys from the server
       const response = await fetch("/api/openaiKey");
-      if (!response.ok)
+      if (!response.ok) {
         throw new Error(`Failed to fetch API keys: ${response.status}`);
-
+      }
+  
       const keysData = await response.json();
-      const apiKeys = keysData.map((key) => key.token);
-      let titles = [];
-      let success = false;
-
-      for (const key of apiKeys) {
+      const activeKeys = keysData.filter((key) => key.active);  // Filter out inactive keys
+  
+      if (activeKeys.length === 0) {
+        toast.error("No active API keys available.");
+        return;
+      }
+  
+      // Try each active API key
+      for (const keyData of activeKeys) {
         try {
-          const result = await fetch(
-            "https://api.openai.com/v1/chat/completions",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${key}`,
-              },
-              body: JSON.stringify({
-                model: "gpt-3.5-turbo-16k",
-                messages: [
-                  {
-                    role: "system",
-                    content: `Generate a list of at least 20 SEO-friendly Hashtags for keywords like #money: "${tags.join(
-                      ", "
-                    )}".`,
-                  },
-                  { role: "user", content: tags.join(", ") },
-                ],
-                temperature: 0.7,
-                max_tokens: 3500,
-              }),
-            }
-          );
-
-          const data = await result.json();
-          console.log("API response:", data);
-
-          if (data.choices) {
-            titles = data.choices[0].message.content
+          const { token, serviceType } = keyData;  // Extract token and serviceType
+  
+          // Determine the correct API URL and headers based on serviceType
+          let url = '';
+          let headers = {};
+          let body = {};
+  
+          if (serviceType === "openai") {
+            // For OpenAI API
+            url = "https://api.openai.com/v1/chat/completions";
+            headers = {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            };
+            body = JSON.stringify({
+              model: "gpt-3.5-turbo-16k",
+              messages: [
+                {
+                  role: "system",
+                  content: `Generate a list of at least 10 SEO-friendly tags for keywords: "${tags.join(", ")}" in this ${selectedTone} tone & language ${selectedLanguage}.`,
+                },
+                { role: "user", content: tags.join(", ") },
+              ],
+              temperature: 0.7,
+              max_tokens: 3500,
+            });
+          } else if (serviceType === "azure") {
+            // For Azure OpenAI API
+            url = "https://nazmul.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview";
+            headers = {
+              "Content-Type": "application/json",
+              "api-key": token, // Azure API key
+            };
+            body = {
+              messages: [
+                {
+                  role: "system",
+                  content: `Generate a list of at least 10 SEO-friendly tags for keywords: "${tags.join(", ")}" in this language ${selectedLanguage}.`,
+                },
+                { role: "user", content: tags.join(", ") },
+              ],
+              temperature: 1,
+              max_tokens: 4096,
+              top_p: 1,
+              frequency_penalty: 0.5,
+              presence_penalty: 0.5,
+            };
+          }
+  
+          // Make the API request based on the selected service type
+          const result = await axios.post(url, body, {
+            headers: headers,
+          });
+  
+          const data = result.data;
+  
+          // Check if data has choices or a similar property based on the API type
+          if (data && data.choices && data.choices.length > 0) {
+            const titles = data.choices[0].message.content
               .trim()
               .split("\n")
               .map((title) => ({ text: title, selected: false }));
-            success = true;
-            break;
+              setGenerateHashTag(titles);
+            break; // Stop after the first successful response
+          } else if (data && data.error) {
+            console.error("Azure API Error:", data.error);
+            toast.error(`Azure API Error: ${data.error.message}`);
+            break; // Break the loop if there's an error response
+          } else {
+            console.error("No titles found in the response:", data);
+            toast.error(t("failedToGenerateTitles"));
           }
         } catch (error) {
-          console.error("Error with key:", key, error.message);
+          console.error("Error with key:", keyData.token, error.message);
+          toast.error(`Error with key: ${error.message}`);
         }
       }
-
-      if (!success) throw new Error("All API keys exhausted or error occurred");
-
-      setGenerateHashTag(titles);
+  
+      // Update generate count if the user doesn't have unlimited access
       if (user.paymentStatus !== "success") {
         const newCount = generateCount - 1;
         setGenerateCount(newCount);
@@ -273,7 +448,8 @@ const YouTubeHashtagGenerator = ({ meta, reviews, content, relatedTools, faqs,re
       setIsLoading(false);
     }
   };
-
+  
+ 
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
       toast.error(t("All fields are required."));
@@ -647,34 +823,132 @@ const YouTubeHashtagGenerator = ({ meta, reviews, content, relatedTools, faqs,re
           )}
     <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
     <div className="keywords-input-container">
-            <div className="tags-container">
-              {tags.map((tag, index) => (
-                <span className="tag" key={index}>
-                  {tag}
-                  <span
-                    className="remove-btn"
-                    onClick={() => setTags(tags.filter((_, i) => i !== index))}
-                  >
-                    ×
-                  </span>
+    <div className="tags-container flex flex-wrap gap-2 mb-4">
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} width={80} height={30} />
+            ))
+          ) : (
+            tags.map((tag, index) => (
+              <span
+                key={index}
+                className="bg-gray-200 px-2 py-1 rounded-md flex items-center"
+              >
+                {tag}
+                <span
+                  className="ml-2 cursor-pointer text-red-500"
+                  onClick={() =>
+                    setTags(tags.filter((_, i) => i !== index))
+                  }
+                >
+                  ×
                 </span>
-              ))}
-            </div>
-            <input
-              type="text"
-              placeholder={t("Add a keyword")}
-              className="rounded w-100"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              onKeyDown={handleKeyDown}
-              required
-            />
+              </span>
+            ))
+          )}
+        </div>
+        <input
+          type="text"
+          placeholder="Add a keyword"
+          className="w-full p-2 border-none border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          value={input}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur} // If the input loses focus, process the tag
+          required
+          style={{
+            cursor: "text", // Keeps text input cursor while typing
+          }}
+        />
+      
           </div>
-          <p className="text-center">
-            {" "}
-            {t("Example: php, html, css")}
-          </p>
+          
+          <div className="flex flex-col sm:flex-row items-start justify-between space-x-4 ms-4 me-4 sm:ms-2 sm:me-2 mt-3 shadow-xl border rounded-lg pt-3 pb-3 ps-3 pe-3">
+  
+  {/* Tone Section */}
+  <div className="flex flex-col sm:w-1/2 w-full">
+    <label htmlFor="tone" className="text-sm text-left font-medium mb-2">
+      <FaPhoneVolume className="text-[#fa6742]"/> Tone:
+    </label>
+    <div className="relative">
+      <select
+        id="tone"
+        value={selectedTone}
+        onChange={handleToneChange}
+        className="block shadow-lg appearance-none w-full bg-white border border-gray-300 rounded-md py-3 pl-4 pr-10 text-sm leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      >
+        {availableTones.map((tone) => (
+          <option key={tone.value} value={tone.value}>
+            {tone.label}
+          </option>
+        ))}
+      </select>
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-600">
+        <svg
+          className="fill-current h-5 w-5"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </div>
+    </div>
+  </div>
 
+  {/* Language Section */}
+  <div className="flex flex-col sm:w-1/2 w-full">
+    <label htmlFor="language" className="text-sm text-left font-medium mb-2">
+      <FaLanguage className="text-[#fa6742]"/> Language:
+    </label>
+    <div className="relative">
+      <select
+        id="language"
+        value={selectedLanguage}
+        onChange={handleLanguageChange}
+        className="block shadow-lg  appearance-none w-full bg-white border border-gray-300 rounded-md py-3 pl-4 pr-10 text-sm leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      >
+        {availableLanguages.map((language) => (
+          <option
+            key={language.code}
+            value={language.code}
+            className="flex items-center"
+          >
+            <span className={`fi fi-${language.flag} mr-2`}></span>
+            {language.name}
+          </option>
+        ))}
+      </select>
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-600">
+        <svg
+          className="fill-current h-5 w-5"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div className="ms-4 mt-3">
+  {/* reCAPTCHA Section */}
+  {!isLocalHost && siteKey && (
+  <ReCAPTCHA
+    sitekey={siteKey} 
+    onChange={onRecaptchaChange}
+  />
+)}
+</div>
            <div className="flex items-center mt-4 md:mt-0 ps-6 pe-6">
            <button
   className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-500"

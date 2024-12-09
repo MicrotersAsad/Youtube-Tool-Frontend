@@ -21,6 +21,7 @@ import { i18n, useTranslation } from "next-i18next";
 import { getContentProps } from "../../utils/getContentProps";
 import Script from "next/script";
 import dynamic from "next/dynamic";
+import ReCAPTCHA from "react-google-recaptcha";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const YouTubeChannelScraper = ({
   meta,
@@ -36,7 +37,9 @@ const YouTubeChannelScraper = ({
   const [keyword, setKeyword] = useState("");
   const [channels, setChannels] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [siteKey,setSiteKey]=useState()
   const [error, setError] = useState("");
+  const [captchaVerified, setCaptchaVerified] = useState(false);
   const [filteredChannels, setFilteredChannels] = useState([]);
   const [minSubscriber, setMinSubscriber] = useState(0);
   const [maxSubscriber, setMaxSubscriber] = useState(Infinity);
@@ -70,6 +73,66 @@ const YouTubeChannelScraper = ({
   };
 
   const closeModal = () => setModalVisible(false);
+
+// Check if running on localhost
+const isLocalHost = typeof window !== "undefined" && 
+(window.location.hostname === "localhost" || 
+ window.location.hostname === "127.0.0.1" || 
+ window.location.hostname === "::1");
+ const handleCaptchaChange = (value) => {
+  // This is the callback from the reCAPTCHA widget
+  if (value) {
+    setCaptchaVerified(true); // Set captchaVerified to true when the user completes reCAPTCHA
+  }
+};
+useEffect(() => {
+  const fetchConfigs = async () => {
+    try {
+      const protocol = window.location.protocol === "https:" ? "https" : "http";
+      const host = window.location.host;
+      
+      // Retrieve the JWT token from localStorage (or other storage mechanisms)
+      const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace 'authToken' with your key if different
+      
+        
+      if (!token) {
+        console.error('No authentication token found!');
+        return;
+      }
+
+      // Make the API call with the Authorization header containing the JWT token
+      const response = await fetch(`${protocol}://${host}/api/extensions`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Include the token in the header
+        },
+      });
+
+      const result = await response.json();
+
+
+      if (result.success) {
+        // reCAPTCHA configuration
+        const captchaExtension = result.data.find(
+          (ext) => ext.key === "google_recaptcha_2" && ext.status === "Enabled"
+        );
+        if (captchaExtension && captchaExtension.config.siteKey) {
+          setSiteKey(captchaExtension.config.siteKey);
+        } else {
+          console.error("ReCAPTCHA configuration not found or disabled.");
+        }
+      } else {
+        console.error('Error fetching extensions:', result.message);
+      }
+    } catch (error) {
+      console.error("Error fetching configurations:", error);
+    } finally {
+      setLoading(false); // Data has been loaded
+    }
+  };
+
+  fetchConfigs();
+}, []);
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -147,6 +210,12 @@ const YouTubeChannelScraper = ({
       toast.error(t("Please log in to fetch channel data."));
       return;
     }
+    if (!captchaVerified) {
+      toast.error(t("Pls Complete this capctha"));
+      return;
+    }
+  
+
     setLoading(true);
     setChannels([]);
     setFilteredChannels([]);
@@ -644,6 +713,15 @@ const YouTubeChannelScraper = ({
                   required
                 />
               </div>
+              <div className="ms-4">
+  {/* reCAPTCHA Section */}
+{!isLocalHost && siteKey && (
+  <ReCAPTCHA
+    sitekey={siteKey} // সঠিকভাবে `sitekey` পাঠানো
+    onChange={handleCaptchaChange}
+  />
+)}
+</div>
               <button
                 type="submit"
                 className="bg-blue-500 text-white px-4 py-2 rounded-md"

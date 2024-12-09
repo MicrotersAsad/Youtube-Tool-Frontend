@@ -20,6 +20,7 @@ import { i18n, useTranslation } from "next-i18next";
 import Script from "next/script";
 import dynamic from 'next/dynamic';
 import { getContentProps } from "../../utils/getContentProps";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
@@ -32,7 +33,9 @@ const VideoSummarizer = ({ meta, reviews, content, relatedTools, faqs,reactions,
   const [summary, setSummary] = useState([]);
   const [activeTab, setActiveTab] = useState("Transcript");
   const [loading, setLoading] = useState(false);
+  const [siteKey,setSiteKey]=useState()
   const [error, setError] = useState("");
+  const [captchaVerified, setCaptchaVerified] = useState(false);
   const [generateCount, setGenerateCount] = useState(5);
   const [isUpdated, setIsUpdated] = useState(false);
   const [newReview, setNewReview] = useState({
@@ -57,6 +60,66 @@ const VideoSummarizer = ({ meta, reviews, content, relatedTools, faqs,reactions,
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+  // Check if running on localhost
+const isLocalHost = typeof window !== "undefined" && 
+(window.location.hostname === "localhost" || 
+ window.location.hostname === "127.0.0.1" || 
+ window.location.hostname === "::1");
+ const handleCaptchaChange = (value) => {
+  // This is the callback from the reCAPTCHA widget
+  if (value) {
+    setCaptchaVerified(true); // Set captchaVerified to true when the user completes reCAPTCHA
+  }
+};
+useEffect(() => {
+  const fetchConfigs = async () => {
+    try {
+      const protocol = window.location.protocol === "https:" ? "https" : "http";
+      const host = window.location.host;
+      
+      // Retrieve the JWT token from localStorage (or other storage mechanisms)
+      const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace 'authToken' with your key if different
+      
+        
+      if (!token) {
+        console.error('No authentication token found!');
+        return;
+      }
+
+      // Make the API call with the Authorization header containing the JWT token
+      const response = await fetch(`${protocol}://${host}/api/extensions`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Include the token in the header
+        },
+      });
+
+      const result = await response.json();
+
+
+      if (result.success) {
+        // reCAPTCHA configuration
+        const captchaExtension = result.data.find(
+          (ext) => ext.key === "google_recaptcha_2" && ext.status === "Enabled"
+        );
+        if (captchaExtension && captchaExtension.config.siteKey) {
+          setSiteKey(captchaExtension.config.siteKey);
+        } else {
+          console.error("ReCAPTCHA configuration not found or disabled.");
+        }
+      } else {
+        console.error('Error fetching extensions:', result.message);
+      }
+    } catch (error) {
+      console.error("Error fetching configurations:", error);
+    } finally {
+      setLoading(false); // Data has been loaded
+    }
+  };
+
+  fetchConfigs();
+}, []);
+
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -89,6 +152,10 @@ const VideoSummarizer = ({ meta, reviews, content, relatedTools, faqs,reactions,
       toast.error(
         t("You have reached the limit. Please upgrade for unlimited use.")
       );
+      return;
+    }
+    if (!captchaVerified) {
+      toast.error(t("Pls Complete this capctha"));
       return;
     }
     setLoading(true);
@@ -505,6 +572,15 @@ const VideoSummarizer = ({ meta, reviews, content, relatedTools, faqs,reactions,
       />
       <small className="text-muted"> Example: https://www.youtube.com/watch?v=FoU6-uRAmCo&t=1s</small>
     </div>
+    <div className="ms-4">
+  {/* reCAPTCHA Section */}
+{!isLocalHost && siteKey && (
+  <ReCAPTCHA
+    sitekey={siteKey} // সঠিকভাবে `sitekey` পাঠানো
+    onChange={handleCaptchaChange}
+  />
+)}
+</div>
     <div className="flex items-center mt-4 md:mt-0 ps-6 pe-6">
     <button
   className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-purple-400"
