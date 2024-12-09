@@ -989,28 +989,44 @@ const YtThumbnailDw = ({
             </div>
           </div>
         )}
+            </div>
         {/* Related Tools Section */}
-        <div className="related-tools mt-10 shadow-lg p-5 rounded-lg bg-white">
-          <h2 className="text-2xl font-bold mb-5 text-center">Related Tools</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {relatedTools?.map((tool, index) => (
-              <a
+       <div className="bg-indigo-50 p-5">
+          <h2 className="text-2xl font-bold mb-5 pt-5 text-center">
+            {t("Related Tools")}
+          </h2>
+  
+          <ul role="list" className="mx-auto gap-3 grid max-w-7xl grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3">
+  {relatedTools.map((tool, index) => (
+    <li key={index} className="cursor-pointer bg-white rounded-xl list-none p-4 shadow transition duration-200 ease-in-out hover:scale-[101%] hover:bg-gray-50 hover:shadow-lg hover:ring-1 hover:ring-indigo-500">
+                  <Link
                 key={index}
                 href={tool.link}
-                className="flex items-center border  rounded-lg p-4 bg-gray-100 transition"
+                className="flex items-center transition"
               >
-                <Image
-                  src={tool?.logo?.src}
-                  alt={`${tool.name} Icon`}
-                  width={64}
-                  height={64}
-                  className="mr-4"
-                />
-                <span className="text-blue-600 font-medium">{tool.name}</span>
-              </a>
-            ))}
+        <div className="flex items-center">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border hover:shadow lg:h-12 lg:w-12">
+            <Image 
+              alt="AI Story Generator icon" 
+              loading="lazy" 
+              width={24} 
+              height={24} 
+              decoding="async" 
+              className="h-6 w-6 rounded-full" 
+              src={tool?.logo?.src || '/default-image.png'}  // Default fallback image
+            />
           </div>
+          <span className="ml-4 text-base font-medium text-gray-900 hover:text-indigo-600">{tool.name}</span>
         </div>
+      </Link>
+    </li>
+  ))}
+</ul>
+
+  
+        {/* End of Related Tools Section */}
+
+      
         <style>{`
   .selected {
     border: 3px solid blue;
