@@ -14,11 +14,17 @@ function About() {
   const [existingMetaDescription, setExistingMetaDescription] = useState('');
   const [error, setError] = useState(null);
   const [language, setLanguage] = useState('en'); // Default language
-
+  const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Add your token here
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch(`/api/about?lang=${language}`);
+        const response = await fetch(`/api/about?lang=${language}`, {
+          method: 'GET', // Default method for GET requests
+          headers: {
+            'Authorization': `Bearer ${token}`, // Add Authorization header
+            'Content-Type': 'application/json',
+          },
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch content');
         }
@@ -44,6 +50,7 @@ function About() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Add Authorization header
         },
         body: JSON.stringify({ content: quillContent, metaTitle, metaDescription, language }),
       });
@@ -62,8 +69,7 @@ function About() {
       console.error('Error posting content:', error.message);
       setError(error.message);
     }
-  }, [quillContent, metaTitle, metaDescription, language]);
-
+  }, [quillContent, metaTitle, metaDescription, language]); 
   const handleQuillChange = useCallback((newContent) => {
     setQuillContent(newContent);
   }, []);

@@ -25,9 +25,18 @@ const Extensions = () => {
   }, []);
 
   const fetchExtensions = async () => {
+    const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00';
     try {
-      const response = await fetch("/api/extensions");
+      const response = await fetch("/api/extensions", {
+        method: "GET", // Use GET method if you're just fetching data
+        headers: {
+          "Authorization": `Bearer ${token}`, // Add Authorization header
+          "Content-Type": "application/json", // Optional, if the server expects JSON
+        },
+      });
+      
       const result = await response.json();
+      
       if (result.success) {
         setDbExtensions(result.data);
       } else {
@@ -38,6 +47,7 @@ const Extensions = () => {
       toast.error("Error fetching extensions");
     }
   };
+  
 
   const handleConfigure = (extension) => {
     setSelectedExtension(extension);
@@ -52,13 +62,17 @@ const Extensions = () => {
   };
 
   const saveConfig = async () => {
+    const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Add your token here
     try {
       const dbExtension = dbExtensions.find((ext) => ext.key === selectedExtension.key);
       if (!dbExtension) {
         // Add new extension to database
         const response = await fetch("/api/extensions", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`, // Add Authorization header
+          },
           body: JSON.stringify({
             name: selectedExtension.name,
             key: selectedExtension.key,
@@ -78,7 +92,10 @@ const Extensions = () => {
         // Update existing extension in database
         const response = await fetch("/api/extensions", {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`, // Add Authorization header
+          },
           body: JSON.stringify({
             id: dbExtension._id,
             config: configData,
@@ -98,16 +115,20 @@ const Extensions = () => {
       toast.error("Failed to save configuration");
     }
   };
-
+  
   const toggleStatus = async (extension) => {
+    const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Add your token here
     const dbExtension = dbExtensions.find((ext) => ext.key === extension.key);
-
+  
     if (!dbExtension) {
       // Add new extension to database
       try {
         const response = await fetch("/api/extensions", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`, // Add Authorization header
+          },
           body: JSON.stringify({
             name: extension.name,
             key: extension.key,
@@ -130,7 +151,10 @@ const Extensions = () => {
       try {
         const response = await fetch("/api/extensions", {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`, // Add Authorization header
+          },
           body: JSON.stringify({
             id: dbExtension._id,
             status: dbExtension.status === "Enabled" ? "Disabled" : "Enabled",
@@ -151,6 +175,7 @@ const Extensions = () => {
       }
     }
   };
+  
 
   return (
     <Layout>

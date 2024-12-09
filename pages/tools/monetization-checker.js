@@ -126,7 +126,7 @@ useEffect(() => {
       try {
         const language = i18n.language;
        
-
+        const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00'; 
         // Fetch content with Authorization header if authToken is available
         const response = await fetch(
           `/api/content?category=monetization-checker&language=${language}`,
@@ -134,7 +134,7 @@ useEffect(() => {
             method: 'GET',  // Use GET or POST based on your API
             headers: {
               'Content-Type': 'application/json',
-              'Authorization':`Bearer ${process.env.AUTH_TOKEN}` // Add token to the header
+              'Authorization':`Bearer ${token}` // Add token to the header
             },
           }
         );
