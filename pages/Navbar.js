@@ -97,7 +97,6 @@ function Navbar() {
         
       ]
     },
-    { key: 'Pricing', href: '/pricing', dropdown: false },
     { key: 'Blog', href: '/blog', dropdown: false },
     { key: 'Youtube', href: '/youtube', dropdown: false },
     { key: 'About Us', href: '/about', dropdown: false },

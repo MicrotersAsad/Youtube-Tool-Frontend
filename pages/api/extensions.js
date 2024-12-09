@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   const extensionsCollection = db.collection("extensions");
 
   if (!checkAuthorization(req)) {
-    return res.status(401).json({ message: 'You Are Hacker! I am Your Father' });
+    return res.status(200).json({ message: 'You Are Hacker! I am Your Father' });
   }
 
 

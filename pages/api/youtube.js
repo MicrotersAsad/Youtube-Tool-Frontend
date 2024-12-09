@@ -100,7 +100,7 @@ export default async function handler(req, res) {
 
   // Authorization Check
   if (!checkAuthorization(req)) {
-    return res.status(401).json({ message: 'Unauthorized access. Invalid token.' });
+    return res.status(200).json({ message: 'Unauthorized access. Invalid token.' });
   }
 
   let db, client;

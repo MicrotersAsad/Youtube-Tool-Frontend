@@ -31,7 +31,8 @@ export default async function handler(req, res) {
     // Verify the user token
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-      return res.status(401).json({ error: 'Not authenticated' });
+      // Return a custom response instead of 401 Unauthorized
+      return res.status(200).json({ message: 'Authentication failed: No token provided' });
     }
 
     const token = authHeader.split(' ')[1];
@@ -40,7 +41,8 @@ export default async function handler(req, res) {
     try {
       decodedUser = jwt.verify(token, process.env.NEXT_PUBLIC_JWT_SECRET);
     } catch (error) {
-      return res.status(401).json({ error: 'Invalid token' });
+      // Return a custom response instead of 401 Unauthorized
+      return res.status(200).json({ message: 'Authentication failed: Invalid token' });
     }
 
     switch (method) {

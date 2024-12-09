@@ -66,7 +66,7 @@ export default async function handler(req, res) {
 
   // Authorization Check
   if (!checkAuthorization(req)) {
-    return res.status(401).json({ message: 'You Are Hacker! I am Your Father' });
+    return res.status(200).json({ message: 'You Are Hacker! I am Your Father' });
   }
 
   let db, client;

@@ -32,6 +32,7 @@ import cloud2 from "../../public/shape/cloud2.png";
 import { getContentProps } from '../../utils/getContentProps';
 import "react-toastify/dist/ReactToastify.css";
 import Script from "next/script";
+import ReCAPTCHA from "react-google-recaptcha";
 // Dynamically import heavy components
 const StarRating = lazy(() => import("./StarRating"));
 
@@ -41,7 +42,9 @@ const VideoDataViewer =  ({ meta, reviews, content, relatedTools, faqs,reactions
   const [videoUrl, setVideoUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [videoData, setVideoData] = useState(null);
+  const [siteKey,setSiteKey]=useState()
   const [error, setError] = useState("");
+  const [captchaVerified, setCaptchaVerified] = useState(false); 
   const [generateCount, setGenerateCount] = useState(0);
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [fetchLimitExceeded, setFetchLimitExceeded] = useState(false);
@@ -70,6 +73,66 @@ const VideoDataViewer =  ({ meta, reviews, content, relatedTools, faqs,reactions
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+  
+// Check if running on localhost
+const isLocalHost = typeof window !== "undefined" && 
+(window.location.hostname === "localhost" || 
+ window.location.hostname === "127.0.0.1" || 
+ window.location.hostname === "::1");
+ const handleCaptchaChange = (value) => {
+  // This is the callback from the reCAPTCHA widget
+  if (value) {
+    setCaptchaVerified(true); // Set captchaVerified to true when the user completes reCAPTCHA
+  }
+};
+useEffect(() => {
+  const fetchConfigs = async () => {
+    try {
+      const protocol = window.location.protocol === "https:" ? "https" : "http";
+      const host = window.location.host;
+      
+      // Retrieve the JWT token from localStorage (or other storage mechanisms)
+      const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace 'authToken' with your key if different
+      
+        
+      if (!token) {
+        console.error('No authentication token found!');
+        return;
+      }
+
+      // Make the API call with the Authorization header containing the JWT token
+      const response = await fetch(`${protocol}://${host}/api/extensions`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Include the token in the header
+        },
+      });
+
+      const result = await response.json();
+
+
+      if (result.success) {
+        // reCAPTCHA configuration
+        const captchaExtension = result.data.find(
+          (ext) => ext.key === "google_recaptcha_2" && ext.status === "Enabled"
+        );
+        if (captchaExtension && captchaExtension.config.siteKey) {
+          setSiteKey(captchaExtension.config.siteKey);
+        } else {
+          console.error("ReCAPTCHA configuration not found or disabled.");
+        }
+      } else {
+        console.error('Error fetching extensions:', result.message);
+      }
+    } catch (error) {
+      console.error("Error fetching configurations:", error);
+    } finally {
+      setLoading(false); // Data has been loaded
+    }
+  };
+
+  fetchConfigs();
+}, []);
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -119,7 +182,10 @@ const VideoDataViewer =  ({ meta, reviews, content, relatedTools, faqs,reactions
       toast.error(t("Please enter a valid URL."));
       return;
     }
-
+    if (!captchaVerified) {
+      toast.error(t("Pls Complete this capctha"));
+      return;
+    }
     if (generateCount >= 3 && user?.paymentStatus !== "success" && user.role !== "admin") {
       setFetchLimitExceeded(true);
       toast.error(t("Fetch limit exceeded. Please upgrade for unlimited access."));
@@ -550,6 +616,15 @@ const VideoDataViewer =  ({ meta, reviews, content, relatedTools, faqs,reactions
         onChange={(e) => setVideoUrl(e.target.value)} // Correct event handler
       />
     </div>
+    <div className="ms-4">
+  {/* reCAPTCHA Section */}
+{!isLocalHost && siteKey && (
+  <ReCAPTCHA
+    sitekey={siteKey} // সঠিকভাবে `sitekey` পাঠানো
+    onChange={handleCaptchaChange}
+  />
+)}
+</div>
 
     <div className="flex items-center mt-4 md:mt-0 ps-6 pe-6">
       <button
