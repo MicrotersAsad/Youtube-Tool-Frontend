@@ -31,6 +31,7 @@ import dynamic from "next/dynamic";
 import { getContentProps } from "../../utils/getContentProps";
 import { i18n } from "next-i18next";
 import ReCAPTCHA from "react-google-recaptcha";
+import Skeleton from "react-loading-skeleton";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 const availableLanguages = [
   { code: 'en', name: 'English', flag: 'us' },
