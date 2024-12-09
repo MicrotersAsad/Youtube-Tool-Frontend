@@ -68,6 +68,7 @@ function corsMiddleware(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Cache-Control', 'no-store'); // Prevent caching
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
@@ -76,9 +77,25 @@ function corsMiddleware(req, res) {
   return false;
 }
 
+// Utility function to verify the JWT token
+function checkAuthorization(req) {
+  const token = req.headers.authorization?.split(' ')[1]; // Expecting 'Bearer <token>'
+  const validToken = process.env.AUTH_TOKEN; // Token stored in .env file
+
+  if (!token || token !== validToken) {
+    return false; // Unauthorized
+  }
+  return true; // Authorized
+}
+
 // Main API handler
 const handler = async (req, res) => {
   if (corsMiddleware(req, res)) return;
+
+  // Check if the request is authorized
+  if (!checkAuthorization(req)) {
+    return res.status(200).json({ message: 'Authentication failed: Invalid or missing token' });
+  }
 
   const { method } = req;
 

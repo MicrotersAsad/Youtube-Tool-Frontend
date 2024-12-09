@@ -162,11 +162,7 @@ useEffect(() => {
 
   const closeModal = () => setModalVisible(false);
 
-  useEffect(() => {
-    if (user && !user.name) {
-      updateUserProfile().then(() => setIsUpdated(true));
-    }
-  }, [user, updateUserProfile]);
+
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
