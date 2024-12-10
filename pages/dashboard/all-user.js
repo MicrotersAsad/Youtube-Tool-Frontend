@@ -376,7 +376,7 @@ const AllUsers = () => {
           </div>
           </div>
 
-          {/* Ban User Modal */}
+          {/*  User Modal */}
               <EditModal/>
             <BanModal  />
             <DeleteModal/>

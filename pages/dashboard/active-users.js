@@ -3,23 +3,29 @@ import Layout from './layout';
 import { ClipLoader } from 'react-spinners';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FaEnvelope, FaTrashAlt, FaTimes, FaSearch } from 'react-icons/fa';
+import {FaSearch, FaTrashAlt,
+  FaTimes,
+  FaBan,
+  FaEdit,
+  FaEllipsisV,
+  FaEnvelope,
+  FaBell, } from 'react-icons/fa';
 import Image from 'next/image';
-
+import BanModal from "../../components/BanModal";
+import { useUserActions } from "../../contexts/UserActionContext";
+import DeleteModal from "../../components/DeleteModal";
+import EmailModal from "../../components/EmailModal";
+import NotificationModal from "../../components/NotificationModal";
+import EditModal from "../../components/EditModal";
 const Users = () => {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [selectedUsers, setSelectedUsers] = useState([]);
   const [emailSubject, setEmailSubject] = useState('');
   const [emailMessage, setEmailMessage] = useState('');
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [sendingEmail, setSendingEmail] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-
+  const [dropdownOpen, setDropdownOpen] = useState(null);
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
@@ -29,6 +35,7 @@ const Users = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
+  
 
   useEffect(() => {
     handleSearch(searchTerm);
@@ -61,83 +68,40 @@ const Users = () => {
       setLoading(false);
     }
   };
-
-  // Handle delete modal actions
+  const { setSelectedUser, setShowBanModal,setShowDeleteModal,
+    setShowEmailModal,setShowNotificationModal,setShowEditModal,setEditUser   } = useUserActions();
+  const openBanModal = (user) => {
+    setSelectedUser(user);
+    setShowBanModal(true); // Show the ban modal
+  };
   const openDeleteModal = (user) => {
     setSelectedUser(user);
-    setShowDeleteModal(true);
+    setShowDeleteModal(true); // Show the ban modal
+  };
+  const openEmailModal = (user) => {
+    setSelectedUser(user);
+    setShowEmailModal(true); // Show the ban modal
+  };
+  const openNotificationModal = (user) => {
+    setSelectedUser(user);
+    setShowNotificationModal(true); // Show the ban modal
+  };
+  const openEditModal = (user) => {
+    setSelectedUser(user);
+    setEditUser(user)
+    setShowEditModal(true); // Show the ban modal
   };
 
-  const closeDeleteModal = () => {
-    setSelectedUser(null);
-    setShowDeleteModal(false);
+  const toggleDropdown = (userId) => {
+    console.log("Previous dropdownOpen:", dropdownOpen);
+    setDropdownOpen((prev) => {
+      const newState = prev === userId ? null : userId;
+      console.log("New dropdownOpen:", newState);
+      return newState;
+    });
   };
-
-  const handleDeleteUser = async () => {
-    if (!selectedUser) return;
-
-    try {
-      const response = await fetch(`/api/user?id=${selectedUser._id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete user');
-      }
-
-      setUsers((prevUsers) => prevUsers.filter((u) => u._id !== selectedUser._id));
-      toast.success('User deleted successfully!');
-    } catch (error) {
-      toast.error('Failed to delete user');
-    } finally {
-      closeDeleteModal();
-    }
-  };
-
-  // Handle email modal actions
-  const openEmailModal = (user = null) => {
-    setSelectedUser(user ? user.email : null);
-    setEmailSubject('Important Update');
-    setEmailMessage('Dear User,\n\nWe have an important update for you.\n\nBest regards,\nYour Team');
-    setShowEmailModal(true);
-  };
-
-  const closeEmailModal = () => {
-    setEmailSubject('');
-    setEmailMessage('');
-    setShowEmailModal(false);
-  };
-
-  const handleSendEmail = async (emails) => {
-    if (!emailSubject.trim() || !emailMessage.trim()) {
-      toast.error('Subject and message cannot be empty');
-      return;
-    }
-
-    setSendingEmail(true);
-    try {
-      const response = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ emails, subject: emailSubject, message: emailMessage }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText);
-      }
-
-      toast.success('Email sent successfully!');
-      setShowEmailModal(false);
-    } catch (error) {
-      toast.error('Failed to send email');
-    } finally {
-      setSendingEmail(false);
-    }
-  };
+ 
+ 
 
   const handleSearch = (term) => {
     if (term.trim() === '') {
@@ -245,19 +209,75 @@ const Users = () => {
                       <td className="py-2 px-4 border-b">{user?.paymentStatus|| 'N/A'}</td>
                       <td className="py-2 px-4 border-b">{user?.subscriptionPlan|| 'N/A'}</td>
                       <td className="py-2 px-4 border-b">{user?.subscriptionValidUntil|| 'N/A'}</td>
-                      <td className="py-2 px-4 border-b text-center flex space-x-2">
+                      <td className="py-2 px-4 relative">
                         <button
-                          className="text-red-500 p-2 rounded-full hover:text-red-600 transition duration-200"
-                          onClick={() => openDeleteModal(user)}
+                          className="text-gray-700 hover:text-gray-900"
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent parent events from triggering
+                            toggleDropdown(user._id);
+                          }}
                         >
-                          <FaTrashAlt />
+                          <FaEllipsisV />
                         </button>
-                        <button
-                          className="text-green-500  p-2 rounded-full hover:text-green-600 transition duration-200"
-                          onClick={() => openEmailModal(user)}
-                        >
-                          <FaEnvelope />
-                        </button>
+
+                        {dropdownOpen === user._id && (
+                          <div
+                            className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50 elapsis-menu"
+                            onClick={(e) => e.stopPropagation()} // Prevent dropdown close on button click
+                          >
+                            
+                            
+                            <button
+                              className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left text-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditModal(user);
+                              }}
+                            >
+                              <FaEdit className="mr-2 text-green-500" /> Edit
+                            </button>
+                            <button
+                              className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left text-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openBanModal(user);
+                              }}
+                            >
+                              <FaBan className="mr-2 text-red-500" /> Ban
+                            </button>
+                            
+                            <button
+                              className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left text-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDeleteModal(user);
+                              }}
+                            >
+                              <FaTrashAlt className="mr-2 text-red-600" /> Delete
+                            </button>
+                            
+                            <button
+                              className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left text-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEmailModal(user);
+                              }}
+                            >
+                              <FaEnvelope className="mr-2 text-green-500" /> Email
+                            </button>
+                            <button
+                              className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left text-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openNotificationModal(user);
+                              }}
+                            >
+                              <FaBell className="mr-2 text-blue-500" /> Notification
+                            </button>
+                           
+                          
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -302,75 +322,13 @@ const Users = () => {
             </button>
           </div>
         </div>
-
-        {/* Delete Confirmation Modal */}
-        {showDeleteModal && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800">Confirm Deletion</h2>
-              <p className="mb-6 text-gray-600">
-                Are you sure you want to delete this user? This action cannot be undone.
-              </p>
-              <div className="flex justify-end space-x-4">
-                <button
-                  className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
-                  onClick={closeDeleteModal}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
-                  onClick={handleDeleteUser}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Email Modal */}
-        {showEmailModal && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-3/4">
-              <button className="absolute top-2 right-2 text-gray-600 hover:text-gray-800" onClick={closeEmailModal}>
-                <FaTimes size={24} />
-              </button>
-              <h2 className="text-xl font-semibold mb-4">Send Email</h2>
-              <label>Your Subject</label>
-              <input
-                type="text"
-                value={emailSubject}
-                onChange={(e) => setEmailSubject(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg p-3 shadow-sm mb-4"
-                placeholder="Enter subject"
-              />
-              <label>Your Message</label>
-              <textarea
-                value={emailMessage}
-                onChange={(e) => setEmailMessage(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg p-3 shadow-sm mb-4"
-                placeholder="Enter message"
-                rows="4"
-              />
-              <div className="flex justify-end space-x-4">
-                <button
-                  className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition duration-200"
-                  onClick={closeEmailModal}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-200"
-                  onClick={() => handleSendEmail(selectedUsers.length > 0 ? selectedUsers : [selectedUser])}
-                  disabled={sendingEmail}
-                >
-                  {sendingEmail ? <ClipLoader size={20} color={'#fff'} /> : 'Send'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+  {/*  User Modal */}
+  <EditModal/>
+            <BanModal  />
+            <DeleteModal/>
+            <EmailModal/>
+            <NotificationModal/>
+      
       </div>
     </Layout>
   );
