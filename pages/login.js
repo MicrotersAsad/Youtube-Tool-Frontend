@@ -80,17 +80,17 @@ function LoginOrResetPassword() {
     setRecaptchaToken(token);
   };
 
-  const handleSubmitLogin = async (event) => {
+  const handleSubmitLogin = async (event) => { 
     event.preventDefault();
-
+  
     if (!isLocalhost && !recaptchaToken) {
       toast.error("Please complete the reCAPTCHA");
       return;
     }
-
+  
     setError("");
     setIsLoading(true);
-
+  
     try {
       const response = await fetch("/api/login", {
         method: "POST",
@@ -103,15 +103,23 @@ function LoginOrResetPassword() {
           recaptchaToken: isLocalhost ? null : recaptchaToken,
         }),
       });
-
+  
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.message || "Error logging in");
       }
-
+  
       localStorage.setItem("token", data.token);
       toast.success("Login successful!");
+  
+      // Navigate to the homepage
       router.push("/");
+  
+      // Once the page is loaded, reload it to update the login status
+      router.events.on('routeChangeComplete', () => {
+        window.location.reload(); // Reload the page after navigating
+      });
+  
     } catch (error) {
       toast.error("Login error: " + error.message);
       setError(error.message);
@@ -119,6 +127,7 @@ function LoginOrResetPassword() {
       setIsLoading(false);
     }
   };
+  
 
   const handleSendResetToken = async (event) => {
     event.preventDefault();
