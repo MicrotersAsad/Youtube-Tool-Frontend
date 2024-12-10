@@ -67,6 +67,7 @@ const TagExtractor = ({ meta, reviews, content, relatedTools, faqs,reactions,hre
     userProfile: "",
   });
   const [modalVisible, setModalVisible] = useState(false);
+  const [alertVisible, setAlertlVisible] = useState(true);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
 
@@ -160,7 +161,7 @@ useEffect(() => {
     setVideoUrl(e.target.value);
   };
 
-  const closeModal = () => setModalVisible(false);
+  const closeModal = () => setAlertlVisible(false);
 
 
 
@@ -231,33 +232,39 @@ useEffect(() => {
   };
 
   const fetchTags = async () => {
+    // Check if video URL is provided
     if (!videoUrl) {
       setError("Please enter a valid YouTube URL");
       toast.error("Please enter a valid YouTube URL");
       return;
     }
-    if (!user) {
-      toast.error(t("login to extract"));
-      return;
-    }
-  
-    if (!captchaVerified) {
-      toast.error(t("Pls Complete this capctha"));
-      return;
-    }
-  
-  
 
-    if (user && user.paymentStatus !== "success" && generateCount <= 0) {
+    // Check if CAPTCHA is verified
+    if (!captchaVerified) {
+      toast.error(t("Please complete the captcha"));
+      return;
+    }
+  
+    // Check if user is logged in and has exceeded the fetch limit (only for non-logged-in users)
+    if (!user && generateCount >= 3) {
+      toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
+      return;
+    }
+  
+    // If user is logged in, they get unlimited access (no need to check generateCount)
+    // For non-logged-in users, enforce the 3-fetch limit
+    if (user && generateCount <= 0) {
       toast.error(
-        "You have reached the limit of generating tags. Please upgrade your plan for unlimited use."
+        t("You have reached the limit of generating tags. Please log in for unlimited access.")
       );
       return;
     }
-
+  
     setLoading(true);
     setError("");
+  
     try {
+      // Sending POST request to fetch tags for the provided video URL
       const response = await fetch("/api/fetch-url", {
         method: "POST",
         headers: {
@@ -265,7 +272,7 @@ useEffect(() => {
         },
         body: JSON.stringify({ videoUrl }),
       });
-
+  
       if (!response.ok) {
         if (response.status === 429) {
           setFetchLimitExceeded(true);
@@ -281,18 +288,21 @@ useEffect(() => {
         }
         return;
       }
-
+  
       const data = await response.json();
-
+  
+      // Format tags as selectable items
       const titlesWithSelection = data.tags.map((tag) => ({
         text: tag,
         selected: false,
       }));
-
+  
       setGeneratedTitles(titlesWithSelection);
       setTags(data.tags || []);
+  
+      // Increase generate count for logged-in users
       if (user && user.paymentStatus !== "success") {
-        const newCount = generateCount - 1;
+        const newCount = generateCount + 1;
         setGenerateCount(newCount);
         localStorage.setItem("generateCount", newCount);
       }
@@ -303,6 +313,7 @@ useEffect(() => {
       setLoading(false);
     }
   };
+  
 
   const handleReviewSubmit = async () => {
     if (!user) {
@@ -622,46 +633,63 @@ useEffect(() => {
           <h1 className="text-3xl text-white">{t("YouTube Tag Extractor")}</h1>
           <p className="text-white">YouTube Tag Extractor: A Simple and Effective Tool to Find the Best Tags for Your Videos and Boost Your Reach</p>
           <ToastContainer />
-          {modalVisible && (
-            <div
-              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3"
-              role="alert"
-            >
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <svg
-                    className="fill-current h-6 w-6 text-yellow-500 mr-4"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                  >
-                    {/* SVG content can go here */}
-                  </svg>
-                  <div className="mt-4">
-                    {!user ? (
-                      <p className="text-center p-3 alert-warning">
-                        {t("loginToGenerateTags")}
-                      </p>
-                    ) : user.paymentStatus === "success" ||
-                      user.role === "admin" ? (
-                      <p className="text-center p-3 alert-warning">
-                        {t("generateUnlimitedTags")}
-                      </p>
-                    ) : (
-                      <p className="text-center p-3 alert-warning">
-                        {t("notUpgraded")} {5 - generateCount} {t("moreTimes")}.{" "}
-                        <Link className="btn btn-warning ms-3" href="/pricing">
-                          {t("upgrade")}
-                        </Link>
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <button className="text-yellow-700" onClick={closeModal}>
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
+          
+          {alertVisible && (
+  <div
+    className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+    role="alert"
+  >
+    <div className="flex">
+      <div>
+        {user ? (
+          // If user is logged in
+          <>
+            {/* Uncomment this section when payment system is implemented */}
+            {/* 
+            user.paymentStatus === "success" || user.role === "admin" ? (
+              <p className="text-center p-3 alert-warning">
+                {t("Congratulations! Now you can generate unlimited titles.")}
+              </p>
+            ) : (
+              <p className="text-center p-3 alert-warning">
+                {t(
+                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
+                  { remaining: 3 - generateCount }
+                )}
+                <Link href="/pricing" className="btn btn-warning ms-3">
+                  {t("Upgrade")}
+                </Link>
+              </p>
+            )
+            */}
+            
+            {/* User can generate unlimited titles while logged in */}
+            <p className="text-center p-3 alert-warning">
+              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now  unlimited tag extract .`)}
+            </p>
+          </>
+        ) : (
+          // If user is not logged in
+          <p className="text-center p-3 alert-warning">
+            {t(
+              "You are not logged in. You can  tag extract {{remaining}} more times. Please log in for unlimited access.",
+              { remaining: 3 - generateCount }
+            )}
+            <Link href="/login" className="btn btn-warning ms-3">
+              {t("Log in")}
+            </Link>
+          </p>
+        )}
+      </div>
+      <button
+        className="text-yellow-700 ml-auto"
+        onClick={closeModal}
+      >
+        ×
+      </button>
+    </div>
+  </div>
+)}
        <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
   <div>
     <div className="w-full p-6">

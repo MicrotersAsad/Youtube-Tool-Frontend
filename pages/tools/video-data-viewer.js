@@ -57,7 +57,7 @@ const VideoDataViewer =  ({ meta, reviews, content, relatedTools, faqs,reactions
     userProfile: "",
     userName: "",
   });
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(true);
   const [openIndex, setOpenIndex] = useState(null);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [likes, setLikes] = useState(reactions.likes || 0);
@@ -172,29 +172,41 @@ useEffect(() => {
   };
 
   const handleFetchClick = async () => {
+    // Check if the user is logged in
     if (!user) {
       toast.error(t("Please log in to fetch channel data."));
-      setModalVisible(true);
+      setModalVisible(true); // Open login modal
       return;
     }
-
+  
+    // Check if the video URL is provided
     if (!videoUrl.trim()) {
       toast.error(t("Please enter a valid URL."));
       return;
     }
+  
+    // Check if CAPTCHA is verified
     if (!captchaVerified) {
       toast.error(t("Pls Complete this capctha"));
       return;
     }
-    if (generateCount >= 3 && user?.paymentStatus !== "success" && user.role !== "admin") {
-      setFetchLimitExceeded(true);
+  
+    // Check if the user has exceeded the limit (only for non-logged-in users)
+    if (!user && generateCount >= 3) {
+      toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
+      return;
+    }
+  
+    // If user is logged in, they get unlimited access (no need to check generateCount)
+    // If user is not logged in, they are limited to 3 fetches
+    if (user && generateCount >= 3) {
       toast.error(t("Fetch limit exceeded. Please upgrade for unlimited access."));
       return;
     }
-
+  
     setLoading(true);
     setError("");
-
+  
     try {
       const response = await fetch("/api/video-data-viewer", {
         method: "POST",
@@ -203,22 +215,25 @@ useEffect(() => {
         },
         body: JSON.stringify({
           videoUrl,
-          hasUnlimitedAccess: user?.paymentStatus === "success",
-          role: user?.role,
+          hasUnlimitedAccess: true, // Since logged-in users have unlimited access
         }),
       });
-
+  
       if (!response.ok) {
         const errorMessage = await response.text();
         throw new Error(errorMessage || "Failed to fetch data");
       }
-
+  
       const data = await response.json();
       setVideoData(data);
-
-      const newGenerateCount = generateCount + 1;
-      setGenerateCount(newGenerateCount);
-      localStorage.setItem("generateCount", newGenerateCount);
+  
+      // Increase generate count for the user if they are logged in
+      if (user) {
+        const newGenerateCount = generateCount + 1;
+        setGenerateCount(newGenerateCount);
+        localStorage.setItem("generateCount", newGenerateCount);
+      }
+  
       toast.success(t("Data fetched successfully!"));
     } catch (error) {
       setError(error.message);
@@ -227,6 +242,8 @@ useEffect(() => {
       setLoading(false);
     }
   };
+  
+  
 
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
@@ -567,38 +584,63 @@ useEffect(() => {
           <h1 className="text-3xl pt-5 text-white">{t("YouTube Video Data Viewer")}</h1>
           <p className="text-white pb-3">The YouTube Video Data Viewer is a tool designed to provide detailed insights and analytics for YouTube videos</p>
           <ToastContainer />
+           
           {modalVisible && (
-            <div
-              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
-              role="alert"
-            >
-              <div className="flex">
-                <div className="mt-4">
-                  {user ? (
-                    user.paymentStatus === "success" || user.role === "admin" ? (
-                      <p className="text-center p-3 alert-warning">
-                        {t("Congratulations! Now you can get unlimited Video Data View.")}
-                      </p>
-                    ) : (
-                      <p className="text-center p-3 alert-warning">
-                        {t("You are not upgraded. You can get Video Data View { remainingGenerations: 5 - generateCount } more times")}
-                        <Link href="/pricing" className="btn btn-warning ms-3">
-                          {t("Upgrade")}
-                        </Link>
-                      </p>
-                    )
-                  ) : (
-                    <p className="text-center p-3 alert-warning">
-                      {t("Please log in to fetch channel data.")}
-                    </p>
-                  )}
-                </div>
-                <button className="text-yellow-700 ml-auto" onClick={closeModal}>
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
+  <div
+    className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+    role="alert"
+  >
+    <div className="flex">
+      <div>
+        {user ? (
+          // If user is logged in
+          <>
+            {/* Uncomment this section when payment system is implemented */}
+            {/* 
+            user.paymentStatus === "success" || user.role === "admin" ? (
+              <p className="text-center p-3 alert-warning">
+                {t("Congratulations! Now you can generate unlimited titles.")}
+              </p>
+            ) : (
+              <p className="text-center p-3 alert-warning">
+                {t(
+                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
+                  { remaining: 3 - generateCount }
+                )}
+                <Link href="/pricing" className="btn btn-warning ms-3">
+                  {t("Upgrade")}
+                </Link>
+              </p>
+            )
+            */}
+            
+            {/* User can generate unlimited titles while logged in */}
+            <p className="text-center p-3 alert-warning">
+              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now show unlimited video data .`)}
+            </p>
+          </>
+        ) : (
+          // If user is not logged in
+          <p className="text-center p-3 alert-warning">
+            {t(
+              "You are not logged in. You can show video data  {{remaining}} more times. Please log in for unlimited access.",
+              { remaining: 3 - generateCount }
+            )}
+            <Link href="/login" className="btn btn-warning ms-3">
+              {t("Log in")}
+            </Link>
+          </p>
+        )}
+      </div>
+      <button
+        className="text-yellow-700 ml-auto"
+        onClick={closeModal}
+      >
+        ×
+      </button>
+    </div>
+  </div>
+)}
 
 <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
   <div>

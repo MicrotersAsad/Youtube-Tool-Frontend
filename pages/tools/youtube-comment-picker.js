@@ -222,33 +222,35 @@ useEffect(() => {
 
   const handlePickWinner = async () => {
     if (!user) {
-      toast.error(t("Please log in to use this tool."));
-      return;
+      // If the user is not logged in, check the limit of 3 fetches
+      if (generateCount >= 3) {
+        toast.error(
+          t("You have reached the limit of generating winners. Please log in for unlimited access.")
+        );
+        return;
+      }
+    } else {
+      // If the user is logged in, they get unlimited access
+      // No need to check generateCount for logged-in users
     }
+  
+    // Check CAPTCHA verification
     if (!captchaVerified) {
-      toast.error(t("Pls Complete this capctha"));
+      toast.error(t("Please complete the captcha"));
       return;
     }
   
-    if (
-      generateCount >= 5 &&
-      user?.paymentStatus !== "success" &&
-      user?.role !== "admin"
-    ) {
-      toast.error(
-        t("You have reached the limit of generating winners. Please upgrade your plan for unlimited use.")
-      );
-      return;
-    }
-
     setLoading(true);
+  
     try {
       const videoId = new URLSearchParams(new URL(videoUrl).search).get("v");
       const response = await axios.get("/api/commentswinner", {
         params: { videoId, includeReplies },
       });
+  
       let allComments = response.data;
-
+  
+      // Filtering out duplicate comments
       if (filterDuplicates) {
         const uniqueUsers = new Set();
         allComments = allComments.filter((comment) => {
@@ -257,13 +259,14 @@ useEffect(() => {
           return true;
         });
       }
-
+  
+      // Filtering based on text content
       if (filterText) {
         allComments = allComments.filter((comment) =>
           comment.text.includes(filterText)
         );
       }
-
+  
       if (allComments.length > 0) {
         const selectedWinners = [];
         const uniqueIndexes = new Set();
@@ -277,12 +280,18 @@ useEffect(() => {
             selectedWinners.push(allComments[randomIndex]);
           }
         }
+  
         setWinners(selectedWinners);
-        setGenerateCount((prevCount) => {
-          const newCount = prevCount + 1;
-          localStorage.setItem("generateCount", newCount);
-          return newCount;
-        });
+  
+        // If the user is not logged in or doesn't have unlimited access, decrement the fetch count
+        if (!user || (user && user.paymentStatus !== "success")) {
+          setGenerateCount((prevCount) => {
+            const newCount = prevCount + 1;
+            localStorage.setItem("generateCount", newCount);
+            return newCount;
+          });
+        }
+  
       } else {
         setWinners([]);
       }
@@ -293,6 +302,8 @@ useEffect(() => {
       setLoading(false);
     }
   };
+  
+  
 
   const closeModal = () => {
     setModalVisible(false);
@@ -548,46 +559,63 @@ useEffect(() => {
             <h1 className="text-center">{t("YouTube Comment Picker")}</h1>
             <p className=" pb-3">
             A YouTube Comment Picker is an online tool that randomly selects winners from the comments of a YouTube video.</p>
+           
             {modalVisible && (
-              <div
-                className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
-                role="alert"
-              >
-                <div className="flex">
-                  <div className="mt-4">
-                    {user ? (
-                      user.paymentStatus === "success" ||
-                      user.role === "admin" ? (
-                        <p className="text-center p-3 alert-warning">
-                          {t("Congratulations!! Now you can pick unlimited winners.")}
-                        </p>
-                      ) : (
-                        <p className="text-center p-3 alert-warning">
-                          {t("You are not upgraded. You can pick winners")}{" "}
-                          {5 - generateCount} {t("more times.")}{" "}
-                          <Link
-                            href="/pricing"
-                            className="btn btn-warning ms-3"
-                          >
-                            {t("Upgrade")}
-                          </Link>
-                        </p>
-                      )
-                    ) : (
-                      <p className="text-center p-3 alert-warning">
-                        {t("Please log in to use this tool.")}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    className="ml-auto text-yellow-700"
-                    onClick={closeModal}
-                  >
-                    ×
-                  </button>
-                </div>
-              </div>
+  <div
+    className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+    role="alert"
+  >
+    <div className="flex">
+      <div>
+        {user ? (
+          // If user is logged in
+          <>
+            {/* Uncomment this section when payment system is implemented */}
+            {/* 
+            user.paymentStatus === "success" || user.role === "admin" ? (
+              <p className="text-center p-3 alert-warning">
+                {t("Congratulations! Now you can generate unlimited titles.")}
+              </p>
+            ) : (
+              <p className="text-center p-3 alert-warning">
+                {t(
+                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
+                  { remaining: 3 - generateCount }
+                )}
+                <Link href="/pricing" className="btn btn-warning ms-3">
+                  {t("Upgrade")}
+                </Link>
+              </p>
+            )
+            */}
+            
+            {/* User can generate unlimited titles while logged in */}
+            <p className="text-center p-3 alert-warning">
+              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now pick unlimited comment .`)}
+            </p>
+          </>
+        ) : (
+          // If user is not logged in
+          <p className="text-center p-3 alert-warning">
+            {t(
+              "You are not logged in. You can pick comment {{remaining}} more times. Please log in for unlimited access.",
+              { remaining: 3 - generateCount }
             )}
+            <Link href="/login" className="btn btn-warning ms-3">
+              {t("Log in")}
+            </Link>
+          </p>
+        )}
+      </div>
+      <button
+        className="text-yellow-700 ml-auto"
+        onClick={closeModal}
+      >
+        ×
+      </button>
+    </div>
+  </div>
+)}
             <div className="flex items-center space-x-4 mb-4">
               <input
                 type="text"

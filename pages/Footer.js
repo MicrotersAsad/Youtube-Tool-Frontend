@@ -70,6 +70,16 @@ const Footer = () => {
                     {t('Blog')}
                   </Link>
                 </li>
+                <li>
+                  <Link href="/ccpa" className="text-gray-300 hover:text-white">
+                    {t('CCPA')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/gdpr" className="text-gray-300 hover:text-white">
+                    {t('GDPR')}
+                  </Link>
+                </li>
               </ul>
             </div>
             {/* <!-- Company Column --> */}

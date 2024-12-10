@@ -214,48 +214,52 @@ useEffect(() => {
   };
 
   const fetchYouTubeData = async () => {
-    if (generateCount <= 0) {
-      toast.error(
-        t(
-          "You have reached the limit of generating titles. Please upgrade your plan for unlimited use."
-        )
-      );
-      return;
-    }
-    if (!captchaVerified) {
-      toast.error(t("Pls Complete this capctha"));
-      return;
-    }
+    // If the user is not logged in, allow fetching only up to 3 times
     if (!user) {
-      toast.error(t("login to extract"));
+      if (generateCount >= 3) {
+        toast.error(t("You have reached the limit of fetching channel IDs."));
+        return;
+      }
+    }
+  
+ 
+    // Check if CAPTCHA is verified
+    if (!captchaVerified) {
+      toast.error(t("Pls Complete this captcha"));
       return;
     }
+  
     setLoading(true);
     setError("");
-
+  
     try {
       const tokensResponse = await fetch("/api/tokens");
       if (!tokensResponse.ok) throw new Error(t("Failed to fetch API tokens"));
-
+  
       const tokens = await tokensResponse.json();
       const videoId = extractVideoId(videoUrl);
       let dataFetched = false;
-
+  
       for (const { token } of tokens) {
         try {
           const response = await axios.get(
             `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${token}`
           );
-
+  
           if (response.data.items && response.data.items.length > 0) {
             const { title, description } = response.data.items[0].snippet;
             setTitle(title);
             setDescription(description);
             dataFetched = true;
-
+  
+            // Update the generate count if the user does not have unlimited access
+            // Payment logic is commented out for now
+            /*
             if (user && user.paymentStatus !== "success") {
               setGenerateCount((prev) => prev - 1);
             }
+            */
+  
             break;
           } else {
             console.error(t("No video data found for the provided URL."));
@@ -267,7 +271,7 @@ useEffect(() => {
           );
         }
       }
-
+  
       if (!dataFetched) {
         throw new Error(t("All API tokens exhausted or failed to fetch data."));
       }
@@ -278,6 +282,7 @@ useEffect(() => {
       setLoading(false);
     }
   };
+  
 
   const extractVideoId = (url) => {
     const regex =
@@ -573,43 +578,61 @@ useEffect(() => {
           <p className="text-white pb-3">Easily retrieve titles and descriptions from any YouTube video with our YouTube Title and Description Extractor</p>
           <ToastContainer />
           {modalVisible && (
-            <div
-              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
-              role="alert"
-            >
-              <div className="flex">
-                <div className="mt-4">
-                  {user ? (
-                    user.paymentStatus === "success" ||
-                    user.role === "admin" ? (
-                      <p className="text-center p-3 alert-warning">
-                        {t("You can extract unlimited titles and descriptions")}
-                      </p>
-                    ) : (
-                      <p className="text-center p-3 alert-warning">
-                        {t("You have not upgraded. You can generate")}{" "}
-                        {5 - generateCount}{" "}
-                        {t("more times.")}{" "}
-                        <Link href="/pricing" className="btn btn-warning ms-3">
-                          {t("Upgrade")}
-                        </Link>
-                      </p>
-                    )
-                  ) : (
-                    <p className="text-center p-3 alert-warning">
-                      {t("Please log in to fetch channel data.")}
-                    </p>
-                  )}
-                </div>
-                <button
-                  className="text-yellow-700 ml-auto"
-                  onClick={closeModal}
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
+  <div
+    className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+    role="alert"
+  >
+    <div className="flex">
+      <div>
+        {user ? (
+          // If user is logged in
+          <>
+            {/* Uncomment this section when payment system is implemented */}
+            {/* 
+            user.paymentStatus === "success" || user.role === "admin" ? (
+              <p className="text-center p-3 alert-warning">
+                {t("Congratulations! Now you can generate unlimited titles.")}
+              </p>
+            ) : (
+              <p className="text-center p-3 alert-warning">
+                {t(
+                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
+                  { remaining: 3 - generateCount }
+                )}
+                <Link href="/pricing" className="btn btn-warning ms-3">
+                  {t("Upgrade")}
+                </Link>
+              </p>
+            )
+            */}
+            
+            {/* User can generate unlimited titles while logged in */}
+            <p className="text-center p-3 alert-warning">
+              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now fetch unlimited youtube title & description.`)}
+            </p>
+          </>
+        ) : (
+          // If user is not logged in
+          <p className="text-center p-3 alert-warning">
+            {t(
+              "You are not logged in. You can fetch youtube title & description {{remaining}} more times. Please log in for unlimited access.",
+              { remaining: 3 - generateCount }
+            )}
+            <Link href="/login" className="btn btn-warning ms-3">
+              {t("Log in")}
+            </Link>
+          </p>
+        )}
+      </div>
+      <button
+        className="text-yellow-700 ml-auto"
+        onClick={closeModal}
+      >
+        ×
+      </button>
+    </div>
+  </div>
+)}
 
 <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
   <div>

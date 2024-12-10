@@ -53,7 +53,7 @@ const YtThumbnailDw = ({
   const [showShareIcons, setShowShareIcons] = useState(false);
   const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
   const [isUpdated, setIsUpdated] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
   const [showAllReviews, setShowAllReviews] = useState(false);
@@ -216,41 +216,53 @@ useEffect(() => {
   };
 
   const fetchYouTubeData = async () => {
-    if (generateCount <= 0 && user?.role !== "admin") {
-      toast.error(
-        "You have reached the limit of generating titles. Please upgrade your plan for unlimited use."
-      );
+    // Check if user is logged in
+   
+      
+    if (!user) {
+      // লগইন না থাকলে, চেক করুন যে ফেচ সীমা ৩-এর বেশি না হয়েছে
+      if (generateCount >= 3) {
+        toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
+        return;
+      }
+      toast.error(t("Please log in to fetch channel data."));
       return;
     }
+    
+   // If the user is not logged in, check if they have exceeded the 3-limit
+   if (!user && generateCount >= 3) {
+    toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
+    return;
+  }
+    // Check if video URL is entered
     if (!videoUrl) {
       toast.error("Please enter a valid YouTube video URL.");
       return;
     }
-    if (!user) {
-      toast.error(t("login to extract"));
-      return;
-    }
+  
+    // Check if CAPTCHA is verified
     if (!captchaVerified) {
-      toast.error(t("Pls Complete this capctha"));
+      toast.error(t("Pls Complete this captcha"));
       return;
     }
+  
     setLoading(true);
     setError("");
-
+  
     try {
       const tokensResponse = await fetch("/api/tokens");
       if (!tokensResponse.ok) throw new Error("Failed to fetch API tokens");
-
+  
       const tokens = await tokensResponse.json();
       const videoId = extractVideoId(videoUrl);
       let dataFetched = false;
-
+  
       for (const { token } of tokens) {
         try {
           const response = await axios.get(
             `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${token}`
           );
-
+  
           if (response.data.items && response.data.items.length > 0) {
             const { thumbnails } = response.data.items[0].snippet;
             console.log(thumbnails);
@@ -267,10 +279,21 @@ useEffect(() => {
           );
         }
       }
-
+  
       if (!dataFetched) {
         throw new Error("All API tokens exhausted or failed to fetch data.");
       }
+  
+      // Update generate count if the user doesn't have unlimited access
+      // Payment logic is commented out for now
+      /*
+      if (user?.paymentStatus !== "success" && user?.role !== "admin") {
+        const newCount = generateCount - 1;
+        setGenerateCount(newCount);
+        localStorage.setItem("generateCount", newCount);
+      }
+      */
+  
     } catch (error) {
       setError("Failed to fetch YouTube data. Please check the video URL.");
       console.error("Error:", error);
@@ -278,6 +301,7 @@ useEffect(() => {
       setLoading(false);
     }
   };
+  
 
   const extractVideoId = (url) => {
     const regex =
@@ -582,52 +606,64 @@ useEffect(() => {
           </h1>
           <p className="pb-3 text-white">YouTube Thumbnails Download is a user-friendly tool that allows you to  save high-quality thumbnails from any YouTube video</p>
           <ToastContainer />
+          
           {modalVisible && (
-            <div
-              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4  shadow-md mb-6 mt-3"
-              role="alert"
-            >
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <svg
-                    className="fill-current h-6 w-6 text-yellow-500 mr-4"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                  >
-                    {/* SVG content can go here */}
-                  </svg>
-                  <div className="mt-4">
-                    {!user ? (
-                      <p className="text-center p-3 alert-warning">
-                        {t("You need to be logged in to generate thumbnails.")}
-                      </p>
-                    ) : user.paymentStatus === "success" ||
-                      user.role === "admin" ? (
-                      <p className="text-center p-3 alert-warning">
-                        {t(
-                          "Congratulations!! Now you can generate unlimited thumbnails."
-                        )}
-                      </p>
-                    ) : (
-                      <p className="text-center p-3 alert-warning">
-                        {t(
-                          "You are not upgraded. You can download thumbnails {{remainingGenerations}} more times.",
-                          { remainingGenerations: 5 - generateCount }
-                        )}
+  <div
+    className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+    role="alert"
+  >
+    <div className="flex">
+      <div>
+        {user ? (
+          // If user is logged in
+          <>
+            {/* Uncomment this section when payment system is implemented */}
+            {/* 
+            user.paymentStatus === "success" || user.role === "admin" ? (
+              <p className="text-center p-3 alert-warning">
+                {t("Congratulations! Now you can generate unlimited titles.")}
+              </p>
+            ) : (
+              <p className="text-center p-3 alert-warning">
+                {t(
+                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
+                  { remaining: 3 - generateCount }
+                )}
+                <Link href="/pricing" className="btn btn-warning ms-3">
+                  {t("Upgrade")}
+                </Link>
+              </p>
+            )
+            */}
+            
+            {/* User can generate unlimited titles while logged in */}
+            <p className="text-center p-3 alert-warning">
+              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now download unlimited thumbnails .`)}
+            </p>
+          </>
+        ) : (
+          // If user is not logged in
+          <p className="text-center p-3 alert-warning">
+            {t(
+              "You are not logged in. You can download thumbnails {{remaining}} more times. Please log in for unlimited access.",
+              { remaining: 3 - generateCount }
+            )}
+            <Link href="/login" className="btn btn-warning ms-3">
+              {t("Log in")}
+            </Link>
+          </p>
+        )}
+      </div>
+      <button
+        className="text-yellow-700 ml-auto"
+        onClick={closeModal}
+      >
+        ×
+      </button>
+    </div>
+  </div>
+)}
 
-                        <Link className="btn btn-warning ms-3" href="/pricing">
-                          {t("Upgrade")}
-                        </Link>
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <button className="text-yellow-700" onClick={closeModal}>
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
 
           <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
             <div>

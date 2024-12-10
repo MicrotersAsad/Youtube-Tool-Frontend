@@ -87,7 +87,7 @@ const YTTitleGenerator = ({
   });
   const [selectedLanguage ,setSelectedLanguage ]=useState()
   const [selectedTone, setSelectedTone] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
@@ -371,20 +371,33 @@ const isLocalHost = typeof window !== "undefined" &&
 
   const generateTitles = async () => {
     // Check if required fields are filled
-    if (!user || !captchaVerified || tags.length === 0 || !selectedLanguage || !selectedTone) {
+    if ( !captchaVerified || tags.length === 0 || !selectedLanguage || !selectedTone) {
       toast.error(t("complete all fields"));
       return;
     }
   
     // Check if user has access or needs to upgrade
-    if (
-      user.paymentStatus !== "success" &&
-      user.role !== "admin" &&
-      generateCount <= 0
-    ) {
-      toast.error(t("upgradeForUnlimited"));
+    // If user is not logged in, show the login message
+    // if (!user) {
+    //   toast.error(t("Please log in to generate unlimited titles."));
+    //   return;
+    // }
+  
+    // Uncomment this section when payment system is implemented
+    /*
+    // If user has reached the limit and hasn't paid, restrict the access
+    if (user.paymentStatus !== "success" && user.role !== "admin" && generateCount >= 3) {
+      toast.error(t("You have exceeded your free title generation limit. Please upgrade for unlimited access."));
       return;
     }
+    */
+  
+    // If user is logged in, we allow unlimited titles (no check for payment status for now)
+  // If the user is not logged in, check if they have exceeded the 3-limit
+  if (!user && generateCount >= 3) {
+    toast.error(t("You have exceeded your free title generation limit. Please log in for unlimited access."));
+    return;
+  }
   
     setIsLoading(true);
   
@@ -485,8 +498,8 @@ const isLocalHost = typeof window !== "undefined" &&
       }
   
       // Update generate count if the user doesn't have unlimited access
-      if (user.paymentStatus !== "success") {
-        const newCount = generateCount - 1;
+      if (!user || generateCount >= 3) {
+        const newCount = generateCount + 1;
         setGenerateCount(newCount);
         localStorage.setItem("generateCount", newCount);
       }
@@ -497,6 +510,7 @@ const isLocalHost = typeof window !== "undefined" &&
       setIsLoading(false);
     }
   };
+  
   
 
   const handleReviewSubmit = async () => {
@@ -828,46 +842,62 @@ const isLocalHost = typeof window !== "undefined" &&
           <p className="text-white">Easily create catchy, SEO-friendly titles that boost your video’s visibility and attract more viewers.</p>
 
           {modalVisible && (
-            <div
-              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
-              role="alert"
-            >
-              <div className="flex">
-                <div className="mt-4">
-                  {user ? (
-                    user.paymentStatus === "success" ||
-                    user.role === "admin" ? (
-                      <p className="text-center p-3 alert-warning">
-                        {t(
-                          "Congratulations! Now you can generate unlimited titles."
-                        )}
-                      </p>
-                    ) : (
-                      <p className="text-center p-3 alert-warning">
-                        {t(
-                          "You are not upgraded. You can generate titles {{remaining}} more times. Upgrade",
-                          { remaining: 5 - generateCount }
-                        )}
-                        <Link href="/pricing" className="btn btn-warning ms-3">
-                          {t("Upgrade")}
-                        </Link>
-                      </p>
-                    )
-                  ) : (
-                    <p className="text-center p-3 alert-warning">
-                      {t("Please sign in to use this tool.")}
-                    </p>
-                  )}
-                </div>
-                <button
-                  className="text-yellow-700 ml-auto"
-                  onClick={closeModal}
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
+  <div
+    className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+    role="alert"
+  >
+    <div className="flex">
+      <div>
+        {user ? (
+          // If user is logged in
+          <>
+            {/* Uncomment this section when payment system is implemented */}
+            {/* 
+            user.paymentStatus === "success" || user.role === "admin" ? (
+              <p className="text-center p-3 alert-warning">
+                {t("Congratulations! Now you can generate unlimited titles.")}
+              </p>
+            ) : (
+              <p className="text-center p-3 alert-warning">
+                {t(
+                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
+                  { remaining: 3 - generateCount }
+                )}
+                <Link href="/pricing" className="btn btn-warning ms-3">
+                  {t("Upgrade")}
+                </Link>
+              </p>
+            )
+            */}
+            
+            {/* User can generate unlimited titles while logged in */}
+            <p className="text-center p-3 alert-warning">
+              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now generate unlimited Ttiles.`)}
+            </p>
+          </>
+        ) : (
+          // If user is not logged in
+          <p className="text-center p-3 alert-warning">
+            {t(
+              "You are not logged in. You can generate Ttiles {{remaining}} more times. Please log in for unlimited access.",
+              { remaining: 3 - generateCount }
+            )}
+            <Link href="/login" className="btn btn-warning ms-3">
+              {t("Log in")}
+            </Link>
+          </p>
+        )}
+      </div>
+      <button
+        className="text-yellow-700 ml-auto"
+        onClick={closeModal}
+      >
+        ×
+      </button>
+    </div>
+  </div>
+)}
+
           <ToastContainer />
           <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
           <div>

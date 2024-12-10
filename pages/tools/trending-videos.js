@@ -244,44 +244,59 @@ useEffect(() => {
   }, [country, t]);
 
   const fetchTrendingVideos = async () => {
+    // Check if the user is logged in
     if (!user) {
-      toast.error(t('Please log in to fetch channel data.'));
+      toast.error(t("Please log in to fetch trending videos."));
       return;
     }
-    
+  
+    // Check if CAPTCHA is verified
     if (!captchaVerified) {
-      toast.error(t("Pls Complete this capctha"));
+      toast.error(t("Please complete the captcha"));
       return;
     }
-
-    if (
-      user &&
-      user.paymentStatus !== "success" &&
-      user.role !== "admin" &&
-      generateCount <= 0
-    ) {
+  
+    // Check if the user has exceeded the fetch limit (only for non-logged-in users)
+    if (!user && generateCount >= 3) {
+      toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
+      return;
+    }
+  
+    // If user is logged in, they get unlimited access (no need to check generateCount)
+    // For non-logged-in users, enforce the 3-fetch limit
+    if (user && generateCount <= 0) {
       toast.error(
-        t('You have reached the limit of generating tags. Please upgrade your plan for unlimited use.')
+        t(
+          "You have reached the limit of fetching trending videos. Please log in for unlimited access."
+        )
       );
       return;
     }
+  
     setLoading(true);
-
+  
     try {
       const response = await axios.get("/api/trending", {
         params: { country, category },
       });
       setVideos(response.data.videos);
-
-      if (user && user.paymentStatus !== "success") {
-        setGenerateCount(generateCount - 1);
+  
+      // Increase generate count for logged-in users
+      const newGenerateCount = generateCount + 1;
+      setGenerateCount(newGenerateCount);
+  
+      // Persist generate count in localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem("generateCount", newGenerateCount);
       }
     } catch (error) {
       console.error("Error fetching trending videos:", error.message);
+      toast.error(t("Error fetching trending videos."));
     } finally {
       setLoading(false);
     }
   };
+  
   const calculateRatingPercentage = (rating) => {
     const totalReviews = reviews.length;
     const ratingCount = reviews.filter(
@@ -566,42 +581,63 @@ useEffect(() => {
           {/* Page title */}
 
          {/* Alert message for logged in/out users */}
+         
          {modalVisible && (
-            <div
-              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
-              role="alert"
-            >
-              <div className="flex">
-                <div className="mt-4">
-                  {user ? (
-                    user.paymentStatus === "success" ||
-                    user.role === "admin" ? (
-                      <p className="text-center p-3 alert-warning">
-                        {t('Congratulations! Now you can get unlimited Trending Video.')}
-                      </p>
-                    ) : (
-                      <p className="text-center p-3 alert-warning">
-                        {t('You are not upgraded. You can get Trending Video {remaining Generations} more times', { remainingGenerations: 5 - generateCount })}{" "}
-                        <Link href="/pricing" className="btn btn-warning ms-3">
-                          {t('Upgrade')}
-                        </Link>
-                      </p>
-                    )
-                  ) : (
-                    <p className="text-center p-3 alert-warning">
-                      {t('Please log in to fetch channel data.')} <Link href="/login">{t('loginPrompt')}</Link>
-                    </p>
-                  )}
-                </div>
-                <button
-                  className="text-yellow-700 ml-auto"
-                  onClick={closeModal}
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
+  <div
+    className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+    role="alert"
+  >
+    <div className="flex">
+      <div>
+        {user ? (
+          // If user is logged in
+          <>
+            {/* Uncomment this section when payment system is implemented */}
+            {/* 
+            user.paymentStatus === "success" || user.role === "admin" ? (
+              <p className="text-center p-3 alert-warning">
+                {t("Congratulations! Now you can generate unlimited titles.")}
+              </p>
+            ) : (
+              <p className="text-center p-3 alert-warning">
+                {t(
+                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
+                  { remaining: 3 - generateCount }
+                )}
+                <Link href="/pricing" className="btn btn-warning ms-3">
+                  {t("Upgrade")}
+                </Link>
+              </p>
+            )
+            */}
+            
+            {/* User can generate unlimited titles while logged in */}
+            <p className="text-center p-3 alert-warning">
+              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now  show unlimited trending videos .`)}
+            </p>
+          </>
+        ) : (
+          // If user is not logged in
+          <p className="text-center p-3 alert-warning">
+            {t(
+              "You are not logged in. You can show trending videos {{remaining}} more times. Please log in for unlimited access.",
+              { remaining: 3 - generateCount }
+            )}
+            <Link href="/login" className="btn btn-warning ms-3">
+              {t("Log in")}
+            </Link>
+          </p>
+        )}
+      </div>
+      <button
+        className="text-yellow-700 ml-auto"
+        onClick={closeModal}
+      >
+        ×
+      </button>
+    </div>
+  </div>
+)}
 
 <div className="border max-w-4xl mx-auto shadow-sm rounded p-5 bg-light">
   <h1 className="text-center">{t('YouTube Trending Videos')}</h1>

@@ -323,20 +323,17 @@ const isLocalHost = typeof window !== "undefined" &&
  
   const generateHashTags = async () => {
     // Check if required fields are filled
-    if (!user || !captchaVerified || tags.length === 0 || !selectedLanguage || !selectedTone) {
-      toast.error(t(" all fields  reqiuerd"));
+    if ( !captchaVerified || tags.length === 0 || !selectedLanguage || !selectedTone) {
+      toast.error(t("All Fields Required"));
       return;
     }
   
-    // Check if user has access or needs to upgrade
-    if (
-      user.paymentStatus !== "success" &&
-      user.role !== "admin" &&
-      generateCount <= 0
-    ) {
-      toast.error(t("upgradeForUnlimited"));
+    // If the user is not logged in, check if they have exceeded the 3-limit
+    if (!user && generateCount >= 3) {
+      toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
       return;
     }
+  
   
     setIsLoading(true);
   
@@ -779,49 +776,64 @@ const isLocalHost = typeof window !== "undefined" &&
           </h1>
           <p className="text-white pb-3">The YouTube Hashtag Generator is a powerful tool designed to help content creators  by generating  trending hashtags</p>
           <ToastContainer />
+         
           {modalVisible && (
-            <div
-              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4  shadow-md mb-6 mt-3"
-              role="alert"
-            >
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <svg
-                    className="fill-current h-6 w-6 text-yellow-500 mr-4"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                  >
-                    {/* SVG content can go here */}
-                  </svg>
-                  <div className="mt-4">
-                    {!user ? (
-                      <p className="text-center p-3 alert-warning">
-                        {t("You need to be logged in to generate hashtags")}
-                      </p>
-                    ) : user.paymentStatus === "success" ||
-                      user.role === "admin" ? (
-                      <p className="text-center p-3 alert-warning">
-                        {t(
-                          "Congratulations!! Now you can generate unlimited hashtags."
-                        )}
-                      </p>
-                    ) : (
-                      <p className="text-center p-3 alert-warning">
-                        {t("You have not upgraded. You can generate")}{" "}
-                        {5 - generateCount} {t("more times")}.{" "}
-                        <Link className="btn btn-warning ms-3" href="/pricing">
-                          {t("Upgrade")}
-                        </Link>
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <button className="text-yellow-700" onClick={closeModal}>
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
+  <div
+    className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+    role="alert"
+  >
+    <div className="flex">
+      <div>
+        {user ? (
+          // If user is logged in
+          <>
+            {/* Uncomment this section when payment system is implemented */}
+            {/* 
+            user.paymentStatus === "success" || user.role === "admin" ? (
+              <p className="text-center p-3 alert-warning">
+                {t("Congratulations! Now you can generate unlimited titles.")}
+              </p>
+            ) : (
+              <p className="text-center p-3 alert-warning">
+                {t(
+                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
+                  { remaining: 3 - generateCount }
+                )}
+                <Link href="/pricing" className="btn btn-warning ms-3">
+                  {t("Upgrade")}
+                </Link>
+              </p>
+            )
+            */}
+            
+            {/* User can generate unlimited titles while logged in */}
+            <p className="text-center p-3 alert-warning">
+              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now generate unlimited hashtag.`)}
+            </p>
+          </>
+        ) : (
+          // If user is not logged in
+          <p className="text-center p-3 alert-warning">
+            {t(
+              "You are not logged in. You can generate hashtag {{remaining}} more times. Please log in for unlimited access.",
+              { remaining: 3 - generateCount }
+            )}
+            <Link href="/login" className="btn btn-warning ms-3">
+              {t("Log in")}
+            </Link>
+          </p>
+        )}
+      </div>
+      <button
+        className="text-yellow-700 ml-auto"
+        onClick={closeModal}
+      >
+        ×
+      </button>
+    </div>
+  </div>
+)}
+
     <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
     <div className="keywords-input-container">
     <div className="tags-container flex flex-wrap gap-2 mb-4">

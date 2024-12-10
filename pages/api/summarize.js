@@ -18,7 +18,9 @@ export default async function handler(req, res) {
   try {
     const { db } = await connectToDatabase();
     const youtubeTokens = await db.collection('ytApi').find({ active: true }).toArray();
-    const openAiTokens = await db.collection('openaiKey').find({ active: true }).toArray();
+    
+    // Fetch both OpenAI and Azure keys from the same 'openaiKey' collection
+    const apiTokens = await db.collection('openaiKey').find({ active: true }).toArray();
 
     let captions, videoInfo;
     let youtubeApiKeyExhausted = false;
@@ -80,46 +82,69 @@ export default async function handler(req, res) {
     const summaries = await Promise.all(segments.map(async segment => {
       const transcript = segment.map(caption => caption.text).join(' ');
 
-      let openAiKeyExhausted = false;
+      let keyExhausted = false;
 
-      for (const token of openAiTokens) {
-        const openAiKey = token.token;
+      // Try each API key (OpenAI or Azure)
+      for (const token of apiTokens) {
+        const { token: apiKey, serviceType } = token;
+
+        let url = '';
+        let headers = {};
+        let body = {};
+
+        // Handling OpenAI API
+        if (serviceType === "openai") {
+          url = "https://api.openai.com/v1/chat/completions";
+          headers = {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          };
+          body = JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: `Summarize the following transcript: ${transcript}` }],
+            temperature: 0.7,
+          });
+        }
+        // Handling Azure OpenAI API
+        else if (serviceType === "azure") {
+          url = "https://nazmul.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview";
+          headers = {
+            "Content-Type": "application/json",
+            "api-key": apiKey,
+          };
+          body = JSON.stringify({
+            messages: [{ role: "user", content: `Summarize the following transcript: ${transcript}` }],
+            temperature: 1,
+            max_tokens: 4096,
+            top_p: 1,
+            frequency_penalty: 0.5,
+            presence_penalty: 0.5,
+          });
+        }
 
         try {
-          const response = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${openAiKey}`,
-            },
-            body: JSON.stringify({
-              model: "gpt-3.5-turbo",
-              messages: [{ role: "user", content: `Summarize the following transcript: ${transcript}` }],
-              temperature: 0.7,
-            }),
-          });
+          const response = await fetch(url, { method: "POST", headers, body });
           const data = await response.json();
 
-          // Improved error handling for OpenAI API response
           if (!data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
-            console.error('Invalid response format from OpenAI API:', data);
+            console.error('Invalid response format:', data);
             continue;
           }
 
           return data.choices[0].message.content;
         } catch (error) {
           if (error.message.includes('quota')) {
-            console.log(`Quota exceeded for OpenAI API key: ${openAiKey}`);
+            console.log(`Quota exceeded for ${serviceType} API key: ${apiKey}`);
             continue;
           } else {
-            console.error('Error summarizing segment:', error.message);
-            throw new Error('Failed to summarize video');
+            console.error(`Error summarizing segment with ${serviceType} key:`, error.message);
+            throw new Error(`Failed to summarize video with ${serviceType}`);
           }
         }
       }
 
-      openAiKeyExhausted = true;
-      throw new Error('All OpenAI API keys exhausted or error occurred');
+      keyExhausted = true;
+      throw new Error('All API keys exhausted or error occurred');
     }));
 
     res.status(200).json({
@@ -135,7 +160,7 @@ export default async function handler(req, res) {
       summaries
     });
   } catch (error) {
-    if (youtubeApiKeyExhausted || error.message.includes('All OpenAI API keys exhausted or error occurred')) {
+    if (youtubeApiKeyExhausted || error.message.includes('All API keys exhausted or error occurred')) {
       console.error('All keys exhausted:', error.message);
       return res.status(500).json({ message: 'All API keys exhausted or error occurred' });
     } else {

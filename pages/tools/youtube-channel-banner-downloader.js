@@ -162,63 +162,68 @@ useEffect(() => {
   };
 
   const fetchYouTubeData = async () => {
+    // Check if user is not logged in
     if (!user) {
       toast.error("Please log in to fetch YouTube data.");
       setModalVisible(true);
       return;
     }
-
+  
+    // Check if URL is empty or invalid
     if (!channelUrl.trim()) {
       toast.error("Please enter a valid URL.");
       return;
     }
+  
+    // Check if CAPTCHA is verified
     if (!captchaVerified) {
-      toast.error(t("Pls Complete this capctha"));
+      toast.error(t("Please complete the captcha"));
       return;
     }
-    if (
-      generateCount >= 3 &&
-      user?.paymentStatus !== "success" &&
-      user.role !== "admin"
-    ) {
-      toast.error("Fetch limit exceeded. Please upgrade for unlimited access.");
-      return;
+  
+    // Check if user is not logged in or has reached the fetch limit
+    if (!user) {
+      if (generateCount >= 3) {
+        toast.error("Fetch limit exceeded. Please log in for unlimited access.");
+        return;
+      }
+    } else {
+      // If user is logged in, they get unlimited access (no need to check generateCount)
+      // No additional check needed for logged-in user
     }
-
+  
     try {
-      if (
-        user &&
-        user.paymentStatus !== "success" &&
-        user.role !== "admin" &&
-        generateCount <= 0
-      ) {
+      // Check if user has reached their limit when not logged in
+      if (user && user.paymentStatus !== "success" && user.role !== "admin" && generateCount <= 0) {
         toast.error(
           "You have reached the limit of generating banners. Please upgrade your plan for unlimited use."
         );
         return;
       }
-
+  
       setLoading(true);
       setError("");
+  
+      // Extract channel ID from URL
       const channelId = extractChannelId(channelUrl);
       if (!channelId) {
-        throw new Error(
-          "Invalid YouTube channel URL. Please enter a valid URL."
-        );
+        throw new Error("Invalid YouTube channel URL. Please enter a valid URL.");
       }
-
+  
+      // Fetch API tokens
       const tokensResponse = await fetch("/api/tokens");
       if (!tokensResponse.ok) throw new Error("Failed to fetch API tokens");
-
+  
       const tokens = await tokensResponse.json();
       let dataFetched = false;
-
+  
+      // Loop through API tokens and try to fetch data
       for (const { token } of tokens) {
         try {
           const response = await axios.get(
             `https://www.googleapis.com/youtube/v3/channels?part=brandingSettings&id=${channelId}&key=${token}`
           );
-
+  
           const brandingSettings = response.data?.items[0]?.brandingSettings;
           if (!brandingSettings) {
             throw new Error("Brand settings not found for this channel.");
@@ -231,6 +236,8 @@ useEffect(() => {
           if (!bannerUrl) {
             throw new Error("Banner image URL not found for this channel.");
           }
+  
+          // Set banner URL if data fetched successfully
           setBannerUrl(bannerUrl);
           dataFetched = true;
           break;
@@ -238,26 +245,38 @@ useEffect(() => {
           console.error(`Error fetching data with token ${token}:`, error);
         }
       }
-
+  
       if (!dataFetched) {
         throw new Error("All API tokens exhausted or failed to fetch data.");
       }
-
+  
+      // Increment generateCount if the user is not logged in or does not have unlimited access
       const newGenerateCount = generateCount + 1;
       setGenerateCount(newGenerateCount);
+  
+      // Save generate count to localStorage
       if (typeof window !== "undefined") {
         localStorage.setItem("generateCount", newGenerateCount);
       }
+  
+      // Payment logic: Uncomment when payment system is integrated
+      /*
+      if (user && user.paymentStatus !== "success") {
+        setGenerateCount(generateCount - 1);
+        localStorage.setItem("generateCount", generateCount - 1); // Persist to localStorage
+      }
+      */
+  
     } catch (error) {
       setError(
-        error.message ||
-          "Failed to fetch YouTube data. Please check the channel URL."
+        error.message || "Failed to fetch YouTube data. Please check the channel URL."
       );
       setBannerUrl("");
     } finally {
       setLoading(false);
     }
   };
+  
 
   const extractChannelId = (url) => {
     const regex =
@@ -631,42 +650,63 @@ useEffect(() => {
           </h1>
           <p className="text-white">A YouTube Channel Banner Download Tool is a handy resource for downloading channel banners from YouTube profiles</p>
           <ToastContainer />
+         
           {modalVisible && (
-            <div
-              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
-              role="alert"
-            >
-              <div className="flex">
-                <div className="mt-4">
-                  {user ? (
-                    user.paymentStatus === "success" ||
-                    user.role === "admin" ? (
-                      <p className="text-center p-3 alert-warning">
-                        {t('Congratulations! Now you can download unlimited Banner.')}
-                      </p>
-                    ) : (
-                      <p className="text-center p-3 alert-warning">
-                        {t('You are not upgraded. You can generate banner {{remainingGenerations}} more times.', { remainingGenerations: 5 - generateCount })}
-                        <Link href="/pricing" className="btn btn-warning ms-3">
-                          {t('Upgrade')}
-                        </Link>
-                      </p>
-                    )
-                  ) : (
-                    <p className="text-center p-3 alert-warning">
-                      {t('Please log in to fetch channel data.')}
-                    </p>
-                  )}
-                </div>
-                <button
-                  className="text-yellow-700 ml-auto"
-                  onClick={closeModal}
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
+  <div
+    className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+    role="alert"
+  >
+    <div className="flex">
+      <div>
+        {user ? (
+          // If user is logged in
+          <>
+            {/* Uncomment this section when payment system is implemented */}
+            {/* 
+            user.paymentStatus === "success" || user.role === "admin" ? (
+              <p className="text-center p-3 alert-warning">
+                {t("Congratulations! Now you can generate unlimited titles.")}
+              </p>
+            ) : (
+              <p className="text-center p-3 alert-warning">
+                {t(
+                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
+                  { remaining: 3 - generateCount }
+                )}
+                <Link href="/pricing" className="btn btn-warning ms-3">
+                  {t("Upgrade")}
+                </Link>
+              </p>
+            )
+            */}
+            
+            {/* User can generate unlimited titles while logged in */}
+            <p className="text-center p-3 alert-warning">
+              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now download unlimited channel banner .`)}
+            </p>
+          </>
+        ) : (
+          // If user is not logged in
+          <p className="text-center p-3 alert-warning">
+            {t(
+              "You are not logged in. You can download channel banner {{remaining}} more times. Please log in for unlimited access.",
+              { remaining: 3 - generateCount }
+            )}
+            <Link href="/login" className="btn btn-warning ms-3">
+              {t("Log in")}
+            </Link>
+          </p>
+        )}
+      </div>
+      <button
+        className="text-yellow-700 ml-auto"
+        onClick={closeModal}
+      >
+        ×
+      </button>
+    </div>
+  </div>
+)}
 
 <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
   <div>

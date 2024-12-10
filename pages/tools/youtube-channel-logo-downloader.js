@@ -173,50 +173,49 @@ useEffect(() => {
   };
 
   const fetchChannelLogo = async () => {
-    if (
-      user &&
-      user.paymentStatus !== "success" &&
-      user.role !== "admin" &&
-      generateCount <= 0
-    ) {
-      toast.error(
-        "You have reached the limit of generating tags. Please upgrade your plan for unlimited use."
-      );
-      return;
+    // Check if user is logged in and has reached the 3 fetch limit
+    if (!user) {
+      if (generateCount >= 3) {
+        toast.error(t("You have reached the limit of fetching channel logos. Please log in for unlimited access."));
+        return;
+      }
+    } else {
+      // If user is logged in, they get unlimited access (no need to check generateCount)
+      // No additional check needed for logged-in user
     }
+  
     if (!channelUrl) {
-      setError("Please enter a YouTube channel URL.");
+      toast.error("Please enter a YouTube channel URL.");
       return;
     }
-
+  
     const channelId = extractChannelId(channelUrl);
     if (!channelId) {
-      setError("Invalid YouTube channel link.");
+      toast.error("Invalid YouTube channel link.");
       return;
     }
     if (!captchaVerified) {
-      toast.error(t("Pls Complete this capctha"));
+      toast.error(t("Please complete the captcha"));
       return;
     }
   
     setLoading(true);
     setError("");
-
+  
     try {
       const tokensResponse = await fetch("/api/tokens");
       if (!tokensResponse.ok) throw new Error("Failed to fetch API tokens");
-
+  
       const tokens = await tokensResponse.json();
       let dataFetched = false;
-
+  
       for (const { token } of tokens) {
         try {
           const response = await axios.get(
             `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&key=${token}`
           );
           if (response.data.items && response.data.items.length > 0) {
-            const logoUrl =
-              response.data.items[0].snippet.thumbnails.default.url;
+            const logoUrl = response.data.items[0].snippet.thumbnails.default.url;
             setLogoUrl(logoUrl);
             dataFetched = true;
             break;
@@ -225,13 +224,17 @@ useEffect(() => {
           console.error(`Error fetching data with token ${token}:`, error);
         }
       }
-
+  
       if (!dataFetched) {
         throw new Error("All API tokens exhausted or failed to fetch data.");
       }
-
-      setGenerateCount(generateCount - 1);
-      localStorage.setItem("generateCount", generateCount - 1);
+  
+      // If the user is not logged in or doesn't have unlimited access, decrement the generate count
+      if (!user || (user && user.paymentStatus !== "success")) {
+        setGenerateCount(generateCount - 1);
+        localStorage.setItem("generateCount", generateCount - 1); // Persist to localStorage
+      }
+  
     } catch (error) {
       toast.error("Failed to fetch channel logo:", error);
       setError("Failed to fetch data. Check console for more details.");
@@ -239,6 +242,7 @@ useEffect(() => {
       setLoading(false);
     }
   };
+  
 
   const downloadLogo = () => {
     if (!logoUrl) {
@@ -609,42 +613,63 @@ useEffect(() => {
           </h1>
           <p className="text-white pb-2">A YouTube Channel Logo Downloader is a tool that enables users to quickly and easily download the profile logo</p>
           <ToastContainer />
+          
           {modalVisible && (
-            <div
-              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
-              role="alert"
-            >
-              <div className="flex">
-                <div className="mt-4">
-                  {user ? (
-                    user.paymentStatus === "success" ||
-                    user.role === "admin" ? (
-                      <p className="text-center p-3 alert-warning">
-                        {t('Congratulations! Now you can download unlimited Logo.')}
-                      </p>
-                    ) : (
-                      <p className="text-center p-3 alert-warning">
-                        {t('You are not upgraded. You can generate Logo {{remainingGenerations}} more times.', { remainingGenerations: 5 - generateCount })}
-                        <Link href="/pricing" className="btn btn-warning ms-3">
-                          {t('Upgrade')}
-                        </Link>
-                      </p>
-                    )
-                  ) : (
-                    <p className="text-center p-3 alert-warning">
-                      {t('Please log in to fetch channel data.')}
-                    </p>
-                  )}
-                </div>
-                <button
-                  className="text-yellow-700 ml-auto"
-                  onClick={closeModal}
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
+  <div
+    className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+    role="alert"
+  >
+    <div className="flex">
+      <div>
+        {user ? (
+          // If user is logged in
+          <>
+            {/* Uncomment this section when payment system is implemented */}
+            {/* 
+            user.paymentStatus === "success" || user.role === "admin" ? (
+              <p className="text-center p-3 alert-warning">
+                {t("Congratulations! Now you can generate unlimited titles.")}
+              </p>
+            ) : (
+              <p className="text-center p-3 alert-warning">
+                {t(
+                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
+                  { remaining: 3 - generateCount }
+                )}
+                <Link href="/pricing" className="btn btn-warning ms-3">
+                  {t("Upgrade")}
+                </Link>
+              </p>
+            )
+            */}
+            
+            {/* User can generate unlimited titles while logged in */}
+            <p className="text-center p-3 alert-warning">
+              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now download unlimited channel logo .`)}
+            </p>
+          </>
+        ) : (
+          // If user is not logged in
+          <p className="text-center p-3 alert-warning">
+            {t(
+              "You are not logged in. You can download channel logo {{remaining}} more times. Please log in for unlimited access.",
+              { remaining: 3 - generateCount }
+            )}
+            <Link href="/login" className="btn btn-warning ms-3">
+              {t("Log in")}
+            </Link>
+          </p>
+        )}
+      </div>
+      <button
+        className="text-yellow-700 ml-auto"
+        onClick={closeModal}
+      >
+        ×
+      </button>
+    </div>
+  </div>
+)}
 <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
   <div>
     <div className="w-full p-6">

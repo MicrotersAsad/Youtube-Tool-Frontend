@@ -167,26 +167,45 @@ useEffect(() => {
   }, [user, updateUserProfile, isUpdated]);
 
   const fetchSummary = async () => {
-    if (user && user.paymentStatus !== "success" && generateCount <= 0) {
-      toast.error(
-        t("You have reached the limit. Please upgrade for unlimited use.")
-      );
-      return;
+    // Check if user is not logged in and has reached the 3 fetch limit
+    if (!user) {
+      if (generateCount >= 3) {
+        toast.error(t("You have reached the limit of fetching summaries. Please log in for unlimited access."));
+        return;
+      }
+    } else {
+      // If user is logged in, they get unlimited access (no need to check generateCount)
+      // No additional check needed for logged-in user
     }
+  
+    // Check if CAPTCHA is verified
     if (!captchaVerified) {
-      toast.error(t("Pls Complete this capctha"));
+      toast.error(t("Please complete the captcha"));
       return;
     }
+  
     setLoading(true);
     setError("");
+  
     try {
       const response = await axios.post("/api/summarize", { videoUrl });
       setVideoInfo(response.data.videoInfo);
       setTranscript(response.data.captions);
       setSummary(response.data.summaries);
+  
+      // If user is logged in but does not have unlimited access, decrement the generate count
+      if (!user || (user && user.paymentStatus !== "success")) {
+        setGenerateCount(generateCount - 1);
+        localStorage.setItem("generateCount", generateCount - 1); // Persist to localStorage
+      }
+  
+      // Payment logic: Uncomment the below code once payment system is implemented
+      /*
       if (user && user.paymentStatus !== "success" && user.role !== "admin") {
         setGenerateCount(generateCount - 1);
+        localStorage.setItem("generateCount", generateCount - 1); 
       }
+      */
     } catch (error) {
       console.error("Error summarizing video:", error);
       setError(t("Failed to summarize video"));
@@ -195,6 +214,8 @@ useEffect(() => {
       setLoading(false);
     }
   };
+  
+  
 
   const handleCopy = (text) => {
     navigator.clipboard
@@ -531,49 +552,61 @@ useEffect(() => {
           The YouTube Video Summary Generator is a tool that automatically creates concise summaries of YouTube videos
           </p>
           {modalVisible && (
-            <div
-              className="bottom-0 right-0 bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 py-3 shadow-md mb-6 mt-3 z-50"
-              role="alert"
-            >
-              <div className="flex">
-                <div className="py-1">
-                  <svg
-                    className="fill-current h-6 w-6 text-yellow-500 mr-4"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                  ></svg>
-                </div>
-                <div>
-                  {user ? (
-                    user.paymentStatus === "success" ||
-                    user.role === "admin" ? (
-                      <p className="text-center p-3 alert-warning">
-                        {t("Congratulations! You can generate unlimited summaries.")}
-                      </p>
-                    ) : (
-                      <p className="text-center p-3 alert-warning">
-                        {t("You can generate {generateCount} more summaries. Upgrade", { generateCount })}
-                        <Link href="/pricing" className="btn btn-warning ms-3">
-                          {t("Upgrade")}
-                        </Link>
-                      </p>
-                    )
-                  ) : (
-                    <p className="text-center p-3 alert-warning">
-                      {t("Please log in to use this tool.")}
-                    </p>
-                  )}
-                </div>
-                <button
-                  className="text-yellow-700 ml-auto"
-                  onClick={closeModal}
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
-
+  <div
+    className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+    role="alert"
+  >
+    <div className="flex">
+      <div>
+        {user ? (
+          // If user is logged in
+          <>
+            {/* Uncomment this section when payment system is implemented */}
+            {/* 
+            user.paymentStatus === "success" || user.role === "admin" ? (
+              <p className="text-center p-3 alert-warning">
+                {t("Congratulations! Now you can generate unlimited titles.")}
+              </p>
+            ) : (
+              <p className="text-center p-3 alert-warning">
+                {t(
+                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
+                  { remaining: 3 - generateCount }
+                )}
+                <Link href="/pricing" className="btn btn-warning ms-3">
+                  {t("Upgrade")}
+                </Link>
+              </p>
+            )
+            */}
+            
+            {/* User can generate unlimited titles while logged in */}
+            <p className="text-center p-3 alert-warning">
+              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now generate unlimited video summary .`)}
+            </p>
+          </>
+        ) : (
+          // If user is not logged in
+          <p className="text-center p-3 alert-warning">
+            {t(
+              "You are not logged in. You can generate video summary {{remaining}} more times. Please log in for unlimited access.",
+              { remaining: 3 - generateCount }
+            )}
+            <Link href="/login" className="btn btn-warning ms-3">
+              {t("Log in")}
+            </Link>
+          </p>
+        )}
+      </div>
+      <button
+        className="text-yellow-700 ml-auto"
+        onClick={closeModal}
+      >
+        ×
+      </button>
+    </div>
+  </div>
+)}
 <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
   <div>
     <div className="w-full p-6">

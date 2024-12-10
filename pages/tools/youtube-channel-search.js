@@ -206,20 +206,35 @@ useEffect(() => {
 
   const handleSearchClick = async (e) => {
     e.preventDefault();
+  
+    // Check if user is logged in
     if (!user) {
       toast.error(t("Please log in to fetch channel data."));
       return;
     }
+  
+    // Check if CAPTCHA is verified
     if (!captchaVerified) {
-      toast.error(t("Pls Complete this capctha"));
+      toast.error(t("Please complete the captcha"));
       return;
     }
   
-
+    // Check the limit for non-logged in users (3 fetch limit)
+    if (!user) {
+      if (generateCount >= 3) {
+        toast.error(t("You have reached the limit of fetching channel data. Please log in for unlimited access."));
+        return;
+      }
+    } else {
+      // If user is logged in, they get unlimited access, so no need to check the generateCount
+    }
+  
     setLoading(true);
     setChannels([]);
     setFilteredChannels([]);
     setError("");
+  
+    // Check the generate count for non-premium users
     if (
       user &&
       user.paymentStatus !== "success" &&
@@ -234,16 +249,16 @@ useEffect(() => {
       setLoading(false);
       return;
     }
-
+  
     try {
       const tokensResponse = await fetch("/api/tokens");
       if (!tokensResponse.ok) throw new Error(t("Failed to fetch API tokens"));
-
+  
       const tokens = await tokensResponse.json();
       let nextPageToken = "";
       let totalChannelsData = [];
       let tokenIndex = 0;
-
+  
       while (
         totalChannelsData.length < 200 &&
         nextPageToken !== null &&
@@ -254,17 +269,17 @@ useEffect(() => {
           keyword
         )}&key=${apiKey}&pageToken=${nextPageToken}`;
         const searchResponse = await fetch(searchUrl);
-
+  
         if (!searchResponse.ok) {
           if (searchResponse.status === 403) {
-            // quota exceeded or invalid API key
+            // Quota exceeded or invalid API key
             tokenIndex++;
-            continue; // try the next token
+            continue; // Try the next token
           } else {
             throw new Error(`HTTP error! status: ${searchResponse.status}`);
           }
         }
-
+  
         const searchData = await searchResponse.json();
         const channelIds = searchData.items.map(
           (item) => item.snippet.channelId
@@ -274,12 +289,17 @@ useEffect(() => {
         totalChannelsData = totalChannelsData.concat(channelsData);
         nextPageToken = searchData.nextPageToken || null;
       }
-
+  
       const filtered = filterChannels(totalChannelsData);
       setFilteredChannels(filtered);
       setChannels(filtered.slice(0, 50));
-      setGenerateCount(generateCount + 1);
-      localStorage.setItem("generateCount", generateCount + 1);
+  
+      // If the user is not logged in or doesn't have unlimited access, increment the generate count
+      if (!user || (user && user.paymentStatus !== "success")) {
+        setGenerateCount(generateCount + 1);
+        localStorage.setItem("generateCount", generateCount + 1);
+      }
+  
     } catch (error) {
       console.error("Error:", error);
       setError(
@@ -291,6 +311,7 @@ useEffect(() => {
       setLoading(false);
     }
   };
+  
 
   const filterChannels = (channels) => {
     return channels.filter((channel) => {
@@ -619,47 +640,63 @@ useEffect(() => {
           YouTube Channel Search is a tool that helps you discover and explore YouTube channels based on keywords, niches, or topics.
           </p>
         
+        
           {modalVisible && (
-            <div
-              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
-              role="alert"
-            >
-              <div className="flex">
-                <div className="mt-4">
-                  {user ? (
-                    user.paymentStatus === "success" ||
-                    user.role === "admin" ? (
-                      <p className="text-center p-3 alert-warning">
-                        {t(
-                          "Congratulations! Now you can get unlimited Channel Details."
-                        )}
-                      </p>
-                    ) : (
-                      <p className="text-center p-3 alert-warning">
-                        {t(
-                          "You are not upgraded. You can get Channel Details {{remainingGenerations}} more times.",
-                          { remainingGenerations: 5 - generateCount }
-                        )}
-                        <Link href="/pricing" className="btn btn-warning ms-3">
-                          {t("Upgrade")}
-                        </Link>
-                      </p>
-                    )
-                  ) : (
-                    <p className="text-center p-3 alert-warning">
-                      {t("Please log in to fetch channel data.")}
-                    </p>
-                  )}
-                </div>
-                <button
-                  className="text-yellow-700 ml-auto"
-                  onClick={closeModal}
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
+  <div
+    className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+    role="alert"
+  >
+    <div className="flex">
+      <div>
+        {user ? (
+          // If user is logged in
+          <>
+            {/* Uncomment this section when payment system is implemented */}
+            {/* 
+            user.paymentStatus === "success" || user.role === "admin" ? (
+              <p className="text-center p-3 alert-warning">
+                {t("Congratulations! Now you can generate unlimited titles.")}
+              </p>
+            ) : (
+              <p className="text-center p-3 alert-warning">
+                {t(
+                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
+                  { remaining: 3 - generateCount }
+                )}
+                <Link href="/pricing" className="btn btn-warning ms-3">
+                  {t("Upgrade")}
+                </Link>
+              </p>
+            )
+            */}
+            
+            {/* User can generate unlimited titles while logged in */}
+            <p className="text-center p-3 alert-warning">
+              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now  unlimited search channel .`)}
+            </p>
+          </>
+        ) : (
+          // If user is not logged in
+          <p className="text-center p-3 alert-warning">
+            {t(
+              "You are not logged in. You can search channel {{remaining}} more times. Please log in for unlimited access.",
+              { remaining: 3 - generateCount }
+            )}
+            <Link href="/login" className="btn btn-warning ms-3">
+              {t("Log in")}
+            </Link>
+          </p>
+        )}
+      </div>
+      <button
+        className="text-yellow-700 ml-auto"
+        onClick={closeModal}
+      >
+        ×
+      </button>
+    </div>
+  </div>
+)}
           <div className="max-w-lg mx-auto bg-white rounded-lg shadow-md p-6">
             <form className="max-w-sm mx-auto" onSubmit={handleSearchClick}>
               <div className="mb-3">

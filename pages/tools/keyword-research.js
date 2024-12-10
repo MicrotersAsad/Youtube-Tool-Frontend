@@ -278,17 +278,32 @@ useEffect(() => {
   };
 
   const fetchKeywordData = async () => {
-
-    if (!user) {
-      toast.error(t("Please log in to fetch channel data."));
-      return;
-    }
+ 
+    
+  
+    // ক্যাপচা চেক
     if (!captchaVerified) {
-      toast.error(t("Pls Complete this captcha"));
+      toast.error(t("Please complete this captcha"));
       return;
     }
+  
+    // যদি ইউজার লগইন না থাকে এবং ফেচ সীমা ৩টি পার হয়
+    if (!user && generateCount >= 3) {
+      toast.error(t("You have reached the limit of fetches. Please log in for unlimited access."));
+      return;
+    }
+  
+    // যদি ইউজার লগইন থাকে এবং ফেচ সীমা ০ বা কম থাকে
+    if (user && generateCount <= 0) {
+      toast.error(t("You have reached the limit of fetches. Please log in for unlimited access."));
+      return;
+    }
+  
     setLoading(true);
+    setError(null);
+  
     try {
+      // POST রিকোয়েস্ট দিয়ে কিওয়ার্ড ডাটা ফেচ করা
       const res = await fetch(`/api/getKeywordData`, {
         method: "POST",
         headers: {
@@ -296,16 +311,26 @@ useEffect(() => {
         },
         body: JSON.stringify({ keyword, country: country.value }),
       });
-
+  
+      // রেসপন্স চেক
       if (!res.ok) {
         const errorText = await res.text();
         throw new Error(`Error: ${res.status} ${errorText}`);
       }
-
+  
+      // কিওয়ার্ড ডাটা প্রাপ্তি
       const result = await res.json();
       setRelatedKeywords(result.relatedKeywords); // Set related keywords data
       setGoogleSuggestionKeywords(result.googleSuggestionKeywords); // Set Google suggestions data
       setError(null);
+  
+      // ইউজার যদি লগইন থাকে এবং পেমেন্ট স্ট্যাটাস সফল না থাকে, তবে ফেচ কাউন্ট কমানো হবে
+      if (user && user.paymentStatus !== "success") {
+        const newCount = generateCount - 1;
+        setGenerateCount(newCount);
+        localStorage.setItem("generateCount", newCount);
+      }
+  
     } catch (err) {
       setError(err.message);
       setRelatedKeywords(null);
@@ -315,6 +340,7 @@ useEffect(() => {
       setLoading(false);
     }
   };
+  
   useEffect(() => {
     if (user) {
       const userAction = reactions.users?.[user.email];
@@ -598,42 +624,63 @@ useEffect(() => {
           <h1 className="text-3xl pt-5 text-white">{t('YouTube Keyword Research')}</h1>
           <p className="text-white pb-3">A YouTube Keyword Research Tool helps content creators identify the most relevant and high-ranking keywords for their videos</p>
          
+      
           {modalVisible && (
-            <div
-              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
-              role="alert"
-            >
-              <div className="flex">
-                <div className="mt-4">
-                  {user ? (
-                    user.paymentStatus === "success" ||
-                    user.role === "admin" ? (
-                      <p className="text-center p-3 alert-warning">
-                        {t("Congratulations!! Now you can pick unlimited keywords.")}
-                      </p>
-                    ) : (
-                      <p className="text-center p-3 alert-warning">
-                        {t("You are not upgraded. You can Keyword Research {{remainingGenerations}} more times.", { remainingGenerations: 5 - generateCount })}{" "}
-                        <Link href="/pricing" className="btn btn-warning ms-3">
-                          {t("Upgrade")}
-                        </Link>
-                      </p>
-                    )
-                  ) : (
-                    <p className="text-center p-3 alert-warning">
-                      {t("Please log in to fetch channel data.")}
-                    </p>
-                  )}
-                </div>
-                <button
-                  className="text-yellow-700 ml-auto"
-                  onClick={closeModal}
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
+  <div
+    className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+    role="alert"
+  >
+    <div className="flex">
+      <div>
+        {user ? (
+          // If user is logged in
+          <>
+            {/* Uncomment this section when payment system is implemented */}
+            {/* 
+            user.paymentStatus === "success" || user.role === "admin" ? (
+              <p className="text-center p-3 alert-warning">
+                {t("Congratulations! Now you can generate unlimited titles.")}
+              </p>
+            ) : (
+              <p className="text-center p-3 alert-warning">
+                {t(
+                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
+                  { remaining: 3 - generateCount }
+                )}
+                <Link href="/pricing" className="btn btn-warning ms-3">
+                  {t("Upgrade")}
+                </Link>
+              </p>
+            )
+            */}
+            
+            {/* User can generate unlimited titles while logged in */}
+            <p className="text-center p-3 alert-warning">
+              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now  research unlimited keyword .`)}
+            </p>
+          </>
+        ) : (
+          // If user is not logged in
+          <p className="text-center p-3 alert-warning">
+            {t(
+              "You are not logged in. You can  keyword research {{remaining}} more times. Please log in for unlimited access.",
+              { remaining: 3 - generateCount }
+            )}
+            <Link href="/login" className="btn btn-warning ms-3">
+              {t("Log in")}
+            </Link>
+          </p>
+        )}
+      </div>
+      <button
+        className="text-yellow-700 ml-auto"
+        onClick={closeModal}
+      >
+        ×
+      </button>
+    </div>
+  </div>
+)}
         <div className="shadow-md bg-white p-5 rounded">
         <ToastContainer />
        

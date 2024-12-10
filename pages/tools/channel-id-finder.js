@@ -187,44 +187,50 @@ useEffect(() => {
     }
   };
 
-  const handleFetch = async () => {
+  const handleFetch = async () => { 
+    // চেক করুন, ইউজার লগইন করেছে কিনা
     if (!user) {
+      // লগইন না থাকলে, চেক করুন যে ফেচ সীমা ৩-এর বেশি না হয়েছে
+      if (generateCount >= 3) {
+        toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
+        return;
+      }
       toast.error(t("Please log in to fetch channel data."));
       return;
     }
-
+  
+    // ইউটিউব ভিডিও URL চেক করুন
     if (!videoUrl) {
       toast.error(t("Please enter a YouTube video URL."));
       return;
     }
-    
+  
+    // ক্যাপচা চেক করুন
     if (!captchaVerified) {
-      toast.error(t("Pls Complete this captcha"));
+      toast.error(t("Please complete the captcha"));
       return;
     }
+   // If the user is not logged in, check if they have exceeded the 3-limit
+   if (!user && generateCount >= 3) {
+    toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
+    return;
+  }
 
-    if (
-      generateCount >= 3 &&
-      user.paymentStatus !== "success" &&
-      user.role !== "admin"
-    ) {
-      toast.error(
-        t("Fetch limit exceeded. Please upgrade for unlimited access.")
-      );
-      return;
-    }
-
+  
     setLoading(true);
     setError("");
     try {
       const data = await fetchVideoData(videoUrl);
       setChannelData(data);
       toast.success(t("Channel data fetched successfully!"));
-      if (user && user.paymentStatus !== "success" && user.role !== "admin") {
+  
+      // যদি ইউজার লগইন করে থাকে, তাহলে ফেচের সংখ্যা বাড়ান
+      if (user && generateCount < 3) {
         const newCount = generateCount + 1;
         setGenerateCount(newCount);
-        localStorage.setItem("generateCount", newCount);
+        localStorage.setItem("generateCount", newCount); // ইউজারের ফেচ কন্টে সংখ্যা লোকাল স্টোরেজে সেভ করুন
       }
+  
     } catch (err) {
       setError(err.message);
       console.error(err.message);
@@ -232,6 +238,7 @@ useEffect(() => {
       setLoading(false);
     }
   };
+  
 
   const handleReviewSubmit = async () => {
     if (!newReview.rating || !newReview.comment) {
@@ -562,47 +569,64 @@ useEffect(() => {
             YouTube Channel ID Finder
           </p>
 
+       
           {modalVisible && (
-            <div
-              className="bg-yellow-100 border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
-              role="alert"
-            >
-              <div className="flex">
-                <div className="mt-4">
-                  {user ? (
-                    user.paymentStatus === "success" ||
-                    user.role === "admin" ? (
-                      <p className="text-center p-3 alert-warning">
-                        {t(
-                          "Congratulations!! Now you can get unlimited Channel Data."
-                        )}
-                      </p>
-                    ) : (
-                      <p className="text-center p-3 alert-warning">
-                        {t(
-                          "You are not upgraded. You can get Channel Data {{remainingGenerations}} more times.",
-                          { remainingGenerations: 5 - generateCount }
-                        )}{" "}
-                        <Link href="/pricing" className="btn btn-warning ms-3">
-                          {t("Upgrade")}
-                        </Link>
-                      </p>
-                    )
-                  ) : (
-                    <p className="text-center p-3 alert-warning">
-                      {t("Please log in to fetch channel data.")}
-                    </p>
-                  )}
-                </div>
-                <button
-                  className="text-yellow-700 ml-auto"
-                  onClick={closeModal}
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
+  <div
+    className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
+    role="alert"
+  >
+    <div className="flex">
+      <div>
+        {user ? (
+          // If user is logged in
+          <>
+            {/* Uncomment this section when payment system is implemented */}
+            {/* 
+            user.paymentStatus === "success" || user.role === "admin" ? (
+              <p className="text-center p-3 alert-warning">
+                {t("Congratulations! Now you can generate unlimited titles.")}
+              </p>
+            ) : (
+              <p className="text-center p-3 alert-warning">
+                {t(
+                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
+                  { remaining: 3 - generateCount }
+                )}
+                <Link href="/pricing" className="btn btn-warning ms-3">
+                  {t("Upgrade")}
+                </Link>
+              </p>
+            )
+            */}
+            
+            {/* User can generate unlimited titles while logged in */}
+            <p className="text-center p-3 alert-warning">
+              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now get unlimited channel id.`)}
+            </p>
+          </>
+        ) : (
+          // If user is not logged in
+          <p className="text-center p-3 alert-warning">
+            {t(
+              "You are not logged in. You can get channel id {{remaining}} more times. Please log in for unlimited access.",
+              { remaining: 3 - generateCount }
+            )}
+            <Link href="/login" className="btn btn-warning ms-3">
+              {t("Log in")}
+            </Link>
+          </p>
+        )}
+      </div>
+      <button
+        className="text-yellow-700 ml-auto"
+        onClick={closeModal}
+      >
+        ×
+      </button>
+    </div>
+  </div>
+)}
+
           <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
             <div>
               <div className="w-full p-6">
