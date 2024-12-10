@@ -8,7 +8,7 @@
 @tailwind utilities;
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 0.5px; /* Thinner scrollbar width */
+  width: 0.4px; /* Thinner scrollbar width */
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
