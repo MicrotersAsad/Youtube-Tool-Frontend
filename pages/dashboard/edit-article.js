@@ -313,8 +313,8 @@ const handleSave = useCallback(async () => {
           </div>
           
  
-<div className="mb-3">
-  <label htmlFor="category" className="block mb-2 text-lg font-medium">Categories*</label>
+
+ 
   <div className="mb-3">
   <label htmlFor="category" className="block mb-2 text-lg font-medium">Categories*</label>
   <select
@@ -335,7 +335,7 @@ const handleSave = useCallback(async () => {
   </select>
 </div>
 
-</div>
+
 
           <div className="mb-3">
             <label htmlFor="metaDescription" className="block mb-2 text-lg font-medium">Meta Description</label>

@@ -149,6 +149,9 @@ function AllBlogs() {
   const indexOfFirstBlog = indexOfLastBlog - blogsPerPage;
   const currentBlogs = filteredBlogs.slice(indexOfFirstBlog, indexOfLastBlog);
   const totalPages = Math.ceil(filteredBlogs.length / blogsPerPage);
+  const totalBlog=filteredBlogs.length
+  console.log(totalBlog);
+  
 
   const handleClick = (event, pageNumber) => {
     event.preventDefault();

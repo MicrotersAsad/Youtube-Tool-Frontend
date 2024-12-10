@@ -30,6 +30,7 @@ const AllUsers = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalUser, setTotalUser] = useState(0);
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -93,6 +94,8 @@ const AllUsers = () => {
       if (!response.ok) throw new Error("Failed to fetch users");
 
       const result = await response.json();
+      
+      setTotalUser(result.data)
       const fetchedUsers =
         result.success && Array.isArray(result.data) ? result.data : [];
       setUsers(fetchedUsers.reverse()); //reverse system
@@ -304,7 +307,13 @@ const AllUsers = () => {
               </table>
             </div>
           )}
-
+<div className="flex justify-between items-center mt-4">
+<div className="text-xs">
+  <span>
+    Showing {(currentPage - 1) * usersPerPage + 1} to{" "}
+    {Math.min(currentPage * usersPerPage, totalUser.length)} of {totalUser.length} user
+  </span>
+</div>
           {/* Pagination Controls */}
           <div className="flex justify-center items-center mt-6 space-x-2">
             {/* Previous Button */}
@@ -364,6 +373,7 @@ const AllUsers = () => {
             >
               »
             </button>
+          </div>
           </div>
 
           {/* Ban User Modal */}
