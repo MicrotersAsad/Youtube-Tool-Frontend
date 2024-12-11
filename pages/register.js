@@ -225,6 +225,7 @@ function Register() {
 
       {/* Left Section with Text and Features */}
       <div className="w-full md:w-1/2 bg-red-500 text-white p-8 md:p-16 flex flex-col justify-center items-start space-y-4">
+      
   <h1 className="text-3xl md:text-5xl text-white font-bold leading-tight">
     Create YouTube Content Faster with Ytubetools Advanced AI Tool
   </h1>
@@ -255,14 +256,7 @@ function Register() {
     <h2 className="text-3xl md:text-4xl font-semibold text-gray-700 mb-6 text-center">Get Started for FREE</h2>
 
     {/* Added Section */}
-    <div className="row">
-    <div className="col-md-6">
-      <FaCheckCircle/><span className="">100 free credit</span>
-    </div>
-    <div className="col-md-6">
-    <FaCheckCircle/><span className="">No credit card requireds</span>
-    </div>
-    </div>
+    <div data-v-7aaf980e="" class="flex justify-center space-x-6 my-6 text-[#5F5A69]"><div data-v-7aaf980e="" class="flex space-x-2"><svg data-v-7aaf980e="" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_2130_16195)"><path d="M6.66602 10.417L9.16602 12.917L13.3327 7.91699" stroke="#5F5A69" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9.99935 18.3337C14.6017 18.3337 18.3327 14.6027 18.3327 10.0003C18.3327 5.39795 14.6017 1.66699 9.99935 1.66699C5.39698 1.66699 1.66602 5.39795 1.66602 10.0003C1.66602 14.6027 5.39698 18.3337 9.99935 18.3337Z" stroke="#5F5A69" stroke-width="2"></path></g><defs><clipPath id="clip0_2130_16195"><rect width="20" height="20" fill="white"></rect></clipPath></defs></svg><span data-v-7aaf980e="" class="font-sans font-normal text-base leading-5 text-[#5F5A69]">Unlimited Free Credits</span></div><div data-v-7aaf980e="" class="flex space-x-2"><svg data-v-7aaf980e="" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_2130_16195)"><path d="M6.66602 10.417L9.16602 12.917L13.3327 7.91699" stroke="#434343" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9.99935 18.3337C14.6017 18.3337 18.3327 14.6027 18.3327 10.0003C18.3327 5.39795 14.6017 1.66699 9.99935 1.66699C5.39698 1.66699 1.66602 5.39795 1.66602 10.0003C1.66602 14.6027 5.39698 18.3337 9.99935 18.3337Z" stroke="#434343" stroke-width="2"></path></g><defs><clipPath id="clip0_2130_16195"><rect width="20" height="20" fill="white"></rect></clipPath></defs></svg><span data-v-7aaf980e="" class="font-sans font-normal text-base leading-5">No credit card required</span></div></div>
     {/* End of Added Section */}
 
           {!showVerification ? (
@@ -344,7 +338,7 @@ function Register() {
       className="w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
     />
     <span className="text-sm text-gray-600">
-      I agree to WriterBuddy's{" "}
+      I agree to YtubeTool's{" "}
       <a
         href="/terms"
         target="_blank"
@@ -385,6 +379,7 @@ function Register() {
                   Register
                 </button>
               </div>
+              <div class="flex justify-end space-x-1 pb-20"><p class="font-normal text-base leading-6 text-[#5F5A69]">Already have an account?</p><Link href="/login"><span class="font-semibold text-base leading-6 text-red-500">Login</span></Link></div>
             </form>
           ) : (
             <form onSubmit={handleVerification} className="space-y-4">
