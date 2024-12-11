@@ -34,12 +34,13 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [chartData, setChartData] = useState([]);
   const [labels, setLabels] = useState([]);
-  const [filter, setFilter] = useState('daily');
+  const [filter, setFilter] = useState('yearly');
   const [loading, setLoading] = useState(true);
 
   const [totalUsers, setTotalUsers] = useState(0);
   const [activeUsers, setActiveUsers] = useState(0);
   const [premiumUsers, setPremiumUsers] = useState(0);
+  const [articles, setArticle] = useState(0);
   const [nonPremiumUsers, setNonPremiumUsers] = useState(0);
   const [emailUnverifiedUsers, setEmailUnverifiedUsers] = useState(0);
   const [siteViews, setSiteViews] = useState(0);
@@ -53,6 +54,8 @@ const Dashboard = () => {
   const [reviews, setReviews] = useState([]);
   const [pages, setPages] = useState([]);
   const [comments, setComments] = useState([]);
+const page=1
+const articlesPerPage = 10; // Set the number of articles per page
 
   const fetchData = async (filter) => {
     try {
@@ -74,7 +77,6 @@ const Dashboard = () => {
       console.error('Error fetching site views:', error);
     }
   };
-
   useEffect(() => {
     if (user?.role === 'admin') {
       const fetchAllData = async () => {
@@ -84,19 +86,26 @@ const Dashboard = () => {
             siteViewsResponse,
             userVisitsResponse,
             blogResponse,
+            articleResponse,
             userListResponse,
             loginStatsResponse,
             activeSessionsResponse,
             reviewsResponse,
             pagesResponse,
-            commentsResponse
+            commentsResponse,
+            youtubeResponse // Added for YouTube data
           ] = await Promise.all([
             fetch(`/api/get-visit-count?filter=${filter}`),
             fetch(`/api/user-visits?filter=${filter}`),
-            fetch(`/api/blogs?start=${moment().subtract(30, 'days').format('YYYY-MM-DD')}&end=${moment().format('YYYY-MM-DD')}`, {
+            fetch(`/api/youtube?page=${page}&limit=${articlesPerPage}&start=${moment().subtract(30, 'days').format('YYYY-MM-DD')}&end=${moment().format('YYYY-MM-DD')}`, {
               headers: {
                 'Authorization': `Bearer AZ-fc905a5a5ae08609ba38b046ecc8ef00`, // Add your custom header here
-                'Content-Type': 'application/json' // Example of another header, if needed
+                'Content-Type': 'application/json'
+              }
+            }),
+            fetch(`/api/youtube?page=${page}&limit=${articlesPerPage}`, {
+              headers: {
+                'Authorization': `Bearer AZ-fc905a5a5ae08609ba38b046ecc8ef00`, // Add your custom header here
               }
             }),
             fetch('/api/user-list', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }),
@@ -107,26 +116,48 @@ const Dashboard = () => {
             fetch('/api/comments/all')
           ]);
   
+          // Check if any of the responses failed
+          const responses = [
+            siteViewsResponse, userVisitsResponse, blogResponse, articleResponse, 
+            userListResponse, loginStatsResponse, activeSessionsResponse, reviewsResponse, 
+            pagesResponse, commentsResponse
+          ];
+  console.log(responses);
+  
+          // Loop over each response to ensure they are OK
+          for (const response of responses) {
+            if (!response.ok) {
+              throw new Error(`Failed to fetch: ${response.url} (Status: ${response.status})`);
+            }
+          }
+  
+          // If everything is fine, parse the JSON
           const siteViewsData = await siteViewsResponse.json();
           const userVisitsData = await userVisitsResponse.json();
           const blogData = await blogResponse.json();
+          const articleData = await articleResponse.json();
           const userListData = await userListResponse.json();
           const loginStatsData = await loginStatsResponse.json();
           const activeSessionsData = await activeSessionsResponse.json();
           const reviewsData = await reviewsResponse.json();
           const pagesData = await pagesResponse.json();
           const commentsData = await commentsResponse.json();
+          
+
   
+          // Proceed with setting the state after parsing
           setSiteViews(siteViewsData.visitCount);
           setChartData(userVisitsData.map(item => item.value));
           setLabels(userVisitsData.map(item => item.date));
           setBlogChartData({
-            labels: blogData.map(item => moment(item.createdAt).format('YYYY-MM-DD')),
-            datasets: [{ label: 'Blogs Published', data: blogData.map(() => 1), borderColor: 'rgba(75, 192, 192, 1)', fill: true }]
+            labels: blogData.data.map(item => moment(item.createdAt).format('YYYY-MM-DD')),
+            datasets: [{ label: 'Blogs Published', data: blogData.data.map(() => 1), borderColor: 'rgba(75, 192, 192, 1)', fill: true }]
           });
   
+          // Handle user and other data
           const premiumUserCount = userListData.data.filter(user => user.paymentStatus === 'success').length;
           setTotalUsers(userListData.data.length);
+          setArticle(articleData?.meta?.totalBlogs);
           setActiveUsers(userListData.data.filter(user => user.verified).length);
           setPremiumUsers(premiumUserCount);
           setNonPremiumUsers(userListData.data.length - premiumUserCount);
@@ -137,10 +168,12 @@ const Dashboard = () => {
             labels: loginStatsData.browserStats.map(item => item._id),
             datasets: [{ data: loginStatsData.browserStats.map(item => item.count), backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FFA726', '#66BB6A'] }]
           });
+  
           setOsStats({
             labels: loginStatsData.osStats.map(item => item._id),
             datasets: [{ data: loginStatsData.osStats.map(item => item.count), backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FFA726', '#66BB6A'] }]
           });
+  
           setCountryStats({
             labels: loginStatsData.countryStats.map(item => item._id),
             datasets: [{ data: loginStatsData.countryStats.map(item => item.count), backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FFA726', '#66BB6A'] }]
@@ -152,6 +185,13 @@ const Dashboard = () => {
           setPages(pagesData);
           setComments(commentsData);
   
+          // Handle YouTube Data
+          setBlogChartData({
+            labels: youtubeData.map(item => moment(item.createdAt).format('YYYY-MM-DD')),
+            viewCounts: youtubeData.map(item => item.viewCount),
+            authors: youtubeData.map(item => item.author)
+          });
+  
           setLoading(false);
         } catch (error) {
           console.error('Error fetching data:', error);
@@ -162,6 +202,9 @@ const Dashboard = () => {
     }
   }, [user, filter]);
   
+  
+  
+console.log(blogs);
 
   const handleFilterChange = (newFilter) => {
     setFilter(newFilter);
@@ -251,15 +294,15 @@ const Dashboard = () => {
   </div>
 </Link>
 
-<Link href="all-blog">
+<Link href="all-article">
   <div className="flex items-center border rounded-lg bg-white shadow-md hover:shadow-lg transition-all p-4">
     <div className="flex items-center space-x-4">
       <div className="p-3 bg-gray-200 rounded-md">
         <FaFileAlt className="text-gray-500" />
       </div>
       <div>
-        <p className="text-gray-600">Total Blogs</p>
-        <h3 className="text-2xl font-bold">{blogs.length}</h3>
+        <p className="text-gray-600">Total Article</p>
+        <h3 className="text-2xl font-bold">{articles}</h3>
       </div>
     </div>
     <FaChevronRight className="text-gray-500 ml-auto" />
@@ -274,7 +317,7 @@ const Dashboard = () => {
       </div>
       <div>
         <p className="text-gray-600">Total Tools</p>
-        <h3 className="text-2xl font-bold">{tools.totalCount}</h3>
+        <h3 className="text-2xl font-bold">18</h3>
       </div>
     </div>
     <FaChevronRight className="text-gray-500 ml-auto" />
@@ -376,10 +419,13 @@ const Dashboard = () => {
             onChange={(e) => handleFilterChange(e.target.value)}
             className="border border-gray-300 rounded-md p-2"
           >
+              <option value="yearly">Yearly</option>
+              <option value="monthly">Monthly</option>
+              <option value="weekly">Weekly</option>
             <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-            <option value="yearly">Yearly</option>
+        
+            
+          
           </select>
 
 

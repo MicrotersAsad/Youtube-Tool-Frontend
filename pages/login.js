@@ -301,12 +301,14 @@ function LoginOrResetPassword() {
                         {showPassword ? <FaEyeSlash /> : <FaEye />}
                       </button>
                     </div>
-                    {!isLocalhost && sitekey && (
+                   <div className="mt-3">
+                   {!isLocalhost && sitekey && (
   <ReCAPTCHA
     sitekey={sitekey} 
     onChange={onRecaptchaChange}
   />
 )}
+                   </div>
  <div className="mt-4">
                   <button
                     onClick={() => setIsResettingPassword(true)}
