@@ -22,8 +22,7 @@ export default async function handler(req, res) {
       // Fetch reCAPTCHA secret from the extensions API
       const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
       const host = req.headers.host;
-      const authToken ='AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Authorization token from header
-    
+      const authToken = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Authorization token from header
 
       if (!authToken) {
         return res.status(200).json({ message: "Authorization token is required" });
@@ -79,6 +78,11 @@ export default async function handler(req, res) {
       if (!user) {
         await handleFailedAttempt(db, ipAddress);
         return res.status(401).json({ message: "Invalid email or password" });
+      }
+
+      // Check if user is verified
+      if (!user.verified) {
+        return res.status(400).json({ message: "Please verify your email before logging in." });
       }
 
       const isMatch = await bcrypt.compare(password, user.password);

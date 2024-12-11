@@ -286,40 +286,38 @@ const Users = () => {
             </div>
           )}
 
+<div className="flex justify-between items-center mt-4 ps-4 pe-4">
+<div className="text-xs">
+  <span>
+    Showing {(currentPage - 1) * usersPerPage + 1} to{" "}
+    {Math.min(currentPage * usersPerPage, users.length)} of {users.length} user
+  </span>
+</div>
           <div className="flex justify-center items-center mt-6 space-x-2">
             <button
-              onClick={handlePreviousGroup}
-              className={`bg-gradient-to-r from-gray-300 to-gray-400 px-4 py-2 rounded-full ${
-                pageGroup === 0 ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-              disabled={pageGroup === 0}
+              onClick={() => handlePageChange(currentPage - 1)}
+              className={`bg-gray-300 px-4 py-2 rounded-md ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={currentPage === 1}
             >
               «
             </button>
-            {paginationGroup.map((page) => (
+            {[...Array(totalPages).keys()].map((number) => (
               <button
-                key={page}
-                onClick={() => handlePageChange(page)}
-                className={`px-4 py-2 rounded-full transition duration-200 ${
-                  currentPage === page
-                    ? 'bg-red-500 text-white font-bold shadow-md'
-                    : 'bg-gray-200 hover:bg-gray-300'
-                }`}
+                key={number}
+                className={`px-3 py-1 rounded ${currentPage === number + 1 ? 'bg-red-500 text-white' : ''}`}
+                onClick={() => handlePageChange(number + 1)}
               >
-                {page}
+                {number + 1}
               </button>
             ))}
             <button
-              onClick={handleNextGroup}
-              className={`bg-gradient-to-r from-gray-300 to-gray-400 px-4 py-2 rounded-full ${
-                (pageGroup + 1) * pagesPerGroup >= totalPages
-                  ? 'opacity-50 cursor-not-allowed'
-                  : ''
-              }`}
-              disabled={(pageGroup + 1) * pagesPerGroup >= totalPages}
+              onClick={() => handlePageChange(currentPage + 1)}
+              className={`bg-gray-300 px-4 py-2 rounded-md ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={currentPage === totalPages}
             >
               »
             </button>
+          </div>
           </div>
         </div>
   {/*  User Modal */}

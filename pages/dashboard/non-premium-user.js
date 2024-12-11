@@ -5,24 +5,69 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FaEnvelope, FaTrashAlt, FaTimes } from 'react-icons/fa';
-
+import {   FaTrashAlt,
+  FaTimes,
+  FaBan,
+  FaEdit,
+  FaSearch,
+  FaUser,
+  FaEllipsisV,
+  FaEnvelope,
+  FaWrench,
+  FaBell, } from 'react-icons/fa';
+  import BanModal from "../../components/BanModal";
+  import { useUserActions } from "../../contexts/UserActionContext";
+  import DeleteModal from "../../components/DeleteModal";
+  import EmailModal from "../../components/EmailModal";
+  import NotificationModal from "../../components/NotificationModal";
+  import EditModal from "../../components/EditModal";
 const Users = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [emailSubject, setEmailSubject] = useState('');
-  const [emailMessage, setEmailMessage] = useState('');
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [sendingAll, setSendingAll] = useState(false);
-  const [sendingEmail, setSendingEmail] = useState(false);
-
+  const [totalUser, setTotalUser] = useState(0);
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
+  const [dropdownOpen, setDropdownOpen] = useState(null);
 
+
+  const { setSelectedUser, setShowBanModal,setShowDeleteModal,
+    setShowEmailModal,setShowNotificationModal,setShowEditModal,setEditUser   } = useUserActions();
+useEffect(() => {
+  fetchUsers();
+}, []);
+const openBanModal = (user) => {
+  setSelectedUser(user);
+  setShowBanModal(true); // Show the ban modal
+};
+const openDeleteModal = (user) => {
+  setSelectedUser(user);
+  setShowDeleteModal(true); // Show the ban modal
+};
+const openEmailModal = (user) => {
+  setSelectedUser(user);
+  setShowEmailModal(true); // Show the ban modal
+};
+const openNotificationModal = (user) => {
+  setSelectedUser(user);
+  setShowNotificationModal(true); // Show the ban modal
+};
+const openEditModal = (user) => {
+  setSelectedUser(user);
+  setEditUser(user)
+  setShowEditModal(true); // Show the ban modal
+};
+
+const toggleDropdown = (userId) => {
+  console.log("Previous dropdownOpen:", dropdownOpen);
+  setDropdownOpen((prev) => {
+    const newState = prev === userId ? null : userId;
+    console.log("New dropdownOpen:", newState);
+    return newState;
+  });
+};
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -45,6 +90,7 @@ const Users = () => {
       }
 
       const result = await response.json();
+      setTotalUser(result.data)
       if (result.success && Array.isArray(result.data)) {
         const nonPremiumUsers = result.data.filter(
           (user) => user.verified && (!user.paymentStatus || user.paymentStatus !== "success")
@@ -70,81 +116,7 @@ const Users = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`/api/user?id=${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText);
-        }
-
-        setUsers(users.filter((user) => user._id !== id));
-        toast.success('User deleted successfully!');
-      } catch (error) {
-        toast.error('Failed to delete user');
-      }
-    }
-  };
-
-  const handleSendEmail = async (emails) => {
-    if (!emailSubject.trim() || !emailMessage.trim()) {
-      toast.error('Subject and message cannot be empty');
-      return;
-    }
-
-    setSendingEmail(true);
-    try {
-      const response = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          emails,
-          subject: emailSubject,
-          message: emailMessage,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText);
-      }
-
-      toast.success('Email sent successfully!');
-      setShowEmailModal(false);
-    } catch (error) {
-      toast.error('Failed to send email');
-    } finally {
-      setSendingEmail(false);
-    }
-  };
-
-  const openEmailModal = (user = null) => {
-    if (user) {
-      setSelectedUser(user.email);
-      setSendingAll(false);
-    } else {
-      setSendingAll(true);
-    }
-    setEmailSubject('Important Update');
-    setEmailMessage('Dear User,\n\nWe have an important update for you.\n\nBest regards,\nYtTools');
-    setShowEmailModal(true);
-  };
-
-  const closeEmailModal = () => {
-    setEmailSubject('');
-    setEmailMessage('');
-    setShowEmailModal(false);
-  };
 
   const handleSelectAllUsers = (e) => {
     if (e.target.checked) {
@@ -252,24 +224,74 @@ const Users = () => {
                           'N/A'
                         )}
                       </td>
-                      <td className="py-2 px-4 border-b text-center flex items-center justify-center space-x-2">
-                        {user.role !== 'admin' && (
-                          <>
+                      <td className="py-2 px-4 relative">
+                        <button
+                          className="text-gray-700 hover:text-gray-900"
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent parent events from triggering
+                            toggleDropdown(user._id);
+                          }}
+                        >
+                          <FaEllipsisV />
+                        </button>
+
+                        {dropdownOpen === user._id && (
+                          <div
+                            className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50 elapsis-menu"
+                            onClick={(e) => e.stopPropagation()} // Prevent dropdown close on button click
+                          >
+                            
+                            
                             <button
-                              className="bg-gradient-to-r from-red-500 via-red-600 to-red-700 text-white px-3 py-1 rounded-md shadow hover:from-red-600 hover:via-red-700 hover:to-red-800 transition duration-200"
-                              onClick={() => handleDelete(user._id)}
-                              aria-label={`Delete user ${user.email}`}
+                              className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left text-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditModal(user);
+                              }}
                             >
-                              <FaTrashAlt />
+                              <FaEdit className="mr-2 text-green-500" /> Edit
                             </button>
                             <button
-                              className="bg-gradient-to-r from-green-500 via-green-600 to-green-700 text-white px-3 py-1 rounded-md shadow hover:from-green-600 hover:via-green-700 hover:to-green-800 transition duration-200"
-                              onClick={() => openEmailModal(user)}
-                              aria-label={`Send email to ${user.email}`}
+                              className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left text-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openBanModal(user);
+                              }}
                             >
-                              <FaEnvelope />
+                              <FaBan className="mr-2 text-red-500" /> Ban
                             </button>
-                          </>
+                            
+                            <button
+                              className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left text-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDeleteModal(user);
+                              }}
+                            >
+                              <FaTrashAlt className="mr-2 text-red-600" /> Delete
+                            </button>
+                            
+                            <button
+                              className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left text-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEmailModal(user);
+                              }}
+                            >
+                              <FaEnvelope className="mr-2 text-green-500" /> Email
+                            </button>
+                            <button
+                              className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left text-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openNotificationModal(user);
+                              }}
+                            >
+                              <FaBell className="mr-2 text-blue-500" /> Notification
+                            </button>
+                           
+                          
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -281,6 +303,14 @@ const Users = () => {
           
           )}
           {/* Pagination controls */}
+
+          <div className="flex justify-between items-center mt-4 ps-4 pe-4">
+<div className="text-xs">
+  <span>
+    Showing {(currentPage - 1) * usersPerPage + 1} to{" "}
+    {Math.min(currentPage * usersPerPage, users.length)} of {users.length} user
+  </span>
+</div>
           <div className="flex justify-center items-center mt-6 space-x-2">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
@@ -306,6 +336,7 @@ const Users = () => {
               »
             </button>
           </div>
+          </div>
         </div>
         {selectedUsers.length > 0 && (
           <div className="flex justify-center mt-4">
@@ -320,47 +351,12 @@ const Users = () => {
       </div>
 
       {/* Modal for sending email */}
-      {showEmailModal && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center w-100">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-3/4 relative">
-            <button className="absolute top-2 right-2 text-gray-600 hover:text-gray-800" onClick={closeEmailModal}>
-              <FaTimes size={24} />
-            </button>
-            <h2 className="text-xl font-semibold mb-4">Send Email</h2>
-            <label>Your Subject</label>
-            <input
-              type="text"
-              value={emailSubject}
-              onChange={(e) => setEmailSubject(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-3 shadow-sm mb-4"
-              placeholder="Enter subject"
-            />
-            <label>Your Message</label>
-            <textarea
-              value={emailMessage}
-              onChange={(e) => setEmailMessage(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-3 shadow-sm mb-4"
-              placeholder="Enter message"
-              rows="4"
-            />
-            <div className="flex justify-end space-x-4">
-              <button
-                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition duration-200"
-                onClick={closeEmailModal}
-              >
-                Cancel
-              </button>
-              <button
-                className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-200"
-                onClick={() => handleSendEmail(sendingAll ? selectedUsers : [selectedUser])}
-                disabled={sendingEmail}
-              >
-                {sendingEmail ? <ClipLoader size={20} color={"#fff"} /> : 'Send'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+     {/*  User Modal */}
+     <EditModal/>
+            <BanModal  />
+            <DeleteModal/>
+            <EmailModal/>
+            <NotificationModal/>
     </Layout>
   );
 };

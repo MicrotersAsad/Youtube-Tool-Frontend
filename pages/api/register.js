@@ -15,31 +15,21 @@ export const config = {
 // Function to fetch the secret key dynamically with Authorization
 async function fetchSecretKey() {
   try {
-    // Determine the protocol (https or http)
     const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
-
-    // Define host, using an environment variable or localhost for development
-    const host = process.env.API_HOST || "localhost:3000"; // Replace with your host if needed
+    const host = process.env.API_HOST || "localhost:3000";
     
-    // Fetch the JWT token from localStorage or another secure storage
-    const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // This assumes you are storing the JWT token in localStorage
+    const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00';
     
     if (!token) {
       throw new Error("Authorization token is missing");
     }
 
-    // Make the request to the extensions API with the Authorization header
     const response = await fetch(`${protocol}://${host}/api/extensions`, {
       method: "GET",
-      headers: {
-        "Authorization": `Bearer ${token}`, // Add Authorization header with Bearer token
-      },
+      headers: { "Authorization": `Bearer ${token}` },
     });
 
-    // Parse the response
     const result = await response.json();
-
-    // If the request is successful, find the reCAPTCHA secret key from extensions data
     if (result.success) {
       const captchaExtension = result.data.find(
         (ext) => ext.key === "google_recaptcha_2" && ext.status === "Enabled"
@@ -50,7 +40,6 @@ async function fetchSecretKey() {
     }
   } catch (error) {
     console.error("Error fetching secret key:", error);
-    // Fallback to the environment variable if there's an error
     return process.env.GOOGLE_RECAPTCHA_SECRET; 
   }
 }
@@ -64,9 +53,7 @@ async function validateCaptcha(token) {
 
   const response = await fetch("https://www.google.com/recaptcha/api/siteverify", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: `secret=${secretKey}&response=${token}`,
   });
 
@@ -113,9 +100,15 @@ export default async function handler(req, res) {
     const verificationToken = uuidv4();
 
     const { db } = await connectToDatabase();
+
+    // Check if email is already registered
     const existingUser = await db.collection("user").findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "Email is already registered." });
+      if (existingUser.verified) {
+        return res.status(400).json({ message: "Email is already registered and verified." });
+      } else {
+        return res.status(400).json({ message: "Email is already registered, please verify your email." });
+      }
     }
 
     const result = await db.collection("user").insertOne({
@@ -124,7 +117,7 @@ export default async function handler(req, res) {
       password: hashedPassword,
       profileImage: null,
       verificationToken,
-      verified: false,
+      verified: false, // Initially, the user is not verified
       role: finalRole,
       createdAt: new Date(),
     });
@@ -133,6 +126,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ message: "Failed to register user." });
     }
 
+    // Send verification email
     await sendVerificationEmail(email, username, verificationToken);
 
     const notificationRef = collection(firestore, "notifications");
