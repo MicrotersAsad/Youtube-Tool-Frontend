@@ -265,7 +265,8 @@ function LoginOrResetPassword() {
           <div className="w-full max-w-md">
             {!isResettingPassword ? (
               <>
-                <h2 className="text-2xl font-semibold mb-6 text-gray-700">Login</h2>
+               <h1  class="text-center font-semibold text-3xl leading-5 text-[#110F14]">Welcome Back!</h1>
+               <p  class="text-center font-normal text-[15px] leading-5 text-[#5F5A69] mt-2">How are you doing today?</p>
                 <form onSubmit={handleSubmitLogin}>
                   <div className="mb-4">
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
@@ -306,6 +307,14 @@ function LoginOrResetPassword() {
     onChange={onRecaptchaChange}
   />
 )}
+ <div className="mt-4">
+                  <button
+                    onClick={() => setIsResettingPassword(true)}
+                    className="text-red-600 hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
                   </div>
 
                   <button
@@ -316,20 +325,12 @@ function LoginOrResetPassword() {
                     {isLoading ? "Logging in..." : "Log In"}
                   </button>
                 </form>
-                <p className="mt-4 text-center text-gray-600">
-                  Do not have an account? <Link href="/register" className="text-red-500 hover:underline">Create an account</Link>.
-                </p>
-                <div className="mt-4 text-center">
-                  <button
-                    onClick={() => setIsResettingPassword(true)}
-                    className="text-red-600 hover:underline"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
+                <div  class="flex flex-col text-center md:flex-row md:justify-center space-x-1 mt-4"><p  class="font-normal text-base leading-6 text-[#5F5A69]">Don’t have an account?</p><Link  href="/register"><span  class="font-semibold text-base leading-6 text-red-500">Sign Up - It's FREE</span></Link></div>
+               
 
                 {/* Resend Verification Email */}
                 <div className="mt-4 text-center">
+                  <p>If You Are Not verified.Please Verify!</p>
                   <button
                     onClick={handleResendVerificationEmail}
                     className="text-blue-600 hover:underline"
