@@ -310,17 +310,19 @@ function LoginOrResetPassword() {
 
                   <button
                     type="submit"
-                    className="w-full bg-blue-600 text-white py-2 rounded-md"
+                    className="w-full bg-red-500 text-white py-2 rounded-md"
                     disabled={isLoading}
                   >
                     {isLoading ? "Logging in..." : "Log In"}
                   </button>
                 </form>
-
+                <p className="mt-4 text-center text-gray-600">
+                  Do not have an account? <Link href="/register" className="text-red-500 hover:underline">Create an account</Link>.
+                </p>
                 <div className="mt-4 text-center">
                   <button
                     onClick={() => setIsResettingPassword(true)}
-                    className="text-blue-600 hover:underline"
+                    className="text-red-600 hover:underline"
                   >
                     Forgot password?
                   </button>
@@ -359,7 +361,7 @@ function LoginOrResetPassword() {
                     />
                     <button
                       type="submit"
-                      className="w-full bg-blue-600 text-white py-2 rounded-md mt-4"
+                      className="w-full bg-red-500 text-white py-2 rounded-md mt-4"
                     >
                       Verify Email
                     </button>
@@ -385,7 +387,7 @@ function LoginOrResetPassword() {
 
                   <button
                     type="submit"
-                    className="w-full bg-blue-600 text-white py-2 rounded-md"
+                    className="w-full bg-red-500 text-white py-2 rounded-md"
                     disabled={isLoading}
                   >
                     {isLoading ? "Sending..." : "Send Reset Link"}

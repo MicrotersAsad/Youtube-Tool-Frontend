@@ -107,7 +107,7 @@ export default async function handler(req, res) {
       if (existingUser.verified) {
         return res.status(400).json({ message: "Email is already registered and verified." });
       } else {
-        return res.status(400).json({ message: "Email is already registered, please verify your email." });
+        return res.status(400).json({ message: "Email is already registered, please verify your email go to login page." });
       }
     }
 
