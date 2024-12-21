@@ -112,70 +112,81 @@ const YTtagGenerator = ({
   const closeModal = () => {
     setModalVisible(false);
   };
-  useEffect(() => {
-    const fetchConfigs = async () => {
-      try {
-        const protocol = window.location.protocol === "https:" ? "https" : "http";
-        const host = window.location.host;
+
+
+useEffect(() => {
+  const fetchConfigs = async () => {
+    try {
+      const protocol = window.location.protocol === "https:" ? "https" : "http";
+      const host = window.location.host;
+      
+      // Retrieve the JWT token from localStorage (or other storage mechanisms)
+      const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace 'authToken' with your key if different
+      
         
-        // Retrieve the JWT token from localStorage (or other storage mechanisms)
-        const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace 'authToken' with your key if different
-        
-          
-        if (!token) {
-          console.error('No authentication token found!');
-          return;
-        }
-
-        // Make the API call with the Authorization header containing the JWT token
-        const response = await fetch(`${protocol}://${host}/api/extensions`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`, // Include the token in the header
-          },
-        });
-
-        const result = await response.json();
-
-
-        if (result.success) {
-          // reCAPTCHA configuration
-          const captchaExtension = result.data.find(
-            (ext) => ext.key === "google_recaptcha_2" && ext.status === "Enabled"
-          );
-          if (captchaExtension && captchaExtension.config.siteKey) {
-            setSiteKey(captchaExtension.config.siteKey);
-          } else {
-            console.error("ReCAPTCHA configuration not found or disabled.");
-          }
-        } else {
-          console.error('Error fetching extensions:', result.message);
-        }
-      } catch (error) {
-        console.error("Error fetching configurations:", error);
-      } finally {
-        setIsLoading(false); // Data has been loaded
+      if (!token) {
+        console.error('No authentication token found!');
+        return;
       }
-    };
 
-    fetchConfigs();
-  }, []);
+      // Make the API call with the Authorization header containing the JWT token
+      const response = await fetch(`${protocol}://${host}/api/extensions`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Include the token in the header
+        },
+      });
+
+      const result = await response.json();
+
+
+      if (result.success) {
+        // reCAPTCHA configuration
+        const captchaExtension = result.data.find(
+          (ext) => ext.key === "google_recaptcha_2" && ext.status === "Enabled"
+        );
+        if (captchaExtension && captchaExtension.config.siteKey) {
+          setSiteKey(captchaExtension.config.siteKey);
+        } else {
+          console.error("ReCAPTCHA configuration not found or disabled.");
+        }
+      } else {
+        console.error('Error fetching extensions:', result.message);
+      }
+    } catch (error) {
+      console.error("Error fetching configurations:", error);
+    } finally {
+      setLoading(false); // Data has been loaded
+    }
+  };
+
+  fetchConfigs();
+}, []);
+
+  console.log(siteKey);
+  
   const handleLanguageChange = (e) => {
     setSelectedLanguage(e.target.value);
     // Perform additional actions based on language change if needed
   };
-
-
+  
+  const handleCaptchaVerification = (isVerified) => {
+    console.log("Captcha verified:", isVerified);
+    setCaptchaVerified(isVerified);
+  };
+  
   const handleToneChange = (event) => {
     // টোন নির্বাচন করা হলে selectedTone আপডেট হবে
     setSelectedTone(event.target.value);
   };
-
+  
   // Check if running on localhost
-const isLocalHost = typeof window !== "undefined" && 
-(window.location.hostname === "localhost" || 
- window.location.hostname === "127.0.0.1" || 
- window.location.hostname === "::1");
+  const isLocalHost = typeof window !== "undefined" && 
+  (window.location.hostname === "localhost" || 
+   window.location.hostname === "127.0.0.1" || 
+   window.location.hostname === "::1");
+
+ 
 
  
  const onRecaptchaChange = (token) => {

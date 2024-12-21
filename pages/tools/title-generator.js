@@ -124,7 +124,7 @@ const YTTitleGenerator = ({
           console.error('No authentication token found!');
           return;
         }
-
+  
         // Make the API call with the Authorization header containing the JWT token
         const response = await fetch(`${protocol}://${host}/api/extensions`, {
           method: 'GET',
@@ -132,10 +132,10 @@ const YTTitleGenerator = ({
             'Authorization': `Bearer ${token}`, // Include the token in the header
           },
         });
-
+  
         const result = await response.json();
-
-
+  
+  
         if (result.success) {
           // reCAPTCHA configuration
           const captchaExtension = result.data.find(
@@ -155,7 +155,7 @@ const YTTitleGenerator = ({
         setIsLoading(false); // Data has been loaded
       }
     };
-
+  
     fetchConfigs();
   }, []);
   const handleLanguageChange = (e) => {
