@@ -112,7 +112,16 @@ const YTtagGenerator = ({
   const closeModal = () => {
     setModalVisible(false);
   };
-
+  const isLocalHost = typeof window !== "undefined" && 
+  (window.location.hostname === "localhost" || 
+   window.location.hostname === "127.0.0.1" || 
+   window.location.hostname === "::1");
+   const handleCaptchaChange = (value) => {
+    // This is the callback from the reCAPTCHA widget
+    if (value) {
+      setCaptchaVerified(true); // Set captchaVerified to true when the user completes reCAPTCHA
+    }
+  };
 
 useEffect(() => {
   const fetchConfigs = async () => {
@@ -156,7 +165,7 @@ useEffect(() => {
     } catch (error) {
       console.error("Error fetching configurations:", error);
     } finally {
-      setLoading(false); // Data has been loaded
+      setIsLoading(false); // Data has been loaded
     }
   };
 
@@ -180,18 +189,6 @@ useEffect(() => {
     setSelectedTone(event.target.value);
   };
   
-  // Check if running on localhost
-  const isLocalHost = typeof window !== "undefined" && 
-  (window.location.hostname === "localhost" || 
-   window.location.hostname === "127.0.0.1" || 
-   window.location.hostname === "::1");
-
- 
-
- 
- const onRecaptchaChange = (token) => {
-  setRecaptchaToken(token);
-};
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -1027,12 +1024,12 @@ useEffect(() => {
 
 </div>
 
-<div className="ms-4 mt-3">
+<div className="ms-4">
   {/* reCAPTCHA Section */}
-  {!isLocalHost && siteKey && (
+{!isLocalHost && siteKey && (
   <ReCAPTCHA
-    sitekey={siteKey} 
-    onChange={onRecaptchaChange}
+    sitekey={siteKey} // সঠিকভাবে `sitekey` পাঠানো
+    onChange={handleCaptchaChange}
   />
 )}
 </div>
