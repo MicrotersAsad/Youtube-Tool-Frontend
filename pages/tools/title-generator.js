@@ -176,8 +176,11 @@ const isLocalHost = typeof window !== "undefined" &&
  window.location.hostname === "::1");
 
  
- const onRecaptchaChange = (token) => {
-  setRecaptchaToken(token);
+ const handleCaptchaChange = (value) => {
+  // This is the callback from the reCAPTCHA widget
+  if (value) {
+    setCaptchaVerified(true); // Set captchaVerified to true when the user completes reCAPTCHA
+  }
 };
 
   useEffect(() => {
@@ -1037,7 +1040,7 @@ const isLocalHost = typeof window !== "undefined" &&
   {!isLocalHost && siteKey && (
   <ReCAPTCHA
     sitekey={siteKey} 
-    onChange={onRecaptchaChange}
+    onChange={handleCaptchaChange}
   />
 )}
 </div>

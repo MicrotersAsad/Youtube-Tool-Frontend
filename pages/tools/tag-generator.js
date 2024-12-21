@@ -385,11 +385,15 @@ useEffect(() => {
     console.log("tags:", tags);
   
     // Check if required fields are filled
-    if (!captchaVerified || tags.length === 0) {
+    if ( tags.length === 0) {
       toast.error(t("All Fields Required"));
       return;
     }
-  
+   // Check if CAPTCHA is verified
+      if (!captchaVerified) {
+        toast.error("Pls Complete this captcha");
+        return;
+      }
     // If the user is not logged in, check if they have exceeded the 3-limit
     if (!user && generateCount >= 3) {
       toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
