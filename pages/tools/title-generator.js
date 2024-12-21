@@ -1032,7 +1032,7 @@ const isLocalHost = typeof window !== "undefined" &&
 
 </div>
 
-<div className="ms-4 mt-3">
+<div className="md:ms-4 mt-3">
   {/* reCAPTCHA Section */}
   {!isLocalHost && siteKey && (
   <ReCAPTCHA
@@ -1044,7 +1044,7 @@ const isLocalHost = typeof window !== "undefined" &&
 
       {/* Buttons Section */}
       <div className="flex items-center mt-4 ps-6 pe-6">
-        {/* Generate Titles Button */}
+      
        {/* Generate Titles Button */}
     <button
       className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-400"

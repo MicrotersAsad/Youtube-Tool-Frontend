@@ -373,7 +373,7 @@ const isLocalHost = typeof window !== "undefined" &&
 
   const generateTitles = async () => {
     // Check if required fields are filled
-    if ( !captchaVerified || tags.length === 0 || !selectedLanguage || !selectedTone) {
+    if ( !captchaVerified || tags.length === 0 ) {
       toast.error(t("All Fields Required"));
       return;
     }
