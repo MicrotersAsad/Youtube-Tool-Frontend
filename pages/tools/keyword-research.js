@@ -1177,67 +1177,61 @@ Search
   );
 };
 
-export async function getServerSideProps({ req, locale }) {
-  // Extract protocol and host, fallback to defaults if necessary
-  const protocol =
-    req.headers["x-forwarded-proto"]?.split(",")[0] ||
-    (req.connection?.encrypted ? "https" : "http") ||
-    "https"; // fallback to https
-  const host = req.headers.host || "your-default-domain.com"; // Ensure the host is correct
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || `${protocol}://${host}`;
-  
+export async function getStaticProps({ locale }) {
+  // Determine protocol and host
+  const protocol = process.env.NEXT_PUBLIC_PROTOCOL || 'http';
+  const host = process.env.NEXT_PUBLIC_HOST || 'localhost:3000';
+  const baseUrl = `${protocol}://${host}`;
   const contentApiUrl = `${baseUrl}/api/content?category=keyword-research&language=${locale}`;
   const headerApiUrl = `${baseUrl}/api/heading`;
 
-  console.log("Fetching data from:", contentApiUrl); // Debugging: Log the request URL
-
-  const AUTH_TOKEN = process.env.AUTH_TOKEN; // Authorization token from .env
-
-  // Function to fetch with timeout
-  const fetchWithTimeout = (url, options = {}) => {
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error("Request timed out")), 5000); // Timeout after 5 seconds
-      fetch(url, options)
-        .then(response => {
-          clearTimeout(timeout);
-          resolve(response);
-        })
-        .catch(error => {
-          clearTimeout(timeout);
-          reject(error);
-        });
-    });
-  };
-
   try {
-    // Fetching both API data concurrently
+    // Authorization token
+    const token = process.env.AUTH_TOKEN; // Example token
+
+    // Fetch content and header data in parallel
     const [contentResponse, headerResponse] = await Promise.all([
-      fetchWithTimeout(contentApiUrl, {
-        headers: { 'Authorization': `Bearer ${AUTH_TOKEN}`, 'Content-Type': 'application/json' }
+      fetch(contentApiUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }),
-      fetchWithTimeout(headerApiUrl),
+      fetch(headerApiUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
     ]);
 
-    // If the response is OK, parse it, else use fallback data
-    const contentData = contentResponse.ok ? await contentResponse.json() : { translations: {} };
-  
-    
-    const headerData = headerResponse.ok ? await headerResponse.json() : [{ content: "" }];
-    
+    if (!contentResponse.ok || !headerResponse.ok) {
+      throw new Error("Failed to fetch data from APIs");
+    }
+
+    const contentData = await contentResponse.json();
+    const headerData = await headerResponse.json();
+
+    // Extract header content and localized data with fallbacks
     const headerContent = headerData[0]?.content || "";
     const localeData = contentData.translations?.[locale] || {};
-    const translations = contentData.translations || {};
 
-    // Prepare meta data for SEO or page title
+    // Meta information with fallback defaults
     const meta = {
-      title: localeData.title || "Default Title",
-      description: localeData.description || "Default description",
+      title: localeData.title || 'Default Title',
+      description: localeData.description || 'Default description',
+      image: localeData.image || '',
       url: `${baseUrl}${locale === "en" ? "" : `/${locale}`}`,
-      img: localeData.image || "Default Image",
     };
 
+    // Extract reactions with default values
+    const reactions = localeData.reactions || {
+      likes: 0,
+      unlikes: 0,
+      reports: [],
+      users: {},
+    };
 
-    // Hreflang for international SEO
+    // Generate hreflang links
+    const translations = contentData.translations || {};
     const hreflangs = [
       { rel: "alternate", hreflang: "x-default", href: baseUrl },
       { rel: "alternate", hreflang: "en", href: baseUrl },
@@ -1250,46 +1244,59 @@ export async function getServerSideProps({ req, locale }) {
         })),
     ];
 
+    // Return props for the page
     return {
       props: {
-        initialMeta: meta,
-        reactions: localeData.reactions || {
+        meta,
+        reactions,
+        content: localeData.content || '',
+        faqList: localeData.faqs || [],
+        relatedTools: localeData.relatedTools || [],
+        tools: localeData.relatedTools || [],
+        headerContent,
+        translations,
+        hreflangs,
+        ...(await serverSideTranslations(locale, [
+          "description",
+          "navbar",
+          "footer",
+        ])),
+      },
+      revalidate: 86400, // ২৪ ঘণ্টা পর পর পেজ রিজেনারেট হবে
+    };
+  } catch (error) {
+    console.error("Error fetching data:", error);
+
+    // Fallback props in case of error
+    return {
+      props: {
+        meta: {
+          title: 'Default Title',
+          description: 'Default description',
+          image: '',
+          url: `${baseUrl}${locale === "en" ? "" : `/${locale}`}`,
+        },
+        reactions: {
           likes: 0,
           unlikes: 0,
           reports: [],
           users: {},
         },
-        content: localeData.content || "",
-        faqList: localeData.faqs || [],
-        tools: localeData.relatedTools || [],
-        headerContent,
-        translations,
-        hreflangs,
-        ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching data:", error);
-
-    // Return fallback props in case of error
-    return {
-      props: {
-        initialMeta: {
-          title: "Default Title",
-          description: "Default description",
-          url: `${baseUrl}${locale === "en" ? "" : `/${locale}`}`,
-        },
-        reactions: { likes: 0, unlikes: 0, reports: [], users: {} },
-        content: "",
+        content: '',
         faqList: [],
-        tools: [],
+        relatedTools: [],
         headerContent: "",
         translations: {},
+        tools: [],
         hreflangs: [
           { rel: "alternate", hreflang: "x-default", href: baseUrl },
           { rel: "alternate", hreflang: "en", href: baseUrl },
         ],
-        ...(await serverSideTranslations(locale, ["common", "navbar", "footer"])),
+        ...(await serverSideTranslations(locale, [
+          "description",
+          "navbar",
+          "footer",
+        ])),
       },
     };
   }

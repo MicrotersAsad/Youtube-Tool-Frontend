@@ -1131,8 +1131,17 @@ useEffect(() => {
   );
 };
 
-export async function getServerSideProps(context) {
-  return getContentProps("channel-id-finder", context.locale, context.req);
+export async function getStaticProps(context) {
+  const props = await getContentProps("channel-id-finder", context.locale);
+
+
+
+return {
+  props: {
+    ...props.props,
+  },
+  revalidate: 86400, // ২৪ ঘণ্টা পর পর পেজ রিজেনারেট হবে
+};
 }
 
 export default ChannelIdFinder;

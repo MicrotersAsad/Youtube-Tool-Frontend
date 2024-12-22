@@ -1198,8 +1198,19 @@ useEffect(() => {
   );
 };
 
-export async function getServerSideProps(context) {
-  return getContentProps("tagExtractor", context.locale, context.req);
-}
+// export async function getServerSideProps(context) {
+//   return getContentProps("tagExtractor", context.locale, context.req);
+// }
+export async function getStaticProps(context) {
+  const props = await getContentProps("tagExtractor", context.locale);
 
+
+
+return {
+  props: {
+    ...props.props,
+  },
+  revalidate: 86400, // ২৪ ঘণ্টা পর পর পেজ রিজেনারেট হবে
+};
+}
 export default TagExtractor;

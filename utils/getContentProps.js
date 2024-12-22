@@ -1,9 +1,9 @@
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { fetchContent, fetchReviews } from '../contexts/ContentContext';
 
-export const getContentProps = async (category, locale, req) => {
-  const host = req.headers.host;
-  const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+export const getContentProps = async (category, locale) => {
+  const host = process.env.NEXT_PUBLIC_HOST || 'localhost:3000';
+  const protocol = process.env.NEXT_PUBLIC_PROTOCOL || 'http';
 
   const contentProps = await fetchContent(category, locale, host, protocol, () => {});
   const reviews = await fetchReviews(category, host, protocol, () => {});
@@ -28,11 +28,6 @@ export const getContentProps = async (category, locale, req) => {
         'thumbnail',
         'tdextractor',
         'channelId',
-        'monetization',
-        'keyword',
-        'footer',
-        'pricing',
-        'description',
       ])),
     },
   };

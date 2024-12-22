@@ -5,14 +5,14 @@ import { FaEye, FaEyeSlash, FaStar, FaThumbsUp, FaThumbsDown, FaFlag, FaBookmark
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../../contexts/AuthContext";
-import Image from "next/image";
 import { format } from "date-fns";
 import { useRouter } from "next/router";
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+
 import { i18n, useTranslation } from "next-i18next";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import Script from "next/script";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
@@ -743,7 +743,7 @@ ${keywords}
           {reviews.slice(0, 5).map((review, index) => (
             <div key={index} className="border p-6 m-5 bg-white">
               <div className="flex items-center mb-4">
-                <Image
+                <img
                   src={review?.userProfile}
                   alt={review.name}
                   className="w-12 h-12 rounded-full"
@@ -785,7 +785,7 @@ ${keywords}
             reviews.slice(5).map((review, index) => (
               <div key={index} className="border p-6 m-5 bg-white">
                 <div className="flex items-center mb-4">
-                  <Image
+                  <img
                     src={review?.userProfile}
                     alt={review.name}
                     className="w-12 h-12 rounded-full"
@@ -882,15 +882,15 @@ ${keywords}
               >
         <div className="flex items-center">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl border hover:shadow lg:h-12 lg:w-12">
-            <Image 
-              alt="AI Story Generator icon" 
-              loading="lazy" 
-              width={24} 
-              height={24} 
-              decoding="async" 
-              className="h-6 w-6 rounded-full" 
-              src={tool?.logo?.src || '/default-image.png'}  // Default fallback image
-            />
+          <img 
+                  alt="Tool icon" 
+                  loading="lazy" 
+                  width={24} 
+                  height={24} 
+                  decoding="async" 
+                  className="h-6 w-6 rounded-full" 
+                  src={tool?.logo?.src ? tool.logo.src : '/default-image.png'}  // Default fallback image
+                />
           </div>
           <span className="ml-4 text-base font-medium text-gray-900 hover:text-indigo-600">{tool.name}</span>
         </div>
@@ -905,12 +905,10 @@ ${keywords}
   );
 };
 
-export async function getServerSideProps({ req, locale }) {
+export async function getStaticProps({ locale }) {
   // Determine protocol
-  const protocol =
-    req.headers["x-forwarded-proto"]?.split(",")[0] ||
-    (req.connection.encrypted ? "https" : "http");
-  const host = req.headers.host || "your-default-domain.com";
+  const host = process.env.NEXT_PUBLIC_HOST || 'localhost:3000';
+  const protocol = process.env.NEXT_PUBLIC_PROTOCOL || 'http';
   const baseUrl = `${protocol}://${host}`;
   const contentApiUrl = `${baseUrl}/api/content?category=DescriptionGenerator&language=${locale}`;
   const headerApiUrl = `${baseUrl}/api/heading`;
@@ -927,7 +925,9 @@ export async function getServerSideProps({ req, locale }) {
         },
       }),
       fetch(headerApiUrl, {
-        
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }),
     ]);
 
@@ -941,7 +941,6 @@ export async function getServerSideProps({ req, locale }) {
     // Extract header content and localized data with fallbacks
     const headerContent = headerData[0]?.content || "";
     const localeData = contentData.translations?.[locale] || {};
-
 
     // Meta information with fallback defaults
     const meta = {
@@ -990,6 +989,7 @@ export async function getServerSideProps({ req, locale }) {
           "footer",
         ])),
       },
+      revalidate: 86400, // ২৪ ঘণ্টা পর পর পেজ রিজেনারেট হবে
     };
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -1027,5 +1027,4 @@ export async function getServerSideProps({ req, locale }) {
     };
   }
 }
-
 export default YouTubeDescriptionGenerator;
