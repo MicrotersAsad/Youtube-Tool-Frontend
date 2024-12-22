@@ -13,6 +13,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import Script from "next/script";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import Image from "next/image";
 
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
@@ -743,7 +744,7 @@ ${keywords}
           {reviews.slice(0, 5).map((review, index) => (
             <div key={index} className="border p-6 m-5 bg-white">
               <div className="flex items-center mb-4">
-                <img
+                <Image
                   src={review?.userProfile}
                   alt={review.name}
                   className="w-12 h-12 rounded-full"
@@ -785,7 +786,7 @@ ${keywords}
             reviews.slice(5).map((review, index) => (
               <div key={index} className="border p-6 m-5 bg-white">
                 <div className="flex items-center mb-4">
-                  <img
+                  <Image
                     src={review?.userProfile}
                     alt={review.name}
                     className="w-12 h-12 rounded-full"
@@ -882,7 +883,7 @@ ${keywords}
               >
         <div className="flex items-center">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl border hover:shadow lg:h-12 lg:w-12">
-          <img 
+          <Image 
                   alt="Tool icon" 
                   loading="lazy" 
                   width={24} 
