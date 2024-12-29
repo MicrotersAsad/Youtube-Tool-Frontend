@@ -35,6 +35,8 @@ import ReCAPTCHA from "react-google-recaptcha";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
 const TagExtractor = ({ meta, reviews, content, relatedTools, faqs,reactions,hreflangs }) => {
+  console.log(relatedTools);
+  
   const { user, updateUserProfile } = useAuth();
   const [likes, setLikes] = useState(reactions.likes || 0);
   const [unlikes, setUnlikes] = useState(reactions.unlikes || 0);
@@ -1175,15 +1177,15 @@ useEffect(() => {
               >
         <div className="flex items-center">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl border hover:shadow lg:h-12 lg:w-12">
-            <Image 
-              alt="AI Story Generator icon" 
-              loading="lazy" 
-              width={24} 
-              height={24} 
-              decoding="async" 
-              className="h-6 w-6 rounded-full" 
-              src={tool?.logo?.src || '/default-image.png'}  // Default fallback image
-            />
+              <Image
+                                         alt={tool?.name}
+                                         className="rounded-full"
+                                         src={tool?.logo}
+                                         height={28}
+                                         width={28} // Add width for proper optimization
+                                         quality={50} // reduce quality if needed
+                           loading="lazy" // lazy load
+                                       />
           </div>
           <span className="ml-4 text-base font-medium text-gray-900 hover:text-indigo-600">{tool.name}</span>
         </div>
