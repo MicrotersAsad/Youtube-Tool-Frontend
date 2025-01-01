@@ -444,7 +444,7 @@ const simulateProgress = () => {
       </div>
 
       {/* Search Input for Desktop */}
-      {/* <div>
+       <div>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="relative mx-auto mb-6 max-w-2xl rounded-full border border-indigo-100 bg-gray-50 px-4 py-2 xl:mb-10">
           <div className="relative mt-2">
@@ -510,90 +510,9 @@ const simulateProgress = () => {
           </div>
         </div>
       </div>
-    </div> */}
+    </div> 
  
- <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-5">
- <h1 className="text-4xl font-bold text-white mb-6">YouTube Video Downloader</h1>
-      <div className="flex items-center space-x-4 mb-6">
-        <input
-          type="text"
-          placeholder="Enter YouTube URL"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          className="px-4 py-2 w-80 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          onClick={fetchFormats}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        >
-          Fetch Video
-        </button>
-      </div>
 
-      {isLoadingFormats && (
-        <div className="text-white text-sm mb-4">Loading formats...</div>
-      )}
-
-      {isVideoFetched && !isLoadingFormats && videoUrl && (
-        <div className="mt-6 text-center">
-          <h3 className="text-white text-lg mb-2">Video Preview</h3>
-          <iframe
-            width="560"
-            height="315"
-            src={videoUrl}
-            title="Video preview"
-            frameBorder="0"
-            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          ></iframe>
-        </div>
-      )}
-
-      {status && <p className="text-white text-sm mb-4">{status}</p>}
-
-      {formats.length > 0 && !isLoadingFormats && (
-        <div className="bg-gray-800 p-4 rounded-lg w-full max-w-lg">
-          <h3 className="text-xl text-white font-semibold mb-3">Available Formats</h3>
-          <div className="flex flex-wrap gap-2">
-            {formats.map((format, index) => (
-              <button
-                key={index}
-                onClick={() => handleDownload(format.qualityLabel)}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-              >
-                {format.qualityLabel}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {isProcessing && (
-        <div className="w-full max-w-lg mt-4">
-          <div className="bg-gray-700 h-2 rounded-full">
-            <div
-              className="bg-green-500 h-full rounded-full"
-              style={{ width: `${progress}%` }}
-            ></div>
-          </div>
-          <p className="text-white text-sm mt-2">Processing: {progress}%</p>
-        </div>
-      )}
-
-      {progress === 100 && downloadUrl && (
-        <div className="mt-6 text-center">
-          <p className="text-white text-lg mb-2">Your video is ready! Download it here:</p>
-          <a
-            href={downloadUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-400 underline text-lg hover:text-blue-500"
-          >
-            Download Video
-          </a>
-        </div>
-      )}
-    </div>
  
 
       {/* Statistics Section */}
