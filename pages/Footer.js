@@ -46,6 +46,11 @@ const Footer = () => {
                   </Link>
                 </li>
                 <li>
+                  <Link href="/youtube" className="text-gray-300 hover:text-white">
+                    {t('Youtube Article')}
+                  </Link>
+                </li>
+                <li>
                   <Link href="/refund" className="text-gray-300 hover:text-white">
                     {'Refund Policy'}
                   </Link>

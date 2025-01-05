@@ -98,7 +98,7 @@ function Navbar() {
       ]
     },
     { key: 'Blog', href: '/blog', dropdown: false },
-    { key: 'Youtube', href: '/youtube', dropdown: false },
+    { key: 'Extension', href: '/chorme-extension', dropdown: false },
     { key: 'About Us', href: '/about', dropdown: false },
     { key: 'Contact Us', href: '/contact', dropdown: false },
   ];
