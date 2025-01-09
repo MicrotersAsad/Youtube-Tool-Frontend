@@ -115,3 +115,88 @@ export default async function handler(req, res) {
     res.status(405).end(`Method ${req.method} not allowed`);
   }
 }
+
+
+
+// import { connectToDatabase } from '../../utils/mongodb';
+
+// // Authorization middleware
+// function checkAuthorization(req) {
+//   const token = req.headers.authorization?.split(' ')[1]; // Expecting 'Bearer <token>'
+//   const validToken = process.env.AUTH_TOKEN; // Token stored in .env file
+
+//   if (!token || token !== validToken) {
+//     return false; // Unauthorized
+//   }
+//   return true; // Authorized
+// }
+
+// export default async function handler(req, res) {
+//   // Check Authorization
+//   if (!checkAuthorization(req)) {
+//     return res.status(403).json({ message: 'Unauthorized access' });
+//   }
+
+//   if (req.method === 'POST') {
+//     try {
+//       const { tokens, usageLimit = 1000, serviceType = 'openai' } = req.body;
+//       if (!tokens) {
+//         return res.status(400).json({ message: 'Tokens are required' });
+//       }
+
+//       const { db } = await connectToDatabase();
+//       const tokenArray = tokens.split(',').map((token) => token.trim());
+//       const result = await db.collection('openaiKey').insertMany(
+//         tokenArray.map((token) => ({
+//           token,
+//           serviceType,
+//           active: true,
+//           usageCount: 0,
+//           usageLimit,
+//         }))
+//       );
+
+//       res.status(201).json({ message: 'Tokens added successfully', insertedCount: result.insertedCount });
+//     } catch (error) {
+//       console.error('Error adding tokens:', error);
+//       res.status(500).json({ message: 'Internal server error' });
+//     }
+//   } else if (req.method === 'GET') {
+//     try {
+//       const { db } = await connectToDatabase();
+//       const tokens = await db.collection('openaiKey').find().toArray();
+
+//       if (!tokens.length) {
+//         return res.status(404).json({ message: 'No tokens found' });
+//       }
+
+//       res.status(200).json(tokens);
+//     } catch (error) {
+//       console.error('Error fetching tokens:', error);
+//       res.status(500).json({ message: 'Internal server error' });
+//     }
+//   } else if (req.method === 'DELETE') {
+//     try {
+//       const { id } = req.query;
+
+//       if (!id) {
+//         return res.status(400).json({ message: 'Token ID is required' });
+//       }
+
+//       const { db } = await connectToDatabase();
+//       const result = await db.collection('openaiKey').deleteOne({ _id: new ObjectId(id) });
+
+//       if (result.deletedCount === 0) {
+//         return res.status(404).json({ message: 'Token not found' });
+//       }
+
+//       res.status(200).json({ message: 'Token deleted successfully' });
+//     } catch (error) {
+//       console.error('Error deleting token:', error);
+//       res.status(500).json({ message: 'Internal server error' });
+//     }
+//   } else {
+//     res.setHeader('Allow', ['POST', 'GET', 'DELETE']);
+//     res.status(405).end(`Method ${req.method} not allowed`);
+//   }
+// }
