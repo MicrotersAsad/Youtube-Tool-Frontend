@@ -214,75 +214,72 @@ useEffect(() => {
   };
 
   const fetchYouTubeData = async () => {
-    // If the user is not logged in, allow fetching only up to 3 times
     if (!user) {
-      if (generateCount >= 3) {
-        toast.error(t("You have reached the limit of fetching channel IDs."));
+        if (generateCount >= 3) {
+            toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
+            return;
+        }
+        toast.error(t("Please log in to fetch channel data."));
         return;
-      }
     }
-  
- 
-    // Check if CAPTCHA is verified
-    if (!captchaVerified) {
-      toast.error(t("Pls Complete this captcha"));
-      return;
+
+    if (!videoUrl) {
+        toast.error("Please enter a valid YouTube video URL.");
+        return;
     }
-  
+
+    // if (!captchaVerified) {
+    //     toast.error(t("Please complete the CAPTCHA."));
+    //     return;
+    // }
+
     setLoading(true);
     setError("");
-  
+
     try {
-      const tokensResponse = await fetch("/api/tokens");
-      if (!tokensResponse.ok) throw new Error(t("Failed to fetch API tokens"));
-  
-      const tokens = await tokensResponse.json();
-      const videoId = extractVideoId(videoUrl);
-      let dataFetched = false;
-  
-      for (const { token } of tokens) {
-        try {
-          const response = await axios.get(
-            `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${token}`
-          );
-  
-          if (response.data.items && response.data.items.length > 0) {
-            const { title, description } = response.data.items[0].snippet;
-            setTitle(title);
-            setDescription(description);
-            dataFetched = true;
-  
-            // Update the generate count if the user does not have unlimited access
-            // Payment logic is commented out for now
-            /*
-            if (user && user.paymentStatus !== "success") {
-              setGenerateCount((prev) => prev - 1);
-            }
-            */
-  
-            break;
-          } else {
-            console.error(t("No video data found for the provided URL."));
-          }
-        } catch (error) {
-          console.error(
-            t(`Error fetching data with token ${token}:`),
-            error.response?.data || error.message
-          );
+        const videoId = extractVideoId(videoUrl);
+        if (!videoId) {
+            throw new Error("Invalid video URL.");
         }
-      }
-  
-      if (!dataFetched) {
-        throw new Error(t("All API tokens exhausted or failed to fetch data."));
-      }
+
+        const requestPayload = {
+            urls: [videoUrl],
+        };
+
+        const response = await fetch("http://166.0.175.238:8000/api/scrap_youtube_video/?video_title=on&description=on", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestPayload),
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch YouTube data from the custom API.");
+        }
+
+        const data = await response.json();
+        console.log("Fetched data:", data);
+
+        // Extracting video title and description
+        const videoData = data[videoUrl];
+        if (videoData) {
+            const { video_title, description } = videoData;
+
+            // Set title and description if available
+            if (video_title) setTitle(video_title);
+            if (description) setDescription(description);
+        } else {
+            setError("No data found for this video.");
+        }
     } catch (error) {
-      setError(t("Failed to fetch YouTube data. Please check the video URL."));
-      console.error(t("Error:"), error);
+        setError("Failed to fetch YouTube data. Please check the video URL.");
+        console.error("Error:", error);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
-  
+};
+
 
   const extractVideoId = (url) => {
     const regex =

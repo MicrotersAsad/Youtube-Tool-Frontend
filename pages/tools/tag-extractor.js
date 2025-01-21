@@ -35,7 +35,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
 const TagExtractor = ({ meta, reviews, content, relatedTools, faqs,reactions,hreflangs }) => {
-  console.log(relatedTools);
+ 
   
   const { user, updateUserProfile } = useAuth();
   const [likes, setLikes] = useState(reactions.likes || 0);
@@ -241,26 +241,28 @@ useEffect(() => {
       return;
     }
 
-    // Check if CAPTCHA is verified
+    // // Check if CAPTCHA is verified
     if (!captchaVerified) {
       toast.error(t("Please complete the captcha"));
       return;
     }
   
-    // Check if user is logged in and has exceeded the fetch limit (only for non-logged-in users)
-    if (!user && generateCount >= 3) {
-      toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
-      return;
-    }
-  
-    // If user is logged in, they get unlimited access (no need to check generateCount)
-    // For non-logged-in users, enforce the 3-fetch limit
-    if (user && generateCount <= 0) {
-      toast.error(
-        t("You have reached the limit of generating tags. Please log in for unlimited access.")
-      );
-      return;
-    }
+         
+       if (!user) {
+         //If the user is not logged in, check if they have exceeded the 3-limit
+         if (generateCount >= 3) {
+           toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
+           return;
+         }
+         toast.error(t("Please log in to fetch channel data."));
+         return;
+       }
+       
+      // If the user is not logged in, check if they have exceeded the 3-limit
+      if (!user && generateCount >= 3) {
+       toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
+       return;
+     }
   
     setLoading(true);
     setError("");
@@ -292,6 +294,7 @@ useEffect(() => {
       }
   
       const data = await response.json();
+
   
       // Format tags as selectable items
       const titlesWithSelection = data.tags.map((tag) => ({
@@ -642,7 +645,7 @@ useEffect(() => {
     role="alert"
   >
     <div className="flex">
-      <div>
+    <div>
         {user ? (
           // If user is logged in
           <>
@@ -667,14 +670,14 @@ useEffect(() => {
             
             {/* User can generate unlimited titles while logged in */}
             <p className="text-center p-3 alert-warning">
-              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now  unlimited tag extract .`)}
+              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now download unlimited thumbnails .`)}
             </p>
           </>
         ) : (
           // If user is not logged in
           <p className="text-center p-3 alert-warning">
             {t(
-              "You are not logged in. You can  tag extract {{remaining}} more times. Please log in for unlimited access.",
+              "You are not logged in. You can generate thumbnails {{remaining}} more times. Please log in for unlimited access.",
               { remaining: 3 - generateCount }
             )}
             <Link href="/login" className="btn btn-warning ms-3">

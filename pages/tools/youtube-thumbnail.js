@@ -215,108 +215,147 @@ useEffect(() => {
     setShowShareIcons(!showShareIcons);
   };
 
-  const fetchYouTubeData = async () => {
-    // Check if user is logged in
-   
-      
-    if (!user) {
-      // লগইন না থাকলে, চেক করুন যে ফেচ সীমা ৩-এর বেশি না হয়েছে
+// const fetchYouTubeData = async () => {
+//     // Check if user is logged in
+//     if (!user) {
+//         // Check if fetch limit of 3 is exceeded
+//         if (generateCount >= 3) {
+//             toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
+//             return;
+//         }
+//         toast.error(t("Please log in to fetch channel data."));
+//         return;
+//     }
+
+//     // If the user is not logged in, check if they have exceeded the 3-limit
+//     if (!user && generateCount >= 3) {
+//         toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
+//         return;
+//     }
+
+//     // Check if video URL is entered
+//     if (!videoUrl) {
+//         toast.error("Please enter a valid YouTube video URL.");
+//         return;
+//     }
+
+//     // Check if CAPTCHA is verified
+//     // if (!captchaVerified) {
+//     //     toast.error(t("Please complete the CAPTCHA."));
+//     //     return;
+//     // }
+
+//     setLoading(true);
+//     setError("");
+
+//     try {
+//         const videoId = extractVideoId(videoUrl);
+//         const requestPayload = {
+//             urls: [videoUrl]
+//         };
+
+//         const response = await fetch("http://166.0.175.238:8000/api/scrap_youtube_video/?video_thumbnail=on", {
+//             method: "POST",
+//             headers: {
+//                 "Content-Type": "application/json"
+//             },
+//             body: JSON.stringify(requestPayload)
+//         });
+
+//         if (!response.ok) {
+//             throw new Error("Failed to fetch YouTube data from the custom API.");
+//         }
+
+//         const data = await response.json();
+//         console.log("Fetched data:", data);
+//         // Process the fetched data as needed, e.g., update state or UI
+
+//     } catch (error) {
+//         setError("Failed to fetch YouTube data. Please check the video URL.");
+//         console.error("Error:", error);
+//     } finally {
+//         setLoading(false);
+//     }
+// };
+
+const fetchYouTubeData = async () => {
+  if (!user) {
       if (generateCount >= 3) {
-        toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
-        return;
+          toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
+          return;
       }
       toast.error(t("Please log in to fetch channel data."));
       return;
-    }
-    
-   // If the user is not logged in, check if they have exceeded the 3-limit
-   if (!user && generateCount >= 3) {
-    toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
-    return;
   }
-    // Check if video URL is entered
-    if (!videoUrl) {
+
+  if (!videoUrl) {
       toast.error("Please enter a valid YouTube video URL.");
       return;
-    }
-  
-    // Check if CAPTCHA is verified
-    if (!captchaVerified) {
-      toast.error(t("Pls Complete this captcha"));
-      return;
-    }
-  
-    setLoading(true);
-    setError("");
-  
-    try {
-      const tokensResponse = await fetch("/api/tokens");
-      if (!tokensResponse.ok) throw new Error("Failed to fetch API tokens");
-  
-      const tokens = await tokensResponse.json();
-      const videoId = extractVideoId(videoUrl);
-      let dataFetched = false;
-  
-      for (const { token } of tokens) {
-        try {
-          const response = await axios.get(
-            `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${token}`
-          );
-  
-          if (response.data.items && response.data.items.length > 0) {
-            const { thumbnails } = response.data.items[0].snippet;
-            console.log(thumbnails);
-            setThumbnails(thumbnails);
-            dataFetched = true;
-            break; // Exit loop on success
-          } else {
-            console.error("No video data found for the provided URL.");
-          }
-        } catch (error) {
-          console.error(
-            `Error fetching data with token ${token}:`,
-            error.response?.data || error.message
-          );
-        }
+  }
+
+  setLoading(true);
+  setError("");
+
+  try {
+      const videoId = extractVideoId(videoUrl); // Extract the videoId once here
+      if (!videoId) {
+          throw new Error("Invalid video URL.");
       }
+
+      const requestPayload = {
+          urls: [videoUrl],
+      };
+
   
-      if (!dataFetched) {
-        throw new Error("All API tokens exhausted or failed to fetch data.");
+
+      // Generate thumbnails for different resolutions dynamically
+      const thumbnails = generateThumbnailUrls(videoId); // Pass the videoId to generate thumbnails
+      console.log(thumbnails);
+
+      if (thumbnails) {
+          setThumbnails(thumbnails);
+      } else {
+          setError("No thumbnails found for this video.");
       }
-  
-      // Update generate count if the user doesn't have unlimited access
-      // Payment logic is commented out for now
-      /*
-      if (user?.paymentStatus !== "success" && user?.role !== "admin") {
-        const newCount = generateCount - 1;
-        setGenerateCount(newCount);
-        localStorage.setItem("generateCount", newCount);
-      }
-      */
-  
-    } catch (error) {
+
+  } catch (error) {
       setError("Failed to fetch YouTube data. Please check the video URL.");
       console.error("Error:", error);
-    } finally {
+  } finally {
       setLoading(false);
-    }
-  };
-  
+  }
+};
 
-  const extractVideoId = (url) => {
-    const regex =
-      /^(?:https?:\/\/)?(?:www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})$/;
-    const match = url.match(regex);
-    return match ? match[2] : null;
-  };
+// Function to extract video ID from the YouTube URL
+const extractVideoId = (url) => {
+  const regex =
+    /^(?:https?:\/\/)?(?:www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})$/;
+  const match = url.match(regex);
+  return match ? match[2] : null;
+};
 
-  const downloadThumbnail = (url) => {
-    if (!url) {
-      toast.error("No thumbnail URL selected.");
-      return;
-    }
+// Function to generate dynamic YouTube thumbnail URLs for different resolutions
+const generateThumbnailUrls = (videoId) => {
+  const resolutions = ['sddefault', 'mqdefault', 'hqdefault', 'maxresdefault'];
+  const thumbnails = {};
 
-    window.location.href = url;
+  resolutions.forEach((resolution) => {
+    thumbnails[resolution] = {
+      url: `https://img.youtube.com/vi/${videoId}/${resolution}.jpg`,
+    };
+  });
+
+  return thumbnails;
+};
+
+
+  const handleDownload = (url) => {
+    const link = document.createElement("a");
+    link.href = url; // Thumbnail URL
+    link.download = "YouTube_thumbnail.jpg"; // ডাউনলোড ফাইল নাম
+    document.body.appendChild(link);  // link add করা
+    link.click();  // ক্লিকের মাধ্যমে ডাউনলোড শুরু হবে
+    document.body.removeChild(link);  // link remove করা
   };
 
   const calculateRatingPercentage = (rating) => {
@@ -834,275 +873,291 @@ useEffect(() => {
         </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
-        <div className="d-flex flex-wrap justify-content-center">
-          {thumbnails &&
-            Object.entries(thumbnails).map(([resolution, { url }]) => (
-              <div
+      <div className="d-flex flex-wrap justify-content-center">
+    {thumbnails &&
+        Object.entries(thumbnails).map(([resolution, { url }]) => (
+            <div
                 key={resolution}
-                className={`p-2 ${
-                  url === selectedThumbnailUrl ? "selected" : ""
-                }`}
+                className={`p-2 ${url === selectedThumbnailUrl ? "selected" : ""}`}
                 onClick={() => setSelectedThumbnailUrl(url)}
-              >
-                <Image
-                  src={url}
-                  alt={`Thumbnail ${resolution}`}
-                  width={200}
-                  height={150}
-                  className="img-thumbnail"
-                  style={{
-                    border:
-                      url === selectedThumbnailUrl ? "3px solid blue" : "none",
-                    cursor: "pointer",
-                  }}
-                />
+            >
+                {/* Ensure src is not undefined */}
+                {url ? (
+                    <Image
+                        src={url}
+                        alt={`Thumbnail ${resolution}`}
+                        width={200}
+                        height={150}
+                        className="img-thumbnail"
+                        style={{
+                            border: url === selectedThumbnailUrl ? "3px solid blue" : "none",
+                            cursor: "pointer",
+                        }}
+                    />
+                ) : (
+                    <div>Loading...</div> // Show something while loading
+                )}
                 <p className="text-center">{resolution}</p>
-              </div>
-            ))}
-        </div>
-        <div className="text-center mt-4">
-          {selectedThumbnailUrl && (
-            <button className="btn btn-danger">
-              <Link
-                target="_blank"
-                href={selectedThumbnailUrl}
-                download="YouTube_thumbnail.jpg"
-              >
-                <FaDownload className="text-white" />
-              </Link>
-            </button>
-          )}
-        </div>
+            </div>
+        ))}
+</div>
 
-        <div className="content pt-6 pb-5">
+
+<div className="text-center mt-4">
+                    {selectedThumbnailUrl && (
+                        <button className="btn btn-danger">
+                            <a
+                                target="_blank"
+                                href={selectedThumbnailUrl}
+                                download="YouTube_thumbnail.jpg" rel="noreferrer"
+                            >
+                                <FaDownload className="text-white" />
+                            </a>
+                        </button>
+                    )}
+                </div>
+      <div className="content pt-6 pb-5">
           <article
             dangerouslySetInnerHTML={{ __html: content }}
             style={{ listStyleType: "none" }}
           ></article>
         </div>
-
-        <div className="p-5 shadow">
-          <div className="accordion">
-            <h2 className="faq-title">{t("Frequently Asked Questions")}</h2>
-            <p className="faq-subtitle">
-              {t(
-                "Answered All Frequently Asked Questions, Still Confused? Feel Free To Contact Us"
-              )}
-            </p>
-            <div className="faq-grid">
-              {faqs?.map((faq, index) => (
-                <div key={index} className="faq-item">
-                  <span id={`accordion-${index}`} className="target-fix"></span>
-                  <a
-                    href={`#accordion-${index}`}
-                    id={`open-accordion-${index}`}
-                    className="accordion-header"
-                    onClick={() => toggleFAQ(index)}
-                  >
-                    {faq.question}
-                  </a>
-                  <a
-                    href={`#accordion-${index}`}
-                    id={`close-accordion-${index}`}
-                    className="accordion-header"
-                    onClick={() => toggleFAQ(index)}
-                  >
-                    {faq.question}
-                  </a>
-                  <div
-                    className={`accordion-content ${
-                      openIndex === index ? "open" : ""
-                    }`}
-                  >
-                    <p>{faq.answer}</p>
-                  </div>
+        
+        <div className="accordion shadow p-5">
+          <h2 className="faq-title">{t("frequentlyAskedQuestions")}</h2>
+          <p className="faq-subtitle">{t("answeredAllFAQs")}</p>
+          <div className="faq-grid">
+            {faqs?.map((faq, index) => (
+              <div key={index} className="faq-item">
+                <span id={`accordion-${index}`} className="target-fix"></span>
+                <a
+                  href={`#accordion-${index}`}
+                  id={`open-accordion-${index}`}
+                  className="accordion-header"
+                  onClick={() => toggleFAQ(index)}
+                >
+                  {faq.question}
+                </a>
+                <a
+                  href={`#accordion-${index}`}
+                  id={`close-accordion-${index}`}
+                  className="accordion-header"
+                  onClick={() => toggleFAQ(index)}
+                >
+                  {faq.question}
+                </a>
+                <div
+                  className={`accordion-content ${
+                    openIndex === index ? "open" : ""
+                  }`}
+                >
+                  <p>{faq.answer}</p>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-        <hr className="mt-4 mb-2" />
-        <div className="row pt-3">
-          <div className="col-md-4">
-            <div className=" text-3xl font-bold mb-2">
-              {t("Customer reviews")}
-            </div>
-            <div className="flex items-center mb-2">
-              <div className="text-3xl font-bold mr-2">{overallRating}</div>
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <FaStar
-                    key={i}
-                    color={
-                      i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"
-                    }
-                  />
-                ))}
-              </div>
-              <div className="ml-2 text-sm text-gray-500">
-                {reviews.length} {t("global ratings")}
-              </div>
-            </div>
-            <div>
-              {[5, 4, 3, 2, 1].map((rating) => (
-                <div key={rating} className="flex items-center mb-1">
-                  <div className="w-12 text-right mr-4">{rating}-star</div>
-                  <div className="flex-1 h-4 bg-gray-200 rounded-full relative">
-                    <div
-                      className="h-4 bg-yellow-500 rounded-full absolute top-0 left-0"
-                      style={{ width: `${calculateRatingPercentage(rating)}%` }}
-                    ></div>
-                  </div>
-                  <div className="w-12 text-left ml-4">
-                    {calculateRatingPercentage(rating).toFixed(1)}%
-                  </div>
-                </div>
-              ))}
-            </div>
-            <hr />
-            <div className="pt-3">
-              <h4>{t("Review This Tool")}</h4>
-              <p>{t("Share Your Thoughts With Other Customers")}</p>
-              <button
-                className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4"
-                onClick={openReviewForm}
-              >
-                {t("Write a customer review")}
-              </button>
-            </div>
-          </div>
-
-          <div className="col-md-8">
-            {reviews?.slice(0, 5).map((review, index) => (
-              <div key={index} className="border p-6 m-5 bg-white">
-                <div className="flex items-center mb-4">
-                <Image
-                    src={review?.userProfile}
-                    alt={review.name}
-                    className="w-12 h-12 rounded-full"
-                    width={48}
-                    height={48}
-                  />
-                  <div className="ml-4">
-                    <div className="font-bold">{review?.userName}</div>
-                    <div className="text-gray-500 text-sm">
-                      {t("Verified Purchase")}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <FaStar
-                      key={i}
-                      size={20}
-                      color={i < review.rating ? "#ffc107" : "#e4e5e9"}
-                    />
-                  ))}
-                  <div>
-                    <span className="fw-bold mt-2 ms-2">{review?.title}</span>
-                  </div>
-                </div>
-
-                <div className="text-gray-500 text-sm mb-4">
-                  {t("Reviewed On")} {review.createdAt}
-                </div>
-                <div className="text-lg mb-4">{review.comment}</div>
               </div>
             ))}
-            {!showAllReviews && reviews.length > 5 && (
-              <button
-                className="btn btn-primary mt-4 mb-5"
-                onClick={handleShowMoreReviews}
-              >
-                {t("See More Reviews")}
-              </button>
-            )}
-            {showAllReviews &&
-              reviews?.slice(5).map((review, index) => (
-                <div key={index} className="border p-6 m-5 bg-white">
-                  <div className="flex items-center mb-4">
-                  <Image
-                    src={review?.userProfile}
-                    alt={review.name}
-                    className="w-12 h-12 rounded-full"
-                    width={48}
-                    height={48}
-                  />
-                    <div className="ml-4">
-                      <div className="font-bold">{review?.userName}</div>
-                      <div className="text-gray-500 text-sm">
-                        {t("Verified Purchase")}
-                      </div>
-                      <p className="text-muted">
-                        {t("Reviewed On")} {review?.createdAt}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-lg font-semibold">{review.title}</div>
-                  <div className="text-gray-500 mb-4">{review.date}</div>
-                  <div className="text-lg mb-4">{review.comment}</div>
-                  <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <FaStar
-                        key={i}
-                        size={20}
-                        color={i < review.rating ? "#ffc107" : "#e4e5e9"}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
           </div>
         </div>
-
-        {showReviewForm && (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="fixed inset-0 bg-black opacity-50"></div>
-            <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full">
-              <h2 className="text-2xl font-semibold mb-4">Leave a Review</h2>
-              <div className="mb-4">
-                <StarRating
-                  rating={newReview.rating}
-                  setRating={(rating) => setNewReview({ ...newReview, rating })}
-                />
-              </div>
-              <div className="mb-4">
-                <input
-                  type="text"
-                  className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder="Title"
-                  value={newReview.title}
-                  onChange={(e) =>
-                    setNewReview({ ...newReview, title: e.target.value })
-                  }
-                />
-              </div>
-              <div className="mb-4">
-                <textarea
-                  className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  placeholder="Your Review"
-                  value={newReview.comment}
-                  onChange={(e) =>
-                    setNewReview({ ...newReview, comment: e.target.value })
-                  }
-                />
-              </div>
-              <button
-                className="btn btn-primary w-full text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
-                onClick={handleReviewSubmit}
-              >
-                {t("Submit Review")}
-              </button>
-              <button
-                className="btn btn-secondary w-full text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2"
-                onClick={closeRform}
-              >
-                {t("Cancel")}
-              </button>
-            </div>
-          </div>
-        )}
-            </div>
+           <hr className="mt-4 mb-2" />
+        
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                  <div className="p-4 bg-white shadow-md rounded-md">
+                    <div className="text-xl font-bold mb-2">{t("customerReviews")}</div>
+                    <div className="flex items-center mb-2">
+                      <div className="text-xl font-bold mr-2">
+                        {overallRating || "0"}
+                      </div>
+                      <div className="flex">
+                        {[...Array(5)].map((_, i) => (
+                          <FaStar
+                            key={i}
+                            color={
+                              i < Math.round(overallRating) ? "#ffc107" : "#e4e5e9"
+                            }
+                            size={18}
+                          />
+                        ))}
+                      </div>
+                      <div className="ml-2 text-sm text-gray-500">
+                        {reviews.length} {t("globalRatings")}
+                      </div>
+                    </div>
+                    <div>
+                      {[5, 4, 3, 2, 1].map((rating) => (
+                        <div key={rating} className="flex items-center mb-2">
+                          <div className="w-16 text-right mr-2">{rating}-star</div>
+                          <div className="flex-1 h-3 bg-gray-200 rounded-full relative">
+                            <div
+                              className="h-3 bg-yellow-500 rounded-full absolute top-0 left-0"
+                              style={{ width: `${calculateRatingPercentage(rating)}%` }}
+                            ></div>
+                          </div>
+                          <div className="w-16 text-left ml-2">
+                            {calculateRatingPercentage(rating).toFixed(1)}%
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <hr className="my-4" />
+                    <div>
+                      <h4 className="text-lg font-semibold">{t("reviewThisTool")}</h4>
+                      <p className="text-sm text-gray-600">{t("shareYourThoughts")}</p>
+                      <button
+                        className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
+                        onClick={openReviewForm}
+                      >
+                        {t("writeReview")}
+                      </button>
+                    </div>
+                  </div>
+        
+                  <div className="p-4 bg-white shadow-md rounded-md col-span-1 md:col-span-1">
+                    {reviews?.slice(0, 5).map((review, index) => (
+                      <div
+                        key={index}
+                        className="border p-4 mb-4 bg-gray-50 rounded-md shadow-sm"
+                      >
+                        <div className="flex items-center mb-3">
+                          <div className="w-10 h-10 rounded-full overflow-hidden">
+                            <Image
+                              src={review?.userProfile}
+                              alt={review.name}
+                              width={40}
+                              height={40}
+                              layout="intrinsic"
+                              priority
+                            />
+                          </div>
+                          <div className="ml-3">
+                            <div className="font-semibold text-sm">
+                              {review?.userName}
+                            </div>
+                            <div className="text-gray-500 text-xs">
+                              {t("verifiedPurchase")}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center mb-3">
+                          {[...Array(5)].map((_, i) => (
+                            <FaStar
+                              key={i}
+                              size={18}
+                              color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                            />
+                          ))}
+                        </div>
+                        <div className="text-sm mb-2">{review.comment}</div>
+                        <div className="text-gray-500 text-xs">
+                          {t("reviewedOn")} {review.createdAt}
+                        </div>
+                      </div>
+                    ))}
+                    {!showAllReviews && reviews.length > 5 && (
+                      <button
+                        className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline mt-4 w-full"
+                        onClick={handleShowMoreReviews}
+                      >
+                        {t("seeMoreReviews")}
+                      </button>
+                    )}
+                    {showAllReviews &&
+                      reviews?.slice(5).map((review, index) => (
+                        <div
+                          key={index}
+                          className="border p-4 mb-4 bg-gray-50 rounded-md shadow-sm"
+                        >
+                          <div className="flex items-center mb-3">
+                            <div className="w-10 h-10 rounded-full overflow-hidden">
+                              <Image
+                                src={review?.userProfile}
+                                alt={review.name}
+                                width={40}
+                                height={40}
+                                layout="intrinsic"
+                                priority
+                              />
+                            </div>
+                            <div className="ml-3">
+                              <div className="font-semibold text-sm">
+                                {review?.userName}
+                              </div>
+                              <div className="text-gray-500 text-xs">
+                                {t("verifiedPurchase")}
+                              </div>
+                              <p className="text-gray-400 text-xs">
+                                {t("reviewedOn")} {review?.createdAt}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-sm font-semibold mb-2">
+                            {review.title}
+                          </div>
+                          <div className="text-sm mb-2">{review.comment}</div>
+                          <div className="flex items-center">
+                            {[...Array(5)].map((_, i) => (
+                              <FaStar
+                                key={i}
+                                size={18}
+                                color={i < review.rating ? "#ffc107" : "#e4e5e9"}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+        
+                  {modalVisible && (
+                    <div className="fixed inset-0 flex items-center justify-center z-50">
+                      <div className="fixed inset-0 bg-black opacity-50"></div>
+                      <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
+                        <h2 className="text-xl font-semibold mb-4">
+                          {t("leaveReview")}
+                        </h2>
+                        <div className="mb-4">
+                          <StarRating
+                            rating={newReview.rating}
+                            setRating={(rating) =>
+                              setNewReview({ ...newReview, rating })
+                            }
+                          />
+                        </div>
+                        <div className="mb-4">
+                          <input
+                            type="text"
+                            className="w-full p-2 border rounded-md"
+                            placeholder={t("reviewTitle")}
+                            value={newReview.title}
+                            onChange={(e) =>
+                              setNewReview({ ...newReview, title: e.target.value })
+                            }
+                          />
+                        </div>
+                        <div className="mb-4">
+                          <textarea
+                            className="w-full p-2 border rounded-md"
+                            placeholder={t("yourReview")}
+                            value={newReview.comment}
+                            onChange={(e) =>
+                              setNewReview({ ...newReview, comment: e.target.value })
+                            }
+                          />
+                        </div>
+                        <button
+                          className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline w-full"
+                          onClick={handleReviewSubmit}
+                        >
+                          {t("submitReview")}
+                        </button>
+                        <button
+                          className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-700 focus:outline-none focus:shadow-outline mt-2 w-full"
+                          onClick={() => setModalVisible(false)}
+                        >
+                          {t("cancel")}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+    </div>
         {/* Related Tools Section */}
        <div className="bg-indigo-50 p-5">
           <h2 className="text-2xl font-bold mb-5 pt-5 text-center">

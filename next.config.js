@@ -25,6 +25,7 @@ module.exports = withBundleAnalyzer({
       'yt3.googleusercontent.com',
       'i.ytimg.com',
       'ytubetools.s3.eu-north-1.amazonaws.com',
+      'img.youtube.com'
     ],
   },
 
