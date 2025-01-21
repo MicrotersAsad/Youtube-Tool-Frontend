@@ -164,77 +164,113 @@ useEffect(() => {
   const handleShareClick = () => {
     setShowShareIcons(!showShareIcons);
   };
+  // const fetchYouTubeData = async () => {
+  //   if (!videoUrl) {
+  //     setError(t("Please enter a valid YouTube URL"));
+  //     toast.error(t("Please enter a valid YouTube URL"));
+  //     return;
+  //   }
+  
+  //   // if (!captchaVerified) {
+  //   //   toast.error(t("Please complete the captcha"));
+  //   //   return;
+  //   // }
+  
+  //   // Check if user is not logged in and has reached the 3 fetch limit
+  //   if (!user) {
+  //     if (generateCount >= 3) {
+  //       toast.error(t("You have reached the limit of fetching YouTube data. Please log in for unlimited access."));
+  //       return;
+  //     }
+  //   } else {
+  //     // If user is logged in, they get unlimited access (no need to check generateCount)
+  //     // No additional check needed for logged-in user
+  //   }
+  
+  //   setLoading(true);
+  //   setError("");
+  
+  //   try {
+  //     const tokensResponse = await fetch("/api/tokens");
+  //     if (!tokensResponse.ok) throw new Error(t("Failed to fetch API tokens"));
+  
+  //     const tokens = await tokensResponse.json();
+  //     const videoId = extractVideoId(videoUrl);
+  //     let success = false;
+  
+  //     for (const { token } of tokens) {
+  //       try {
+  //         const response = await axios.get(
+  //           `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${token}`
+  //         );
+  //         if (response.status === 200) {
+  //           setEmbedCode(
+  //             `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
+  //           );
+  
+  //           // If user is logged in and does not have unlimited access, decrement the generate count
+  //           // Payment Logic: Uncomment the below code once payment system is implemented
+  //           /*
+  //           if (!user || (user && user.paymentStatus !== "success")) {
+  //             setGenerateCount((prev) => prev - 1);
+  //             localStorage.setItem("generateCount", generateCount - 1); // Persist to localStorage
+  //           }
+  //           */
+  
+  //           success = true;
+  //           break;
+  //         }
+  //       } catch (error) {
+  //         console.error(`Error with token ${token}:`, error);
+  //       }
+  //     }
+  
+  //     if (!success) {
+  //       throw new Error(t("All API tokens exhausted or failed to fetch data."));
+  //     }
+  //   } catch (error) {
+  //     setError(t("Failed to fetch YouTube data. Please check the video URL."));
+  //     setEmbedCode("");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const fetchYouTubeData = async () => {
+    console.log("Button clicked!"); // Check if the function is triggered
+  
     if (!videoUrl) {
-      setError(t("Please enter a valid YouTube URL"));
-      toast.error(t("Please enter a valid YouTube URL"));
+      setError("Please enter a valid YouTube URL");
+      toast.error("Please enter a valid YouTube URL");
       return;
     }
-  
+    // Check if CAPTCHA is verified
     if (!captchaVerified) {
-      toast.error(t("Please complete the captcha"));
+      toast.error("Pls Complete this captcha");
       return;
     }
-  
-    // Check if user is not logged in and has reached the 3 fetch limit
-    if (!user) {
-      if (generateCount >= 3) {
-        toast.error(t("You have reached the limit of fetching YouTube data. Please log in for unlimited access."));
-        return;
-      }
-    } else {
-      // If user is logged in, they get unlimited access (no need to check generateCount)
-      // No additional check needed for logged-in user
-    }
-  
-    setLoading(true);
+    setLoading(true); // Ensure this is correctly updating the state
     setError("");
   
     try {
-      const tokensResponse = await fetch("/api/tokens");
-      if (!tokensResponse.ok) throw new Error(t("Failed to fetch API tokens"));
-  
-      const tokens = await tokensResponse.json();
+      console.log("Processing URL:", videoUrl); // Debugging
       const videoId = extractVideoId(videoUrl);
-      let success = false;
-  
-      for (const { token } of tokens) {
-        try {
-          const response = await axios.get(
-            `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${token}`
-          );
-          if (response.status === 200) {
-            setEmbedCode(
-              `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
-            );
-  
-            // If user is logged in and does not have unlimited access, decrement the generate count
-            // Payment Logic: Uncomment the below code once payment system is implemented
-            /*
-            if (!user || (user && user.paymentStatus !== "success")) {
-              setGenerateCount((prev) => prev - 1);
-              localStorage.setItem("generateCount", generateCount - 1); // Persist to localStorage
-            }
-            */
-  
-            success = true;
-            break;
-          }
-        } catch (error) {
-          console.error(`Error with token ${token}:`, error);
-        }
+      if (!videoId) {
+        alert("Invalid YouTube video URL")
+        throw new Error("Invalid YouTube video URL");
       }
   
-      if (!success) {
-        throw new Error(t("All API tokens exhausted or failed to fetch data."));
-      }
+      setEmbedCode(
+        `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
+      );
+      console.log("Embed code generated!");
     } catch (error) {
-      setError(t("Failed to fetch YouTube data. Please check the video URL."));
-      setEmbedCode("");
+      console.error("Error in fetchYouTubeData:", error);
+      setError("Failed to generate embed code. Please check the video URL.");
     } finally {
       setLoading(false);
     }
   };
+  
   
 
   const extractVideoId = (url) => {

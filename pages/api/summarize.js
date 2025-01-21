@@ -1,4 +1,3 @@
-import { getSubtitles } from 'youtube-captions-scraper';
 import fetch from 'node-fetch';
 import { connectToDatabase } from '../../utils/mongodb';
 
@@ -9,163 +8,146 @@ export default async function handler(req, res) {
   }
 
   const { videoUrl } = req.body;
-  const videoId = new URLSearchParams(new URL(videoUrl).search).get('v');
 
-  if (!videoId) {
+  if (!videoUrl) {
     return res.status(400).json({ message: 'Invalid YouTube video URL' });
   }
 
   try {
     const { db } = await connectToDatabase();
-    const youtubeTokens = await db.collection('ytApi').find({ active: true }).toArray();
-    
-    // Fetch both OpenAI and Azure keys from the same 'openaiKey' collection
     const apiTokens = await db.collection('openaiKey').find({ active: true }).toArray();
 
-    let captions, videoInfo;
-    let youtubeApiKeyExhausted = false;
+    // Scrap API Call
+    const scrapApiUrl = `http://166.0.175.238:8000/api/scrap_youtube_video/?video_title=on&description=on&total_likes=off&comments=on&video_views=on&upload_date=on&video_duration=on&video_thumbnail=on&channel_url=on&video_id=on&total_subscribers=on&verified=on&latest_comments=on&transcripts=on`;
 
-    // Loop through YouTube API keys
-    for (const token of youtubeTokens) {
-      const youtubeApiKey = token.token;
-
-      try {
-        captions = await getSubtitles({ videoID: videoId });
-
-        const videoInfoUrl = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&key=${youtubeApiKey}&part=snippet,contentDetails`;
-        const videoInfoResponse = await fetch(videoInfoUrl);
-        const videoInfoData = await videoInfoResponse.json();
-
-        if (!videoInfoData.items || videoInfoData.items.length === 0) {
-          throw new Error('Video not found');
-        }
-
-        videoInfo = videoInfoData.items[0];
-        break;
-      } catch (error) {
-        if (error.message.includes('Quota Exceeded')) {
-          console.log(`Quota exceeded for YouTube API key: ${youtubeApiKey}`);
-          continue;
-        } else {
-          console.error('Error fetching data:', error.message);
-        }
-      }
-    }
-
-    if (!videoInfo) {
-      youtubeApiKeyExhausted = true;
-      return res.status(500).json({ message: 'All YouTube API keys exhausted or error occurred' });
-    }
-
-    const duration = videoInfo.contentDetails.duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
-    const videoDuration = `${duration[1] ? duration[1].slice(0, -1) + 'h ' : ''}${duration[2] ? duration[2].slice(0, -1) + 'm ' : ''}${duration[3] ? duration[3].slice(0, -1) + 's' : ''}`.trim();
-    const totalDuration = captions[captions.length - 1].start + captions[captions.length - 1].dur;
-    const segmentDuration = 60;
-    let segments = [];
-    let currentSegment = [];
-    let currentTime = 0;
-
-    captions.forEach(caption => {
-      const captionEndTime = caption.start + caption.dur;
-      if (captionEndTime > currentTime + segmentDuration) {
-        segments.push(currentSegment);
-        currentSegment = [];
-        currentTime += segmentDuration;
-      }
-      currentSegment.push(caption);
+    const scrapResponse = await fetch(scrapApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ urls: [videoUrl] }),
     });
 
-    if (currentSegment.length) {
-      segments.push(currentSegment);
+    if (!scrapResponse.ok) {
+      throw new Error('Failed to scrap video data from the external API');
     }
 
-    const summaries = await Promise.all(segments.map(async segment => {
-      const transcript = segment.map(caption => caption.text).join(' ');
+    const scrapData = await scrapResponse.json();
+    const videoData = scrapData[videoUrl];
 
-      let keyExhausted = false;
+    if (!videoData) {
+      return res.status(404).json({ message: 'No data found for the given video URL' });
+    }
 
-      // Try each API key (OpenAI or Azure)
-      for (const token of apiTokens) {
-        const { token: apiKey, serviceType } = token;
+    // Extract transcript and other details
+    const { transcripts, video_title, description, video_duration, video_thumbnail, upload_date, channel_url, video_id } = videoData;
 
-        let url = '';
-        let headers = {};
-        let body = {};
+    if (!transcripts || typeof transcripts["en"] !== 'string') {
+      throw new Error('Transcripts not available or in an unexpected format for this video');
+    }
 
-        // Handling OpenAI API
-        if (serviceType === "openai") {
-          url = "https://api.openai.com/v1/chat/completions";
-          headers = {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          };
-          body = JSON.stringify({
-            model: "gpt-4o",
-            messages: [{ role: "user", content: `Summarize the following transcript: ${transcript}` }],
-            temperature: 0.7,
-          });
-        }
-        // Handling Azure OpenAI API
-        else if (serviceType === "azure") {
-          url = "https://nazmul.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview";
-          headers = {
-            "Content-Type": "application/json",
-            "api-key": apiKey,
-          };
-          body = JSON.stringify({
-            messages: [{ role: "user", content: `Summarize the following transcript: ${transcript}` }],
-            temperature: 1,
-            max_tokens: 4096,
-            top_p: 1,
-            frequency_penalty: 0.5,
-            presence_penalty: 0.5,
-          });
-        }
+    // Process transcript as a single string
+    const fullTranscript = transcripts["en"];
 
-        try {
-          const response = await fetch(url, { method: "POST", headers, body });
-          const data = await response.json();
+    // Optionally split the transcript into segments based on word count or other criteria
+    const transcriptSegments = [];
+    const words = fullTranscript.split(" ");
+    const segmentWordLimit = 200;
+    let currentSegment = [];
 
-          if (!data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
-            console.error('Invalid response format:', data);
-            continue;
-          }
+    words.forEach((word) => {
+      currentSegment.push(word);
 
-          return data.choices[0].message.content;
-        } catch (error) {
-          if (error.message.includes('quota')) {
-            console.log(`Quota exceeded for ${serviceType} API key: ${apiKey}`);
-            continue;
-          } else {
-            console.error(`Error summarizing segment with ${serviceType} key:`, error.message);
-            throw new Error(`Failed to summarize video with ${serviceType}`);
-          }
-        }
+      if (currentSegment.length >= segmentWordLimit) {
+        transcriptSegments.push(currentSegment.join(" "));
+        currentSegment = [];
       }
+    });
 
-      keyExhausted = true;
-      throw new Error('All API keys exhausted or error occurred');
-    }));
+    // Add the last segment if any words remain
+    if (currentSegment.length > 0) {
+      transcriptSegments.push(currentSegment.join(" "));
+    }
 
+    // Summarize each segment using OpenAI or Azure
+    const summaries = await Promise.all(
+      transcriptSegments.map(async (segmentText) => {
+        for (const token of apiTokens) {
+          const { token: apiKey, serviceType } = token;
+
+          let url = '';
+          let headers = {};
+          let body = {};
+
+          if (serviceType === 'openai') {
+            url = 'https://api.openai.com/v1/chat/completions';
+            headers = {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${apiKey}`,
+            };
+            body = JSON.stringify({
+              model: 'gpt-4',
+              messages: [
+                { role: 'user', content: `Summarize the following transcript: ${segmentText}` },
+              ],
+              temperature: 0.7,
+            });
+          } else if (serviceType === 'azure') {
+            url = 'https://nazmul.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview';
+            headers = {
+              'Content-Type': 'application/json',
+              'api-key': apiKey,
+            };
+            body = JSON.stringify({
+              messages: [
+                { role: 'user', content: `Summarize the following transcript: ${segmentText}` },
+              ],
+              temperature: 1,
+              max_tokens: 4096,
+              top_p: 1,
+              frequency_penalty: 0.5,
+              presence_penalty: 0.5,
+            });
+          }
+
+          try {
+            const summaryResponse = await fetch(url, {
+              method: 'POST',
+              headers,
+              body,
+            });
+
+            const summaryData = await summaryResponse.json();
+
+            if (summaryData.choices && summaryData.choices[0].message.content) {
+              return summaryData.choices[0].message.content;
+            }
+          } catch (error) {
+            console.warn(`Error summarizing segment with ${serviceType} key:`, error.message);
+            continue;
+          }
+        }
+
+        throw new Error('All summarization API keys exhausted');
+      })
+    );
+
+    // Send Response
     res.status(200).json({
       videoInfo: {
-        title: videoInfo.snippet.title,
-        author: videoInfo.snippet.channelTitle,
-        duration: videoDuration,
-        readTime: `${Math.ceil(totalDuration / 60)} min`,
-        thumbnail: videoInfo.snippet.thumbnails.high.url,
-        publishedAt: videoInfo.snippet.publishedAt,
+        video_title,
+        description,
+        videoId: video_id,
+        thumbnail: video_thumbnail,
+        duration: video_duration,
+        uploadDate: upload_date,
+        channelUrl: channel_url,
       },
-      captions: segments,
-      summaries
+      transcripts: transcriptSegments,
+      summaries,
     });
   } catch (error) {
-    if (youtubeApiKeyExhausted || error.message.includes('All API keys exhausted or error occurred')) {
-      console.error('All keys exhausted:', error.message);
-      return res.status(500).json({ message: 'All API keys exhausted or error occurred' });
-    } else {
-      console.error('Error summarizing video:', error.message);
-      return res.status(500).json({ message: 'Error summarizing video' });
-    }
+    console.error('Error processing video:', error.message);
+    res.status(500).json({ message: error.message || 'An error occurred while processing the video' });
   }
 }

@@ -22,6 +22,7 @@ import dynamic from 'next/dynamic';
 import { getContentProps } from "../../utils/getContentProps";
 import ReCAPTCHA from "react-google-recaptcha";
 
+
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
 
 const VideoSummarizer = ({ meta, reviews, content, relatedTools, faqs,reactions,hreflangs})  => {
@@ -173,50 +174,70 @@ useEffect(() => {
         toast.error(t("You have reached the limit of fetching summaries. Please log in for unlimited access."));
         return;
       }
-    } else {
-      // If user is logged in, they get unlimited access (no need to check generateCount)
-      // No additional check needed for logged-in user
     }
   
-    // Check if CAPTCHA is verified
-    if (!captchaVerified) {
-      toast.error(t("Please complete the captcha"));
-      return;
-    }
+    // Check if CAPTCHA is verified (if required)
+    // if (!captchaVerified) {
+    //   toast.error(t("Please complete the captcha"));
+    //   return;
+    // }
   
     setLoading(true);
     setError("");
+    setVideoInfo(null); // Clear previous data
+    setTranscript([]);
+    setSummary([]);
   
     try {
       const response = await axios.post("/api/summarize", { videoUrl });
-      setVideoInfo(response.data.videoInfo);
-      setTranscript(response.data.captions);
-      setSummary(response.data.summaries);
   
-      // If user is logged in but does not have unlimited access, decrement the generate count
+      // Check if the response is valid
+      if (!response.data) {
+        throw new Error("Invalid response from server.");
+      }
+  
+      // Destructure and validate response data
+      const { videoInfo, transcripts, summaries } = response.data;
+      console.log(response.data);
+      
+  
+      if (!videoInfo || !summaries || !transcripts) {
+        throw new Error("Missing required data from API response.");
+      }
+  
+      // Update state with the received data
+      setVideoInfo(videoInfo);
+      setTranscript(transcripts);
+      setSummary(summaries);
+  
+      // Handle generate count for non-logged-in or unpaid users
       if (!user || (user && user.paymentStatus !== "success")) {
-        setGenerateCount(generateCount - 1);
-        localStorage.setItem("generateCount", generateCount - 1); // Persist to localStorage
+        const updatedCount = generateCount - 1;
+        setGenerateCount(updatedCount);
+        localStorage.setItem("generateCount", updatedCount); // Persist to localStorage
       }
   
-      // Payment logic: Uncomment the below code once payment system is implemented
-      /*
-      if (user && user.paymentStatus !== "success" && user.role !== "admin") {
-        setGenerateCount(generateCount - 1);
-        localStorage.setItem("generateCount", generateCount - 1); 
-      }
-      */
+      // Success toast (optional)
+      toast.success(t("Summary fetched successfully!"));
     } catch (error) {
       console.error("Error summarizing video:", error);
-      setError(t("Failed to summarize video"));
-      toast.error(t("Failed to summarize video"));
+  
+      // Set error message and show toast
+      const errorMessage = error.response?.data?.message || t("Failed to summarize video");
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
   
   
-
+  
+  const processedTranscripts = transcript.map((segment) => {
+    // Split the string into sentences (or any other delimiter)
+    return segment.split(". ").map((sentence) => sentence.trim() + ".");
+  });
+  
   const handleCopy = (text) => {
     navigator.clipboard
       .writeText(text)
@@ -777,95 +798,105 @@ useEffect(() => {
         </div>
       </div>
       <div className="max-w-7xl mx-auto p-4">
-        {videoInfo && !loading && (
-          <div className="flex flex-col lg:flex-row">
-            <div className="w-full lg:w-1/3 mb-4 lg:mb-0">
-              <div className="border rounded pt-6 pb-14 pe-4 ps-4 ">
-                <Image
-                  src={videoInfo.thumbnail}
-                  alt="Video Thumbnail"
-                  className="mb-4"
-                  width={200}
-                  height={200}
-                />
-                <h2 className="text-xl font-bold mb-2">{videoInfo.title}</h2>
-                <p className="mb-1">{t("Author")}: {videoInfo.author}</p>
-                <p className="mb-1">{t("Video Duration")}: {videoInfo.duration}</p>
-                <p className="mb-1">{t("Video Published")}: {videoInfo.publishedAt}</p>
-              </div>
-            </div>
-            <div className="w-full lg:w-2/3 lg:ml-4">
-              <div className="border rounded p-4">
-                <div className="mb-4">
-                  <button
-                    className={`py-2 px-4 rounded ${
-                      activeTab === "Transcript"
-                        ? "bg-red-500 text-white"
-                        : "bg-gray-200"
-                    }`}
-                    onClick={() => setActiveTab("Transcript")}
-                  >
-                    {t("Transcript")}
-                  </button>
-                  <button
-                    className={`py-2 px-4 rounded ml-2 ${
-                      activeTab === "Summary"
-                        ? "bg-red-500 text-white"
-                        : "bg-gray-200"
-                    }`}
-                    onClick={() => setActiveTab("Summary")}
-                  >
-                    {t("Summary")}
-                  </button>
+      {videoInfo && !loading && (
+  <div className="flex flex-col lg:flex-row">
+    {/* Video Information Section */}
+    <div className="w-full lg:w-1/3 mb-4 lg:mb-0">
+      <div className="border rounded pt-6 pb-14 pe-4 ps-4">
+        <Image
+          src={videoInfo.thumbnail || "/default-thumbnail.jpg"} // Default image if thumbnail is missing
+          alt={`Thumbnail for ${videoInfo.video_title || "Video"}`}
+          className="mb-4"
+          width={400}
+          height={200}
+        />
+        <h2 className="text-xl font-bold mb-2">{videoInfo.video_title || t("No Title Available")}</h2>
+        <p className="mb-1">
+          {t("Author")}: {videoInfo.author || t("Unknown Author")}
+        </p>
+        <p className="mb-1">
+          {t("Video Duration")}: {videoInfo.duration || t("Unknown Duration")}
+        </p>
+        <p className="mb-1">
+          {t("Video Published")}: {videoInfo.uploadDate || t("Unknown Date")}
+        </p>
+      </div>
+    </div>
+
+    {/* Transcript and Summary Section */}
+    <div className="w-full lg:w-2/3 lg:ml-4">
+      <div className="border rounded p-4">
+        {/* Tab Buttons */}
+        <div className="mb-4">
+          <button
+            className={`py-2 px-4 rounded ${
+              activeTab === "Transcript" ? "bg-red-500 text-white" : "bg-gray-200"
+            }`}
+            onClick={() => setActiveTab("Transcript")}
+          >
+            {t("Transcript")}
+          </button>
+          <button
+            className={`py-2 px-4 rounded ml-2 ${
+              activeTab === "Summary" ? "bg-red-500 text-white" : "bg-gray-200"
+            }`}
+            onClick={() => setActiveTab("Summary")}
+          >
+            {t("Summary")}
+          </button>
+        </div>
+
+        {/* Transcript Tab */}
+        {activeTab === "Transcript" && (
+  <div className="overflow-y-auto max-h-96">
+    {processedTranscripts.length > 0 ? (
+      processedTranscripts.map((segment, index) => (
+        <div key={index} className="mb-4">
+          <div className="flex items-center justify-between">
+            <h6 className="text-lg font-semibold text-sky-500">{`${index + 1}:00`}</h6>
+            <FaCopy
+              className="cursor-pointer text-red-500 hover:text-gray-700"
+              onClick={() =>
+                handleCopy(segment.join(" ")) // Join back into a full string
+              }
+            />
+          </div>
+          <p>{segment.join(" ")}</p> {/* Display the sentences */}
+        </div>
+      ))
+    ) : (
+      <p>{t("No transcript available.")}</p>
+    )}
+  </div>
+)}
+
+
+        {/* Summary Tab */}
+        {activeTab === "Summary" && (
+          <div className="overflow-y-auto max-h-96">
+            {summary.length > 0 ? (
+              summary.map((sum, index) => (
+                <div key={index} className="mb-4">
+                  <div className="flex items-center justify-between">
+                    <h6 className="text-lg font-semibold text-sky-500">{`${index + 1}:00`}</h6>
+                    <FaCopy
+                      className="cursor-pointer text-red-500 hover:text-gray-700"
+                      onClick={() => handleCopy(sum)}
+                    />
+                  </div>
+                  <p>{sum}</p>
                 </div>
-                {activeTab === "Transcript" && (
-                  <div className="overflow-y-auto max-h-96">
-                    {transcript.map((segment, index) => (
-                      <div key={index} className="mb-4">
-                        <div className="flex items-center justify-between">
-                          <h6 className="text-lg font-semibold text-sky-500">
-                            {" "}
-                            {index + 1}:00
-                          </h6>
-                          <FaCopy
-                            className="cursor-pointer text-red-500 hover:text-gray-700"
-                            onClick={() =>
-                              handleCopy(
-                                segment.map((caption) => caption.text).join(" ")
-                              )
-                            }
-                          />
-                        </div>
-                        <p>
-                          {segment.map((caption) => caption.text).join(" ")}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {activeTab === "Summary" && (
-                  <div className="overflow-y-auto max-h-96">
-                    {summary.map((sum, index) => (
-                      <div key={index} className="mb-4">
-                        <div className="flex items-center justify-between">
-                          <h6 className="text-lg font-semibold text-sky-500">
-                            {" "}
-                            {index + 1}:00
-                          </h6>
-                          <FaCopy
-                            className="cursor-pointer text-red-500 hover:text-gray-700"
-                            onClick={() => handleCopy(sum)}
-                          />
-                        </div>
-                        <p>{sum}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+              ))
+            ) : (
+              <p>{t("No summary available.")}</p>
+            )}
           </div>
         )}
+      </div>
+    </div>
+  </div>
+)}
+
       <div className="content pt-6 pb-5">
           <article
             dangerouslySetInnerHTML={{ __html: content }}

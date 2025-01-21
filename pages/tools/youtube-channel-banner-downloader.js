@@ -161,129 +161,42 @@ useEffect(() => {
     setShowShareIcons(!showShareIcons);
   };
 
-  const fetchYouTubeData = async () => {
-    // Check if user is not logged in
-    if (!user) {
-      toast.error("Please log in to fetch YouTube data.");
-      setModalVisible(true);
-      return;
-    }
-  
-    // Check if URL is empty or invalid
-    if (!channelUrl.trim()) {
-      toast.error("Please enter a valid URL.");
-      return;
-    }
-  
-    // Check if CAPTCHA is verified
-    if (!captchaVerified) {
-      toast.error(t("Please complete the captcha"));
-      return;
-    }
-  
-    // Check if user is not logged in or has reached the fetch limit
-    if (!user) {
-      if (generateCount >= 3) {
-        toast.error("Fetch limit exceeded. Please log in for unlimited access.");
-        return;
-      }
-    } else {
-      // If user is logged in, they get unlimited access (no need to check generateCount)
-      // No additional check needed for logged-in user
-    }
-  
-    try {
-      // Check if user has reached their limit when not logged in
-      if (user && user.paymentStatus !== "success" && user.role !== "admin" && generateCount <= 0) {
-        toast.error(
-          "You have reached the limit of generating banners. Please upgrade your plan for unlimited use."
-        );
-        return;
-      }
-  
-      setLoading(true);
-      setError("");
-  
-      // Extract channel ID from URL
-      const channelId = extractChannelId(channelUrl);
-      if (!channelId) {
-        throw new Error("Invalid YouTube channel URL. Please enter a valid URL.");
-      }
-  
-      // Fetch API tokens
-      const tokensResponse = await fetch("/api/tokens");
-      if (!tokensResponse.ok) throw new Error("Failed to fetch API tokens");
-  
-      const tokens = await tokensResponse.json();
-      let dataFetched = false;
-  
-      // Loop through API tokens and try to fetch data
-      for (const { token } of tokens) {
-        try {
-          const response = await axios.get(
-            `https://www.googleapis.com/youtube/v3/channels?part=brandingSettings&id=${channelId}&key=${token}`
-          );
-  
-          const brandingSettings = response.data?.items[0]?.brandingSettings;
-          if (!brandingSettings) {
-            throw new Error("Brand settings not found for this channel.");
-          }
-          const image = brandingSettings.image;
-          if (!image) {
-            throw new Error("Image settings not found for this channel.");
-          }
-          const bannerUrl = image.bannerExternalUrl;
-          if (!bannerUrl) {
-            throw new Error("Banner image URL not found for this channel.");
-          }
-  
-          // Set banner URL if data fetched successfully
-          setBannerUrl(bannerUrl);
-          dataFetched = true;
-          break;
-        } catch (error) {
-          console.error(`Error fetching data with token ${token}:`, error);
-        }
-      }
-  
-      if (!dataFetched) {
-        throw new Error("All API tokens exhausted or failed to fetch data.");
-      }
-  
-      // Increment generateCount if the user is not logged in or does not have unlimited access
-      const newGenerateCount = generateCount + 1;
-      setGenerateCount(newGenerateCount);
-  
-      // Save generate count to localStorage
-      if (typeof window !== "undefined") {
-        localStorage.setItem("generateCount", newGenerateCount);
-      }
-  
-      // Payment logic: Uncomment when payment system is integrated
-      /*
-      if (user && user.paymentStatus !== "success") {
-        setGenerateCount(generateCount - 1);
-        localStorage.setItem("generateCount", generateCount - 1); // Persist to localStorage
-      }
-      */
-  
-    } catch (error) {
-      setError(
-        error.message || "Failed to fetch YouTube data. Please check the channel URL."
-      );
-      setBannerUrl("");
-    } finally {
-      setLoading(false);
-    }
-  };
-  
 
-  const extractChannelId = (url) => {
-    const regex =
-      /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^/]+\/){1,2}|(?:youtube\.com\/)?(?:channel|c)\/)([^/?]+)/i;
-    const match = url.match(regex);
-    return match ? match[1] : null;
-  };
+const fetchYouTubeData = async () => {
+  if (!channelUrl.trim()) {
+    setError("Please enter a valid YouTube Channel URL.");
+    return;
+  }
+ // Check if CAPTCHA is verified
+if (!captchaVerified) {
+  toast.error("Pls Complete this captcha");
+  return;
+}
+  setLoading(true);
+  setError("");
+  setBannerUrl("");
+
+  try {
+    // API request to fetch banner
+    const response = await axios.post("/api/scrapebanner", {
+      videoUrl: channelUrl,
+    });
+
+    const data = response.data[channelUrl];
+    if (data && data.channel_banner) {
+      setBannerUrl(data.channel_banner);
+    } else {
+      throw new Error("Channel banner not found.");
+    }
+  } catch (err) {
+    console.error("Error fetching banner:", err.message);
+    setError(err.response?.data?.error || "Failed to fetch the channel banner.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+  
 
   const downloadChannelBanner = () => {
     if (!bannerUrl) return;
@@ -717,7 +630,7 @@ useEffect(() => {
       <input
         type="text"
         className="w-full p-2 border border-gray-300 rounded-md"
-        placeholder="e.g. https://www.youtube.com/channel/UC-lHJZR3Gqxm24_Vd_AJ5Yw"
+        placeholder="e.g. https://www.youtube.com/@DanCurrier"
         aria-label="YouTube Channel URL"
         aria-describedby="button-addon2"
         value={channelUrl}

@@ -171,36 +171,18 @@ useEffect(() => {
     setVideoUrl(e.target.value);
   };
 
-  const handleFetchClick = async () => {
-    // Check if the user is logged in
+  const fetchYouTubeData = async () => {
     if (!user) {
-      toast.error(t("Please log in to fetch channel data."));
-      setModalVisible(true); // Open login modal
+      if (generateCount >= 3) {
+        toast.error("Fetch limit exceeded. Please log in for unlimited access.");
+        return;
+      }
+      toast.error("Please log in to fetch channel data.");
       return;
     }
   
-    // Check if the video URL is provided
-    if (!videoUrl.trim()) {
-      toast.error(t("Please enter a valid URL."));
-      return;
-    }
-  
-    // Check if CAPTCHA is verified
-    if (!captchaVerified) {
-      toast.error(t("Pls Complete this capctha"));
-      return;
-    }
-  
-    // Check if the user has exceeded the limit (only for non-logged-in users)
-    if (!user && generateCount >= 3) {
-      toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
-      return;
-    }
-  
-    // If user is logged in, they get unlimited access (no need to check generateCount)
-    // If user is not logged in, they are limited to 3 fetches
-    if (user && generateCount >= 3) {
-      toast.error(t("Fetch limit exceeded. Please upgrade for unlimited access."));
+    if (!videoUrl) {
+      toast.error("Please enter a valid YouTube video URL.");
       return;
     }
   
@@ -208,40 +190,33 @@ useEffect(() => {
     setError("");
   
     try {
-      const response = await fetch("/api/video-data-viewer", {
+      const response = await fetch("/api/scrapytvideo", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          videoUrl,
-          hasUnlimitedAccess: true, // Since logged-in users have unlimited access
-        }),
+        body: JSON.stringify({ videoUrl }),
       });
   
       if (!response.ok) {
-        const errorMessage = await response.text();
-        throw new Error(errorMessage || "Failed to fetch data");
+        throw new Error("Failed to fetch YouTube data.");
       }
   
       const data = await response.json();
-      setVideoData(data);
+      console.log("Fetched data:", data);
   
-      // Increase generate count for the user if they are logged in
-      if (user) {
-        const newGenerateCount = generateCount + 1;
-        setGenerateCount(newGenerateCount);
-        localStorage.setItem("generateCount", newGenerateCount);
-      }
-  
-      toast.success(t("Data fetched successfully!"));
+      const videoData = data[videoUrl];
+      console.log(videoData);
+      setVideoData(videoData);
     } catch (error) {
-      setError(error.message);
-      toast.error(error.message);
+      setError("Failed to fetch YouTube data. Please check the video URL.");
+      console.error("Error:", error);
     } finally {
       setLoading(false);
     }
   };
+  
+
   
   
 
@@ -673,7 +648,7 @@ useEffect(() => {
         className="flex items-center justify-center p-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-purple-400"
         type="button"
         id="button-addon2"
-        onClick={handleFetchClick}
+        onClick={fetchYouTubeData}
         disabled={loading} // Button disabled when loading
       >
         {loading ? (
@@ -814,97 +789,72 @@ useEffect(() => {
        
       </div>
       <div className="max-w-7xl mx-auto p-4">
-        {videoData && (
-          <div className="mt-8 bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-center mb-4">
-              <Image
-                src={videoData.thumbnail || ""}
-                alt="Video Cover"
-                width={880}
-                height={420}
-                layout="intrinsic"
-                className="rounded-lg"
-              />
-            </div>
-            <table className="min-w-full bg-white">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2 border">{t("Property")}</th>
-                  <th className="px-4 py-2 border">{t("Value")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="px-4 py-2 border">
-                    <div className="flex items-center">
-                      <FaClock className="mr-2" /> {t("Duration")}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 border">{formatDuration(videoData.duration) || "N/A"}</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-2 border">
-                    <div className="flex items-center">
-                      <FaEye className="mr-2" /> {t("View Count")}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 border">{videoData.viewCount || "N/A"}</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-2 border">
-                    <div className="flex items-center">
-                      <FaThumbsUp className="mr-2" /> <FaThumbsDown className="ml-2" /> {t("Like/Dislike Count")}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 border">
-                    {videoData.likeCount || "N/A"} / {videoData.dislikeCount || "N/A"}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-2 border">
-                    <div className="flex items-center">
-                      <FaComments className="mr-2" /> {t("Comment Count")}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 border">{videoData.commentCount || "N/A"}</td>
-                </tr>
+      {videoData && (
+  <div className="mt-8 bg-white rounded-lg shadow-md p-6">
+    <div className="flex justify-center mb-4">
+      <img
+        src={videoData.video_thumbnail || ""}
+        alt="Video Thumbnail"
+        className="rounded-lg w-full max-w-lg"
+      />
+    </div>
+    <h2 className="text-xl font-bold text-center mb-4">{videoData.video_title || "N/A"}</h2>
+    <table className="min-w-full bg-white border-collapse border">
+      <tbody>
+        <tr>
+          <td className="px-4 py-2 border font-bold">Video Duration</td>
+          <td className="px-4 py-2 border">{videoData.video_duration || "N/A"}</td>
+        </tr>
+        <tr>
+          <td className="px-4 py-2 border font-bold">Total Views</td>
+          <td className="px-4 py-2 border">{videoData.video_views || "N/A"}</td>
+        </tr>
+        <tr>
+          <td className="px-4 py-2 border font-bold">Upload Date</td>
+          <td className="px-4 py-2 border">{videoData.upload_date || "N/A"}</td>
+        </tr>
+        <tr>
+          <td className="px-4 py-2 border font-bold">Verified</td>
+          <td className="px-4 py-2 border">{videoData.verified || "N/A"}</td>
+        </tr>
+        <tr>
+          <td className="px-4 py-2 border font-bold">Description</td>
+          <td className="px-4 py-2 border whitespace-pre-line">{videoData.description || "N/A"}</td>
+        </tr>
+        <tr>
+          <td className="px-4 py-2 border font-bold">Channel URL</td>
+          <td className="px-4 py-2 border">
+            <a
+              href={videoData.channel_url || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 underline"
+            >
+              Go to Channel
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td className="px-4 py-2 border font-bold">Total Subscribers</td>
+          <td className="px-4 py-2 border">{videoData.total_subscribers || "N/A"}</td>
+        </tr>
+        <tr>
+          <td className="px-4 py-2 border font-bold">Comments (Latest 5)</td>
+          <td className="px-4 py-2 border">
+            <ul className="list-disc pl-6">
+              {videoData.latest_comments && videoData.latest_comments.length > 0
+                ? videoData.latest_comments.slice(0, 5).map((comment, index) => (
+                    <li key={index}>{comment.text || "N/A"}</li>
+                  ))
+                : "No comments available"}
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+)}
 
-                <tr>
-                  <td className="px-4 py-2 border">
-                    <div className="flex items-center">
-                      <FaCalendarAlt className="mr-2" /> {t("Published At")}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 border">{videoData.publishedAt || "N/A"}</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-2 border">
-                    <div className="flex items-center">
-                      <FaVideo className="mr-2" /> {t("Is Embeddable")}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 border">{videoData.isEmbeddable ? "Yes" : "No"}</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-2 border">
-                    <div className="flex items-center">
-                      <FaTags className="mr-2" /> {t("Video Tags")}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 border">{Array.isArray(videoData.tags) ? videoData.tags.join(", ") : "N/A"}</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-2 border">
-                    <div className="flex items-center">
-                      <FaInfoCircle className="mr-2" /> {t("Description")}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 border">{videoData.description || "N/A"}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        )}
 
 <div className="content pt-6 pb-5">
           <article

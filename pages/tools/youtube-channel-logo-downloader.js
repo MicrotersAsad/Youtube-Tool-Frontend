@@ -165,84 +165,115 @@ useEffect(() => {
     }
   }, [user]);
 
-  const extractChannelId = (link) => {
-    const match = link.match(
-      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/(?:channel\/|c\/|user\/)?([a-zA-Z0-9_-]+)/
-    );
-    return match ? match[1] : null;
-  };
 
+  // const fetchChannelLogo = async () => {
+  //   // Check if user is logged in and has reached the 3 fetch limit
+  //   if (!user) {
+  //     if (generateCount >= 3) {
+  //       toast.error(t("You have reached the limit of fetching channel logos. Please log in for unlimited access."));
+  //       return;
+  //     }
+  //   } else {
+  //     // If user is logged in, they get unlimited access (no need to check generateCount)
+  //     // No additional check needed for logged-in user
+  //   }
+  
+  //   if (!channelUrl) {
+  //     toast.error("Please enter a YouTube channel URL.");
+  //     return;
+  //   }
+  
+  //   const channelId = extractChannelId(channelUrl);
+  //   if (!channelId) {
+  //     toast.error("Invalid YouTube channel link.");
+  //     return;
+  //   }
+  //   if (!captchaVerified) {
+  //     toast.error(t("Please complete the captcha"));
+  //     return;
+  //   }
+  
+  //   setLoading(true);
+  //   setError("");
+  
+  //   try {
+  //     const tokensResponse = await fetch("/api/tokens");
+  //     if (!tokensResponse.ok) throw new Error("Failed to fetch API tokens");
+  
+  //     const tokens = await tokensResponse.json();
+  //     let dataFetched = false;
+  
+  //     for (const { token } of tokens) {
+  //       try {
+  //         const response = await axios.get(
+  //           `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&key=${token}`
+  //         );
+  //         if (response.data.items && response.data.items.length > 0) {
+  //           const logoUrl = response.data.items[0].snippet.thumbnails.default.url;
+  //           setLogoUrl(logoUrl);
+  //           dataFetched = true;
+  //           break;
+  //         }
+  //       } catch (error) {
+  //         console.error(`Error fetching data with token ${token}:`, error);
+  //       }
+  //     }
+  
+  //     if (!dataFetched) {
+  //       throw new Error("All API tokens exhausted or failed to fetch data.");
+  //     }
+  
+  //     // If the user is not logged in or doesn't have unlimited access, decrement the generate count
+  //     if (!user || (user && user.paymentStatus !== "success")) {
+  //       setGenerateCount(generateCount - 1);
+  //       localStorage.setItem("generateCount", generateCount - 1); // Persist to localStorage
+  //     }
+  
+  //   } catch (error) {
+  //     toast.error("Failed to fetch channel logo:", error);
+  //     setError("Failed to fetch data. Check console for more details.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const fetchChannelLogo = async () => {
-    // Check if user is logged in and has reached the 3 fetch limit
-    if (!user) {
-      if (generateCount >= 3) {
-        toast.error(t("You have reached the limit of fetching channel logos. Please log in for unlimited access."));
+    if (!channelUrl.trim()) {
+        setError("Please enter a valid YouTube Channel URL.");
+        return;
+    }
+  // Check if CAPTCHA is verified
+      if (!captchaVerified) {
+        toast.error("Pls Complete this captcha");
         return;
       }
-    } else {
-      // If user is logged in, they get unlimited access (no need to check generateCount)
-      // No additional check needed for logged-in user
-    }
-  
-    if (!channelUrl) {
-      toast.error("Please enter a YouTube channel URL.");
-      return;
-    }
-  
-    const channelId = extractChannelId(channelUrl);
-    if (!channelId) {
-      toast.error("Invalid YouTube channel link.");
-      return;
-    }
-    if (!captchaVerified) {
-      toast.error(t("Please complete the captcha"));
-      return;
-    }
-  
     setLoading(true);
     setError("");
-  
+    setLogoUrl("");
+
     try {
-      const tokensResponse = await fetch("/api/tokens");
-      if (!tokensResponse.ok) throw new Error("Failed to fetch API tokens");
-  
-      const tokens = await tokensResponse.json();
-      let dataFetched = false;
-  
-      for (const { token } of tokens) {
-        try {
-          const response = await axios.get(
-            `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&key=${token}`
-          );
-          if (response.data.items && response.data.items.length > 0) {
-            const logoUrl = response.data.items[0].snippet.thumbnails.default.url;
-            setLogoUrl(logoUrl);
-            dataFetched = true;
-            break;
-          }
-        } catch (error) {
-          console.error(`Error fetching data with token ${token}:`, error);
+        // API request to fetch channel logo
+        const response = await axios.post("/api/scrapelogo", {
+            videoUrl: channelUrl,
+        });
+
+
+        // Extract the channel logo from the response
+        const data = response.data[channelUrl];
+      
+        
+        if (data && data.channel_logo) {
+            setLogoUrl(data.channel_logo); // Update state with logo URL
+        } else {
+            throw new Error("Channel logo not found.");
         }
-      }
-  
-      if (!dataFetched) {
-        throw new Error("All API tokens exhausted or failed to fetch data.");
-      }
-  
-      // If the user is not logged in or doesn't have unlimited access, decrement the generate count
-      if (!user || (user && user.paymentStatus !== "success")) {
-        setGenerateCount(generateCount - 1);
-        localStorage.setItem("generateCount", generateCount - 1); // Persist to localStorage
-      }
-  
-    } catch (error) {
-      toast.error("Failed to fetch channel logo:", error);
-      setError("Failed to fetch data. Check console for more details.");
+    } catch (err) {
+        console.error("Error fetching logo:", err.message);
+        setError(err.response?.data?.error || "Failed to fetch the channel logo.");
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
-  
+};
+
 
   const downloadLogo = () => {
     if (!logoUrl) {
@@ -679,7 +710,7 @@ useEffect(() => {
       <input
         type="text"
         className="w-full p-2 border border-gray-300 rounded-md"
-        placeholder="e.g. https://www.youtube.com/channel/UC-lHJZR3Gqxm24_Vd_AJ5Yw"
+        placeholder="e.g. https://www.youtube.com/@DanCurrier"
         aria-label="YouTube Channel URL"
         aria-describedby="button-addon2"
         value={channelUrl}
