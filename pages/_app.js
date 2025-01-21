@@ -86,7 +86,7 @@ function MyApp({ Component, pageProps }) {
     if (googleAnalyticsConfig) {
       const gtagScript = document.createElement("script");
       gtagScript.async = true;
-      gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsConfig}`;
+      gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=G-2M8WVHZHLG`;
       document.head.appendChild(gtagScript);
 
       const inlineScript = document.createElement("script");
@@ -94,7 +94,7 @@ function MyApp({ Component, pageProps }) {
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        gtag('config', '${googleAnalyticsConfig}');
+        gtag('config', 'G-2M8WVHZHLG');
       `;
       document.head.appendChild(inlineScript);
 
@@ -118,7 +118,21 @@ function MyApp({ Component, pageProps }) {
           name="google-site-verification"
           content="_eXmkpaLA6eqmMTx8hVOZP1tF7-PZ9X8vIwkWxo8Po8"
         />
+        <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests;"/>
+
+
         <meta name="msvalidate.01" content="F2174449ED0353749E6042B4A2E43F09" />
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-2M8WVHZHLG"></script>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-2M8WVHZHLG');
+              `,
+            }}
+          />
       </Head>
 
       <Script
