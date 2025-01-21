@@ -216,10 +216,10 @@ useEffect(() => {
   const fetchYouTubeData = async () => {
     if (!user) {
         if (generateCount >= 3) {
-            toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
+            toast.error("Fetch limit exceeded. Please log in for unlimited access.");
             return;
         }
-        toast.error(t("Please log in to fetch channel data."));
+        toast.error("Please log in to fetch channel data.");
         return;
     }
 
@@ -228,45 +228,28 @@ useEffect(() => {
         return;
     }
 
-    // if (!captchaVerified) {
-    //     toast.error(t("Please complete the CAPTCHA."));
-    //     return;
-    // }
-
     setLoading(true);
     setError("");
 
     try {
-        const videoId = extractVideoId(videoUrl);
-        if (!videoId) {
-            throw new Error("Invalid video URL.");
-        }
-
-        const requestPayload = {
-            urls: [videoUrl],
-        };
-
-        const response = await fetch("http://166.0.175.238:8000/api/scrap_youtube_video/?video_title=on&description=on", {
+        const response = await fetch("/api/scrapYoutubeVideo", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(requestPayload),
+            body: JSON.stringify({ videoUrl }),
         });
 
         if (!response.ok) {
-            throw new Error("Failed to fetch YouTube data from the custom API.");
+            throw new Error("Failed to fetch YouTube data.");
         }
 
         const data = await response.json();
         console.log("Fetched data:", data);
 
-        // Extracting video title and description
         const videoData = data[videoUrl];
         if (videoData) {
             const { video_title, description } = videoData;
-
-            // Set title and description if available
             if (video_title) setTitle(video_title);
             if (description) setDescription(description);
         } else {
@@ -279,6 +262,9 @@ useEffect(() => {
         setLoading(false);
     }
 };
+
+
+
 
 
   const extractVideoId = (url) => {
