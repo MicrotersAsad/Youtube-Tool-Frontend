@@ -3,7 +3,8 @@ import axios from "axios";
 import { FaHeart, FaComment, FaStar, FaFlag ,
   FaBookmark, 
   FaThumbsUp,
-  FaThumbsDown, } from "react-icons/fa";
+  FaThumbsDown,
+  FaUserAlt, } from "react-icons/fa";
 import Link from "next/link";
 import { useAuth } from "../../contexts/AuthContext";
 import { ToastContainer, toast } from "react-toastify";
@@ -221,55 +222,60 @@ useEffect(() => {
   }, [user]);
 
   const handlePickWinner = async () => {
+    // Check user login status and fetch limit
     if (!user) {
-      // If the user is not logged in, check the limit of 3 fetches
       if (generateCount >= 3) {
         toast.error(
-          t("You have reached the limit of generating winners. Please log in for unlimited access.")
+          "You have reached the limit of generating winners. Please log in for unlimited access."
         );
         return;
       }
-    } else {
-      // If the user is logged in, they get unlimited access
-      // No need to check generateCount for logged-in users
-    }
-  
-    // Check CAPTCHA verification
-    if (!captchaVerified) {
-      toast.error(t("Please complete the captcha"));
-      return;
     }
   
     setLoading(true);
   
     try {
-      const videoId = new URLSearchParams(new URL(videoUrl).search).get("v");
-      const response = await axios.get("/api/commentswinner", {
-        params: { videoId, includeReplies },
+      // Make the POST request to your API endpoint
+      const response = await axios.post("/api/comments-winner", {
+        videoUrl, // Pass the video URL
       });
   
-      let allComments = response.data;
+      console.log("API Response:", response);
   
-      // Filtering out duplicate comments
+      // Extract `latest_comments` from the response dynamically
+      const videoKey = Object.keys(response.data)[0]; // Get the first key
+      let allComments = response.data[videoKey]?.latest_comments || []; // Safely access `latest_comments`
+  
+   
+  
+      if (allComments.length === 0) {
+        throw new Error("No comments found.");
+      }
+  
+      // Filter duplicate comments if enabled
       if (filterDuplicates) {
         const uniqueUsers = new Set();
         allComments = allComments.filter((comment) => {
-          if (uniqueUsers.has(comment.user)) return false;
-          uniqueUsers.add(comment.user);
+          const userKey = Object.keys(comment)[0]; // Extract the username
+          if (uniqueUsers.has(userKey)) return false;
+          uniqueUsers.add(userKey);
           return true;
         });
       }
   
-      // Filtering based on text content
+      // Filter comments based on text content if enabled
       if (filterText) {
-        allComments = allComments.filter((comment) =>
-          comment.text.includes(filterText)
-        );
+        allComments = allComments.filter((comment) => {
+          const userKey = Object.keys(comment)[0]; // Extract the username
+          return comment[userKey]?.includes(filterText);
+        });
       }
   
+      // Select winners
       if (allComments.length > 0) {
         const selectedWinners = [];
         const uniqueIndexes = new Set();
+  
         while (
           selectedWinners.length < numberOfWinners &&
           uniqueIndexes.size < allComments.length
@@ -281,9 +287,10 @@ useEffect(() => {
           }
         }
   
+        console.log("Winners:", selectedWinners);
         setWinners(selectedWinners);
   
-        // If the user is not logged in or doesn't have unlimited access, decrement the fetch count
+        // Update fetch count for non-logged-in or unpaid users
         if (!user || (user && user.paymentStatus !== "success")) {
           setGenerateCount((prevCount) => {
             const newCount = prevCount + 1;
@@ -291,17 +298,18 @@ useEffect(() => {
             return newCount;
           });
         }
-  
       } else {
         setWinners([]);
       }
     } catch (error) {
-      console.error(t("Error fetching comments"), error.message);
-      toast.error(t("Error fetching comments"));
+      console.error("Error fetching comments:", error.message);
+      toast.error("Error fetching comments");
     } finally {
       setLoading(false);
     }
   };
+  
+  
   
   
 
@@ -810,84 +818,110 @@ Pick a Winner
       </div>
     </div>
   )}
-              {winners.length === 1 && (
-                <div className="bg-white p-4 rounded-lg sm:w-1/3 mx-auto shadow-md mt-5 winner-card">
-                  <h3 className="text-xl font-bold text-center mb-4">{t("Winner")}</h3>
-                  {winners.map((winner, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-col items-center mb-4"
-                    >
-                      <div className="w-24 h-24 mb-4">
-                        <Image
-                          src={winner.avatar}
-                          alt={winner.user}
-                          width={64}
-                          height={64}
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                      </div>
-                      <p className="text-lg font-bold">
-                        <Link target="_blank" href={winner.channelUrl}>
-                          @{winner.user}
-                        </Link>
-                      </p>
-                      <p className="text-gray-600">{winner.text}</p>
-                      <div className="flex space-x-4 mt-2">
-                        <div className="flex items-center space-x-1 text-red-500">
-                          <FaHeart />
-                          <span>{winner.likes}</span>
-                        </div>
-                        <div className="flex items-center space-x-1 text-blue-500">
-                          <FaComment />
-                          <span>{winner.replies}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+  {winners.length === 1 && (
+  <div className="bg-white p-4 rounded-lg sm:w-1/3 mx-auto shadow-md mt-5 winner-card">
+    <h3 className="text-xl font-bold text-center mb-4">{t("Winner")}</h3>
+    {winners.map((winner, index) => {
+      const [user, text] = Object.entries(winner)[0];
+      return (
+        <>
+        <Link  href={`https://www.youtube.com/${user}`} // Dynamic Channel URL
+    target="_blank" // Open in a new tab
+    rel="noopener noreferrer" // Prevent security vulnerabilities
+    className="text-blue-500 hover:underline">
+     
+            <div
+              key={index}
+              className="bg-white p-4 rounded-lg shadow-md winner-card"
+            >
+              <div className="flex flex-col items-center mb-4">
+                <div className="w-24 h-24 mb-4">
+                <FaUserAlt/>
                 </div>
-              )}
-              {winners.length > 1 && (
-                <>
-                  <h2 className="text-center pt-5">{t("Winners")}</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
-                    {winners.map((winner, index) => (
-                      <div
-                        key={index}
-                        className="bg-white p-4 rounded-lg shadow-md winner-card"
-                      >
-                        <div className="flex flex-col items-center mb-4">
-                          <div className="w-24 h-24 mb-4">
-                          <Image
-                          src={winner.avatar}
-                          alt={winner.user}
-                          width={64}
-                          height={64}
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                          </div>
-                          <p className="text-lg font-bold">
-                            <Link target="_blank" href={winner.channelUrl}>
-                              @{winner.user}
-                            </Link>
-                          </p>
-                          <p className="text-gray-600">{winner.text}</p>
-                          <div className="flex space-x-4 mt-2">
-                            <div className="flex items-center space-x-1 text-red-500">
-                              <FaHeart />
-                              <span>{winner.likes}</span>
-                            </div>
-                            <div className="flex items-center space-x-1 text-blue-500">
-                              <FaComment />
-                              <span>{winner.replies}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                <p className="text-lg font-bold">
+                <Link
+    href={`https://www.youtube.com/${user}`} // Dynamic Channel URL
+    target="_blank" // Open in a new tab
+    rel="noopener noreferrer" // Prevent security vulnerabilities
+    className="text-blue-500 hover:underline"
+  >
+    @{user}
+  </Link>
+  
+                </p>
+                <p className="text-gray-600">{text}</p>
+                <div className="flex space-x-4 mt-2">
+                  <div className="flex items-center space-x-1 text-red-500">
+                    <FaHeart />
+                    <span>{winner.likes}</span>
                   </div>
-                </>
-              )}
+                  <div className="flex items-center space-x-1 text-blue-500">
+                    <FaComment />
+                    <span>{winner.replies}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </Link>
+            </>
+      );
+    })}
+  </div>
+)}
+
+{winners.length > 1 && (
+  <>
+    <h2 className="text-center pt-5">{t("Winners")}</h2>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
+      {winners.map((winner, index) => {
+        const [user, text] = Object.entries(winner)[0];
+        return (
+          <>
+      <Link  href={`https://www.youtube.com/${user}`} // Dynamic Channel URL
+  target="_blank" // Open in a new tab
+  rel="noopener noreferrer" // Prevent security vulnerabilities
+  className="text-blue-500 hover:underline">
+   
+          <div
+            key={index}
+            className="bg-white p-4 rounded-lg shadow-md winner-card"
+          >
+            <div className="flex flex-col items-center mb-4">
+              <div className="w-24 h-24 mb-4">
+              <FaUserAlt/>
+              </div>
+              <p className="text-lg font-bold">
+              <Link
+  href={`https://www.youtube.com/${user}`} // Dynamic Channel URL
+  target="_blank" // Open in a new tab
+  rel="noopener noreferrer" // Prevent security vulnerabilities
+  className="text-blue-500 hover:underline"
+>
+  @{user}
+</Link>
+
+              </p>
+              <p className="text-gray-600">{text}</p>
+              <div className="flex space-x-4 mt-2">
+                <div className="flex items-center space-x-1 text-red-500">
+                  <FaHeart />
+                  <span>{winner.likes}</span>
+                </div>
+                <div className="flex items-center space-x-1 text-blue-500">
+                  <FaComment />
+                  <span>{winner.replies}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          </Link>
+          </>
+        );
+      })}
+    </div>
+  </>
+)}
+
             </div>
           </div>
         </div>

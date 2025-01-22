@@ -250,11 +250,11 @@ useEffect(() => {
       return;
     }
   
-    // Check if CAPTCHA is verified
-    if (!captchaVerified) {
-      toast.error(t("Please complete the captcha"));
-      return;
-    }
+    // // Check if CAPTCHA is verified
+    // if (!captchaVerified) {
+    //   toast.error(t("Please complete the captcha"));
+    //   return;
+    // }
   
     // Check if the user has exceeded the fetch limit (only for non-logged-in users)
     if (!user && generateCount >= 3) {
@@ -264,14 +264,7 @@ useEffect(() => {
   
     // If user is logged in, they get unlimited access (no need to check generateCount)
     // For non-logged-in users, enforce the 3-fetch limit
-    if (user && generateCount <= 0) {
-      toast.error(
-        t(
-          "You have reached the limit of fetching trending videos. Please log in for unlimited access."
-        )
-      );
-      return;
-    }
+   
   
     setLoading(true);
   

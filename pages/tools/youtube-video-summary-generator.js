@@ -175,7 +175,11 @@ useEffect(() => {
         return;
       }
     }
-  
+    // Check if CAPTCHA is verified
+      if (!captchaVerified) {
+        toast.error(t("Please complete the captcha"));
+        return;
+      }
     // Check if CAPTCHA is verified (if required)
     // if (!captchaVerified) {
     //   toast.error(t("Please complete the captcha"));
