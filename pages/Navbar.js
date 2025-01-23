@@ -93,7 +93,13 @@ function Navbar() {
         { key: 'YouTube Trending Videos', href: '/tools/trending-videos', icon: '🔥' },
         { key: 'YouTube Money Calculator', href: '/tools/youtube-money-calculator', icon: '💰' },
         { key: 'YouTube Keyword Research', href: '/tools/keyword-research', icon: '🔍' },
-        { key: 'YouTube Comment Picker', href: '/tools/youtube-comment-picker', icon: '🎲' }
+        { key: 'YouTube Comment Picker', href: '/tools/youtube-comment-picker', icon: '🎲' },
+        { key: 'YouTube Shorts Downloader', href: '/tools/youtube-shorts-downloader', icon: '🎲' },
+        { key: 'YouTube Video Downloader', href: '/tools/youtube-video-downloader', icon: '🎲' },
+        { key: 'YouTube Shorts To Mp4 Downloader', href: '/tools/youtube-shorts-to-mp4-downloader', icon: '🎲' },
+        { key: 'YouTube To Mp4 Downloader', href: '/tools/youtube-to-mp4-downloader', icon: '🎲' },
+        { key: 'YouTube Shorts To Mp3 Downloader', href: '/tools/youtube-shorts-to-mp3-downloader', icon: '🎲' },
+        { key: 'YouTube To Mp3 Downloader', href: '/tools/youtube-to-mp3-downloader', icon: '🎲' }
         
       ]
     },

@@ -384,6 +384,18 @@ function Content() {
         return 'Youtube Comment Picker';
       case 'keyword-research':
         return 'YouTube Keyword Research';
+      case 'youtube-shorts-downloader':
+        return 'YouTube Shorts Downloader';
+      case 'youtube-video-downloader':
+        return 'YouTube Video Downloader';
+      case 'youtube-shorts-to-mp3-downloader':
+        return 'Youtube Shorts To mp3 Downloader';
+      case 'youtube-to-mp3-downloader':
+        return 'Youtube To mp3 Downloader';
+      case 'youtube-to-mp4-downloader':
+        return 'Youtube To mp4 Downloader';
+      case 'youtube-shorts-to-mp4-downloader':
+        return 'Youtube Shorts To mp4 Downloader';
       default:
         return 'Unknown Category';
     }
@@ -422,6 +434,12 @@ function Content() {
               <option value="YouTube-Money-Calculator">YouTube Money Calculator</option>
               <option value="youtube-comment-picker">Youtube Comment Picker</option>
               <option value="keyword-research">YouTube Keyword Research</option>
+              <option value="youtube-shorts-downloader">YouTube Shorts Downloader</option>
+              <option value="youtube-video-downloader">YouTube Video Downloader</option>
+              <option value="youtube-shorts-to-mp3-downloader">Youtube Shorts To mp3 Downloader</option>
+              <option value="youtube-to-mp3-downloader">Youtube To mp3 Downloader</option>
+              <option value="youtube-shorts-to-mp4-downloader">Youtube Shorts To mp4 Downloader</option>
+              <option value="youtube-to-mp4-downloader">Youtube To mp4 Downloader</option>
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
               <svg

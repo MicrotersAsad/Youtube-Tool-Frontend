@@ -17,7 +17,7 @@ import Script from "next/script";
 import { i18n } from "next-i18next";
 import axios from "axios";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
-const YtShortdw =({ meta, reviews, content, relatedTools, faqs,reactions,hreflangs})   => {
+const YtVideodw =({ meta, reviews, content, relatedTools, faqs,reactions,hreflangs})   => {
   const { t } = useTranslation('calculator');
   const { user, updateUserProfile, logout } = useAuth();
   const [likes, setLikes] = useState(reactions.likes || 0);
@@ -131,7 +131,7 @@ console.log(formats);
       try {
         const language = i18n.language || "en";
         const response = await fetch(
-          `/api/content?category=youtube-shorts-downloader&language=${language}`
+          `/api/content?category=youtube-video-downloader&language=${language}`
         );
         if (!response.ok) throw new Error("Failed to fetch content");
         const data = await response.json();
@@ -164,7 +164,7 @@ console.log(formats);
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          tool: "youtube-shorts-downloader",
+          tool: "youtube-video-downloader",
           ...newReview,
           userProfile: user?.profileImage || "not available",
           userName: user?.username,
@@ -182,7 +182,7 @@ console.log(formats);
         userProfile: "",
       });
       setShowReviewForm(false);
-      fetchReviews("youtube-shorts-downloader");
+      fetchReviews("youtube-video-downloader");
     } catch (error) {
       console.error("Failed to submit review:", error);
       toast.error("Failed to submit review");
@@ -250,7 +250,7 @@ console.log(formats);
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          category: "youtube-shorts-downloader",
+          category: "youtube-video-downloader",
           userId: user.email,
           action,
         }),
@@ -322,7 +322,7 @@ console.log(formats);
               rel="canonical"
               href={`${meta?.url
                 .toLowerCase()
-                .replace("youtube-shorts-downloader", "youtube-shorts-downloader")}`}
+                .replace("youtube-video-downloader", "youtube-video-downloader")}`}
             />
 
             {/* Open Graph Meta Tags */}
@@ -331,7 +331,7 @@ console.log(formats);
               property="og:url"
               content={`${meta?.url
                 .toLowerCase()
-                .replace("youtube-shorts-downloader", "youtube-shorts-downloader")}`}
+                .replace("youtube-video-downloader", "youtube-video-downloader")}`}
             />
             <meta property="og:title" content={meta?.title} />
             <meta property="og:description" content={meta?.description} />
@@ -345,19 +345,19 @@ console.log(formats);
             <meta
               name="twitter:domain"
               content={meta?.url
-                .replace("tools/youtube-shorts-downloader", "")}
+                .replace("tools/youtube-video-downloader", "")}
             />
             <meta
               property="twitter:url"
               content={`${meta?.url
                 .toLowerCase()
-                .replace("youtube-shorts-downloader", "youtube-shorts-downloader")}`}
+                .replace("youtube-video-downloader", "youtube-video-downloader")}`}
             />
             <meta name="twitter:title" content={meta?.title} />
             <meta name="twitter:description" content={meta?.description} />
             <meta name="twitter:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1733029125504-youtubemoneycalculatorb.png" />
             <meta name="twitter:site" content="@ytubetools" />
-            <meta name="twitter:image:alt" content="youtube-shorts-downloader" />
+            <meta name="twitter:image:alt" content="youtube-video-downloader" />
 
             {/* Alternate hreflang Tags for SEO */}
             {hreflangs &&
@@ -368,7 +368,7 @@ console.log(formats);
                   hreflang={hreflang.hreflang}
                   href={`${hreflang.href
                     .toLowerCase()
-                    .replace("youtube-shorts-downloader", "youtube-shorts-downloader")}`}
+                    .replace("youtube-video-downloader", "youtube-video-downloader")}`}
                 />
               ))}
           </Head>
@@ -378,7 +378,7 @@ console.log(formats);
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: meta?.title,
-    url: `${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-shorts-downloader`,
+    url: `${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-video-downloader`,
     description: meta?.description,
     breadcrumb: {
       "@id": `${meta?.url}#breadcrumb`,
@@ -399,7 +399,7 @@ console.log(formats);
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     name: meta?.title,
-    url: `${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-shorts-downloader`,
+    url: `${meta?.url}${i18n.language !== 'en' ? `/${i18n.language}` : ''}/tools/youtube-video-downloader`,
     applicationCategory: "Multimedia",
     aggregateRating: {
       "@type": "AggregateRating",
@@ -444,8 +444,8 @@ console.log(formats);
        
         <div className="max-w-screen-lg mx-auto p-4">
       <div className="">
-        <h1 className="text-center text-white">YouTube Shorts Video Downloader</h1>
-        <p className="text-center text-white">Easily download YouTube Shorts with our Free YouTube Shorts Downloader Online. Enjoy a fast, secure, and ad-free experience to save your favorite Shorts directly to your device.</p>
+        <h1 className="text-center text-white">YouTube Video Downloader</h1>
+        <p className="text-center text-white">Download YouTube videos quickly and easily with our YouTube Video Downloader. Enjoy high-quality videos in MP4 or MP3 formats with no ads, watermarks, or complicated sign-ups.</p>
         <form
           className="flex pt-5 flex-col md:flex-row gap-4 items-center justify-center"
           onSubmit={(e) => {
@@ -525,7 +525,7 @@ console.log(formats);
             <div className="mt-4">
               {activeTab === "video" && (
                 <div>
-                  <h5 className="text-center font-medium mb-4 text-white">Available Video Formats</h5>
+                  <h5 className="text-center font-medium mb-4">Available Video Formats</h5>
                   {formats
                     .filter((format) => format.type === "video")
                     .map((format, index) => (
@@ -533,7 +533,7 @@ console.log(formats);
                         key={index}
                         className="flex justify-between items-center py-2 border-b"
                       >
-                        <span>{`${format.qualityLabel} (mp4)`}</span>
+                        <span className="text-white">{`${format.qualityLabel} (mp4)`}</span>
                         <button
                           className="px-4 py-2 bg-blue-500 text-white rounded-lg"
                           onClick={() => handleDownload("Video", format.itag)}
@@ -912,7 +912,7 @@ console.log(formats);
 
 
 export async function getServerSideProps(context) {
-  return getContentProps("youtube-shorts-downloader", context.locale, context.req);
+  return getContentProps("youtube-video-downloader", context.locale, context.req);
 }
 
-export default YtShortdw;
+export default YtVideodw;
