@@ -335,8 +335,8 @@ console.log(formats);
             />
             <meta property="og:title" content={meta?.title} />
             <meta property="og:description" content={meta?.description} />
-            <meta property="og:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1733029125504-youtubemoneycalculatorb.png" />
-            <meta property="og:image:secure_url" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1733029125504-youtubemoneycalculatorb.png" />
+            <meta property="og:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1737888179645-youutbeshortdownloader.PNG" />
+            <meta property="og:image:secure_url" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1737888179645-youutbeshortdownloader.PNG" />
             <meta property="og:site_name" content="Ytubetools" />
             <meta property="og:locale" content="en_US" />
 
@@ -355,7 +355,7 @@ console.log(formats);
             />
             <meta name="twitter:title" content={meta?.title} />
             <meta name="twitter:description" content={meta?.description} />
-            <meta name="twitter:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1733029125504-youtubemoneycalculatorb.png" />
+            <meta name="twitter:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1737888179645-youutbeshortdownloader.PNG" />
             <meta name="twitter:site" content="@ytubetools" />
             <meta name="twitter:image:alt" content="youtube-shorts-downloader" />
 

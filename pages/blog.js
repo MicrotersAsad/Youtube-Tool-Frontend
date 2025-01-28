@@ -57,6 +57,14 @@ const BlogSection = ({ initialBlogs = [],availableLanguages, metaUrl  }) => {
       href: lang === 'en' ? metaUrl : `${metaUrl.replace(/\/$/, '')}/${lang}/youtube`,
     })),
   ];
+   // Helper function to truncate text to 26 words
+const truncateDescription = (description, maxWords = 26) => {
+  const words = description.split(' ');
+  if (words.length <= maxWords) {
+    return description;
+  }
+  return words.slice(0, maxWords).join(' ') + '...';
+};
   const fetchCategories = useCallback(async () => {
     try {
       const response = await axios.get('/api/categories');
@@ -357,7 +365,91 @@ const BlogSection = ({ initialBlogs = [],availableLanguages, metaUrl  }) => {
                 })}
               </div>
             </div>
-  
+            <div className="max-w-7xl container">
+  <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mt-8">
+    <div className="col-span-12">
+      <h2 className="text-2xl text-blue-900 font-bold mb-2">All Blog</h2>
+    </div>
+
+    {/* Latest Blogs */}
+    <div className="col-span-12">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {currentBlogs.map((blog, index) => {
+          const content = blog.translations[currentLanguage];
+          return (
+            <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden relative">
+              {content?.image && (
+                <div className="w-full" style={{ height: '260px' }}>
+                  <Image
+                    src={content.image}
+                    alt={content.title}
+                    width={400}
+                    height={260}
+                    className="blog-img"
+                    quality={50}
+                  />
+                  <div className="absolute top-2 left-2 bg-blue-500 text-white text-sm rounded-full px-2 py-1">
+                    <span className="mr-2">{content?.category || content._id}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="pe-3 ps-3 pt-2">
+                <h6 className="text-lg font-semibold">
+                  <Link href={`/blog/${content.slug}`} passHref>
+                    <span className="text-blue-500 text-xl font-bold hover:underline">{content.title}</span>
+                  </Link>
+                </h6>
+                {/* Truncated Description */}
+                <p className="text-gray-600 mb-4">
+                  {truncateDescription(content.description || content.Description)}
+                </p>
+
+                <div className="mt-2">
+                  {parseCategories(blog.category).map((category, i) => (
+                    <span key={i} className="text-sm bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2">
+                      {category}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="border-t ps-3 pe-3 pt-3 d-flex">
+                <p className="text-sm text-gray-500">
+                  <FaUserCircle className="text-center fs-6 text-red-400 inline" /> {blog.author}
+                </p>
+                <p className="text-sm text-gray-500 ms-auto">
+                  <FaCalendar className="text-center text-red-400 inline" />
+                  {format(new Date(blog.createdAt), 'dd/MM/yyyy')}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </div>
+
+  {/* Pagination */}
+  <div className="flex justify-center mt-8">
+    {totalPages > 1 && (
+      <nav className="block">
+        <ul className="flex pl-0 rounded list-none flex-wrap">
+          {Array.from({ length: totalPages }, (_, index) => (
+            <li key={index} className="page-item">
+              <button
+                onClick={() => paginate(index + 1)}
+                className={`page-link ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white text-blue-500'}`}
+              >
+                {index + 1}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )}
+  </div>
+</div>
+
             {/* Additional UI Elements */}
             <div className="flex justify-center mt-8">
               {totalPages > 1 && (

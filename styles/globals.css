@@ -598,7 +598,10 @@ a {
   height: 400px!important ;/* Set a fixed height or use a percentage */
   /* Alternatively, you can use 'auto' if you want dynamic height based on content */
 }
-
+.blog-img{
+  width: 100%!important;
+  height: 250px!important;
+}
 
 /* For smaller screens */
 @media (max-width: 1024px) {

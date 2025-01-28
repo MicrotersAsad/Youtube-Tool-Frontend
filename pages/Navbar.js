@@ -11,6 +11,7 @@ import NProgress from 'nprogress'; // Add this line
 import 'nprogress/nprogress.css'; // Add this line
 import logo from "../public/yt icon.png"
 import { FaBookmark } from 'react-icons/fa';
+
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
@@ -94,12 +95,12 @@ function Navbar() {
         { key: 'YouTube Money Calculator', href: '/tools/youtube-money-calculator', icon: '💰' },
         { key: 'YouTube Keyword Research', href: '/tools/keyword-research', icon: '🔍' },
         { key: 'YouTube Comment Picker', href: '/tools/youtube-comment-picker', icon: '🎲' },
-        { key: 'YouTube Shorts Downloader', href: '/tools/youtube-shorts-downloader', icon: '🎲' },
-        { key: 'YouTube Video Downloader', href: '/tools/youtube-video-downloader', icon: '🎲' },
-        { key: 'YouTube Shorts To Mp4 Downloader', href: '/tools/youtube-shorts-to-mp4-downloader', icon: '🎲' },
-        { key: 'YouTube To Mp4 Downloader', href: '/tools/youtube-to-mp4-downloader', icon: '🎲' },
-        { key: 'YouTube Shorts To Mp3 Downloader', href: '/tools/youtube-shorts-to-mp3-downloader', icon: '🎲' },
-        { key: 'YouTube To Mp3 Downloader', href: '/tools/youtube-to-mp3-downloader', icon: '🎲' }
+        { key: 'YouTube Shorts Downloader', href: '/tools/youtube-shorts-downloader', icon: '🎥' }, // Camera/Video icon
+        { key: 'YouTube Video Downloader', href: '/tools/youtube-video-downloader', icon: '📥' }, // Download icon
+        { key: 'YouTube Shorts To Mp4 Downloader', href: '/tools/youtube-shorts-to-mp4-downloader', icon: '🎞️' }, // Film/MP4 icon
+        { key: 'YouTube To Mp4 Downloader', href: '/tools/youtube-to-mp4-downloader', icon: '🎞️' }, // Film/MP4 icon
+        { key: 'YouTube Shorts To Mp3 Downloader', href: '/tools/youtube-shorts-to-mp3-downloader', icon: '🎵' }, // Music note icon
+        { key: 'YouTube To Mp3 Downloader', href: '/tools/youtube-to-mp3-downloader', icon: '🎶' } // Double music note icon
         
       ]
     },

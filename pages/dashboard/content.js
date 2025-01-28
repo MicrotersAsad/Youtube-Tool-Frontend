@@ -158,6 +158,48 @@ function Content() {
       description:
         "Generate embed codes for YouTube videos for easy sharing on websites and blogs.",
     },
+    {
+      name: "YouTube Video Downloader",
+      link: "http://www.ytubetools.com/tools/youtube-video-downloader",
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1737882392387-youtube-video-downloader.png",
+      description:
+        "Download YouTube videos quickly and easily with our YouTube Video Downloader. Enjoy high-quality videos in MP4 or MP3 formats with no ads, watermarks, or complicated sign-ups.",
+    },
+    {
+      name: "YouTube To MP4 Downloader",
+      link: "http://www.ytubetools.com/tools/youtube-to-mp4-downloader",
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1737882408720-youtube-to-mp-downloader.png",
+      description:
+        "Download your favorite YouTube videos in MP4 format quickly and effortlessly with our YouTube to MP4 Downloader Online. This tool is completely free, fast, and requires no registration or login.",
+    },
+    {
+      name: "YouTube To MP3 Downloader",
+      link: "http://www.ytubetools.com/tools/youtube-to-mp3-downloader",
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1737882420823-youtube-to-mp-download.png",
+      description:
+        "Convert your favorite YouTube videos into high-quality MP3 audio files instantly with our YouTube to MP3 Downloader Online. It’s fast, free, and doesn’t require any registration or login. Enjoy hassle-free access to your favorite music, podcasts, and more.",
+    },
+    {
+      name: "YouTube Shorts Video Downloader",
+      link: "http://www.ytubetools.com/tools/youtube-shorts-downloader",
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1737882336972-youtube-shorts.png",
+      description:
+        "Easily download YouTube Shorts with our Free YouTube Shorts Downloader Online. Enjoy a fast, secure, and ad-free experience to save your favorite Shorts directly to your device.",
+    },
+    {
+      name: "YouTube Shorts To Mp4 Downloader",
+      link: "http://www.ytubetools.com/tools/youtube-shorts-to-mp4-downloader",
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1737882352742-shorts-to-mp-downloader.png",
+      description:
+        "Download your favorite YouTube Shorts as high-quality MP4 videos with our YouTube Shorts to MP4 Downloader. This 100% ad-free tool offers a fast, simple, and seamless way to save Shorts directly to your device.",
+    },
+    {
+      name: "YouTube Shorts To MP3 Downloader",
+      link: "http://www.ytubetools.com/tools/youtube-shorts-to-mp3-downloader",
+      logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1737882368294-shorts-to-mp-downloader.png",
+      description:
+        "Convert and download audio from YouTube Shorts quickly and effortlessly with our YouTube Shorts to MP3 Audio Downloader. This 100% ad-free tool allows you to save high-quality MP3 files directly to your device without interruptions or complications.",
+    },
   ];
 
   useEffect(() => {
