@@ -4,6 +4,7 @@ import contact from "../public/login.svg";
 import Image from 'next/image';
 import Head from 'next/head';
 import { useAuth } from "../contexts/AuthContext";
+import Script from 'next/script';
 export default function Contact() {
   const [formData, setFormData] = useState({
     name: '',
@@ -95,6 +96,10 @@ export default function Contact() {
   <meta name="twitter:image" content="https://ytubetools.com/static/images/contact-twitter-image.jpg" />
   <meta name="twitter:site" content="@ytubetools" />
   <meta name="twitter:image:alt" content="Contact Ytubetools" />
+
+  
+
+    
 </Head>
 
       <div className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-lg flex">
