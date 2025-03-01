@@ -15,9 +15,11 @@ import dynamic from 'next/dynamic';
 import { getContentProps } from "../../utils/getContentProps";
 import Script from "next/script";
 import { i18n } from "next-i18next";
+import { Spinner } from "react-bootstrap";
 import axios from "axios";
+import { useRouter } from "next/router";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
-const YtVideodw =({ meta, reviews, content, relatedTools, faqs,reactions,hreflangs})   => {
+const YtShortdw =({ meta, reviews, content, relatedTools, faqs,reactions,hreflangs})   => {
   const { t } = useTranslation('calculator');
   const { user, updateUserProfile, logout } = useAuth();
   const [likes, setLikes] = useState(reactions.likes || 0);
@@ -38,15 +40,81 @@ const YtVideodw =({ meta, reviews, content, relatedTools, faqs,reactions,hreflan
   const [modalVisible, setModalVisible] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
-  const [url, setUrl] = useState("");
-  const [formats, setFormats] = useState([]);
-  const [thumbnail, setThumbnail] = useState("");
-  const [videoTitle, setVideoTitle] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [countdown, setCountdown] = useState(5);
   const [activeTab, setActiveTab] = useState("video");
-  
+  const [url, setUrl] = useState("");
+  const [formats, setFormats] = useState([]);
+  const [selectedFormat, setSelectedFormat] = useState("");
+  const [selectedType, setSelectedType] = useState("");
+  const [downloadUrl, setDownloadUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+ const [thumbnail, setThumbnail] = useState("");
+  const [videoTitle, setVideoTitle] = useState("");
+  const router=useRouter();
+  // Fetch Available Formats (Video & Audio)
+  const fetchFormats = async () => {
+    setError("");
+    setFormats([]);
+    setDownloadUrl("");
+    setVideoTitle("")
+    setThumbnail("")
+    if (!url) {
+      setError("Please enter a valid YouTube URL.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axios.post("https://ytd.mhnazmul.com/api/getFormats", { url });
+console.log(response);
+
+      if (response.data.formats.length > 0) {
+        setFormats(response.data.formats);
+        setVideoTitle(response.data.videoTitle)
+        setThumbnail(response.data.videoThumbnail)
+      } else {
+        setError("No formats available.");
+      }
+    } catch (err) {
+      setError("Error fetching video/audio formats.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Download Selected Format
+  const handleDownload = async () => {
+    setError("");
+    setDownloadUrl("");
+
+    if (!selectedFormat || !selectedType) {
+      setError("Please select a format first.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axios.post("https://ytd.mhnazmul.com/api/downloadMedia", {
+        url,
+        itag: selectedFormat,
+        type: selectedType,
+      });
+
+      if (response.data.downloadUrl) {
+        setDownloadUrl(`https://ytd.mhnazmul.com${response.data.downloadUrl}`);
+      } else {
+        setError("Failed to generate download link.");
+      }
+    } catch (err) {
+      setError("Error downloading media.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     let timer;
     if (loading) {
@@ -60,43 +128,7 @@ const YtVideodw =({ meta, reviews, content, relatedTools, faqs,reactions,hreflan
     return () => clearInterval(timer);
   }, [loading]);
 
-  const fetchFormats = async () => {
-    setError("");
-    setFormats([]);
-    setThumbnail("");
-    setVideoTitle("");
 
-    if (!url) {
-      setError("Please enter a valid YouTube URL.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const response = await axios.post("https://ytd.mhnazmul.com/getFormats", { url });
-      setFormats(response.data.formats);
-      setThumbnail(response.data.thumbnail);
-      setVideoTitle(response.data.videoTitle);
-    } catch (err) {
-      setError("Error fetching video formats.");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-console.log(formats);
-
-  const handleDownload = (type, itag) => {
-    const downloadUrl = `https://ytd.mhnazmul.com/download${type}?url=${encodeURIComponent(
-      url
-    )}&itag=${itag}`;
-    const link = document.createElement("a");
-    link.href = downloadUrl;
-    link.setAttribute("download", "");
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  };
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
@@ -335,8 +367,8 @@ console.log(formats);
             />
             <meta property="og:title" content={meta?.title} />
             <meta property="og:description" content={meta?.description} />
-            <meta property="og:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1737632910991-youtubeshortstompdownloader.png" />
-            <meta property="og:image:secure_url" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1737632910991-youtubeshortstompdownloader.png" />
+            <meta property="og:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1737888179645-youutbeshortdownloader.PNG" />
+            <meta property="og:image:secure_url" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1737888179645-youutbeshortdownloader.PNG" />
             <meta property="og:site_name" content="Ytubetools" />
             <meta property="og:locale" content="en_US" />
 
@@ -355,7 +387,7 @@ console.log(formats);
             />
             <meta name="twitter:title" content={meta?.title} />
             <meta name="twitter:description" content={meta?.description} />
-            <meta name="twitter:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1737632910991-youtubeshortstompdownloader.png" />
+            <meta name="twitter:image" content="https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1737888179645-youutbeshortdownloader.PNG" />
             <meta name="twitter:site" content="@ytubetools" />
             <meta name="twitter:image:alt" content="youtube-shorts-to-mp3-downloader" />
 
@@ -443,92 +475,106 @@ console.log(formats);
         <div className="max-w-7xl mx-auto p-4">
        
         <div className="max-w-screen-lg mx-auto p-4">
-      <div className="">
-        <h1 className="text-center text-white">YouTube Shorts To MP3 Downloader</h1>
-        <p className="text-center text-white">Convert and download audio from YouTube Shorts quickly and effortlessly with our YouTube Shorts to MP3 Audio Downloader. This 100% ad-free tool allows you to save high-quality MP3 files directly to your device without interruptions or complications.</p>
-        <form
-          className="flex pt-5 flex-col md:flex-row gap-4 items-center justify-center"
-          onSubmit={(e) => {
-            e.preventDefault();
-            fetchFormats();
-          }}
-        >
-          <div className="flex-1">
-            <div className="flex items-center border rounded-lg overflow-hidden">
-              <span className="">
-                <img
-                  src="https://img.icons8.com/color/48/000000/youtube-play.png"
-                  alt="YouTube Icon"
-                  className="w-16 h-16 "
-                />
-              </span>
-              <input
-                type="text"
-                placeholder="https://www.youtube.com/watch?v=..."
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                className="flex-1 px-4 py-3 border-l focus:outline-none"
-              />
-            </div>
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className={`px-6 py-3 rounded-lg font-medium text-white ${
-              loading ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
-            }`}
-          >
-            {loading ? `Loading... ${countdown}s` : "Search"}
-          </button>
-        </form>
+        <h1 className="text-center text-white">YouTube Shorts To Mp3 Downloader</h1>
+        <p className="text-center text-white">Download your favorite YouTube Shorts as high-quality Mp3 videos with our YouTube Shorts to Mp3 Downloader. This 100% ad-free tool offers a fast, simple, and seamless way to save Shorts directly to your device.</p>
+        <div className="container mt-5">
+      
 
-        {error && (
-          <div className="mt-4 text-red-600 font-medium">{error}</div>
-        )}
-
-        {thumbnail && (
-          <div className="mt-6 text-center">
-            <img
-              src={thumbnail}
-              alt="Video Thumbnail"
-              className="w-full max-h-100 object-cover rounded-lg"
+      {/* URL Input and Fetch Button */}
+       {/* Input Section */}
+       <div className="input-group mb-3" style={{ height: "50px" }}>
+            <span className="input-group-text" style={{ height: "100%" }}>
+              <img src="https://img.icons8.com/color/48/000000/youtube-play.png" alt="YouTube" width="30" />
+            </span>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Enter YouTube video URL"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
             />
-            <h3 className="mt-4 text-lg font-bold text-white">{videoTitle}</h3>
-          </div>
-        )}
-
-{formats.length > 0 && (
-          <div className="mt-6">
-           
-
-            <div className="mt-4">
-          
-
-              {activeTab === "audio" && (
-                <div>
-                  <h5 className="text-center font-medium mb-4 text-white">Available Audio Formats</h5>
-                  {formats
-                    .filter((format) => format.type === "audio")
-                    .map((format, index) => (
-                      <div
-                        key={index}
-                        className="flex justify-between items-center py-2 border-b"
-                      >
-                        <span className="text-white">{`Audio (mp3)`}</span>
-                        <button
-                          className="px-4 py-2 bg-blue-500 text-white rounded-lg"
-                          onClick={() => handleDownload("Audio", format.itag)}
-                        >
-                          Download
-                        </button>
-                      </div>
-                    ))}
-                </div>
-              )}
+            <div className="input-group-append" style={{ height: "100%" }}>
+              <button
+                className="btn btn-primary"
+                onClick={fetchFormats}
+                style={{ height: "100%", paddingRight: "40px", paddingLeft: "40px" }}
+              >
+                Search
+              </button>
             </div>
           </div>
-        )}
-      </div>
+
+          {error && <div className="alert alert-danger">{error}</div>}
+
+{/* Show loading spinner when data is being fetched */}
+{loading && (
+  <div className="d-flex justify-content-center my-4">
+    <Spinner animation="border" variant="primary" />
+  </div>
+)}
+
+      {/* Formats and Download Button */}
+      {formats.length > 0 && (
+         <div className="row">
+                        <div className="col-md-6">
+                {/* Video Thumbnail */}
+                <div className="card" style={{ width: "100%" }}>
+                  <img src={thumbnail} alt="Video thumbnail" className="card-img-top" />
+                </div>
+                {/* Video Title */}
+                <h5 className="text-center mt-2" style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
+                  {videoTitle}
+                </h5>
+              </div>
+              <div className="col-md-6">
+        <div className="text-center">
+          <h4 className="mb-3">Select Format</h4>
+          <select
+            className="form-select mb-3"
+            value={selectedFormat}
+            onChange={(e) => {
+              const selectedItag = e.target.value;
+              const selectedFormat = formats.find(
+                (f) => f.itag.toString() === selectedItag
+              );
+              if (selectedFormat) {
+                setSelectedFormat(selectedItag);
+                setSelectedType(selectedFormat.type);
+              }
+            }}
+          >
+            <option value="">Select Format</option>
+            {formats.map((format, index) => (
+              <option key={index} value={format.itag}>
+                {format.qualityLabel} ({format.type})
+              </option>
+            ))}
+          </select>
+
+          <button
+            className="btn btn-success"
+            onClick={handleDownload}
+            disabled={!selectedFormat || loading}
+          >
+            {loading ? "Downloading..." : "Download"}
+          </button>
+        </div>
+        </div>
+        </div>
+      )}
+
+      {/* Download Link */}
+      {downloadUrl && (
+        <div className="text-center mt-4">
+          <h4 className="mb-3">Download Ready!</h4>
+          <a href={downloadUrl} className="btn btn-primary" download>
+            Click Here to Download
+          </a>
+          <p className="text-muted mt-2">⏳ This file will be deleted after 2 minutes.</p>
+        </div>
+      )}
+    </div>
+     
       <div className="max-w-screen-lg mx-auto p-4">
     <div>
       {/* Buttons */}
@@ -537,7 +583,7 @@ console.log(formats);
           YouTube Video Downloader
         </button>
         <button className="px-4 py-2 rounded-full bg-gray-200 text-gray-800">
-          YouTube to MP4
+          YouTube to Mp3
         </button>
         <button className="px-4 py-2 rounded-full bg-gray-200 text-gray-800">
           YouTube to MP3
@@ -549,7 +595,7 @@ console.log(formats);
           YouTube Shorts to MP3
         </button>
         <button className="px-4 py-2 rounded-full bg-gray-200 text-gray-800">
-          YouTube Shorts to MP4
+          YouTube Shorts to Mp3
         </button>
       
       </div>
@@ -874,4 +920,4 @@ export async function getServerSideProps(context) {
   return getContentProps("youtube-shorts-to-mp3-downloader", context.locale, context.req);
 }
 
-export default YtVideodw;
+export default YtShortdw;
