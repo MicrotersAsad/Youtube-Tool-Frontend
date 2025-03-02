@@ -35,7 +35,14 @@ export default function Sitemap() {
       '/tools/youtube-money-calculator',
       '/tools/youtube-comment-picker',
       '/tools/keyword-research',
-      '/tools/youtube-embed-code-generator'
+      '/tools/youtube-embed-code-generator',
+      '/tools/youtube-shorts-downloader',
+      '/tools/youtube-video-downloader',
+      '/tools/youtube-shorts-to-mp4-downloader',
+      '/tools/youtube-to-mp4-downloader',
+      '/tools/youtube-shorts-to-mp3-downloader',
+      '/tools/youtube-to-mp3-downloader'
+
     ];
   
     // Function to generate language-based routes
