@@ -32,7 +32,7 @@ const Home = () => {
   const allTools = [
     {
       name: "YouTube Tag Generator",
-      link: "https://ytubetools.com/chorme-extensiontools/tag-generator",
+      link: "https://chromewebstore.google.com/detail/ai-youtube-tag-generator/bofpfhcblfdkodoooaklfkadepoofjod?authuser=0&hl=en",
       logo: "https://ytubetools.s3.eu-north-1.amazonaws.com/uploads/1733289894208-taggenerator.png",
       description:
         "Generate optimized YouTube tags to boost your video discoverability and SEO.",
