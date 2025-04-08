@@ -6,6 +6,7 @@ export default function Home() {
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState('');
   const [language, setLanguage] = useState('');
+  const [exportFormat, setExportFormat] = useState('json');
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -46,7 +47,10 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ collectionName }),
+        body: JSON.stringify({ 
+          collectionName,
+          format: exportFormat 
+        }),
       });
 
       if (response.ok) {
@@ -54,9 +58,14 @@ export default function Home() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${collectionName}.json`;
+        
+        // Set appropriate file extension based on format
+        const fileExtension = exportFormat === 'mysql' ? 'sql' : 'json';
+        a.download = `${collectionName}.${fileExtension}`;
+        
         a.click();
         window.URL.revokeObjectURL(url);
+        setMessage(`Successfully exported ${collectionName} in ${exportFormat.toUpperCase()} format`);
       } else {
         const data = await response.json();
         setMessage(`Error: ${data.message}`);
@@ -107,20 +116,20 @@ export default function Home() {
               >
                 <option value="">Select a language</option>
                 <option value="en">English</option>
-              <option value="fr">French</option>
-              <option value="zh-HANT">中国传统的</option>
-              <option value="zh-HANS">简体中文</option>
-              <option value="nl">Nederlands</option>
-              <option value="gu">ગુજરાતી</option>
-              <option value="hi">हिंदी</option>
-              <option value="it">Italiano</option>
-              <option value="ja">日本語</option>
-              <option value="ko">한국어</option>
-              <option value="pl">Polski</option>
-              <option value="pt">Português</option>
-              <option value="ru">Русский</option>
-              <option value="es">Español</option>
-              <option value="de">Deutsch</option>
+                <option value="fr">French</option>
+                <option value="zh-HANT">中国传统的</option>
+                <option value="zh-HANS">简体中文</option>
+                <option value="nl">Nederlands</option>
+                <option value="gu">ગુજરાતી</option>
+                <option value="hi">हिंदी</option>
+                <option value="it">Italiano</option>
+                <option value="ja">日本語</option>
+                <option value="ko">한국어</option>
+                <option value="pl">Polski</option>
+                <option value="pt">Português</option>
+                <option value="ru">Русский</option>
+                <option value="es">Español</option>
+                <option value="de">Deutsch</option>
                 {/* Add more languages as needed */}
               </select>
             </div>
@@ -162,6 +171,36 @@ export default function Home() {
                 <option value="youtube">Youtube</option>
               </select>
             </div>
+            
+            {/* New export format selection */}
+            <div className="mb-4">
+              <label htmlFor="exportFormat" className="block text-gray-700 font-bold mb-2">Export Format</label>
+              <div className="flex space-x-4">
+                <label className="inline-flex items-center">
+                  <input
+                    type="radio"
+                    name="exportFormat"
+                    value="json"
+                    checked={exportFormat === 'json'}
+                    onChange={(e) => setExportFormat(e.target.value)}
+                    className="form-radio text-green-500 h-5 w-5"
+                  />
+                  <span className="ml-2">JSON</span>
+                </label>
+                <label className="inline-flex items-center">
+                  <input
+                    type="radio"
+                    name="exportFormat"
+                    value="mysql"
+                    checked={exportFormat === 'mysql'}
+                    onChange={(e) => setExportFormat(e.target.value)}
+                    className="form-radio text-green-500 h-5 w-5"
+                  />
+                  <span className="ml-2">MySQL</span>
+                </label>
+              </div>
+            </div>
+            
             <button type="submit" className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500">Export Content</button>
           </form>
           {message && <p className="mt-4 text-red-500">{message}</p>}
