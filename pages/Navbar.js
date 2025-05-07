@@ -36,6 +36,8 @@ const availableLanguages = [
 
 function Navbar() {
   const { user, logout } = useAuth();
+  console.log(user);
+  
   const router = useRouter();
   const { t, i18n } = useTranslation('navbar');
   const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);

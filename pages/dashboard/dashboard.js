@@ -122,7 +122,7 @@ const articlesPerPage = 10; // Set the number of articles per page
             userListResponse, loginStatsResponse, activeSessionsResponse, reviewsResponse, 
             pagesResponse, commentsResponse
           ];
-  console.log(responses);
+
   
           // Loop over each response to ensure they are OK
           for (const response of responses) {

@@ -63,7 +63,7 @@ function MyApp({ Component, pageProps }) {
 
   // Dynamically add Tawk.to script
   useEffect(() => {
-    if (tawkConfig && tawkConfig.appKey) {
+    if (tawkConfig && tawkConfig.appKey && !router.pathname.includes("/dashboard")) {
       const Tawk_API = window.Tawk_API || {};
       const Tawk_LoadStart = new Date();
       const script = document.createElement("script");
@@ -79,11 +79,11 @@ function MyApp({ Component, pageProps }) {
         }
       };
     }
-  }, [tawkConfig]);
+  }, [tawkConfig, router.pathname]);
 
   // Dynamically add Google Analytics script
   useEffect(() => {
-    if (googleAnalyticsConfig) {
+    if (googleAnalyticsConfig && !router.pathname.includes("/dashboard")) {
       const gtagScript = document.createElement("script");
       gtagScript.async = true;
       gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=G-2M8WVHZHLG`;
@@ -107,7 +107,7 @@ function MyApp({ Component, pageProps }) {
         }
       };
     }
-  }, [googleAnalyticsConfig]);
+  }, [googleAnalyticsConfig, router.pathname]);
 
   return (
     <>
@@ -118,24 +118,32 @@ function MyApp({ Component, pageProps }) {
           name="google-site-verification"
           content="_eXmkpaLA6eqmMTx8hVOZP1tF7-PZ9X8vIwkWxo8Po8"
         />
-       
-
-      
-
         <meta name="msvalidate.01" content="F2174449ED0353749E6042B4A2E43F09" />
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-2M8WVHZHLG"></script>
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2198018529886749"
-     crossorigin="anonymous"></script>
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', 'G-2M8WVHZHLG');
-              `,
-            }}
-          />
+
+        {/* Conditionally load Google Analytics and Google Ads scripts */}
+        {!router.pathname.includes("/dashboard") && (
+          <>
+            <script
+              async
+              src="https://www.googletagmanager.com/gtag/js?id=G-2M8WVHZHLG"
+            ></script>
+            <script
+              async
+              src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2198018529886749"
+              crossOrigin="anonymous"
+            ></script>
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', 'G-2M8WVHZHLG');
+                `,
+              }}
+            />
+          </>
+        )}
       </Head>
 
       <Script
@@ -160,13 +168,13 @@ function MyApp({ Component, pageProps }) {
           ],
         })}
       </Script>
-  
+
       <AuthProvider>
         <ContentProvider>
-        <UserActionProvider>
-          {!router.pathname.includes("/dashboard") && <Navbar />}
-          <Component {...pageProps}  />
-          {!router.pathname.includes("/dashboard") && <Footer />}
+          <UserActionProvider>
+            {!router.pathname.includes("/dashboard") && <Navbar />}
+            <Component {...pageProps} />
+            {!router.pathname.includes("/dashboard") && <Footer />}
           </UserActionProvider>
         </ContentProvider>
       </AuthProvider>
