@@ -93,7 +93,7 @@ const toggleDropdown = (userId) => {
       const result = await response.json();
       if (result.success && Array.isArray(result.data)) {
         // Filtering only premium users (those with paymentStatus = "success")
-        const premiumUsers = result.data.filter(user => user?.paymentStatus === "success");
+        const premiumUsers = result.data.filter(user => user?.paymentDetails?.paymentStatus === "success");
         setUsers(premiumUsers);
       } else {
         setUsers([]);
@@ -195,8 +195,8 @@ const toggleDropdown = (userId) => {
               <tbody>
                 {paginatedUsers.map((user) => {
                   const isExpired =
-                    user.subscriptionValidUntil &&
-                    new Date(user.subscriptionValidUntil) < new Date();
+                    user?.paymentDetails?.subscriptionValidUntil &&
+                    new Date(user?.paymentDetails?.subscriptionValidUntil) < new Date();
           
                   return (
                     <tr
@@ -224,10 +224,15 @@ const toggleDropdown = (userId) => {
                           <span className="text-gray-500 italic">No Image</span>
                         )}
                       </td>
-                      <td className="py-2 px-4 border-b">{user.paymentStatus || 'N/A'}</td>
-                      <td className="py-2 px-4 border-b">{user.subscriptionPlan || 'N/A'}</td>
                       <td className="py-2 px-4 border-b">
-                        {user.subscriptionValidUntil ? (
+  {user?.paymentDetails?.paymentStatus ? user?.paymentDetails?.paymentStatus : 'N/A'}
+</td>
+<td className="py-2 px-4 border-b">
+{user?.paymentDetails?.subscriptionPlan ? user?.paymentDetails?.subscriptionPlan : 'N/A'}
+</td>
+
+                      <td className="py-2 px-4 border-b">
+                        {user?.paymentDetails?.subscriptionValidUntil ? (
                           <span
                             className={`${
                               isExpired
@@ -237,8 +242,8 @@ const toggleDropdown = (userId) => {
                           >
                             {isExpired
                               ? 'Expired'
-                              : `${user.subscriptionValidUntil} (${calculateRemainingDays(
-                                  user.subscriptionValidUntil
+                              : `${user?.paymentDetails?.subscriptionValidUntil} (${calculateRemainingDays(
+                                  user?.paymentDetails?.subscriptionValidUntil
                                 )} days xs)`}
                           </span>
                         ) : (

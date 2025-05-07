@@ -47,8 +47,8 @@ const ExpiredSubs = () => {
       if (result.success && Array.isArray(result.data)) {
         const expiredOrders = result.data.filter((user) => {
           return (
-            user?.paymentStatus === "success" &&
-            new Date(user.subscriptionValidUntil) <= new Date()
+            user.paymentDetails.paymentStatus === "success" &&
+            new Date(user?.paymentDetails.subscriptionValidUntil) <= new Date()
           );
         });
         setOrders(expiredOrders);
@@ -183,14 +183,18 @@ const ExpiredSubs = () => {
                         <div className="mb-2">
                           <strong>Payment Status:</strong>{" "}
                           <span className="text-green-600">
-                            {order.paymentStatus}
+                            {order.paymentDetails.paymentStatus}
                           </span>
                         </div>
                         <div className="mb-2">
                           <strong>Subscription Valid:</strong>{" "}
                           {new Date(
-                            order.subscriptionValidUntil
+                            order.paymentDetails.subscriptionValidUntil
                           ).toLocaleDateString()}
+                        </div>
+                        <div className="mb-2">
+                          <strong>Account Created:</strong>{" "}
+                          {new Date(order.createdAt).toLocaleDateString()}
                         </div>
                         <div className="mt-4">
                           <button
@@ -231,6 +235,9 @@ const ExpiredSubs = () => {
                         Subscription Valid
                       </th>
                       <th className="py-2 px-5 text-left text-xs font-semibold">
+                        Account Created
+                      </th>
+                      <th className="py-2 px-5 text-left text-xs font-semibold">
                         Details
                       </th>
                     </tr>
@@ -256,6 +263,9 @@ const ExpiredSubs = () => {
                               order.subscriptionValidUntil
                             ).toLocaleDateString()}
                           </td>
+                          <td className="py-2 px-5 text-gray-600">
+                            {new Date(order.createdAt).toLocaleDateString()}
+                          </td>
                           <td className="py-2 px-5 flex space-x-3">
                             <button
                               className="bg-blue-500 text-white px-3 py-2 rounded-md hover:bg-blue-600 transition duration-200 shadow-xs"
@@ -275,7 +285,7 @@ const ExpiredSubs = () => {
                     ) : (
                       <tr>
                         <td
-                          colSpan="5"
+                          colSpan="6"
                           className="py-5 text-center text-gray-500 font-medium"
                         >
                           No successful orders found.
@@ -378,13 +388,13 @@ const ExpiredSubs = () => {
                   <div className="bg-gray-100 p-4 rounded-lg shadow-sm break-words">
                     <strong>Stripe Customer ID:</strong>
                     <span className="block mt-1 text-sm text-gray-700 break-all">
-                      {selectedOrder.stripeCustomerId}
+                      {selectedOrder.stripeCustomerId?.id || 'N/A'}
                     </span>
                   </div>
                   <div className="bg-gray-100 p-4 rounded-lg shadow-sm break-words">
                     <strong>Stripe Session ID:</strong>
                     <span className="block mt-1 text-sm text-gray-700 break-all">
-                      {selectedOrder.stripeSessionId}
+                      {selectedOrder.stripeSessionId || 'N/A'}
                     </span>
                   </div>
                 </>

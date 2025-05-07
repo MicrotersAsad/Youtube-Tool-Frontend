@@ -3,39 +3,49 @@ import Layout from './layout';
 import { ClipLoader } from 'react-spinners';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import {FaSearch, FaTrashAlt,
+import {
+  FaSearch,
+  FaTrashAlt,
   FaTimes,
   FaBan,
   FaEdit,
   FaEllipsisV,
   FaEnvelope,
-  FaBell, } from 'react-icons/fa';
+  FaBell,
+} from 'react-icons/fa';
 import Image from 'next/image';
-import BanModal from "../../components/BanModal";
-import { useUserActions } from "../../contexts/UserActionContext";
-import DeleteModal from "../../components/DeleteModal";
-import EmailModal from "../../components/EmailModal";
-import NotificationModal from "../../components/NotificationModal";
-import EditModal from "../../components/EditModal";
+import BanModal from '../../components/BanModal';
+import { useUserActions } from '../../contexts/UserActionContext';
+import DeleteModal from '../../components/DeleteModal';
+import EmailModal from '../../components/EmailModal';
+import NotificationModal from '../../components/NotificationModal';
+import EditModal from '../../components/EditModal';
+
 const Users = () => {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [emailSubject, setEmailSubject] = useState('');
-  const [emailMessage, setEmailMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(null);
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
-  const [pageGroup, setPageGroup] = useState(0);
-  const pagesPerGroup = 5;
+
+  const {
+    setSelectedUser,
+    setShowBanModal,
+    setShowDeleteModal,
+    setShowEmailModal,
+    setShowNotificationModal,
+    setShowEditModal,
+    setEditUser,
+  } = useUserActions();
 
   useEffect(() => {
     fetchUsers();
   }, []);
-  
 
   useEffect(() => {
     handleSearch(searchTerm);
@@ -68,40 +78,37 @@ const Users = () => {
       setLoading(false);
     }
   };
-  const { setSelectedUser, setShowBanModal,setShowDeleteModal,
-    setShowEmailModal,setShowNotificationModal,setShowEditModal,setEditUser   } = useUserActions();
+console.log(users);
+
   const openBanModal = (user) => {
     setSelectedUser(user);
-    setShowBanModal(true); // Show the ban modal
+    setShowBanModal(true);
   };
+
   const openDeleteModal = (user) => {
     setSelectedUser(user);
-    setShowDeleteModal(true); // Show the ban modal
+    setShowDeleteModal(true);
   };
+
   const openEmailModal = (user) => {
     setSelectedUser(user);
-    setShowEmailModal(true); // Show the ban modal
+    setShowEmailModal(true);
   };
+
   const openNotificationModal = (user) => {
     setSelectedUser(user);
-    setShowNotificationModal(true); // Show the ban modal
+    setShowNotificationModal(true);
   };
+
   const openEditModal = (user) => {
     setSelectedUser(user);
-    setEditUser(user)
-    setShowEditModal(true); // Show the ban modal
+    setEditUser(user);
+    setShowEditModal(true);
   };
 
   const toggleDropdown = (userId) => {
-    console.log("Previous dropdownOpen:", dropdownOpen);
-    setDropdownOpen((prev) => {
-      const newState = prev === userId ? null : userId;
-      console.log("New dropdownOpen:", newState);
-      return newState;
-    });
+    setDropdownOpen((prev) => (prev === userId ? null : userId));
   };
- 
- 
 
   const handleSearch = (term) => {
     if (term.trim() === '') {
@@ -115,40 +122,37 @@ const Users = () => {
       );
       setFilteredUsers(filtered);
     }
+    setCurrentPage(1); // Reset to first page on search
   };
 
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
+  // Calculate total pages and paginated users
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * usersPerPage,
-    currentPage * usersPerPage
-  );
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * usersPerPage;
+    const end = start + usersPerPage;
+    return filteredUsers.slice(start, end);
+  }, [filteredUsers, currentPage]);
 
-  const paginationGroup = useMemo(() => {
-    const start = pageGroup * pagesPerGroup;
-    return Array.from({ length: pagesPerGroup }, (_, i) => start + i + 1).filter(
-      (page) => page <= totalPages
-    );
-  }, [pageGroup, totalPages]);
-
-  const handleNextGroup = () => {
-    if ((pageGroup + 1) * pagesPerGroup < totalPages) {
-      setPageGroup(pageGroup + 1);
-    }
-  };
-
-  const handlePreviousGroup = () => {
-    if (pageGroup > 0) {
-      setPageGroup(pageGroup - 1);
-    }
-  };
-
+  // Handle page change
   const handlePageChange = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
+      window.scrollTo({ top: 0, behavior: 'smooth' }); // Optional: Scroll to top
     }
   };
+
+  // Generate page numbers for display (show limited pages, e.g., 5 at a time)
+  const maxPagesToShow = 5;
+  const startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+  const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+  const pageNumbers = useMemo(() => {
+    return Array.from(
+      { length: endPage - startPage + 1 },
+      (_, i) => startPage + i
+    );
+  }, [startPage, endPage]);
 
   return (
     <Layout>
@@ -193,7 +197,10 @@ const Users = () => {
                 </thead>
                 <tbody>
                   {paginatedUsers.map((user) => (
-                    <tr key={user._id} className="hover:bg-gray-100 transition duration-200">
+                    <tr
+                      key={user._id}
+                      className="hover:bg-gray-100 transition duration-200"
+                    >
                       <td className="py-2 px-4 border-b">{user?.email}</td>
                       <td className="py-2 px-4 border-b">
                         {user.profileImage ? (
@@ -206,14 +213,21 @@ const Users = () => {
                           <span className="text-gray-500 italic">No Image</span>
                         )}
                       </td>
-                      <td className="py-2 px-4 border-b">{user?.paymentStatus|| 'N/A'}</td>
-                      <td className="py-2 px-4 border-b">{user?.subscriptionPlan|| 'N/A'}</td>
-                      <td className="py-2 px-4 border-b">{user?.subscriptionValidUntil|| 'N/A'}</td>
+                      <td className="py-2 px-4 border-b">
+  {user?.paymentDetails?.paymentStatus ? user?.paymentDetails?.paymentStatus : 'N/A'}
+</td>
+<td className="py-2 px-4 border-b">
+{user?.paymentDetails?.subscriptionPlan ? user?.paymentDetails?.subscriptionPlan : 'N/A'}
+</td>
+<td className="py-2 px-4 border-b">
+  {user?.paymentDetails?.subscriptionValidUntil ? new Date(user?.paymentDetails?.subscriptionValidUntil).toLocaleDateString() : 'N/A'}
+</td>
+
                       <td className="py-2 px-4 relative">
                         <button
                           className="text-gray-700 hover:text-gray-900"
                           onClick={(e) => {
-                            e.stopPropagation(); // Prevent parent events from triggering
+                            e.stopPropagation();
                             toggleDropdown(user._id);
                           }}
                         >
@@ -222,11 +236,9 @@ const Users = () => {
 
                         {dropdownOpen === user._id && (
                           <div
-                            className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50 elapsis-menu"
-                            onClick={(e) => e.stopPropagation()} // Prevent dropdown close on button click
+                            className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            
-                            
                             <button
                               className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left text-sm"
                               onClick={(e) => {
@@ -245,7 +257,6 @@ const Users = () => {
                             >
                               <FaBan className="mr-2 text-red-500" /> Ban
                             </button>
-                            
                             <button
                               className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left text-sm"
                               onClick={(e) => {
@@ -255,7 +266,6 @@ const Users = () => {
                             >
                               <FaTrashAlt className="mr-2 text-red-600" /> Delete
                             </button>
-                            
                             <button
                               className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left text-sm"
                               onClick={(e) => {
@@ -274,8 +284,6 @@ const Users = () => {
                             >
                               <FaBell className="mr-2 text-blue-500" /> Notification
                             </button>
-                           
-                          
                           </div>
                         )}
                       </td>
@@ -286,47 +294,92 @@ const Users = () => {
             </div>
           )}
 
-<div className="flex justify-between items-center mt-4 ps-4 pe-4">
-<div className="text-xs">
-  <span>
-    Showing {(currentPage - 1) * usersPerPage + 1} to{" "}
-    {Math.min(currentPage * usersPerPage, users.length)} of {users.length} user
-  </span>
-</div>
-          <div className="flex justify-center items-center mt-6 space-x-2">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              className={`bg-gray-300 px-4 py-2 rounded-md ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={currentPage === 1}
-            >
-              «
-            </button>
-            {[...Array(totalPages).keys()].map((number) => (
+          {/* Pagination Controls */}
+          <div className="flex justify-between items-center mt-4 ps-4 pe-4">
+            <div className="text-xs">
+              <span>
+                Showing {(currentPage - 1) * usersPerPage + 1} to{' '}
+                {Math.min(currentPage * usersPerPage, filteredUsers.length)} of{' '}
+                {filteredUsers.length} users
+              </span>
+            </div>
+            <div className="flex justify-center items-center space-x-2">
+              {/* Previous Button */}
               <button
-                key={number}
-                className={`px-3 py-1 rounded ${currentPage === number + 1 ? 'bg-red-500 text-white' : ''}`}
-                onClick={() => handlePageChange(number + 1)}
+                onClick={() => handlePageChange(currentPage - 1)}
+                className={`px-4 py-2 rounded-md bg-gray-300 text-gray-700 ${
+                  currentPage === 1
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-gray-400'
+                }`}
+                disabled={currentPage === 1}
               >
-                {number + 1}
+                «
               </button>
-            ))}
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              className={`bg-gray-300 px-4 py-2 rounded-md ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={currentPage === totalPages}
-            >
-              »
-            </button>
-          </div>
+
+              {/* Page Numbers */}
+              {startPage > 1 && (
+                <>
+                  <button
+                    onClick={() => handlePageChange(1)}
+                    className="px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200"
+                  >
+                    1
+                  </button>
+                  {startPage > 2 && <span className="px-3 py-1">...</span>}
+                </>
+              )}
+
+              {pageNumbers.map((number) => (
+                <button
+                  key={number}
+                  onClick={() => handlePageChange(number)}
+                  className={`px-3 py-1 rounded-md ${
+                    currentPage === number
+                      ? 'bg-[#071251] text-white'
+                      : 'bg-gray-100 hover:bg-gray-200'
+                  }`}
+                >
+                  {number}
+                </button>
+              ))}
+
+              {endPage < totalPages && (
+                <>
+                  {endPage < totalPages - 1 && (
+                    <span className="px-3 py-1">...</span>
+                  )}
+                  <button
+                    onClick={() => handlePageChange(totalPages)}
+                    className="px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200"
+                  >
+                    {totalPages}
+                  </button>
+                </>
+              )}
+
+              {/* Next Button */}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                className={`px-4 py-2 rounded-md bg-gray-300 text-gray-700 ${
+                  currentPage === totalPages
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-gray-400'
+                }`}
+                disabled={currentPage === totalPages}
+              >
+                »
+              </button>
+            </div>
           </div>
         </div>
-  {/*  User Modal */}
-  <EditModal/>
-            <BanModal  />
-            <DeleteModal/>
-            <EmailModal/>
-            <NotificationModal/>
-      
+
+        {/* Modals */}
+        <EditModal />
+        <BanModal />
+        <DeleteModal />
+        <EmailModal />
+        <NotificationModal />
       </div>
     </Layout>
   );

@@ -44,7 +44,7 @@ const AllOrder = () => {
 
       if (result.success && Array.isArray(result.data)) {
         const premiumUsers = result.data
-          .filter((user) => user?.paymentStatus === 'success')
+          .filter((user) => user?.paymentDetails?.paymentStatus === 'success')
           .reverse(); // Reverse order to show latest orders first
         setOrders(premiumUsers);
         setFilteredOrders(premiumUsers);
@@ -139,11 +139,11 @@ const AllOrder = () => {
                         </div>
                         <div className="mb-2">
                           <strong>Payment Status:</strong>{' '}
-                          <span className="text-green-600">{order.paymentStatus}</span>
+                          <span className="text-green-600">{order.paymentDetails.paymentStatus}</span>
                         </div>
                         <div className="mb-2">
                           <strong>Subscription Valid:</strong>{' '}
-                          {new Date(order.subscriptionValidUntil).toLocaleDateString()}
+                          {new Date(order.paymentDetails.subscriptionValidUntil).toLocaleDateString()}
                         </div>
                         <div className="mt-4">
                           <button
@@ -183,10 +183,10 @@ const AllOrder = () => {
                           <td className="py-2 px-5 text-gray-700 font-medium">{order.username}</td>
                           <td className="py-2 px-5 text-gray-600">{order.email}</td>
                           <td className="py-2 px-5 text-green-600 font-semibold">
-                            {order.paymentStatus}
+                            {order.paymentDetails.paymentStatus}
                           </td>
                           <td className="py-2 px-5 text-blue-600">
-                            {new Date(order.subscriptionValidUntil).toLocaleDateString()}
+                            {new Date(order.paymentDetails?.subscriptionValidUntil).toLocaleDateString()}
                           </td>
                           <td className="py-2 px-5">
                             <button
@@ -267,14 +267,14 @@ const AllOrder = () => {
               </div>
               <div className="bg-gray-100 p-4 rounded-lg shadow-sm">
                 <strong>Payment Status:</strong>{' '}
-                <span className="text-green-600">{selectedOrder.paymentStatus}</span>
+                <span className="text-green-600">{selectedOrder.paymentDetails.paymentStatus}</span>
               </div>
               <div className="bg-gray-100 p-4 rounded-lg shadow-sm">
-                <strong>Subscription Plan:</strong> {selectedOrder.subscriptionPlan}
+                <strong>Subscription Plan:</strong> {selectedOrder.paymentDetails.subscriptionPlan}
               </div>
               <div className="bg-gray-100 p-4 rounded-lg shadow-sm">
                 <strong>Valid Until:</strong>{' '}
-                {new Date(selectedOrder.subscriptionValidUntil).toLocaleDateString()}
+                {new Date(selectedOrder.paymentDetails.subscriptionValidUntil).toLocaleDateString()}
               </div>
               <div className="bg-gray-100 p-4 rounded-lg shadow-sm">
                 <strong>Role:</strong> {selectedOrder.role}
@@ -295,13 +295,13 @@ const AllOrder = () => {
                   <div className="bg-gray-100 p-4 rounded-lg shadow-sm break-words">
   <strong>Stripe Customer ID:</strong>
   <span className="block mt-1 text-sm text-gray-700 break-all">
-    {selectedOrder.stripeCustomerId}
+    {selectedOrder.paymentDetails.stripeCustomerId.id}
   </span>
 </div>
 <div className="bg-gray-100 p-4 rounded-lg shadow-sm break-words">
   <strong>Stripe Session ID:</strong>
   <span className="block mt-1 text-sm text-gray-700 break-all">
-    {selectedOrder.stripeSessionId}
+    {selectedOrder.paymentDetails.stripeSessionId}
   </span>
 </div>
 
