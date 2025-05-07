@@ -7,8 +7,9 @@ const environment = new paypal.core.SandboxEnvironment(
 );
 const client = new paypal.core.PayPalHttpClient(environment);
 import jwt from 'jsonwebtoken';
-import { connectToDatabase } from '../../lib/mongodb';
+
 import { ObjectId } from 'mongodb';
+import { connectToDatabase } from '../../utils/mongodb';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -25,7 +26,7 @@ export default async function handler(req, res) {
   const token = authHeader.split(' ')[1];
   let decoded;
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET);
+    decoded = jwt.verify(token, process.env.NEXT_PUBLIC_JWT_SECRET);
   } catch (error) {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
