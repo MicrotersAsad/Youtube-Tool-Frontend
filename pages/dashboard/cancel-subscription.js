@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { useAuth } from '../contexts/AuthContext';
+
 import { toast } from 'react-toastify';
 import Head from 'next/head';
+import { useAuth } from '../../contexts/AuthContext';
 
 const CancelSubscription = () => {
   const { user } = useAuth();
