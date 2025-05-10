@@ -170,6 +170,26 @@ useEffect(() => {
       localStorage.removeItem("generateCount");
     }
   }, [user]);
+    const VALID_PAYMENT_STATUSES = ['COMPLETED', 'paid', 'completed'];
+  
+    const isFreePlan = !user || (
+      user.plan === 'free' ||
+      !VALID_PAYMENT_STATUSES.includes(user.paymentDetails?.paymentStatus) ||
+      (user.paymentDetails?.createdAt &&
+        (() => {
+          const createdAt = new Date(user.paymentDetails.createdAt);
+          const validityDays = user.plan === 'yearly_premium' ? 365 : user.plan === 'monthly_premium' ? 30 : 0;
+          const validUntil = new Date(createdAt.setDate(createdAt.getDate() + validityDays));
+          return validUntil < new Date();
+        })())
+    );
+    useEffect(() => {
+      if (isFreePlan) {
+        const storedCount = parseInt(localStorage.getItem('generateCount') || '0', 10);
+        setGenerateCount(storedCount);
+      }
+    }, [isFreePlan]);
+    
 
   const fetchVideoData = async (videoUrl) => {
     try {
@@ -189,15 +209,11 @@ useEffect(() => {
 
   const handleFetch = async () => { 
     // চেক করুন, ইউজার লগইন করেছে কিনা
-    if (!user) {
-      // লগইন না থাকলে, চেক করুন যে ফেচ সীমা ৩-এর বেশি না হয়েছে
-      if (generateCount >= 3) {
-        toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
-        return;
-      }
-      toast.error(t("Please log in to fetch channel data."));
-      return;
-    }
+    // Check lifetime generation limit for free users
+        if (isFreePlan && generateCount >= 5) {
+          toast.error(t("Free users are limited to 5 tag generations in their lifetime. Upgrade to premium for unlimited access."));
+          return;
+        }
   
     // ইউটিউব ভিডিও URL চেক করুন
     if (!videoUrl) {
@@ -211,10 +227,11 @@ useEffect(() => {
       return;
     }
    // If the user is not logged in, check if they have exceeded the 3-limit
-   if (!user && generateCount >= 3) {
-    toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
-    return;
-  }
+ // Check lifetime generation limit for free users
+     if (isFreePlan && generateCount >= 5) {
+       toast.error(t("Free users are limited to 5 tag generations in their lifetime. Upgrade to premium for unlimited access."));
+       return;
+     }
 
   
     setLoading(true);
@@ -577,43 +594,19 @@ useEffect(() => {
   >
     <div className="flex">
       <div>
-        {user ? (
-          // If user is logged in
-          <>
-            {/* Uncomment this section when payment system is implemented */}
-            {/* 
-            user.paymentStatus === "success" || user.role === "admin" ? (
-              <p className="text-center p-3 alert-warning">
-                {t("Congratulations! Now you can generate unlimited titles.")}
-              </p>
-            ) : (
-              <p className="text-center p-3 alert-warning">
-                {t(
-                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
-                  { remaining: 3 - generateCount }
-                )}
-                <Link href="/pricing" className="btn btn-warning ms-3">
-                  {t("Upgrade")}
-                </Link>
-              </p>
-            )
-            */}
-            
-            {/* User can generate unlimited titles while logged in */}
-            <p className="text-center p-3 alert-warning">
-              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now get unlimited channel id.`)}
-            </p>
-          </>
-        ) : (
-          // If user is not logged in
+        {isFreePlan ? (
           <p className="text-center p-3 alert-warning">
             {t(
-              "You are not logged in. You can get channel id {{remaining}} more times. Please log in for unlimited access.",
-              { remaining: 3 - generateCount }
+              "You have {{remaining}} of 5 lifetime tag generations left. Upgrade to premium for unlimited access.",
+              { remaining: 5 - generateCount }
             )}
-            <Link href="/login" className="btn btn-warning ms-3">
-              {t("Log in")}
+            <Link href="/pricing" className="btn btn-warning ms-3">
+              {t("Upgrade")}
             </Link>
+          </p>
+        ) : (
+          <p className="text-center p-3 alert-warning">
+            {t(`Hey ${user?.username}, you have unlimited tag generations as a ${user.plan}  user until your subscription expires.`)}
           </p>
         )}
       </div>

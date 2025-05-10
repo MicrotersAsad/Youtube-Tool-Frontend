@@ -79,6 +79,7 @@ console.log(relatedTools);
   const [generateCount, setGenerateCount] = useState(0);
   const [isUpdated, setIsUpdated] = useState(false);
   const [captchaVerified, setCaptchaVerified] = useState(false); // State for reCAPTCHA
+
   const [newReview, setNewReview] = useState({
     name: "",
     title: "",
@@ -379,25 +380,40 @@ useEffect(() => {
     element.click();
     document.body.removeChild(element);
   };
+  const VALID_PAYMENT_STATUSES = ['COMPLETED', 'paid', 'completed'];
 
+  const isFreePlan = !user || (
+    user.plan === 'free' ||
+    !VALID_PAYMENT_STATUSES.includes(user.paymentDetails?.paymentStatus) ||
+    (user.paymentDetails?.createdAt &&
+      (() => {
+        const createdAt = new Date(user.paymentDetails.createdAt);
+        const validityDays = user.plan === 'yearly_premium' ? 365 : user.plan === 'monthly_premium' ? 30 : 0;
+        const validUntil = new Date(createdAt.setDate(createdAt.getDate() + validityDays));
+        return validUntil < new Date();
+      })())
+  );
+  useEffect(() => {
+    if (isFreePlan) {
+      const storedCount = parseInt(localStorage.getItem('generateCount') || '0', 10);
+      setGenerateCount(storedCount);
+    }
+  }, [isFreePlan]);
+  
   const generateTitles = async () => {
     // Check if required fields are filled
-    console.log("captchaVerified:", captchaVerified);
-    console.log("tags:", tags);
-  
-    // Check if required fields are filled
-    if ( tags.length === 0) {
+    if (tags.length === 0) {
       toast.error(t("All Fields Required"));
       return;
     }
-   // Check if CAPTCHA is verified
-      if (!captchaVerified) {
-        toast.error("Pls Complete this captcha");
-        return;
-      }
-    // If the user is not logged in, check if they have exceeded the 3-limit
-    if (!user && generateCount >= 3) {
-      toast.error(t("Fetch limit exceeded. Please log in for unlimited access."));
+    // Check if CAPTCHA is verified
+    if (!captchaVerified) {
+      toast.error("Pls Complete this captcha");
+      return;
+    }
+    // Check lifetime generation limit for free users
+    if (isFreePlan && generateCount >= 5) {
+      toast.error(t("Free users are limited to 5 tag generations in their lifetime. Upgrade to premium for unlimited access."));
       return;
     }
   
@@ -411,7 +427,7 @@ useEffect(() => {
       }
   
       const keysData = await response.json();
-      const activeKeys = keysData.filter((key) => key.active);  // Filter out inactive keys
+      const activeKeys = keysData.filter((key) => key.active);
   
       if (activeKeys.length === 0) {
         toast.error("No active API keys available.");
@@ -421,15 +437,12 @@ useEffect(() => {
       // Try each active API key
       for (const keyData of activeKeys) {
         try {
-          const { token, serviceType } = keyData;  // Extract token and serviceType
-  
-          // Determine the correct API URL and headers based on serviceType
+          const { token, serviceType } = keyData;
           let url = '';
           let headers = {};
           let body = {};
   
           if (serviceType === "openai") {
-            // For OpenAI API
             url = "https://api.openai.com/v1/chat/completions";
             headers = {
               "Content-Type": "application/json",
@@ -448,11 +461,10 @@ useEffect(() => {
               max_tokens: 3500,
             });
           } else if (serviceType === "azure") {
-            // For Azure OpenAI API
             url = "https://nazmul.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview";
             headers = {
               "Content-Type": "application/json",
-              "api-key": token, // Azure API key
+              "api-key": token,
             };
             body = {
               messages: [
@@ -470,25 +482,20 @@ useEffect(() => {
             };
           }
   
-          // Make the API request based on the selected service type
-          const result = await axios.post(url, body, {
-            headers: headers,
-          });
-  
+          const result = await axios.post(url, body, { headers });
           const data = result.data;
   
-          // Check if data has choices or a similar property based on the API type
           if (data && data.choices && data.choices.length > 0) {
             const titles = data.choices[0].message.content
               .trim()
               .split("\n")
               .map((title) => ({ text: title, selected: false }));
             setGeneratedTitles(titles);
-            break; // Stop after the first successful response
+            break;
           } else if (data && data.error) {
             console.error("Azure API Error:", data.error);
             toast.error(`Azure API Error: ${data.error.message}`);
-            break; // Break the loop if there's an error response
+            break;
           } else {
             console.error("No titles found in the response:", data);
             toast.error(t("failedToGenerateTitles"));
@@ -499,13 +506,13 @@ useEffect(() => {
         }
       }
   
-      // Update generate count if the user doesn't have unlimited access
-      if (!user) {  // If the user is not logged in
+      // Increment generate count for free users
+      if (isFreePlan) {
         const newCount = generateCount + 1;
         setGenerateCount(newCount);
         localStorage.setItem("generateCount", newCount);
+        console.log(`Free user generation: ${newCount}/5`);
       }
-  
     } catch (error) {
       console.error("Error generating titles:", error);
       toast.error(`Error: ${error.message}`);
@@ -513,8 +520,6 @@ useEffect(() => {
       setIsLoading(false);
     }
   };
-  
-
   const handleReviewSubmit = async () => {
     if (!user) {
       router.push("/login");
@@ -844,43 +849,19 @@ useEffect(() => {
   >
     <div className="flex">
       <div>
-        {user ? (
-          // If user is logged in
-          <>
-            {/* Uncomment this section when payment system is implemented */}
-            {/* 
-            user.paymentStatus === "success" || user.role === "admin" ? (
-              <p className="text-center p-3 alert-warning">
-                {t("Congratulations! Now you can generate unlimited titles.")}
-              </p>
-            ) : (
-              <p className="text-center p-3 alert-warning">
-                {t(
-                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
-                  { remaining: 3 - generateCount }
-                )}
-                <Link href="/pricing" className="btn btn-warning ms-3">
-                  {t("Upgrade")}
-                </Link>
-              </p>
-            )
-            */}
-            
-            {/* User can generate unlimited titles while logged in */}
-            <p className="text-center p-3 alert-warning">
-              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now generate unlimited tag.`)}
-            </p>
-          </>
-        ) : (
-          // If user is not logged in
+        {isFreePlan ? (
           <p className="text-center p-3 alert-warning">
             {t(
-              "You are not logged in. You can generate tag {{remaining}} more times. Please log in for unlimited access.",
-              { remaining: 3 - generateCount }
+              "You have {{remaining}} of 5 lifetime tag generations left. Upgrade to premium for unlimited access.",
+              { remaining: 5 - generateCount }
             )}
-            <Link href="/login" className="btn btn-warning ms-3">
-              {t("Log in")}
+            <Link href="/pricing" className="btn btn-warning ms-3">
+              {t("Upgrade")}
             </Link>
+          </p>
+        ) : (
+          <p className="text-center p-3 alert-warning">
+            {t(`Hey ${user?.username}, you have unlimited tag generations as a ${user.plan}  user until your subscription expires.`)}
           </p>
         )}
       </div>
