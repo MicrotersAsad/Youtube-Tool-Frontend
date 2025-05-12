@@ -371,7 +371,25 @@ const isLocalHost = typeof window !== "undefined" &&
     element.click();
     document.body.removeChild(element);
   };
+  const VALID_PAYMENT_STATUSES = ['COMPLETED', 'paid', 'completed'];
 
+  const isFreePlan = !user || (
+    user.plan === 'free' ||
+    !VALID_PAYMENT_STATUSES.includes(user.paymentDetails?.paymentStatus) ||
+    (user.paymentDetails?.createdAt &&
+      (() => {
+        const createdAt = new Date(user.paymentDetails.createdAt);
+        const validityDays = user.plan === 'yearly_premium' ? 365 : user.plan === 'monthly_premium' ? 30 : 0;
+        const validUntil = new Date(createdAt.setDate(createdAt.getDate() + validityDays));
+        return validUntil < new Date();
+      })())
+  );
+  useEffect(() => {
+    if (isFreePlan) {
+      const storedCount = parseInt(localStorage.getItem('generateCount') || '0', 10);
+      setGenerateCount(storedCount);
+    }
+  }, [isFreePlan]);
   const generateTitles = async () => {
     // Check if required fields are filled
     if ( !captchaVerified || tags.length === 0 || !selectedLanguage || !selectedTone) {
@@ -397,10 +415,11 @@ const isLocalHost = typeof window !== "undefined" &&
   
     // If user is logged in, we allow unlimited titles (no check for payment status for now)
   // If the user is not logged in, check if they have exceeded the 3-limit
-  if (!user && generateCount >= 3) {
-    toast.error(t("You have exceeded your free title generation limit. Please log in for unlimited access."));
-    return;
-  }
+     // Check lifetime generation limit for free users
+     if (isFreePlan && generateCount >= 5) {
+       toast.error(t("Free users are limited to 5 tag generations in their lifetime. Upgrade to premium for unlimited access."));
+       return;
+     }
   
     setIsLoading(true);
   
@@ -501,18 +520,19 @@ const isLocalHost = typeof window !== "undefined" &&
       }
   
       // Update generate count if the user doesn't have unlimited access
-      if (!user || generateCount >= 3) {
-        const newCount = generateCount + 1;
-        setGenerateCount(newCount);
-        localStorage.setItem("generateCount", newCount);
-      }
-    } catch (error) {
-      console.error("Error generating titles:", error);
-      toast.error(`Error: ${error.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+       if (isFreePlan) {
+         const newCount = generateCount + 1;
+         setGenerateCount(newCount);
+         localStorage.setItem("generateCount", newCount);
+         console.log(`Free user generation: ${newCount}/5`);
+       }
+     } catch (error) {
+       console.error("Error generating titles:", error);
+       toast.error(`Error: ${error.message}`);
+     } finally {
+       setIsLoading(false);
+     }
+   };
   
   
 
@@ -843,51 +863,26 @@ const isLocalHost = typeof window !== "undefined" &&
 
           <h1 className="text-3xl text-white">{"Youtube Title Generator"}</h1>
           <p className="text-white">Easily create catchy, SEO-friendly titles that boost your video’s visibility and attract more viewers.</p>
-
-          {modalVisible && (
+    {modalVisible && (
   <div
     className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
     role="alert"
   >
     <div className="flex">
       <div>
-        {user ? (
-          // If user is logged in
-          <>
-            {/* Uncomment this section when payment system is implemented */}
-            {/* 
-            user.paymentStatus === "success" || user.role === "admin" ? (
-              <p className="text-center p-3 alert-warning">
-                {t("Congratulations! Now you can generate unlimited titles.")}
-              </p>
-            ) : (
-              <p className="text-center p-3 alert-warning">
-                {t(
-                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
-                  { remaining: 3 - generateCount }
-                )}
-                <Link href="/pricing" className="btn btn-warning ms-3">
-                  {t("Upgrade")}
-                </Link>
-              </p>
-            )
-            */}
-            
-            {/* User can generate unlimited titles while logged in */}
-            <p className="text-center p-3 alert-warning">
-              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now generate unlimited Ttiles.`)}
-            </p>
-          </>
-        ) : (
-          // If user is not logged in
+        {isFreePlan ? (
           <p className="text-center p-3 alert-warning">
             {t(
-              "You are not logged in. You can generate Ttiles {{remaining}} more times. Please log in for unlimited access.",
-              { remaining: 3 - generateCount }
+              "You have {{remaining}} of 5 lifetime tag generations left. Upgrade to premium for unlimited access.",
+              { remaining: 5 - generateCount }
             )}
-            <Link href="/login" className="btn btn-warning ms-3">
-              {t("Log in")}
+            <Link href="/pricing" className="btn btn-warning ms-3">
+              {t("Upgrade")}
             </Link>
+          </p>
+        ) : (
+          <p className="text-center p-3 alert-warning">
+            {t(`Hey ${user?.username}, you have unlimited tag generations as a ${user.plan}  user until your subscription expires.`)}
           </p>
         )}
       </div>

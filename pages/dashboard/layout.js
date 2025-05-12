@@ -680,7 +680,6 @@ const Layout = React.memo(({ children }) => {
       isActiveRoute("/dashboard/all-user") ||
       isActiveRoute("/dashboard/active-users") ||
       isActiveRoute("/dashboard/ban-user") ||
-      isActiveRoute("/dashboard/unverified-user") ||
       isActiveRoute("/dashboard/premium-user") ||
       isActiveRoute("/dashboard/non-premium-user")
         ? "bg-[#4634ff] text-white"
@@ -749,19 +748,7 @@ const Layout = React.memo(({ children }) => {
         Active User
       </p>
     </Link>
-    <Link href="/dashboard/unverified-user" passHref>
-      <p
-        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-          isActiveRoute("/dashboard/unverified-user")
-            ? "bg-[#1d1e8e] text-white"
-            : "hover:bg-[#1d1e8e] hover:text-white"
-        }`}
-        onClick={() => setMenuOpen("")} // Close dropdown on item click
-      >
-        <FaCircle className="mr-2 text-xs" />
-        Unverified User
-      </p>
-    </Link>
+   
     <Link href="/dashboard/premium-user" passHref>
       <p
         className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
@@ -775,19 +762,7 @@ const Layout = React.memo(({ children }) => {
         Premium User
       </p>
     </Link>
-    <Link href="/dashboard/non-premium-user" passHref>
-      <p
-        className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${
-          isActiveRoute("/dashboard/non-premium-user")
-            ? "bg-[#1d1e8e] text-white"
-            : "hover:bg-[#1d1e8e] hover:text-white"
-        }`}
-        onClick={() => setMenuOpen("")} // Close dropdown on item click
-      >
-        <FaCircle className="mr-2 text-xs" />
-        Non Premium User
-      </p>
-    </Link>
+   
     <Link href="/dashboard/ban-user" passHref>
       <p
         className={`relative flex items-center text-white text-sm py-2 px-6 cursor-pointer ${

@@ -32,6 +32,8 @@ ChartJS.register(
 
 const Dashboard = () => {
   const { user } = useAuth();
+  console.log(user);
+  
   const [chartData, setChartData] = useState([]);
   const [labels, setLabels] = useState([]);
   const [filter, setFilter] = useState('yearly');
@@ -79,125 +81,148 @@ const articlesPerPage = 10; // Set the number of articles per page
   };
   useEffect(() => {
     if (user?.role === 'admin') {
-      const fetchAllData = async () => {
-        setLoading(true);
-        try {
-          const [
-            siteViewsResponse,
-            userVisitsResponse,
-            blogResponse,
-            articleResponse,
-            userListResponse,
-            loginStatsResponse,
-            activeSessionsResponse,
-            reviewsResponse,
-            pagesResponse,
-            commentsResponse,
-            youtubeResponse // Added for YouTube data
-          ] = await Promise.all([
-            fetch(`/api/get-visit-count?filter=${filter}`),
-            fetch(`/api/user-visits?filter=${filter}`),
-            fetch(`/api/youtube?page=${page}&limit=${articlesPerPage}&start=${moment().subtract(30, 'days').format('YYYY-MM-DD')}&end=${moment().format('YYYY-MM-DD')}`, {
-              headers: {
-                'Authorization': `Bearer AZ-fc905a5a5ae08609ba38b046ecc8ef00`, // Add your custom header here
-                'Content-Type': 'application/json'
-              }
-            }),
-            fetch(`/api/youtube?page=${page}&limit=${articlesPerPage}`, {
-              headers: {
-                'Authorization': `Bearer AZ-fc905a5a5ae08609ba38b046ecc8ef00`, // Add your custom header here
-              }
-            }),
-            fetch('/api/user-list', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }),
-            fetch('/api/get-login-stats'),
-            fetch('/api/active-sessions'),
-            fetch('/api/reviews'),
-            fetch('/api/pages'),
-            fetch('/api/comments/all')
-          ]);
-  
-          // Check if any of the responses failed
-          const responses = [
-            siteViewsResponse, userVisitsResponse, blogResponse, articleResponse, 
-            userListResponse, loginStatsResponse, activeSessionsResponse, reviewsResponse, 
-            pagesResponse, commentsResponse
-          ];
-
-  
-          // Loop over each response to ensure they are OK
-          for (const response of responses) {
-            if (!response.ok) {
-              throw new Error(`Failed to fetch: ${response.url} (Status: ${response.status})`);
-            }
-          }
-  
-          // If everything is fine, parse the JSON
-          const siteViewsData = await siteViewsResponse.json();
-          const userVisitsData = await userVisitsResponse.json();
-          const blogData = await blogResponse.json();
-          const articleData = await articleResponse.json();
-          const userListData = await userListResponse.json();
-          const loginStatsData = await loginStatsResponse.json();
-          const activeSessionsData = await activeSessionsResponse.json();
-          const reviewsData = await reviewsResponse.json();
-          const pagesData = await pagesResponse.json();
-          const commentsData = await commentsResponse.json();
-          
-
-  
-          // Proceed with setting the state after parsing
-          setSiteViews(siteViewsData.visitCount);
-          setChartData(userVisitsData.map(item => item.value));
-          setLabels(userVisitsData.map(item => item.date));
-          setBlogChartData({
-            labels: blogData.data.map(item => moment(item.createdAt).format('YYYY-MM-DD')),
-            datasets: [{ label: 'Blogs Published', data: blogData.data.map(() => 1), borderColor: 'rgba(75, 192, 192, 1)', fill: true }]
-          });
-  
-          // Handle user and other data
-          const premiumUserCount = userListData.data.filter(user => user.paymentStatus === 'success').length;
-          setTotalUsers(userListData.data.length);
-          setArticle(articleData?.meta?.totalBlogs);
-          setActiveUsers(userListData.data.filter(user => user.verified).length);
-          setPremiumUsers(premiumUserCount);
-          setNonPremiumUsers(userListData.data.length - premiumUserCount);
-          setEmailUnverifiedUsers(userListData.data.filter(user => !user.verified).length);
-          setActiveLogin(activeSessionsData.activeUsers);
-  
-          setBrowserStats({
-            labels: loginStatsData.browserStats.map(item => item._id),
-            datasets: [{ data: loginStatsData.browserStats.map(item => item.count), backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FFA726', '#66BB6A'] }]
-          });
-  
-          setOsStats({
-            labels: loginStatsData.osStats.map(item => item._id),
-            datasets: [{ data: loginStatsData.osStats.map(item => item.count), backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FFA726', '#66BB6A'] }]
-          });
-  
-          setCountryStats({
-            labels: loginStatsData.countryStats.map(item => item._id),
-            datasets: [{ data: loginStatsData.countryStats.map(item => item.count), backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FFA726', '#66BB6A'] }]
-          });
-  
-          setBlogs(blogData);
-          setTools(reviewsData.length);
-          setReviews(reviewsData);
-          setPages(pagesData);
-          setComments(commentsData);
-  
-          // Handle YouTube Data
-          setBlogChartData({
-            labels: youtubeData.map(item => moment(item.createdAt).format('YYYY-MM-DD')),
-            viewCounts: youtubeData.map(item => item.viewCount),
-            authors: youtubeData.map(item => item.author)
-          });
-  
-          setLoading(false);
-        } catch (error) {
-          console.error('Error fetching data:', error);
-          setLoading(false);
+     const fetchAllData = async () => {
+  setLoading(true);
+  try {
+    const [
+      siteViewsResponse,
+      userVisitsResponse,
+      blogResponse,
+      articleResponse,
+      userListResponse,
+      loginStatsResponse,
+      activeSessionsResponse,
+      reviewsResponse,
+      pagesResponse,
+      commentsResponse,
+    ] = await Promise.all([
+      fetch(`/api/get-visit-count?filter=${filter}`),
+      fetch(`/api/user-visits?filter=${filter}`),
+      fetch(
+        `/api/youtube?page=${page}&limit=${articlesPerPage}&start=${moment()
+          .subtract(30, 'days')
+          .format('YYYY-MM-DD')}&end=${moment().format('YYYY-MM-DD')}`,
+        {
+          headers: {
+            Authorization: `Bearer AZ-fc905a5a5ae08609ba38b046ecc8ef00`,
+            'Content-Type': 'application/json',
+          },
         }
-      };
+      ),
+      fetch(`/api/youtube?page=${page}&limit=${articlesPerPage}`, {
+        headers: {
+          Authorization: `Bearer AZ-fc905a5a5ae08609ba38b046ecc8ef00`,
+        },
+      }),
+      fetch('/api/user-list', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      }),
+      fetch('/api/get-login-stats'),
+      fetch('/api/active-sessions'),
+      fetch('/api/reviews'),
+      fetch('/api/pages'),
+      fetch('/api/comments/all'),
+    ]);
+
+    for (const response of [
+      siteViewsResponse,
+      userVisitsResponse,
+      blogResponse,
+      articleResponse,
+      userListResponse,
+      loginStatsResponse,
+      activeSessionsResponse,
+      reviewsResponse,
+      pagesResponse,
+      commentsResponse,
+    ]) {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch: ${response.url} (Status: ${response.status})`);
+      }
+    }
+    const siteViewsData = await siteViewsResponse.json();
+    const userVisitsData = await userVisitsResponse.json();
+    const blogData = await blogResponse.json();
+    const articleData = await articleResponse.json();
+    const userListData = await userListResponse.json();
+    const loginStatsData = await loginStatsResponse.json();
+    const activeSessionsData = await activeSessionsResponse.json();
+    const reviewsData = await reviewsResponse.json();
+    const pagesData = await pagesResponse.json();
+    const commentsData = await commentsResponse.json();
+    // Normalize userListData.data to an array
+    const userListArray = Array.isArray(userListData.data)
+      ? userListData.data
+      : [userListData.data];
+
+    setSiteViews(siteViewsData.visitCount);
+    setChartData(userVisitsData.map(item => item.value));
+    setLabels(userVisitsData.map(item => item.date));
+    setBlogChartData({
+      labels: blogData.data.map(item => moment(item.createdAt).format('YYYY-MM-DD')),
+      datasets: [
+        {
+          label: 'Blogs Published',
+          data: blogData.data.map(() => 1),
+          borderColor: 'rgba(75, 192, 192, 1)',
+          fill: true,
+        },
+      ],
+    });
+
+    const premiumUserCount = userListArray.filter(
+      user => user.paymentStatus === 'success'
+    ).length;
+    setTotalUsers(userListArray.length);
+    setArticle(articleData?.meta?.totalBlogs);
+    setActiveUsers(userListArray.filter(user => user.verified).length);
+    setPremiumUsers(premiumUserCount);
+    setNonPremiumUsers(userListArray.length - premiumUserCount);
+    setEmailUnverifiedUsers(userListArray.filter(user => !user.verified).length);
+    setActiveLogin(activeSessionsData.activeUsers);
+
+    setBrowserStats({
+      labels: loginStatsData.browserStats.map(item => item._id),
+      datasets: [
+        {
+          data: loginStatsData.browserStats.map(item => item.count),
+          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FFA726', '#66BB6A'],
+        },
+      ],
+    });
+
+    setOsStats({
+      labels: loginStatsData.osStats.map(item => item._id),
+      datasets: [
+        {
+          data: loginStatsData.osStats.map(item => item.count),
+          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FFA726', '#66BB6A'],
+        },
+      ],
+    });
+
+    setCountryStats({
+      labels: loginStatsData.countryStats.map(item => item._id),
+      datasets: [
+        {
+          data: loginStatsData.countryStats.map(item => item.count),
+          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FFA726', '#66BB6A'],
+        },
+      ],
+    });
+
+    setBlogs(blogData);
+    setTools(reviewsData.length);
+    setReviews(reviewsData);
+    setPages(pagesData);
+    setComments(commentsData);
+
+    setLoading(false);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    setLoading(false);
+  }
+};
       fetchAllData();
     }
   }, [user, filter]);

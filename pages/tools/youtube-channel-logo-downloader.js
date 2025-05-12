@@ -149,9 +149,7 @@ useEffect(() => {
     setChannelUrl(e.target.value);
   };
 
-  const handleShareClick = () => {
-    setShowShareIcons(!showShareIcons);
-  };
+ 
 
   useEffect(() => {
     if (user && user.paymentStatus !== "success" && !isUpdated) {
@@ -165,77 +163,26 @@ useEffect(() => {
     }
   }, [user]);
 
+ const VALID_PAYMENT_STATUSES = ['COMPLETED', 'paid', 'completed'];
 
-  // const fetchChannelLogo = async () => {
-  //   // Check if user is logged in and has reached the 3 fetch limit
-  //   if (!user) {
-  //     if (generateCount >= 3) {
-  //       toast.error(t("You have reached the limit of fetching channel logos. Please log in for unlimited access."));
-  //       return;
-  //     }
-  //   } else {
-  //     // If user is logged in, they get unlimited access (no need to check generateCount)
-  //     // No additional check needed for logged-in user
-  //   }
+  const isFreePlan = !user || (
+    user.plan === 'free' ||
+    !VALID_PAYMENT_STATUSES.includes(user.paymentDetails?.paymentStatus) ||
+    (user.paymentDetails?.createdAt &&
+      (() => {
+        const createdAt = new Date(user.paymentDetails.createdAt);
+        const validityDays = user.plan === 'yearly_premium' ? 365 : user.plan === 'monthly_premium' ? 30 : 0;
+        const validUntil = new Date(createdAt.setDate(createdAt.getDate() + validityDays));
+        return validUntil < new Date();
+      })())
+  );
+  useEffect(() => {
+    if (isFreePlan) {
+      const storedCount = parseInt(localStorage.getItem('generateCount') || '0', 10);
+      setGenerateCount(storedCount);
+    }
+  }, [isFreePlan]);
   
-  //   if (!channelUrl) {
-  //     toast.error("Please enter a YouTube channel URL.");
-  //     return;
-  //   }
-  
-  //   const channelId = extractChannelId(channelUrl);
-  //   if (!channelId) {
-  //     toast.error("Invalid YouTube channel link.");
-  //     return;
-  //   }
-  //   if (!captchaVerified) {
-  //     toast.error(t("Please complete the captcha"));
-  //     return;
-  //   }
-  
-  //   setLoading(true);
-  //   setError("");
-  
-  //   try {
-  //     const tokensResponse = await fetch("/api/tokens");
-  //     if (!tokensResponse.ok) throw new Error("Failed to fetch API tokens");
-  
-  //     const tokens = await tokensResponse.json();
-  //     let dataFetched = false;
-  
-  //     for (const { token } of tokens) {
-  //       try {
-  //         const response = await axios.get(
-  //           `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&key=${token}`
-  //         );
-  //         if (response.data.items && response.data.items.length > 0) {
-  //           const logoUrl = response.data.items[0].snippet.thumbnails.default.url;
-  //           setLogoUrl(logoUrl);
-  //           dataFetched = true;
-  //           break;
-  //         }
-  //       } catch (error) {
-  //         console.error(`Error fetching data with token ${token}:`, error);
-  //       }
-  //     }
-  
-  //     if (!dataFetched) {
-  //       throw new Error("All API tokens exhausted or failed to fetch data.");
-  //     }
-  
-  //     // If the user is not logged in or doesn't have unlimited access, decrement the generate count
-  //     if (!user || (user && user.paymentStatus !== "success")) {
-  //       setGenerateCount(generateCount - 1);
-  //       localStorage.setItem("generateCount", generateCount - 1); // Persist to localStorage
-  //     }
-  
-  //   } catch (error) {
-  //     toast.error("Failed to fetch channel logo:", error);
-  //     setError("Failed to fetch data. Check console for more details.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
   const fetchChannelLogo = async () => {
     if (!channelUrl.trim()) {
         setError("Please enter a valid YouTube Channel URL.");
@@ -246,6 +193,11 @@ useEffect(() => {
         toast.error("Pls Complete this captcha");
         return;
       }
+       // Check lifetime generation limit for free users
+          if (isFreePlan && generateCount >= 5) {
+            toast.error(t("Free users are limited to 5 Channel Logo Download in their lifetime. Upgrade to premium for unlimited access."));
+            return;
+          }
     setLoading(true);
     setError("");
     setLogoUrl("");
@@ -266,6 +218,12 @@ useEffect(() => {
         } else {
             throw new Error("Channel logo not found.");
         }
+        if (isFreePlan) {
+        const newCount = generateCount + 1;
+        setGenerateCount(newCount);
+        localStorage.setItem("generateCount", newCount);
+        console.log(`Free user generation: ${newCount}/5`);
+      }
     } catch (err) {
         console.error("Error fetching logo:", err.message);
         setError(err.response?.data?.error || "Failed to fetch the channel logo.");
@@ -645,50 +603,26 @@ useEffect(() => {
           <p className="text-white pb-2">A YouTube Channel Logo Downloader is a tool that enables users to quickly and easily download the profile logo</p>
           <ToastContainer />
           
-          {modalVisible && (
+         {modalVisible && (
   <div
     className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
     role="alert"
   >
     <div className="flex">
       <div>
-        {user ? (
-          // If user is logged in
-          <>
-            {/* Uncomment this section when payment system is implemented */}
-            {/* 
-            user.paymentStatus === "success" || user.role === "admin" ? (
-              <p className="text-center p-3 alert-warning">
-                {t("Congratulations! Now you can generate unlimited titles.")}
-              </p>
-            ) : (
-              <p className="text-center p-3 alert-warning">
-                {t(
-                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
-                  { remaining: 3 - generateCount }
-                )}
-                <Link href="/pricing" className="btn btn-warning ms-3">
-                  {t("Upgrade")}
-                </Link>
-              </p>
-            )
-            */}
-            
-            {/* User can generate unlimited titles while logged in */}
-            <p className="text-center p-3 alert-warning">
-              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now download unlimited channel logo .`)}
-            </p>
-          </>
-        ) : (
-          // If user is not logged in
+        {isFreePlan ? (
           <p className="text-center p-3 alert-warning">
             {t(
-              "You are not logged in. You can download channel logo {{remaining}} more times. Please log in for unlimited access.",
-              { remaining: 3 - generateCount }
+              "You have {{remaining}} of 5 lifetime Channel Logo Download left. Upgrade to premium for unlimited access.",
+              { remaining: 5 - generateCount }
             )}
-            <Link href="/login" className="btn btn-warning ms-3">
-              {t("Log in")}
+            <Link href="/pricing" className="btn btn-warning ms-3">
+              {t("Upgrade")}
             </Link>
+          </p>
+        ) : (
+          <p className="text-center p-3 alert-warning">
+            {t(`Hey ${user?.username}, you have unlimited Channel Logo Download as a ${user.plan}  user until your subscription expires.`)}
           </p>
         )}
       </div>
@@ -701,6 +635,7 @@ useEffect(() => {
     </div>
   </div>
 )}
+
 <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
   <div>
     <div className="w-full p-6">

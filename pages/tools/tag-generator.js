@@ -649,36 +649,7 @@ useEffect(() => {
     }
   };
 
-  const saveChannel = () => {
-    const savedChannels = JSON.parse(
-      localStorage.getItem("savedChannels") || "[]"
-    );
-    const currentTool = {
-      toolName: "Youtube Tag Generator", // Name of the current tool
-      toolUrl: window.location.href, // Current URL of the tool
-    };
-
-    const existingChannelIndex = savedChannels.findIndex(
-      (channel) => channel.toolUrl === currentTool.toolUrl
-    );
-
-    if (existingChannelIndex === -1) {
-      // If the tool is not already saved, save it
-      savedChannels.push(currentTool);
-      localStorage.setItem("savedChannels", JSON.stringify(savedChannels));
-      setIsSaved(true);
-      toast.success("Tool saved successfully!");
-    } else {
-      // If the tool is already saved, remove it
-      savedChannels.splice(existingChannelIndex, 1);
-      localStorage.setItem("savedChannels", JSON.stringify(savedChannels));
-      setIsSaved(false);
-      toast.success("Tool removed from saved list.");
-    }
-  };
-
-
-
+  
   // Button color logic
   const buttonColors = {
     like: hasLiked ? "#4CAF50" : "#ccc",
