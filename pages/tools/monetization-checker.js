@@ -195,69 +195,90 @@ useEffect(() => {
     setError("");
     setUrl(e.target.value);
   };
+const VALID_PAYMENT_STATUSES = ['COMPLETED', 'PAID', 'completed'];
 
-  const handleFetchClick = async () => {
-    // URL চেক
-    if (!url.trim()) {
-      toast.error(t("Please enter a valid URL."));
-      return;
+const isFreePlan = !user || (
+  user.plan === 'free' ||
+  !VALID_PAYMENT_STATUSES.includes(user.paymentDetails?.paymentStatus) ||
+  (user.paymentDetails?.createdAt && (() => {
+    const createdAt = new Date(user.paymentDetails.createdAt);
+    const validityDays = user.plan === 'yearly_premium' ? 365 : 
+                        user.plan === 'monthly_premium' ? 30 : 0;
+    const validUntil = new Date(createdAt);
+    validUntil.setDate(createdAt.getDate() + validityDays);
+    return validUntil < new Date();
+  })())
+);
+
+useEffect(() => {
+  if (isFreePlan) {
+    const storedCount = parseInt(localStorage.getItem('generateCount') || '0', 10);
+    setGenerateCount(storedCount);
+  }
+}, [isFreePlan]);
+
+const handleFetchClick = async () => {
+  // Validate URL
+  if (!url.trim()) {
+    toast.error(t("Please enter a valid URL."));
+    return;
+  }
+
+  // Validate captcha
+  if (!captchaVerified) {
+    toast.error(t("Please complete the captcha"));
+    return;
+  }
+
+  // Check generation limit for free users
+  if (isFreePlan && generateCount >= 5) {
+    toast.error(t("Free users are limited to 5 Channel Logo Downloads in their lifetime. Upgrade to premium for unlimited access."));
+    return;
+  }
+
+  setLoading(true);
+  setError(null);
+  setData(null);
+
+  try {
+    const response = await fetch("/api/monetization-checker", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ url }),
+    });
+
+    if (!response.ok) {
+      const errorMessage = await response.text();
+      throw new Error(errorMessage || t("Failed to fetch data"));
     }
-  
-  
-    // ক্যাপচা চেক
-    if (!captchaVerified) {
-      toast.error(t("Please complete this captcha"));
-      return;
+
+    const data = await response.json();
+    
+    if (!data) {
+      throw new Error(t("No data returned from the server"));
     }
-  
-    // যদি ইউজার লগইন থাকে, ফেচ সীমা থাকলে তাও চেক করতে হবে
-    if (!user && generateCount >= 3) {
-      toast.error(t("You have reached the limit of fetches. Please log in for unlimited access."));
-      return;
+
+    setData(data);
+    toast.success(t("Data fetched successfully!"));
+
+    // Update generation count for free users
+    if (isFreePlan) {
+      const newCount = generateCount + 1;
+      setGenerateCount(newCount);
+      localStorage.setItem("generateCount", String(newCount));
+      console.log(`Free user generation: ${newCount}/5`);
     }
-  
-    // লগইন থাকলে ফেচ সীমা থাকবেনা (অসীম ফেচ)
-    if (user && generateCount <= 0) {
-      toast.error(t("You have reached the limit of fetches. Please log in for unlimited access."));
-      return;
-    }
-  
-    setLoading(true);
-    setError("");
-    setData(null);
-  
-    try {
-      // POST রিকোয়েস্ট দিয়ে ডাটা ফেচ করা
-      const response = await fetch("/api/monetization-checker", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
-      });
-  
-      // রেসপন্স চেক
-      if (!response.ok) {
-        const errorMessage = await response.text();
-        throw new Error(errorMessage || t("Failed to fetch data"));
-      }
-  
-      const data = await response.json();
-      setData(data);
-  
-      // সফল হলে ফেচ কনটেন্ট
-      toast.success(t("Data fetched successfully!"));
-  
-      // ইউজার যদি লগইন থাকে এবং পেমেন্ট স্ট্যাটাস না থাকে, তবে ফেচ কাউন্ট কমানো হবে
-      if (user && user.paymentStatus !== "success") {
-        setGenerateCount(generateCount - 1);
-        localStorage.setItem("generateCount", generateCount - 1);
-      }
-    } catch (error) {
-      setError(error.message);
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (error) {
+    console.error("Error fetching monetization data:", error);
+    const errorMessage = error.message || t("Failed to fetch data");
+    setError(errorMessage);
+    toast.error(errorMessage);
+  } finally {
+    setLoading(false);
+  }
+};
   
   useEffect(() => {
     if (user) {
@@ -569,50 +590,26 @@ useEffect(() => {
           </h1>
           <p className="text-white pb-3">The YouTube Monetization Checker  helps creators determine if their  channel meets the eligibility requirements for monetization. </p>
            
-          {modalVisible && (
+            {modalVisible && (
   <div
     className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
     role="alert"
   >
     <div className="flex">
       <div>
-        {user ? (
-          // If user is logged in
-          <>
-            {/* Uncomment this section when payment system is implemented */}
-            {/* 
-            user.paymentStatus === "success" || user.role === "admin" ? (
-              <p className="text-center p-3 alert-warning">
-                {t("Congratulations! Now you can generate unlimited titles.")}
-              </p>
-            ) : (
-              <p className="text-center p-3 alert-warning">
-                {t(
-                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
-                  { remaining: 3 - generateCount }
-                )}
-                <Link href="/pricing" className="btn btn-warning ms-3">
-                  {t("Upgrade")}
-                </Link>
-              </p>
-            )
-            */}
-            
-            {/* User can generate unlimited titles while logged in */}
-            <p className="text-center p-3 alert-warning">
-              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now  check  channel monetization .`)}
-            </p>
-          </>
-        ) : (
-          // If user is not logged in
+        {isFreePlan ? (
           <p className="text-center p-3 alert-warning">
             {t(
-              "You are not logged in. You can  check channel monetization {{remaining}} more times. Please log in for unlimited access.",
-              { remaining: 3 - generateCount }
+              "You have {{remaining}} of 5 lifetime YouTube Monetization Checker left. Upgrade to premium for unlimited access.",
+              { remaining: 5 - generateCount }
             )}
-            <Link href="/login" className="btn btn-warning ms-3">
-              {t("Log in")}
+            <Link href="/pricing" className="btn btn-warning ms-3">
+              {t("Upgrade")}
             </Link>
+          </p>
+        ) : (
+          <p className="text-center p-3 alert-warning">
+            {t(`Hey ${user?.username}, you have unlimited YouTube Monetization Checker as a ${user.plan}  user until your subscription expires.`)}
           </p>
         )}
       </div>

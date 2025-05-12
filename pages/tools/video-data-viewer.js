@@ -171,53 +171,86 @@ useEffect(() => {
     setVideoUrl(e.target.value);
   };
 
-  const fetchYouTubeData = async () => {
-    if (!user) {
-      if (generateCount >= 3) {
-        toast.error("Fetch limit exceeded. Please log in for unlimited access.");
-        return;
-      }
-      toast.error("Please log in to fetch channel data.");
-      return;
-    }
-  
-    if (!videoUrl) {
-      toast.error("Please enter a valid YouTube video URL.");
-      return;
-    }
-  
-    setLoading(true);
-    setError("");
-  
-    try {
-      const response = await fetch("/api/scrapytvideo", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ videoUrl }),
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to fetch YouTube data.");
-      }
-  
-      const data = await response.json();
-      console.log("Fetched data:", data);
-  
-      const videoData = data[videoUrl];
-      console.log(videoData);
-      setVideoData(videoData);
-    } catch (error) {
-      setError("Failed to fetch YouTube data. Please check the video URL.");
-      console.error("Error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
+ const VALID_PAYMENT_STATUSES = ['COMPLETED', 'PAID', 'completed'];
 
-  
+const isFreePlan = !user || (
+  user.plan === 'free' ||
+  !VALID_PAYMENT_STATUSES.includes(user.paymentDetails?.paymentStatus) ||
+  (user.paymentDetails?.createdAt && (() => {
+    const createdAt = new Date(user.paymentDetails.createdAt);
+    const validityDays = user.plan === 'yearly_premium' ? 365 : 
+                        user.plan === 'monthly_premium' ? 30 : 0;
+    const validUntil = new Date(createdAt);
+    validUntil.setDate(createdAt.getDate() + validityDays);
+    return validUntil < new Date();
+  })())
+);
+
+useEffect(() => {
+  if (isFreePlan) {
+    const storedCount = parseInt(localStorage.getItem('generateCount') || '0', 10);
+    setGenerateCount(storedCount);
+  }
+}, [isFreePlan]);
+
+const fetchYouTubeData = async () => {
+  // Early validation
+  if (!user) {
+    toast.error("Please log in to fetch channel data.");
+    return;
+  }
+
+  if (!videoUrl) {
+    toast.error("Please enter a valid YouTube video URL.");
+    return;
+  }
+
+  // Check generation limit for free users
+  if (isFreePlan && generateCount >= 5) {
+    toast.error("Free users are limited to 5 Video Data Viewers in their lifetime. Upgrade to premium for unlimited access.");
+    return;
+  }
+
+  setLoading(true);
+  setError(null);
+
+  try {
+    const response = await fetch("/api/scrapytvideo", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ videoUrl }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    if (!data[videoUrl]) {
+      throw new Error("No video data found for the provided URL");
+    }
+
+    const videoData = data[videoUrl];
+    setVideoData(videoData);
+
+    // Update generation count for free users
+    if (isFreePlan) {
+      const newCount = generateCount + 1;
+      setGenerateCount(newCount);
+      localStorage.setItem("generateCount", String(newCount));
+      console.log(`Free user generation: ${newCount}/5`);
+    }
+  } catch (error) {
+    console.error("Error fetching YouTube data:", error);
+    setError(error.message || "Failed to fetch YouTube data. Please check the video URL.");
+    toast.error(error.message || "Failed to fetch YouTube data");
+  } finally {
+    setLoading(false);
+  }
+};
   
 
   const handleReviewSubmit = async () => {
@@ -560,50 +593,26 @@ useEffect(() => {
           <p className="text-white pb-3">The YouTube Video Data Viewer is a tool designed to provide detailed insights and analytics for YouTube videos</p>
           <ToastContainer />
            
-          {modalVisible && (
+            {modalVisible && (
   <div
     className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
     role="alert"
   >
     <div className="flex">
       <div>
-        {user ? (
-          // If user is logged in
-          <>
-            {/* Uncomment this section when payment system is implemented */}
-            {/* 
-            user.paymentStatus === "success" || user.role === "admin" ? (
-              <p className="text-center p-3 alert-warning">
-                {t("Congratulations! Now you can generate unlimited titles.")}
-              </p>
-            ) : (
-              <p className="text-center p-3 alert-warning">
-                {t(
-                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
-                  { remaining: 3 - generateCount }
-                )}
-                <Link href="/pricing" className="btn btn-warning ms-3">
-                  {t("Upgrade")}
-                </Link>
-              </p>
-            )
-            */}
-            
-            {/* User can generate unlimited titles while logged in */}
-            <p className="text-center p-3 alert-warning">
-              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now show unlimited video data .`)}
-            </p>
-          </>
-        ) : (
-          // If user is not logged in
+        {isFreePlan ? (
           <p className="text-center p-3 alert-warning">
             {t(
-              "You are not logged in. You can show video data  {{remaining}} more times. Please log in for unlimited access.",
-              { remaining: 3 - generateCount }
+              "You have {{remaining}} of 5 lifetime Video Data Viewer left. Upgrade to premium for unlimited access.",
+              { remaining: 5 - generateCount }
             )}
-            <Link href="/login" className="btn btn-warning ms-3">
-              {t("Log in")}
+            <Link href="/pricing" className="btn btn-warning ms-3">
+              {t("Upgrade")}
             </Link>
+          </p>
+        ) : (
+          <p className="text-center p-3 alert-warning">
+            {t(`Hey ${user?.username}, you have unlimited Video Data Viewer as a ${user.plan}  user until your subscription expires.`)}
           </p>
         )}
       </div>
@@ -616,7 +625,6 @@ useEffect(() => {
     </div>
   </div>
 )}
-
 <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
   <div>
     <div className="w-full p-6">
