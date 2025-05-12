@@ -203,6 +203,25 @@ useEffect(() => {
       setGenerateCount(5);
     }
   }, [user]);
+   const VALID_PAYMENT_STATUSES = ['COMPLETED', 'paid', 'completed'];
+  
+    const isFreePlan = !user || (
+      user.plan === 'free' ||
+      !VALID_PAYMENT_STATUSES.includes(user.paymentDetails?.paymentStatus) ||
+      (user.paymentDetails?.createdAt &&
+        (() => {
+          const createdAt = new Date(user.paymentDetails.createdAt);
+          const validityDays = user.plan === 'yearly_premium' ? 365 : user.plan === 'monthly_premium' ? 30 : 0;
+          const validUntil = new Date(createdAt.setDate(createdAt.getDate() + validityDays));
+          return validUntil < new Date();
+        })())
+    );
+    useEffect(() => {
+      if (isFreePlan) {
+        const storedCount = parseInt(localStorage.getItem('generateCount') || '0', 10);
+        setGenerateCount(storedCount);
+      }
+    }, [isFreePlan]);
 
   const handleSearchClick = async (e) => {
     e.preventDefault();
@@ -220,14 +239,10 @@ useEffect(() => {
     }
   
     // Check the limit for non-logged in users (3 fetch limit)
-    if (!user) {
-      if (generateCount >= 3) {
-        toast.error(t("You have reached the limit of fetching channel data. Please log in for unlimited access."));
-        return;
-      }
-    } else {
-      // If user is logged in, they get unlimited access, so no need to check the generateCount
-    }
+    if (isFreePlan && generateCount >= 5) {
+               toast.error(t("Free users are limited to 5 YouTube Channel Search  in their lifetime. Upgrade to premium for unlimited access."));
+               return;
+             }
   
     setLoading(true);
     setChannels([]);
@@ -295,9 +310,11 @@ useEffect(() => {
       setChannels(filtered.slice(0, 50));
   
       // If the user is not logged in or doesn't have unlimited access, increment the generate count
-      if (!user || (user && user.paymentStatus !== "success")) {
-        setGenerateCount(generateCount + 1);
-        localStorage.setItem("generateCount", generateCount + 1);
+      if (isFreePlan) {
+        const newCount = generateCount + 1;
+        setGenerateCount(newCount);
+        localStorage.setItem("generateCount", newCount);
+        console.log(`Free user generation: ${newCount}/5`);
       }
   
     } catch (error) {
@@ -640,51 +657,26 @@ useEffect(() => {
           YouTube Channel Search is a tool that helps you discover and explore YouTube channels based on keywords, niches, or topics.
           </p>
         
-        
-          {modalVisible && (
+           {modalVisible && (
   <div
     className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
     role="alert"
   >
     <div className="flex">
       <div>
-        {user ? (
-          // If user is logged in
-          <>
-            {/* Uncomment this section when payment system is implemented */}
-            {/* 
-            user.paymentStatus === "success" || user.role === "admin" ? (
-              <p className="text-center p-3 alert-warning">
-                {t("Congratulations! Now you can generate unlimited titles.")}
-              </p>
-            ) : (
-              <p className="text-center p-3 alert-warning">
-                {t(
-                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
-                  { remaining: 3 - generateCount }
-                )}
-                <Link href="/pricing" className="btn btn-warning ms-3">
-                  {t("Upgrade")}
-                </Link>
-              </p>
-            )
-            */}
-            
-            {/* User can generate unlimited titles while logged in */}
-            <p className="text-center p-3 alert-warning">
-              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now  unlimited search channel .`)}
-            </p>
-          </>
-        ) : (
-          // If user is not logged in
+        {isFreePlan ? (
           <p className="text-center p-3 alert-warning">
             {t(
-              "You are not logged in. You can search channel {{remaining}} more times. Please log in for unlimited access.",
-              { remaining: 3 - generateCount }
+              "You have {{remaining}} of 5 lifetime YouTube Channel Search  left. Upgrade to premium for unlimited access.",
+              { remaining: 5 - generateCount }
             )}
-            <Link href="/login" className="btn btn-warning ms-3">
-              {t("Log in")}
+            <Link href="/pricing" className="btn btn-warning ms-3">
+              {t("Upgrade")}
             </Link>
+          </p>
+        ) : (
+          <p className="text-center p-3 alert-warning">
+            {t(`Hey ${user?.username}, you have unlimited YouTube Channel Search  as a ${user.plan}  user until your subscription expires.`)}
           </p>
         )}
       </div>
