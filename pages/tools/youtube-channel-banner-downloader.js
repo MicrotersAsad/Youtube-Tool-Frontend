@@ -226,33 +226,18 @@ if (!captchaVerified) {
 
   
 
-  const downloadChannelBanner = () => {
-    if (!bannerUrl) return;
+ const downloadChannelBanner = () => {
+  if (!bannerUrl) return;
 
-    const fileName = "YouTube_Channel_Banner.jpg";
+  const fileName = "YouTube_Channel_Banner.jpg";
 
-    // Fetch the image data
-    fetch(bannerUrl)
-      .then((response) => response.blob())
-      .then((blob) => {
-        // Create a temporary URL for the image blob
-        const url = window.URL.createObjectURL(new Blob([blob]));
-
-        // Create a temporary anchor element to trigger the download
-        const anchor = document.createElement("a");
-        anchor.href = url;
-        anchor.download = fileName;
-        document.body.appendChild(anchor);
-        anchor.click();
-
-        // Clean up
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(anchor);
-      })
-      .catch((error) => {
-        toast.error("Error downloading image:", error);
-      });
-  };
+  const anchor = document.createElement("a");
+  anchor.href = bannerUrl;
+  anchor.setAttribute("download", fileName);
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+};
 
   // Function to share on social media
   const shareOnSocialMedia = (socialNetwork) => {

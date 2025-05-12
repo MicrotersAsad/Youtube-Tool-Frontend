@@ -1,6 +1,8 @@
 // import fetch from 'node-fetch';
 // import { connectToDatabase } from '../../utils/mongodb';
 
+
+
 // export default async function handler(req, res) {
 //   // Only allow POST requests
 //   if (req.method !== 'POST') {
@@ -61,56 +63,56 @@
 
 
 
-// //import fetch from 'node-fetch';
-// import { connectToDatabase } from '../../utils/mongodb';
+import fetch from 'node-fetch';
 
-// export default async function handler(req, res) {
-//   // Only allow POST requests
-//   if (req.method !== 'POST') {
-//     res.setHeader('Allow', ['POST']);
-//     return res.status(405).end(`Method ${req.method} not allowed`);
-//   }
+import { connectToDatabase } from "../../utils/mongodb";
+export default async function handler(req, res) {
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', ['POST']);
+    return res.status(405).end(`Method ${req.method} not allowed`);
+  }
 
-//   // Extract the video URL from the request body
-//   const { videoUrl } = req.body;
+  // Extract the video URL from the request body
+  const { videoUrl } = req.body;
 
-//   // Validate the video URL
-//   if (!videoUrl || !/^https?:\/\/(www\.)?youtube\.com\/watch\?v=|youtu\.be\//.test(videoUrl)) {
-//     return res.status(400).json({ message: 'Invalid YouTube video URL' });
-//   }
+  // Validate the video URL
+  if (!videoUrl || !/^https?:\/\/(www\.)?youtube\.com\/watch\?v=|youtu\.be\//.test(videoUrl)) {
+    return res.status(400).json({ message: 'Invalid YouTube video URL' });
+  }
 
-//   try {
-//     // Connect to the MongoDB database
-//     const { db } = await connectToDatabase();
+  try {
+    // Connect to the MongoDB database
+    const { db } = await connectToDatabase();
 
-//     // Construct the API payload
-//     const apiPayload = {
-//       urls: [videoUrl]
-//     };
+    // Construct the API payload
+    const apiPayload = {
+      urls: [videoUrl]
+    };
 
-//     // Call the external API
-//     const response = await fetch(
-//       `http://166.0.175.238:8000/api/scrap_youtube_video/?video_title=on&description=on&total_likes=off&comments=on&video_views=on&upload_date=on&video_duration=on&video_thumbnail=on&channel_url=on&video_id=on&total_subscribers=on&verified=on&latest_comments=on&transcripts=on`,
-//       {
-//         method: 'POST',
-//         headers: {
-//           'Content-Type': 'application/json'
-//         },
-//         body: JSON.stringify(apiPayload)
-//       }
-//     );
+    // Call the external API
+    const response = await fetch(
+      `http://185.126.181.74:8000/api/scrap_youtube_video/?video_title=on&description=on&total_likes=off&comments=on&video_views=on&upload_date=on&video_duration=on&video_thumbnail=on&channel_url=on&video_id=on&total_subscribers=on&verified=on&latest_comments=on&transcripts=on`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(apiPayload)
+      }
+    );
 
-//     const data = await response.json();
+    const data = await response.json();
 
-//     // Check if the response is successful
-//     if (response.ok) {
-//       return res.status(200).json(data); // Return the fetched data
-//     } else {
-//       console.error('Error fetching video data:', data.message || 'Unknown error');
-//       return res.status(500).json({ message: data.message || 'Error fetching video data' });
-//     }
-//   } catch (error) {
-//     console.error('Error calling the API:', error.message);
-//     res.status(500).json({ message: 'Internal server error' });
-//   }
-// }
+    // Check if the response is successful
+    if (response.ok) {
+      return res.status(200).json(data); // Return the fetched data
+    } else {
+      console.error('Error fetching video data:', data.message || 'Unknown error');
+      return res.status(500).json({ message: data.message || 'Error fetching video data' });
+    }
+  } catch (error) {
+    console.error('Error calling the API:', error.message);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
