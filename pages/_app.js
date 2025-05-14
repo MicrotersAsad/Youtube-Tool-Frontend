@@ -19,53 +19,47 @@ function MyApp({ Component, pageProps }) {
   const [googleAnalyticsConfig, setGoogleAnalyticsConfig] = useState(null);
   const router = useRouter();
 
-  // Fetch configurations from the /api/extensions endpoint
+  // Check if current route is dashboard
+  const isDashboard = router.asPath.startsWith("/dashboard");
+
+  console.log(isDashboard);
+  
+
+  // Fetch configuration settings
   useEffect(() => {
     const fetchConfigs = async () => {
       try {
-        const protocol =
-          window.location.protocol === "https:" ? "https" : "http";
+        const protocol = window.location.protocol;
         const host = window.location.host;
-
-        const response = await fetch(`${protocol}://${host}/api/extensions`);
-        const result = await response.json();
+        const res = await fetch(`${protocol}//${host}/api/extensions`);
+        const result = await res.json();
 
         if (result.success) {
-          // Tawk.to configuration
-          const tawkExtension = result.data.find(
+          const tawk = result.data.find(
             (ext) => ext.key === "tawk_to" && ext.status === "Enabled"
           );
-          if (tawkExtension && tawkExtension.config.appKey) {
-            setTawkConfig(tawkExtension.config);
+          if (tawk?.config?.appKey) {
+            setTawkConfig(tawk.config);
           }
 
-          // Google Analytics configuration
-          const googleAnalyticsExtension = result.data.find(
-            (ext) =>
-              ext.key === "google_analytics" && ext.status === "Enabled"
+          const ga = result.data.find(
+            (ext) => ext.key === "google_analytics" && ext.status === "Enabled"
           );
-          if (
-            googleAnalyticsExtension &&
-            googleAnalyticsExtension.config.measurementId
-          ) {
-            setGoogleAnalyticsConfig(
-              googleAnalyticsExtension.config.measurementId
-            );
+          if (ga?.config?.measurementId) {
+            setGoogleAnalyticsConfig(ga.config.measurementId);
           }
         }
-      } catch (error) {
-        console.error("Error fetching configurations:", error);
+      } catch (err) {
+        console.error("Error fetching configs:", err);
       }
     };
 
     fetchConfigs();
   }, []);
 
-  // Dynamically add Tawk.to script
+  // Load Tawk.to script
   useEffect(() => {
-    if (tawkConfig && tawkConfig.appKey && !router.pathname.includes("/dashboard")) {
-      const Tawk_API = window.Tawk_API || {};
-      const Tawk_LoadStart = new Date();
+    if (tawkConfig?.appKey && !isDashboard) {
       const script = document.createElement("script");
       script.async = true;
       script.src = `https://embed.tawk.to/${tawkConfig.appKey}/1id6uh68m`;
@@ -79,78 +73,52 @@ function MyApp({ Component, pageProps }) {
         }
       };
     }
-  }, [tawkConfig, router.pathname]);
-
-  // Dynamically add Google Analytics script
-  useEffect(() => {
-    if (googleAnalyticsConfig && !router.pathname.includes("/dashboard")) {
-      const gtagScript = document.createElement("script");
-      gtagScript.async = true;
-      gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=G-2M8WVHZHLG`;
-      document.head.appendChild(gtagScript);
-
-      const inlineScript = document.createElement("script");
-      inlineScript.innerHTML = `
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-2M8WVHZHLG');
-      `;
-      document.head.appendChild(inlineScript);
-
-      return () => {
-        if (gtagScript.parentNode) {
-          document.head.removeChild(gtagScript);
-        }
-        if (inlineScript.parentNode) {
-          document.head.removeChild(inlineScript);
-        }
-      };
-    }
-  }, [googleAnalyticsConfig, router.pathname]);
+  }, [tawkConfig, isDashboard]);
 
   return (
     <>
       <Head>
-        <meta name="twitter:image" content={pageProps.meta?.image || ""} />
         <link rel="icon" href="/favicon.ico" />
+        <meta name="twitter:image" content={pageProps.meta?.image || ""} />
         <meta
           name="google-site-verification"
           content="_eXmkpaLA6eqmMTx8hVOZP1tF7-PZ9X8vIwkWxo8Po8"
         />
-        <meta name="msvalidate.01" content="F2174449ED0353749E6042B4A2E43F09" />
-
-        {/* Conditionally load Google Analytics and Google Ads scripts */}
-        {!router.pathname.includes("/dashboard") && (
-          <>
-            <script
-              async
-              src="https://www.googletagmanager.com/gtag/js?id=G-2M8WVHZHLG"
-            ></script>
-            <script
-              async
-              src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2198018529886749"
-              crossOrigin="anonymous"
-            ></script>
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `
-                  window.dataLayer = window.dataLayer || [];
-                  function gtag(){dataLayer.push(arguments);}
-                  gtag('js', new Date());
-                  gtag('config', 'G-2M8WVHZHLG');
-                `,
-              }}
-            />
-          </>
-        )}
+        <meta
+          name="msvalidate.01"
+          content="F2174449ED0353749E6042B4A2E43F09"
+        />
       </Head>
 
-      <Script
-        id="organization-schema"
-        type="application/ld+json"
-        strategy="lazyOnload"
-      >
+      {/* Google Analytics */}
+      {!isDashboard && googleAnalyticsConfig && (
+        <>
+          <Script
+            strategy="afterInteractive"
+            src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsConfig}`}
+          />
+          <Script id="ga-init" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${googleAnalyticsConfig}');
+            `}
+          </Script>
+        </>
+      )}
+
+      {/* Google Ads */}
+      {!isDashboard && (
+        <Script
+          strategy="afterInteractive"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2198018529886749"
+          crossOrigin="anonymous"
+        />
+      )}
+
+      {/* Schema Markup */}
+      <Script id="organization-schema" type="application/ld+json" strategy="lazyOnload">
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Organization",
@@ -172,28 +140,31 @@ function MyApp({ Component, pageProps }) {
       <AuthProvider>
         <ContentProvider>
           <UserActionProvider>
-            {!router.pathname.includes("/dashboard") && <Navbar />}
+            {!isDashboard && <Navbar />}
             <Component {...pageProps} />
-            {!router.pathname.includes("/dashboard") && <Footer />}
+            {!isDashboard && <Footer />}
           </UserActionProvider>
         </ContentProvider>
       </AuthProvider>
 
-      <CookieConsent
-        location="bottom"
-        buttonText="I understand"
-        cookieName="mySiteCookieConsent"
-        style={{ background: "#2B373B", color: "#fff" }}
-        buttonStyle={{ color: "#4e503b", fontSize: "13px" }}
-        expires={150}
-      >
-        This website uses cookies to enhance the user experience.{" "}
-        <Link href="/privacy" passHref>
-          <span style={{ color: "#fff", textDecoration: "underline" }}>
-            Learn more
-          </span>
-        </Link>
-      </CookieConsent>
+      {/* Cookie Consent */}
+      {!isDashboard && (
+        <CookieConsent
+          location="bottom"
+          buttonText="I understand"
+          cookieName="mySiteCookieConsent"
+          style={{ background: "#2B373B", color: "#fff" }}
+          buttonStyle={{ color: "#4e503b", fontSize: "13px" }}
+          expires={150}
+        >
+          This website uses cookies to enhance the user experience.{" "}
+          <Link href="/privacy" passHref>
+            <span style={{ color: "#fff", textDecoration: "underline" }}>
+              Learn more
+            </span>
+          </Link>
+        </CookieConsent>
+      )}
     </>
   );
 }
