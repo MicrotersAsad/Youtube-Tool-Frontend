@@ -195,28 +195,25 @@ useEffect(() => {
     setError("");
     setUrl(e.target.value);
   };
-const VALID_PAYMENT_STATUSES = ['COMPLETED', 'PAID', 'completed'];
+  const VALID_PAYMENT_STATUSES = ['COMPLETED', 'paid', 'completed'];
 
-const isFreePlan = !user || (
-  user.plan === 'free' ||
-  !VALID_PAYMENT_STATUSES.includes(user.paymentDetails?.paymentStatus) ||
-  (user.paymentDetails?.createdAt && (() => {
-    const createdAt = new Date(user.paymentDetails.createdAt);
-    const validityDays = user.plan === 'yearly_premium' ? 365 : 
-                        user.plan === 'monthly_premium' ? 30 : 0;
-    const validUntil = new Date(createdAt);
-    validUntil.setDate(createdAt.getDate() + validityDays);
-    return validUntil < new Date();
-  })())
-);
-
-useEffect(() => {
-  if (isFreePlan) {
-    const storedCount = parseInt(localStorage.getItem('generateCount') || '0', 10);
-    setGenerateCount(storedCount);
-  }
-}, [isFreePlan]);
-
+  const isFreePlan = !user || (
+    user.plan === 'free' ||
+    !VALID_PAYMENT_STATUSES.includes(user.paymentDetails?.paymentStatus) ||
+    (user.paymentDetails?.createdAt &&
+      (() => {
+        const createdAt = new Date(user.paymentDetails.createdAt);
+        const validityDays = user.plan === 'yearly_premium' ? 365 : user.plan === 'monthly_premium' ? 30 : 0;
+        const validUntil = new Date(createdAt.setDate(createdAt.getDate() + validityDays));
+        return validUntil < new Date();
+      })())
+  );
+  useEffect(() => {
+    if (isFreePlan) {
+      const storedCount = parseInt(localStorage.getItem('generateCount') || '0', 10);
+      setGenerateCount(storedCount);
+    }
+  }, [isFreePlan]);
 const handleFetchClick = async () => {
   // Validate URL
   if (!url.trim()) {
@@ -225,10 +222,10 @@ const handleFetchClick = async () => {
   }
 
   // Validate captcha
-  if (!captchaVerified) {
-    toast.error(t("Please complete the captcha"));
-    return;
-  }
+  // if (!captchaVerified) {
+  //   toast.error(t("Please complete the captcha"));
+  //   return;
+  // }
 
   // Check generation limit for free users
   if (isFreePlan && generateCount >= 5) {
@@ -590,7 +587,7 @@ const handleFetchClick = async () => {
           </h1>
           <p className="text-white pb-3">The YouTube Monetization Checker  helps creators determine if their  channel meets the eligibility requirements for monetization. </p>
            
-            {modalVisible && (
+       {modalVisible && (
   <div
     className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
     role="alert"
@@ -600,7 +597,7 @@ const handleFetchClick = async () => {
         {isFreePlan ? (
           <p className="text-center p-3 alert-warning">
             {t(
-              "You have {{remaining}} of 5 lifetime YouTube Monetization Checker left. Upgrade to premium for unlimited access.",
+              "You have {{remaining}} of 5 lifetimeChannel Banner Download left. Upgrade to premium for unlimited access.",
               { remaining: 5 - generateCount }
             )}
             <Link href="/pricing" className="btn btn-warning ms-3">
@@ -609,7 +606,7 @@ const handleFetchClick = async () => {
           </p>
         ) : (
           <p className="text-center p-3 alert-warning">
-            {t(`Hey ${user?.username}, you have unlimited YouTube Monetization Checker as a ${user.plan}  user until your subscription expires.`)}
+            {t(`Hey ${user?.username}, you have unlimited Channel Banner Downloads as a ${user.plan}  user until your subscription expires.`)}
           </p>
         )}
       </div>

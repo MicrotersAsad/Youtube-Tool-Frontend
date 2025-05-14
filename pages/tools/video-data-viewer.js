@@ -150,48 +150,29 @@ useEffect(() => {
     fetchContent();
    
   }, [i18n.language]);
+
+
+ 
+
+ const VALID_PAYMENT_STATUSES = ['COMPLETED', 'paid', 'completed'];
+
+  const isFreePlan = !user || (
+    user.plan === 'free' ||
+    !VALID_PAYMENT_STATUSES.includes(user.paymentDetails?.paymentStatus) ||
+    (user.paymentDetails?.createdAt &&
+      (() => {
+        const createdAt = new Date(user.paymentDetails.createdAt);
+        const validityDays = user.plan === 'yearly_premium' ? 365 : user.plan === 'monthly_premium' ? 30 : 0;
+        const validUntil = new Date(createdAt.setDate(createdAt.getDate() + validityDays));
+        return validUntil < new Date();
+      })())
+  );
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setGenerateCount(Number(localStorage.getItem("generateCount")) || 0);
+    if (isFreePlan) {
+      const storedCount = parseInt(localStorage.getItem('generateCount') || '0', 10);
+      setGenerateCount(storedCount);
     }
-
-    if (user && user.paymentStatus !== "success" && !isUpdated) {
-      updateUserProfile().then(() => setIsUpdated(true));
-    }
-  }, [user, updateUserProfile, isUpdated]);
-
-  useEffect(() => {
-    if (user && user.paymentStatus !== "success" && user.role !== "admin") {
-      setGenerateCount(5);
-    }
-  }, [user]);
-
-  const handleInputChange = (e) => {
-    setError("");
-    setVideoUrl(e.target.value);
-  };
-
- const VALID_PAYMENT_STATUSES = ['COMPLETED', 'PAID', 'completed'];
-
-const isFreePlan = !user || (
-  user.plan === 'free' ||
-  !VALID_PAYMENT_STATUSES.includes(user.paymentDetails?.paymentStatus) ||
-  (user.paymentDetails?.createdAt && (() => {
-    const createdAt = new Date(user.paymentDetails.createdAt);
-    const validityDays = user.plan === 'yearly_premium' ? 365 : 
-                        user.plan === 'monthly_premium' ? 30 : 0;
-    const validUntil = new Date(createdAt);
-    validUntil.setDate(createdAt.getDate() + validityDays);
-    return validUntil < new Date();
-  })())
-);
-
-useEffect(() => {
-  if (isFreePlan) {
-    const storedCount = parseInt(localStorage.getItem('generateCount') || '0', 10);
-    setGenerateCount(storedCount);
-  }
-}, [isFreePlan]);
+  }, [isFreePlan]);
 
 const fetchYouTubeData = async () => {
   // Early validation
@@ -592,8 +573,7 @@ const fetchYouTubeData = async () => {
           <h1 className="text-3xl pt-5 text-white">{t("YouTube Video Data Viewer")}</h1>
           <p className="text-white pb-3">The YouTube Video Data Viewer is a tool designed to provide detailed insights and analytics for YouTube videos</p>
           <ToastContainer />
-           
-            {modalVisible && (
+         {modalVisible && (
   <div
     className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
     role="alert"
@@ -603,7 +583,7 @@ const fetchYouTubeData = async () => {
         {isFreePlan ? (
           <p className="text-center p-3 alert-warning">
             {t(
-              "You have {{remaining}} of 5 lifetime Video Data Viewer left. Upgrade to premium for unlimited access.",
+              "You have {{remaining}} of 5 lifetime YouTube Channel Search  left. Upgrade to premium for unlimited access.",
               { remaining: 5 - generateCount }
             )}
             <Link href="/pricing" className="btn btn-warning ms-3">
@@ -612,7 +592,7 @@ const fetchYouTubeData = async () => {
           </p>
         ) : (
           <p className="text-center p-3 alert-warning">
-            {t(`Hey ${user?.username}, you have unlimited Video Data Viewer as a ${user.plan}  user until your subscription expires.`)}
+            {t(`Hey ${user?.username}, you have unlimited YouTube Channel Search  as a ${user.plan}  user until your subscription expires.`)}
           </p>
         )}
       </div>
@@ -625,6 +605,8 @@ const fetchYouTubeData = async () => {
     </div>
   </div>
 )}
+        
+        
 <div className="border max-w-4xl mx-auto rounded-xl shadow bg-white">
   <div>
     <div className="w-full p-6">

@@ -276,6 +276,25 @@ useEffect(() => {
   const closeModal = () => {
     setModalVisible(false);
   };
+    const VALID_PAYMENT_STATUSES = ['COMPLETED', 'paid', 'completed'];
+  
+    const isFreePlan = !user || (
+      user.plan === 'free' ||
+      !VALID_PAYMENT_STATUSES.includes(user.paymentDetails?.paymentStatus) ||
+      (user.paymentDetails?.createdAt &&
+        (() => {
+          const createdAt = new Date(user.paymentDetails.createdAt);
+          const validityDays = user.plan === 'yearly_premium' ? 365 : user.plan === 'monthly_premium' ? 30 : 0;
+          const validUntil = new Date(createdAt.setDate(createdAt.getDate() + validityDays));
+          return validUntil < new Date();
+        })())
+    );
+    useEffect(() => {
+      if (isFreePlan) {
+        const storedCount = parseInt(localStorage.getItem('generateCount') || '0', 10);
+        setGenerateCount(storedCount);
+      }
+    }, [isFreePlan]);
 
   const fetchKeywordData = async () => {
  
@@ -325,11 +344,12 @@ useEffect(() => {
       setError(null);
   
       // ইউজার যদি লগইন থাকে এবং পেমেন্ট স্ট্যাটাস সফল না থাকে, তবে ফেচ কাউন্ট কমানো হবে
-      if (user && user.paymentStatus !== "success") {
-        const newCount = generateCount - 1;
-        setGenerateCount(newCount);
-        localStorage.setItem("generateCount", newCount);
-      }
+     // Check lifetime generation limit for free users
+       if (isFreePlan && generateCount >= 5) {
+         toast.error(t("Free users are limited to 5 tag generations in their lifetime. Upgrade to premium for unlimited access."));
+         return;
+       }
+     
   
     } catch (err) {
       setError(err.message);
@@ -625,50 +645,26 @@ useEffect(() => {
           <p className="text-white pb-3">A YouTube Keyword Research Tool helps content creators identify the most relevant and high-ranking keywords for their videos</p>
          
       
-          {modalVisible && (
+     {modalVisible && (
   <div
     className="bg-yellow-100 max-w-4xl mx-auto border-t-4 border-yellow-500 rounded-b text-yellow-700 px-4 shadow-md mb-6 mt-3"
     role="alert"
   >
     <div className="flex">
       <div>
-        {user ? (
-          // If user is logged in
-          <>
-            {/* Uncomment this section when payment system is implemented */}
-            {/* 
-            user.paymentStatus === "success" || user.role === "admin" ? (
-              <p className="text-center p-3 alert-warning">
-                {t("Congratulations! Now you can generate unlimited titles.")}
-              </p>
-            ) : (
-              <p className="text-center p-3 alert-warning">
-                {t(
-                  "You have used your free fetch limit. You can generate titles {{remaining}} more times. Upgrade for unlimited access.",
-                  { remaining: 3 - generateCount }
-                )}
-                <Link href="/pricing" className="btn btn-warning ms-3">
-                  {t("Upgrade")}
-                </Link>
-              </p>
-            )
-            */}
-            
-            {/* User can generate unlimited titles while logged in */}
-            <p className="text-center p-3 alert-warning">
-              {t(`Hey ${user?.username} You are logged in.Wellcome To YtubeTools. You can now  research unlimited keyword .`)}
-            </p>
-          </>
-        ) : (
-          // If user is not logged in
+        {isFreePlan ? (
           <p className="text-center p-3 alert-warning">
             {t(
-              "You are not logged in. You can  keyword research {{remaining}} more times. Please log in for unlimited access.",
-              { remaining: 3 - generateCount }
+              "You have {{remaining}} of 5 lifetime  Keyword ReSearch left. Upgrade to premium for unlimited access.",
+              { remaining: 5 - generateCount }
             )}
-            <Link href="/login" className="btn btn-warning ms-3">
-              {t("Log in")}
+            <Link href="/pricing" className="btn btn-warning ms-3">
+              {t("Upgrade")}
             </Link>
+          </p>
+        ) : (
+          <p className="text-center p-3 alert-warning">
+            {t(`Hey ${user?.username}, you have unlimited Channel Banner Downloads as a ${user.plan}  user until your subscription expires.`)}
           </p>
         )}
       </div>
@@ -681,6 +677,7 @@ useEffect(() => {
     </div>
   </div>
 )}
+
         <div className="shadow-md bg-white p-5 rounded">
         <ToastContainer />
        
