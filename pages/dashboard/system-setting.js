@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import React from 'react';
-import { FaUsers, FaUserCheck, FaEnvelope, FaCrown, FaUser,FaUserAlt ,FaFileAlt ,FaTools ,FaStar ,FaSitemap ,FaComment ,FaChartLine ,FaSignInAlt , FaChevronRight, FaCog, FaGlobe, FaRobot, FaBell, FaRemoveFormat, FaCss3, FaPuzzlePiece } from 'react-icons/fa';
+import { FaUsers, FaUserCheck, FaEnvelope, FaCrown, FaUser,FaUserAlt ,FaFileAlt ,FaTools ,FaStar ,FaSitemap ,FaComment ,FaChartLine ,FaSignInAlt , FaChevronRight, FaCog, FaGlobe, FaRobot, FaBell, FaRemoveFormat, FaCss3, FaPuzzlePiece, FaDollarSign } from 'react-icons/fa';
 import Layout from './layout';
 const Setting = () => {
     return (
@@ -30,6 +30,20 @@ const Setting = () => {
       <div className="flex flex-col justify-between ml-4">
         <h3 className="text-black pt-2">SEO Configuration</h3>
         <p className="text-sm text-gray-500">Configure proper meta title, meta description, meta keywords, etc to make the system SEO-friendly.</p>
+      </div>
+    </div>
+  </Link>
+
+  <Link href="payment-config">
+    <div className="flex items-center border rounded-lg bg-white shadow-md hover:shadow-lg transition-all p-4 h-full">
+      <div className="flex items-center space-x-4 flex-shrink-0">
+        <div className="p-3 rounded-md border bg-primary">
+          <FaDollarSign className="text-white fs-1" />
+        </div>
+      </div>
+      <div className="flex flex-col justify-between ml-4">
+        <h3 className="text-black pt-2">Payment Configuration</h3>
+        <p className="text-sm text-gray-500">Configure proper Payment Info.</p>
       </div>
     </div>
   </Link>

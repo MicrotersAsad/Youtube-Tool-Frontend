@@ -9,12 +9,13 @@ import Head from 'next/head';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { toast } from 'react-toastify';
 
-// Ensure Modal is accessible for screen readers
+// Set the app element for accessibility
 Modal.setAppElement('#__next');
 
-// Load Stripe with your publishable key
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
-
+/**
+ * Pricing page component for displaying plans and handling payments.
+ * @returns {JSX.Element} The pricing page UI.
+ */
 const Pricing = () => {
   const { user, login, logout } = useAuth();
   const { t } = useTranslation('pricing');
@@ -24,11 +25,58 @@ const Pricing = () => {
   const [openFAQ, setOpenFAQ] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [remainingDays, setRemainingDays] = useState(null);
+  const [paymentConfig, setPaymentConfig] = useState({
+    stripePublishableKey: null,
+    paypalClientId: null,
+  });
 
-  // Valid payment statuses for active subscriptions
   const VALID_PAYMENT_STATUSES = ['COMPLETED', 'paid', 'completed'];
 
-  // Check if user is on free plan or subscription is expired/canceled
+  // Initialize Stripe
+  const stripePromise = paymentConfig.stripePublishableKey
+    ? loadStripe(paymentConfig.stripePublishableKey)
+    : null;
+
+  /**
+   * Fetches payment configuration from the server.
+   */
+  useEffect(() => {
+    const fetchPaymentConfig = async () => {
+      const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Consider storing in env or secure storage
+      try {
+        const res = await fetch('/api/paymentConfig', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error ${res.status}`);
+        }
+
+        const { data } = await res.json();
+        if (!data?.paypal?.PAYPAL_CLIENT_ID) {
+          throw new Error('PayPal Client ID is missing');
+        }
+
+        setPaymentConfig({
+          stripePublishableKey: data.stripe?.STRIPE_PUBLISHABLE_KEY || null,
+          paypalClientId: data.paypal?.PAYPAL_CLIENT_ID || null,
+        });
+      } catch (error) {
+        console.error('Payment Config Fetch Error:', error.message);
+        toast.error(t('Failed to load payment configuration. Please try again later.'));
+      }
+    };
+
+    fetchPaymentConfig();
+  }, [t]);
+
+  /**
+   * Determines if the user is on a free or expired plan.
+   */
   const isFreePlan = user && (
     user.plan === 'free' ||
     !VALID_PAYMENT_STATUSES.includes(user.paymentDetails?.paymentStatus) ||
@@ -41,60 +89,60 @@ const Pricing = () => {
       })())
   );
 
-  // Debug user object and subscription status
+  /**
+   * Logs user data and calculates remaining subscription days.
+   */
   useEffect(() => {
-    console.log('User from useAuth:', user);
-    console.log('isFreePlan:', isFreePlan, 'Payment Status:', user?.paymentDetails?.paymentStatus);
-    if (user?.paymentDetails) {
-      console.log('Payment Details:', user.paymentDetails);
-    }
+    console.debug('User:', { id: user?.id, plan: user?.plan, paymentStatus: user?.paymentDetails?.paymentStatus });
+    console.debug('isFreePlan:', isFreePlan);
 
-    // Calculate remaining subscription days for valid payments
     if (user && VALID_PAYMENT_STATUSES.includes(user.paymentDetails?.paymentStatus)) {
       const updateRemainingDays = () => {
         if (!user.paymentDetails?.createdAt) {
           setRemainingDays(0);
           return;
         }
-        const currentDate = new Date();
         const createdAt = new Date(user.paymentDetails.createdAt);
         if (isNaN(createdAt.getTime())) {
           setRemainingDays(0);
           return;
         }
-        const validityDays =
-          user.plan === 'yearly_premium' ? 365 : user.plan === 'monthly_premium' ? 30 : 0;
+        const validityDays = user.plan === 'yearly_premium' ? 365 : user.plan === 'monthly_premium' ? 30 : 0;
         if (validityDays === 0) {
           setRemainingDays(0);
           return;
         }
         const validUntil = new Date(createdAt.setDate(createdAt.getDate() + validityDays));
-        const diffTime = validUntil - currentDate;
+        const diffTime = validUntil - new Date();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         setRemainingDays(diffDays > 0 ? diffDays : 0);
-        console.log('Remaining Days Calculated:', diffDays);
       };
 
       updateRemainingDays();
-      const intervalId = setInterval(updateRemainingDays, 86400000); // Update every 24 hours
-      return () => clearInterval(intervalId); // Cleanup interval on unmount
+      const intervalId = setInterval(updateRemainingDays, 86400000);
+      return () => clearInterval(intervalId);
     }
   }, [user]);
 
-  // Validate token without jwt-decode
+  /**
+   * Validates JWT token expiration.
+   * @param {string} token - The JWT token.
+   * @returns {boolean} True if valid, false otherwise.
+   */
   const validateToken = (token) => {
     if (!token) return false;
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      const currentTime = Math.floor(Date.now() / 1000);
-      return payload.exp > currentTime;
+      return payload.exp > Math.floor(Date.now() / 1000);
     } catch (error) {
-      console.error('Token validation error:', error);
+      console.error('Token validation error:', error.message);
       return false;
     }
   };
 
-  // Handle purchase button click
+  /**
+   * Handles purchase button click.
+   */
   const handlePurchaseClick = () => {
     if (!user) {
       toast.error(t('Please log in to continue.'));
@@ -106,22 +154,37 @@ const Pricing = () => {
       setTimeout(() => (window.location.href = '/login'), 2000);
       return;
     }
+    if (!paymentConfig.stripePublishableKey && !paymentConfig.paypalClientId) {
+      toast.error(t('Payment methods unavailable. Please contact support.'));
+      return;
+    }
     setIsModalOpen(true);
   };
 
-  // Handle payment method selection
+  /**
+   * Handles payment method selection.
+   * @param {string} method - The payment method ('stripe' or 'paypal').
+   */
   const handlePaymentMethodSelect = (method) => {
+    if (method === 'stripe' && !paymentConfig.stripePublishableKey) {
+      toast.error(t('Stripe is unavailable at the moment. Please choose another method.'));
+      return;
+    }
+    if (method === 'paypal' && !paymentConfig.paypalClientId) {
+      toast.error(t('PayPal is unavailable at the moment. Please choose another method.'));
+      return;
+    }
     setSelectedPaymentMethod(method);
   };
 
-  // Create PayPal order
+  /**
+   * Creates a PayPal order.
+   * @returns {Promise<string>} The PayPal order ID.
+   */
   const handlePayPalOrderCreate = async () => {
-    const userId = user.id;
-    console.log('Sending PayPal Order Request:', { selectedPlan, userId });
-
-    if (!selectedPlan || !userId) {
+    if (!selectedPlan || !user?.id) {
       const errorMessage = !selectedPlan ? 'Selected plan is missing' : 'User ID is missing';
-      console.error(errorMessage);
+      console.error('Order Creation Error:', errorMessage);
       toast.error(t(errorMessage));
       throw new Error(errorMessage);
     }
@@ -132,6 +195,8 @@ const Pricing = () => {
         throw new Error('Authentication token not found');
       }
 
+      console.debug('Creating PayPal Order:', { selectedPlan, userId: user.id });
+
       const response = await fetch('/api/create-paypal-order', {
         method: 'POST',
         headers: {
@@ -140,7 +205,7 @@ const Pricing = () => {
         },
         body: JSON.stringify({
           selectedPlan,
-          userId,
+          userId: user.id,
         }),
       });
 
@@ -148,7 +213,7 @@ const Pricing = () => {
       if (error) {
         throw new Error(error);
       }
-      console.log('PayPal Order Created:', id);
+      console.debug('PayPal Order Created:', { orderId: id });
       return id;
     } catch (error) {
       console.error('PayPal Order Creation Failed:', error.message);
@@ -157,61 +222,86 @@ const Pricing = () => {
     }
   };
 
-  // Handle PayPal approval
+  /**
+   * Handles PayPal order approval and capture.
+   * @param {Object} data - PayPal approval data.
+   * @param {Object} actions - PayPal actions.
+   */
   const handlePayPalApprove = async (data, actions) => {
-    console.log('PayPal Approval Data:', data);
+    if (isLoading) return; // Prevent multiple submissions
     setIsLoading(true);
+
     try {
       const authToken = localStorage.getItem('token');
       if (!authToken) {
         throw new Error(t('Authentication token not found. Please log in again.'));
       }
 
-      // Capture PayPal order
-      const response = await fetch('/api/capture-paypal-order', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken.trim()}`,
-        },
-        body: JSON.stringify({
-          orderID: data.orderID,
-          userId: user.id,
-          selectedPlan,
-        }),
-      });
+      console.debug('Capturing PayPal Order:', { orderID: data.orderID, userId: user.id, selectedPlan });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || t('Failed to capture PayPal order'));
+      // Retry logic for transient errors
+      const maxRetries = 3;
+      let attempt = 0;
+      let captureResponse;
+      while (attempt < maxRetries) {
+        try {
+          const response = await fetch('/api/capture-paypal-order', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken.trim()}`,
+            },
+            body: JSON.stringify({
+              orderID: data.orderID,
+              userId: user.id,
+              selectedPlan,
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || t('Failed to capture PayPal order'));
+          }
+
+          captureResponse = await response.json();
+          break; // Success, exit retry loop
+        } catch (error) {
+          attempt++;
+          if (attempt === maxRetries) {
+            throw error; // Max retries reached
+          }
+          console.warn(`Retry ${attempt}/${maxRetries} for PayPal capture:`, error.message);
+          await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+        }
       }
 
-      const result = await response.json();
-      console.log('Capture PayPal Order Response:', result);
+      console.debug('Capture PayPal Order Response:', captureResponse);
 
-      if (result.error) {
-        throw new Error(result.error);
-      }
-
-      if (!result.order || !result.order.orderId) {
+      // Handle already processed orders
+      if (captureResponse.message === 'Order already processed') {
+        toast.info(t('Order already processed. Redirecting to success page...'));
+      } else if (captureResponse.error) {
+        throw new Error(captureResponse.error);
+      } else if (!captureResponse.order || !captureResponse.order.orderId) {
         throw new Error(t('Order details missing in response'));
       }
 
-      // Store payment session for success page
-      localStorage.setItem('paymentSession', JSON.stringify({
-        orderId: result.order.orderId,
-        plan: result.order.plan,
-        amount: result.order.amount,
-        provider: result.order.provider,
-        sessionId: result.order.sessionId,
+      // Store payment session
+      const paymentSession = {
+        orderId: captureResponse.order.orderId,
+        plan: captureResponse.order.plan,
+        amount: captureResponse.order.amount,
+        provider: captureResponse.order.provider,
+        sessionId: captureResponse.order.sessionId,
         timestamp: Date.now(),
         paymentStatus: 'completed',
-      }));
+      };
+      localStorage.setItem('paymentSession', JSON.stringify(paymentSession));
 
       toast.success(t('Payment successful! Redirecting to success page...'));
 
-      // Redirect to success page with query parameters
-      const { order } = result;
+      // Redirect to success page
+      const { order } = captureResponse;
       const queryParams = new URLSearchParams({
         order_id: order.orderId,
         plan: order.plan,
@@ -232,7 +322,9 @@ const Pricing = () => {
     }
   };
 
-  // Handle Stripe checkout
+  /**
+   * Handles Stripe checkout continuation.
+   */
   const handleContinue = async () => {
     if (!selectedPaymentMethod) {
       toast.error(t('Please select a payment method.'));
@@ -240,6 +332,11 @@ const Pricing = () => {
     }
 
     if (selectedPaymentMethod === 'stripe') {
+      if (!stripePromise) {
+        toast.error(t('Stripe is unavailable at the moment. Please try again later.'));
+        return;
+      }
+
       setIsLoading(true);
       try {
         const authToken = localStorage.getItem('token');
@@ -247,7 +344,6 @@ const Pricing = () => {
           throw new Error(t('Authentication token not found. Please log in again.'));
         }
 
-        // Validate token
         if (!validateToken(authToken)) {
           toast.error(t('Session expired. Please log in again.'));
           localStorage.removeItem('token');
@@ -255,7 +351,6 @@ const Pricing = () => {
           throw new Error(t('Token expired'));
         }
 
-        // Store selectedPlan in localStorage
         localStorage.setItem('selectedPlan', selectedPlan);
 
         const stripe = await stripePromise;
@@ -277,17 +372,13 @@ const Pricing = () => {
         }
 
         const { id, error } = await response.json();
-
         if (error) {
-          console.error(t('Error creating Stripe checkout session:'), error);
-          toast.error(t('Error creating Stripe session: ') + error);
-          return;
+          throw new Error(error);
         }
 
         const result = await stripe.redirectToCheckout({ sessionId: id });
         if (result.error) {
-          console.error(result.error.message);
-          toast.error(t('Error redirecting to Stripe: ') + result.error.message);
+          throw new Error(result.error.message);
         }
       } catch (error) {
         console.error('Stripe Checkout Failed:', error.message);
@@ -298,7 +389,10 @@ const Pricing = () => {
     }
   };
 
-  // Toggle FAQ
+  /**
+   * Toggles FAQ section.
+   * @param {number} index - The FAQ index.
+   */
   const toggleFAQ = (index) => {
     setOpenFAQ(openFAQ === index ? null : index);
   };
@@ -507,53 +601,54 @@ const Pricing = () => {
             </button>
             <h2 className="text-2xl mb-4">{t('Choose a payment method')}</h2>
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <button
-                className={`p-4 border rounded-lg ${selectedPaymentMethod === 'paypal' ? 'border-green-500 bg-green-100' : 'border-gray-300'}`}
-                onClick={() => handlePaymentMethodSelect('paypal')}
-              >
-                <div className="flex items-center justify-center">
-                  <span className="mr-2">✔</span> <span>{t('PayPal')}</span>
-                </div>
-              </button>
-              <button
-                className={`p-4 border rounded-lg ${selectedPaymentMethod === 'stripe' ? 'border-green-500 bg-green-100' : 'border-gray-300'}`}
-                onClick={() => handlePaymentMethodSelect('stripe')}
-              >
-                <div className="flex items-center justify-center">
-                  <span className="mr-2">✔</span> <span>{t('Stripe')}</span>
-                </div>
-              </button>
-            </div>
-            {selectedPaymentMethod === 'paypal' ? (
-              process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ? (
-                <PayPalScriptProvider
-                  options={{
-                    'client-id': process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID,
-                    currency: 'USD',
-                  }}
-                  onError={(err) => {
-                    console.error('PayPal Script Load Error:', err);
-                    toast.error(t('Failed to load PayPal. Please try again.'));
-                  }}
+              {paymentConfig.paypalClientId && (
+                <button
+                  className={`p-4 border rounded-lg ${selectedPaymentMethod === 'paypal' ? 'border-green-500 bg-green-100' : 'border-gray-300'}`}
+                  onClick={() => handlePaymentMethodSelect('paypal')}
                 >
-                  {isLoading ? (
-                    <div>{t('Loading PayPal...')}</div>
-                  ) : (
-                    <PayPalButtons
-                      createOrder={handlePayPalOrderCreate}
-                      onApprove={handlePayPalApprove}
-                      onError={(err) => {
-                        console.error('PayPal Button Error:', err);
-                        toast.error(t('PayPal payment error: ') + err.message);
-                      }}
-                      style={{ layout: 'vertical' }}
-                    />
-                  )}
-                </PayPalScriptProvider>
-              ) : (
-                <div className="text-red-500">{t('PayPal Client ID is missing. Please contact support.')}</div>
-              )
-            ) : selectedPaymentMethod === 'stripe' ? (
+                  <div className="flex items-center justify-center">
+                    <span className="mr-2">✔</span> <span>{t('PayPal')}</span>
+                  </div>
+                </button>
+              )}
+              {paymentConfig.stripePublishableKey && (
+                <button
+                  className={`p-4 border rounded-lg ${selectedPaymentMethod === 'stripe' ? 'border-green-500 bg-green-100' : 'border-gray-300'}`}
+                  onClick={() => handlePaymentMethodSelect('stripe')}
+                >
+                  <div className="flex items-center justify-center">
+                    <span className="mr-2">✔</span> <span>{t('Stripe')}</span>
+                  </div>
+                </button>
+              )}
+            </div>
+            {selectedPaymentMethod === 'paypal' && paymentConfig.paypalClientId ? (
+              <PayPalScriptProvider
+                options={{
+                  'client-id': paymentConfig.paypalClientId,
+                  currency: 'USD',
+                }}
+                onError={(err) => {
+                  console.error('PayPal Script Load Error:', err);
+                  toast.error(t('Failed to load PayPal. Please check your credentials or try again later.'));
+                }}
+              >
+                {isLoading ? (
+                  <div>{t('Loading PayPal...')}</div>
+                ) : (
+                  <PayPalButtons
+                    createOrder={handlePayPalOrderCreate}
+                    onApprove={handlePayPalApprove}
+                    onError={(err) => {
+                      console.error('PayPal Button Error:', err);
+                      toast.error(t('PayPal payment error: ') + err.message);
+                    }}
+                    style={{ layout: 'vertical' }}
+                    disabled={isLoading}
+                  />
+                )}
+              </PayPalScriptProvider>
+            ) : selectedPaymentMethod === 'stripe' && paymentConfig.stripePublishableKey ? (
               <button
                 onClick={handleContinue}
                 className={`bg-blue-500 text-white px-6 py-2 rounded-lg w-full ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -561,7 +656,9 @@ const Pricing = () => {
               >
                 {isLoading ? t('Processing...') : t('Continue with Stripe')}
               </button>
-            ) : null}
+            ) : (
+              <div className="text-red-500">{t('Please select a payment method.')}</div>
+            )}
           </div>
         </Modal>
       </div>
@@ -569,6 +666,11 @@ const Pricing = () => {
   );
 };
 
+/**
+ * Server-side props for internationalization.
+ * @param {Object} context - Next.js context.
+ * @returns {Object} Props with translations.
+ */
 export async function getStaticProps({ locale }) {
   return {
     props: {

@@ -1,9 +1,9 @@
 import { appWithTranslation } from "next-i18next";
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import Script from "next/script";
 import "../styles/globals.css";
-import { AuthProvider } from "../contexts/AuthContext";
+import { AuthProvider, useAuth } from "../contexts/AuthContext";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
 import { ContentProvider } from "../contexts/ContentContext";
@@ -14,16 +14,12 @@ import "../public/laraberg.css";
 import nextI18NextConfig from "../next-i18next.config";
 import { UserActionProvider } from "../contexts/UserActionContext";
 
-function MyApp({ Component, pageProps }) {
+// Component to handle app content and scripts
+function AppContent({ Component, pageProps }) {
   const [tawkConfig, setTawkConfig] = useState(null);
   const [googleAnalyticsConfig, setGoogleAnalyticsConfig] = useState(null);
   const router = useRouter();
-
-  // Check if current route is dashboard
   const isDashboard = router.asPath.startsWith("/dashboard");
-
-  console.log(isDashboard);
-  
 
   // Fetch configuration settings
   useEffect(() => {
@@ -137,15 +133,9 @@ function MyApp({ Component, pageProps }) {
         })}
       </Script>
 
-      <AuthProvider>
-        <ContentProvider>
-          <UserActionProvider>
-            {!isDashboard && <Navbar />}
-            <Component {...pageProps} />
-            {!isDashboard && <Footer />}
-          </UserActionProvider>
-        </ContentProvider>
-      </AuthProvider>
+      {!isDashboard && <Navbar />}
+      <Component {...pageProps} />
+      {!isDashboard && <Footer />}
 
       {/* Cookie Consent */}
       {!isDashboard && (
@@ -166,6 +156,33 @@ function MyApp({ Component, pageProps }) {
         </CookieConsent>
       )}
     </>
+  );
+}
+
+// Component to handle authentication checks
+function AuthWrapper({ Component, pageProps }) {
+  const { user, loading } = useAuth(); // Now safe to use inside AuthProvider
+  const router = useRouter();
+  const isDashboard = router.asPath.startsWith("/dashboard");
+
+  useEffect(() => {
+    if (isDashboard && !loading && !user) {
+      router.push("/login");
+    }
+  }, [isDashboard, user, loading, router]);
+
+  return <AppContent Component={Component} pageProps={pageProps} />;
+}
+
+function MyApp({ Component, pageProps }) {
+  return (
+    <AuthProvider>
+      <ContentProvider>
+        <UserActionProvider>
+          <AuthWrapper Component={Component} pageProps={pageProps} />
+        </UserActionProvider>
+      </ContentProvider>
+    </AuthProvider>
   );
 }
 

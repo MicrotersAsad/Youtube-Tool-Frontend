@@ -19,6 +19,7 @@ import {
   Legend,
 } from 'chart.js';
 
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -58,6 +59,7 @@ const Dashboard = () => {
   const [comments, setComments] = useState([]);
 const page=1
 const articlesPerPage = 10; // Set the number of articles per page
+  
 
   const fetchData = async (filter) => {
     try {

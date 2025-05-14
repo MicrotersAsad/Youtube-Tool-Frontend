@@ -7,83 +7,133 @@ import PropTypes from 'prop-types';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);  // ইউজারের প্রোফাইল স্টেট
-  const [userFetched, setUserFetched] = useState(false);  // ইউজার প্রোফাইল ফেচ হয়েছে কিনা সেটা ট্র্যাক করার জন্য ফ্ল্যাগ
-  const [loading, setLoading] = useState(true);  // লোডিং স্টেট
+  const [user, setUser] = useState(null);
+  const [userFetched, setUserFetched] = useState(false);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // `useEffect` - ইউজার প্রোফাইল ফেচ করার জন্য
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token && !userFetched) {  // যদি টোকেন থাকে এবং ইউজারের প্রোফাইল ফেচ করা না হয়ে থাকে
-      setLoading(true);
+  // Check token validity (expiration)
+  const isTokenExpired = (token) => {
+    try {
       const decoded = jwt.decode(token);
-      if (decoded) {
-        fetchUserProfile(decoded);  // ইউজারের প্রোফাইল ফেচ করা হবে
-      } else {
-        console.error("Token decoding failed");
-        setLoading(false);
-      }
-    } else {
-      setLoading(false);  // টোকেন না থাকলে বা ইউজার ফেচ হয়ে থাকলে লোডিং বন্ধ করা হবে
+      if (!decoded || !decoded.exp) return true;
+      return decoded.exp * 1000 < Date.now();
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return true;
     }
-  }, [userFetched, router]);  // `userFetched` পরিবর্তিত হলে পুনরায় রান হবে
+  };
 
-  // ইউজারের প্রোফাইল ফেচ করার ফাংশন
+  // Fetch user profile
   const fetchUserProfile = async (decoded) => {
     try {
       const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        throw new Error('Token is expired or invalid');
+      }
       const response = await axios.get('/api/user', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setUser({ ...decoded, ...response.data });  // ইউজারের প্রোফাইল সেট করা
-      setUserFetched(true);  // ইউজারের প্রোফাইল ফেচ হয়েছে, তাই ফ্ল্যাগটি true করা
+      setUser({ ...decoded, ...response.data });
+      setUserFetched(true);
     } catch (error) {
-      console.error("Failed to fetch user profile:", error);
+      console.error('Failed to fetch user profile:', error);
+      localStorage.removeItem('token');
+      setUser(null);
+      setUserFetched(false);
+      router.push('/login');
     } finally {
-      setLoading(false);  // API কল শেষে লোডিং বন্ধ
+      setLoading(false);
     }
   };
 
-  // লগিন ফাংশন
+  // Initialize auth on page load
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token && !userFetched) {
+        setLoading(true);
+        if (isTokenExpired(token)) {
+          console.warn('Token is expired');
+          localStorage.removeItem('token');
+          setUser(null);
+          setLoading(false);
+          router.push('/login');
+          return;
+        }
+        try {
+          const decoded = jwt.decode(token);
+          if (decoded) {
+            await fetchUserProfile(decoded);
+          } else {
+            throw new Error('Token decoding failed');
+          }
+        } catch (error) {
+          console.error('Auth initialization failed:', error);
+          localStorage.removeItem('token');
+          setUser(null);
+          setLoading(false);
+          router.push('/login');
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+    initializeAuth();
+  }, [userFetched, router]);
+
+  // Login function
   const login = async (email, password) => {
     try {
+      setLoading(true);
       const response = await axios.post('/api/login', { email, password });
       const token = response.data.token;
+      if (!token) throw new Error('No token received');
+      localStorage.setItem('token', token);
       const decoded = jwt.decode(token);
-      if (decoded) {
-        localStorage.setItem('token', token);
-        setUserFetched(false);  // লগিন হওয়ার পর ফ্ল্যাগটি false করতে হবে, নতুনভাবে প্রোফাইল ফেচ করার জন্য
-        fetchUserProfile(decoded);  // লগিন হওয়ার পর ইউজারের প্রোফাইল ফেচ করা
+      if (decoded && !isTokenExpired(token)) {
+        setUserFetched(false);
+        await fetchUserProfile(decoded);
+        router.push('/dashboard'); // Redirect to dashboard after login
       } else {
-        console.error("Token decoding failed on login");
+        throw new Error('Invalid or expired token');
       }
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error('Login failed:', error);
+      setLoading(false);
+      throw error;
     }
   };
 
-  // লগআউট ফাংশন
+  // Logout function
   const logout = () => {
     setUser(null);
     localStorage.removeItem('token');
+    setUserFetched(false);
     router.push('/login');
   };
 
-  // প্রোফাইল আপডেট ফাংশন
+  // Update user profile
   const updateUserProfile = async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        throw new Error('Token is expired or invalid');
+      }
       const response = await axios.get('/api/user', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setUser(prevUser => ({ ...prevUser, ...response.data })); // ইউজারের প্রোফাইল আপডেট করা
+      setUser((prevUser) => ({ ...prevUser, ...response.data }));
     } catch (error) {
       console.error('Failed to update profile:', error);
+      localStorage.removeItem('token');
+      setUser(null);
+      setUserFetched(false);
+      router.push('/login');
     }
   };
 
