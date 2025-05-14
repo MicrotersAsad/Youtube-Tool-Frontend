@@ -65,7 +65,6 @@
 
 import fetch from 'node-fetch';
 
-import { connectToDatabase } from "../../utils/mongodb";
 export default async function handler(req, res) {
   // Only allow POST requests
   if (req.method !== 'POST') {
@@ -82,8 +81,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Connect to the MongoDB database
-    const { db } = await connectToDatabase();
+   
 
     // Construct the API payload
     const apiPayload = {
@@ -103,6 +101,7 @@ export default async function handler(req, res) {
     );
 
     const data = await response.json();
+console.log(data);
 
     // Check if the response is successful
     if (response.ok) {

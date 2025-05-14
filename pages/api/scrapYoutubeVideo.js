@@ -13,7 +13,7 @@ export default async function handler(req, res) {
 
     try {
         // Custom API URL
-        const apiUrl = "http://166.0.175.238:8000/api/scrap_youtube_video/?video_title=on&description=on";
+        const apiUrl = "http://185.126.181.74:8000/api/scrap_youtube_video/?video_title=on&description=on";
 
         // Disable SSL verification using axios
         const response = await axios.post(apiUrl, {

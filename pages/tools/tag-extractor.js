@@ -276,6 +276,7 @@ useEffect(() => {
         },
         body: JSON.stringify({ videoUrl }),
       });
+  console.log(response);
   
       if (!response.ok) {
         if (response.status === 429) {

@@ -95,7 +95,7 @@
 
 //   try {
 //     // External API endpoint
-//     const url = `http://166.0.175.238:8000/api/scrap_youtube_video/?latest_comments=on`
+//     const url = `http://185.126.181.74:8000/api/scrap_youtube_video/?latest_comments=on`
 //     // Make the POST request to the external API
 //     const response = await axios.post(
 //       url,
@@ -150,7 +150,7 @@ export default async function handler(req, res) {
 
     try {
         // Custom API URL to fetch channel_logo
-        const apiUrl = "http://166.0.175.238:8000/api/scrap_youtube_video/?latest_comments=on";
+        const apiUrl = "http://185.126.181.74:8000/api/scrap_youtube_video/?latest_comments=on";
 
         // Send request to the external API with SSL verification disabled
         const response = await axios.post(

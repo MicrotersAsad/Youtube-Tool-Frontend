@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     const apiTokens = await db.collection('openaiKey').find({ active: true }).toArray();
 
     // Scrap API Call
-    const scrapApiUrl = `http://166.0.175.238:8000/api/scrap_youtube_video/?video_title=on&description=on&total_likes=off&comments=on&video_views=on&upload_date=on&video_duration=on&video_thumbnail=on&channel_url=on&video_id=on&total_subscribers=on&verified=on&latest_comments=on&transcripts=on`;
+    const scrapApiUrl = `http://185.126.181.74:8000/api/scrap_youtube_video/?video_title=on&description=on&total_likes=off&comments=on&video_views=on&upload_date=on&video_duration=on&video_thumbnail=on&channel_url=on&video_id=on&total_subscribers=on&verified=on&latest_comments=on&transcripts=on`;
 
     const scrapResponse = await fetch(scrapApiUrl, {
       method: 'POST',

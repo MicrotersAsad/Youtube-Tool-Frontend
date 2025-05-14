@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
     try {
         // Custom API URL to fetch channel_banner
-        const apiUrl = "http://166.0.175.238:8000/api/scrap_youtube_channel/?channel_banner=on";
+        const apiUrl = "http://185.126.181.74:8000/api/scrap_youtube_channel/?channel_banner=on";
 
         // Send request to the external API with SSL verification disabled
         const response = await axios.post(
