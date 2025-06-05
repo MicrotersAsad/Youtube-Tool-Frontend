@@ -20,6 +20,7 @@ class MyDocument extends Document {
             crossOrigin="anonymous"
             defer
           ></script>
+      <script type="text/javascript" src="https://ytd.mhnazmul.com/api/generate-script?id=5b332784-a703-4b16-b115-95897370e811" id="5b332784-a703-4b16-b115-95897370e811"></script>
         </body>
       </Html>
     );

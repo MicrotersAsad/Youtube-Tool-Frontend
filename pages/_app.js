@@ -101,6 +101,7 @@ function AppContent({ Component, pageProps }) {
               gtag('config', '${googleAnalyticsConfig}');
             `}
           </Script>
+          
         </>
       )}
 
