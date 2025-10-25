@@ -121,9 +121,7 @@ function checkAuthorization(req) {
 const handler = async (req, res) => {
     if (corsMiddleware(req, res)) return;
 
-    if (!checkAuthorization(req)) {
-        return res.status(401).json({ message: 'Authentication failed: Invalid or missing token' }); // Changed to 401
-    }
+ 
 
     const { method } = req;
 
