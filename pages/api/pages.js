@@ -3,12 +3,10 @@ import { ObjectId } from "mongodb";
 import multer from 'multer';
 import FormData from 'form-data'; // ✅ For sending files to Express
 import fetch from 'node-fetch'; // ✅ For making HTTP requests to Express
-import fs from 'fs';
+// 🛑 fs import removed as local file system operations are no longer needed
 import path from 'path';
 
-// ❌ AWS S3/multer-s3 related imports and configurations are removed
-
-// 🛑 Express Server URL (Update if port changes)
+// 🛑 Express Server URL
 const EXPRESS_BASE_URL = 'https://img.ytubetools.com';
 
 // Disable built-in body parser for file upload handling by multer
@@ -18,16 +16,9 @@ export const config = {
     },
 };
 
-// Multer storage setup for temporary disk storage (for forwarding to Express)
-const storage = multer.diskStorage({
-    destination: './tmp/uploads', // Temporary folder
-    filename: (req, file, cb) => {
-        cb(null, file.originalname);
-    },
-});
-
+// ✅ Multer Configuration for MEMORY STORAGE (EROFS Solution)
 const upload = multer({
-    storage,
+    storage: multer.memoryStorage(), // ✅ Memory Storage ব্যবহার করা হচ্ছে
     limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB
     fileFilter: (req, file, cb) => {
         // Only allow image files
@@ -55,12 +46,14 @@ const runMiddleware = (req, res, fn) => {
 // ## Express Service Functions
 // -----------------------------------------------------------------
 
-// Upload file to Express server and return the full URL
-const uploadFileToExpress = async (filePath, originalname, title) => {
-    const fileData = fs.readFileSync(filePath);
+// ✅ Upload file to Express server (Updated to use Buffer)
+const uploadFileToExpress = async (fileBuffer, originalname, title) => {
+    // 🛑 No local file system usage
+    
     const form = new FormData();
 
-    form.append('file', fileData, originalname);
+    // ✅ Buffer ব্যবহার করে ডেটা যোগ করা হচ্ছে
+    form.append('file', fileBuffer, { filename: originalname });
     form.append('title', title || originalname);
 
     const uploadResponse = await fetch(`${EXPRESS_BASE_URL}/upload-image`, {
@@ -102,7 +95,8 @@ export default async function handler(req, res) {
 
     // Handle POST request - Create new page with image upload
     if (req.method === "POST") {
-        let filePath, metaImage, existingPage;
+        // 🛑 filePath variable removed
+        let metaImage; 
         
         try {
             await runMiddleware(req, res, upload.single('metaImage')); // 'metaImage' is the file field name
@@ -111,18 +105,19 @@ export default async function handler(req, res) {
         }
 
         const { name, slug, content, metaTitle, metaDescription } = req.body;
+        
+        const isFileUploaded = !!req.file;
+        const fileBuffer = req.file?.buffer; // ✅ Get Buffer
+        const originalname = req.file?.originalname;
+
 
         try {
             // 1. Upload the file to Express (if present)
-            if (req.file) {
-                filePath = path.join(process.cwd(), 'tmp/uploads', req.file.filename);
-                metaImage = await uploadFileToExpress(filePath, req.file.originalname, name);
+            if (isFileUploaded) {
+                metaImage = await uploadFileToExpress(fileBuffer, originalname, name);
             }
 
-            // 2. Clean up local temporary file
-            if (filePath && fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-            }
+            // 🛑 Local temporary file cleanup code removed
 
             // Check for required fields
             if (!name || !slug || !content || !metaTitle || !metaDescription) {
@@ -131,7 +126,7 @@ export default async function handler(req, res) {
             }
 
             // Ensure the slug is unique
-            existingPage = await pagesCollection.findOne({ slug });
+            const existingPage = await pagesCollection.findOne({ slug });
             if (existingPage) {
                 if (metaImage) await deleteFileFromExpress(metaImage); // Clean up Express file
                 return res.status(400).json({ message: "Slug already exists" });
@@ -148,7 +143,7 @@ export default async function handler(req, res) {
         } catch (error) {
             console.error('POST error:', error);
             if (metaImage) await deleteFileFromExpress(metaImage); // Clean up Express file
-            if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath); // Clean up local file
+            // 🛑 Local file cleanup code removed
 
             return res.status(500).json({ message: 'Internal Server Error', error: error.message });
         }
@@ -172,7 +167,8 @@ export default async function handler(req, res) {
 
     // Handle PUT request - Update an existing page
     if (req.method === "PUT") {
-        let filePath, newMetaImage;
+        // 🛑 filePath variable removed
+        let newMetaImage;
 
         try {
             await runMiddleware(req, res, upload.single('metaImage')); // Parse incoming file
@@ -195,13 +191,14 @@ export default async function handler(req, res) {
 
             // 1. Upload new file to Express (if present)
             if (req.file) {
-                filePath = path.join(process.cwd(), 'tmp/uploads', req.file.filename);
-                newMetaImage = await uploadFileToExpress(filePath, req.file.originalname, name);
+                const fileBuffer = req.file?.buffer; // ✅ Get Buffer
+                const originalname = req.file?.originalname;
+
+                newMetaImage = await uploadFileToExpress(fileBuffer, originalname, name);
                 
-                // 2. Clean up local temporary file
-                if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                // 🛑 Local temporary file cleanup code removed
                 
-                // 3. Delete OLD image from Express server
+                // 2. Delete OLD image from Express server
                 const oldImageUrl = existingPage.metaImage;
                 if (oldImageUrl) {
                     await deleteFileFromExpress(oldImageUrl);
@@ -231,7 +228,7 @@ export default async function handler(req, res) {
         } catch (error) {
             console.error('Error during PUT request:', error);
             if (newMetaImage) await deleteFileFromExpress(newMetaImage); // Clean up Express file
-            if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath); // Clean up local file
+            // 🛑 Local file cleanup code removed
 
             return res.status(500).json({ message: 'Internal server error', error: error.message });
         }
@@ -270,7 +267,7 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: 'Page deleted successfully' });
         } catch (error) {
             console.error('Error deleting page:', error);
-            return res.status(500).json({ message: 'Internal Server Error', error });
+            return res.status(500).json({ message: 'Internal Server Error', error: error.message });
         }
     }
 

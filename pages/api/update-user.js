@@ -4,10 +4,8 @@ import multer from 'multer';
 import FormData from 'form-data'; // ✅ Express এ ডেটা পাঠানোর জন্য
 import fetch from 'node-fetch'; // ✅ Express এ HTTP রিকোয়েস্ট পাঠানোর জন্য
 import { ObjectId } from 'mongodb';
-import fs from 'fs';
+// 🛑 fs import not strictly necessary as local file system operations are removed
 import path from 'path';
-
-// ❌ AWS S3/multer-s3 সম্পর্কিত ইম্পোর্ট এবং কনফিগারেশন বাদ দেওয়া হয়েছে
 
 // 🛑 Express সার্ভারের বেস URL (আপলোড/ডিলিট এর জন্য)
 const EXPRESS_BASE_URL = 'https://img.ytubetools.com';
@@ -18,14 +16,9 @@ export const config = {
     },
 };
 
-// Multer Configuration for Temporary Storage (Express-এ পাঠানোর আগে লোকালি সেভ করার জন্য)
+// ✅ Multer Configuration for MEMORY STORAGE (EROFS Solution)
 const upload = multer({
-    storage: multer.diskStorage({
-        destination: './tmp/uploads', // টেম্প ফোল্ডার
-        filename: (req, file, cb) => {
-            cb(null, file.originalname); // Express সার্ভার ইউনিক নাম তৈরি করবে
-        },
-    }),
+    storage: multer.memoryStorage(), // ✅ Memory Storage ব্যবহার করা হচ্ছে
     limits: { fileSize: 5 * 1024 * 1024 }, // Set file size limit to 5MB
     // Note: File filter validation should be done here if needed.
 });
@@ -46,13 +39,13 @@ const runMiddleware = (req, res, fn) => {
 // ## Express Service Functions
 // -----------------------------------------------------------------
 
-// Express সার্ভারে ফাইল আপলোড করে URL নিয়ে আসে
-const uploadFileToExpress = async (filePath, originalname) => {
-    const fileData = fs.readFileSync(filePath);
+// ✅ Express সার্ভারে ফাইল আপলোড করে URL নিয়ে আসে (Uses Buffer directly)
+const uploadFileToExpress = async (fileBuffer, originalname) => {
+    // 🛑 No local file system usage
     const form = new FormData();
     
-    // Express সার্ভারের Multer ফিল্ডের নাম 'file' হতে হবে (আগের কনফিগারেশন অনুযায়ী)
-    form.append('file', fileData, originalname); 
+    // ✅ Buffer ব্যবহার করে ডেটা যোগ করা হচ্ছে
+    form.append('file', fileBuffer, { filename: originalname }); 
     form.append('title', originalname); // ফাইল নেম টাইটেল হিসেবে পাঠানো হলো
 
     const uploadResponse = await fetch(`${EXPRESS_BASE_URL}/upload-image`, {
@@ -90,14 +83,15 @@ const deleteFileFromExpress = async (imageUrl) => {
 // -----------------------------------------------------------------
 
 export default async function handler(req, res) {
-    let filePath, newImageUrl, existingUser;
+    // 🛑 filePath variable removed
+    let newImageUrl, existingUser;
 
     if (req.method !== 'PUT') {
         return res.status(405).json({ success: false, message: `Method ${req.method} not allowed` });
     }
 
     try {
-        // 1. Multer দিয়ে ফাইলটি টেম্পোরারিলি সেভ করুন
+        // 1. Multer দিয়ে ফাইলটি মেমোরিতে সেভ করুন
         await runMiddleware(req, res, upload.single('profileImage'));
 
         // 2. JWT token ভেরিফিকেশন (অপরিবর্তিত)
@@ -129,16 +123,17 @@ export default async function handler(req, res) {
             updatedAt: new Date(),
         };
 
-        // 3. ফাইল আপলোড লজিক (S3 থেকে Express এ পরিবর্তিত)
+        // 3. ফাইল আপলোড লজিক
         if (req.file) {
+            const fileBuffer = req.file?.buffer; // ✅ Get Buffer
+            const originalname = req.file?.originalname;
+            
             // A. Express এ নতুন ফাইল আপলোড
-            filePath = path.join(process.cwd(), 'tmp/uploads', req.file.filename);
-            newImageUrl = await uploadFileToExpress(filePath, req.file.originalname);
+            newImageUrl = await uploadFileToExpress(fileBuffer, originalname);
             
-            // B. টেম্পোরারি ফাইল ডিলিট
-            if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+            // 🛑 Local temporary file cleanup code removed
             
-            // C. পুরানো ইমেজ ডিলিট
+            // B. পুরানো ইমেজ ডিলিট
             const oldImageUrl = existingUser.profileImage;
             if (oldImageUrl) {
                 await deleteFileFromExpress(oldImageUrl);
@@ -171,13 +166,16 @@ export default async function handler(req, res) {
         console.error('Error updating user:', error.message);
         
         // General cleanup if any error occurred mid-process
-        if (filePath && fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-        }
+        // 🛑 Local file cleanup code removed
         if (newImageUrl) {
             await deleteFileFromExpress(newImageUrl);
         }
         
+        // Check if the error is a JWT verification error
+        if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+            return res.status(401).json({ success: false, message: 'Invalid or expired token' });
+        }
+
         res.status(500).json({ success: false, message: error.message });
     }
 }

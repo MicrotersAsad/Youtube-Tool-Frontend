@@ -4,21 +4,14 @@ import multer from "multer";
 import FormData from "form-data"; // ✅ Express এ ডেটা পাঠানোর জন্য
 import fetch from "node-fetch"; // ✅ Express এ HTTP রিকোয়েস্ট পাঠানোর জন্য
 import path from "path";
-import fs from "fs";
-
-// ❌ AWS S3/multer-s3 সম্পর্কিত ইম্পোর্ট এবং কনফিগারেশন বাদ দেওয়া হয়েছে
+// 🛑 fs import removed as local file system operations are no longer needed
 
 // 🛑 Express সার্ভারের বেস URL
 const EXPRESS_BASE_URL = 'https://img.ytubetools.com';
 
-// Multer Configuration for Temporary Storage (Express-এ পাঠানোর আগে লোকালি সেভ করার জন্য)
+// ✅ Multer Configuration for MEMORY STORAGE (EROFS Solution)
 const upload = multer({
-    storage: multer.diskStorage({
-        destination: './tmp/uploads', // টেম্প ফোল্ডার
-        filename: (req, file, cb) => {
-            cb(null, file.originalname); 
-        },
-    }),
+    storage: multer.memoryStorage(), // ✅ Memory Storage ব্যবহার করা হচ্ছে
 });
 
 // Middleware to handle file uploads
@@ -34,13 +27,14 @@ const uploadMiddleware = upload.single("image");
 // ## Express Service Functions
 // -----------------------------------------------------------------
 
-// Express সার্ভারে ফাইল আপলোড করে URL নিয়ে আসে
-const uploadFileToExpress = async (filePath, originalname, title) => {
-    const fileData = fs.readFileSync(filePath);
+// ✅ Express সার্ভারে ফাইল আপলোড করে URL নিয়ে আসে (Uses Buffer directly)
+const uploadFileToExpress = async (fileBuffer, originalname, title) => {
+    // 🛑 Local file system usage (fs.readFileSync) removed
+    
     const form = new FormData();
     
-    // Express সার্ভারের Multer ফিল্ডের নাম 'file' হতে হবে (আগের কনফিগারেশন অনুযায়ী)
-    form.append('file', fileData, originalname); 
+    // ✅ Buffer ব্যবহার করে ডেটা যোগ করা হচ্ছে
+    form.append('file', fileBuffer, { filename: originalname });
     form.append('title', title || originalname); // লেখকের নাম টাইটেল হিসেবে পাঠানো যেতে পারে
 
     const uploadResponse = await fetch(`${EXPRESS_BASE_URL}/upload-image`, {
@@ -98,7 +92,8 @@ export default async function handler(req, res) {
 
             case "POST":
                 uploadMiddleware(req, res, async (err) => {
-                    let filePath, newImageUrl;
+                    // 🛑 filePath variable removed
+                    let newImageUrl;
 
                     if (err) {
                         console.error("Error uploading file:", err);
@@ -108,16 +103,17 @@ export default async function handler(req, res) {
                     try {
                         const { name, bio, role, socialLinks } = req.body;
                         
+                        const isFileUploaded = !!req.file;
+                        const fileBuffer = req.file?.buffer; // ✅ Get Buffer
+                        const originalname = req.file?.originalname;
+
                         // 1. Express-এ ইমেজ আপলোড
-                        if (req.file) {
-                            filePath = path.join(process.cwd(), 'tmp/uploads', req.file.filename);
-                            newImageUrl = await uploadFileToExpress(filePath, req.file.originalname, name);
+                        if (isFileUploaded) {
+                            // ✅ Buffer ব্যবহার করে আপলোড করা হচ্ছে
+                            newImageUrl = await uploadFileToExpress(fileBuffer, originalname, name);
                         }
 
-                        // 2. টেম্পোরারি ফাইল ডিলিট
-                        if (filePath && fs.existsSync(filePath)) {
-                            fs.unlinkSync(filePath);
-                        }
+                        // 🛑 Local temporary file cleanup code removed
 
                         const newAuthor = {
                             name,
@@ -128,7 +124,7 @@ export default async function handler(req, res) {
                         };
 
                         const result = await collection.insertOne(newAuthor);
-                        // Using result.insertedId to get the ID for the response object
+                        
                         return res.status(201).json({ _id: result.insertedId, ...newAuthor });
                         
                     } catch (dbError) {
@@ -137,10 +133,8 @@ export default async function handler(req, res) {
                         if (newImageUrl) {
                             await deleteFileFromExpress(newImageUrl);
                         }
-                        // Clean up temporary file
-                        if (filePath && fs.existsSync(filePath)) {
-                            fs.unlinkSync(filePath);
-                        }
+                        // 🛑 Local temporary file cleanup code removed
+                        
                         return res.status(500).json({ error: "Failed to save author to database" });
                     }
                 });
@@ -148,7 +142,8 @@ export default async function handler(req, res) {
 
             case "PUT":
                 uploadMiddleware(req, res, async (err) => {
-                    let filePath, newImageUrl;
+                    // 🛑 filePath variable removed
+                    let newImageUrl;
 
                     if (err) {
                         console.error("Error uploading file:", err);
@@ -172,16 +167,15 @@ export default async function handler(req, res) {
                         };
 
                         if (req.file) {
+                            const fileBuffer = req.file?.buffer; // ✅ Get Buffer
+                            const originalname = req.file?.originalname;
+                            
                             // 1. Express-এ নতুন ইমেজ আপলোড
-                            filePath = path.join(process.cwd(), 'tmp/uploads', req.file.filename);
-                            newImageUrl = await uploadFileToExpress(filePath, req.file.originalname, name);
+                            newImageUrl = await uploadFileToExpress(fileBuffer, originalname, name);
                             
-                            // 2. টেম্পোরারি ফাইল ডিলিট
-                            if (filePath && fs.existsSync(filePath)) {
-                                fs.unlinkSync(filePath);
-                            }
+                            // 🛑 Local temporary file cleanup code removed
                             
-                            // 3. পুরানো ইমেজ ডিলিট
+                            // 2. পুরানো ইমেজ ডিলিট
                             if (existingAuthor.imageUrl) {
                                 await deleteFileFromExpress(existingAuthor.imageUrl);
                             }

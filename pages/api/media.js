@@ -1,5 +1,5 @@
 import multer from 'multer';
-import fs from 'fs';
+// 🛑 fs import removed as local file system operations are no longer needed
 import path from 'path';
 import { ObjectId } from 'mongodb';
 import { connectToDatabase } from '../../utils/mongodb';
@@ -10,16 +10,9 @@ import fetch from 'node-fetch';
 // 🛑 IMPORTANT: This is the URL of your running Express server
 const EXPRESS_BASE_URL = 'https://img.ytubetools.com';
 
-// Multer Configuration for Temporary Storage
-// The file is first saved here before being forwarded to Express
+// ✅ Multer Configuration for MEMORY STORAGE (EROFS Solution)
 const upload = multer({
-    storage: multer.diskStorage({
-        destination: './tmp/uploads', // Temporary folder
-        filename: (req, file, cb) => {
-            // Using original name for temp file, Express will handle unique naming
-            cb(null, file.originalname); 
-        },
-    }),
+    storage: multer.memoryStorage(), // ✅ Memory Storage ব্যবহার করা হচ্ছে
 });
 
 const runMiddleware = (req, res, fn) => {
@@ -39,53 +32,62 @@ export const config = {
     },
 };
 
+// ✅ Upload file to Express server (Uses Buffer directly)
+const uploadFileToExpress = async (fileBuffer, originalname, title) => {
+    // 🛑 No local file system usage
+    
+    const form = new FormData();
+    
+    // ✅ Buffer ব্যবহার করে ডেটা যোগ করা হচ্ছে
+    form.append('file', fileBuffer, { filename: originalname });
+    form.append('title', title || originalname);
+
+    const uploadResponse = await fetch(`${EXPRESS_BASE_URL}/upload-image`, {
+        method: 'POST',
+        body: form,
+        headers: form.getHeaders(),
+    });
+
+    const uploadResult = await uploadResponse.json();
+
+    if (uploadResponse.status !== 200) {
+        throw new Error(uploadResult.message || 'Express server upload failed.');
+    }
+
+    return `${EXPRESS_BASE_URL}${uploadResult.data.url}`;
+};
+
 const handler = async (req, res) => {
     const { db } = await connectToDatabase();
 
     if (req.method === 'POST') {
-        // Step 1: Save file temporarily using Multer
+        // Step 1: Get file from memory using Multer
         await runMiddleware(req, res, upload.single('file'));
 
         const { title } = req.body;
         
         if (!req.file) {
-             return res.status(400).json({ message: 'File upload failed locally.' });
+            return res.status(400).json({ message: 'File upload is required.' });
         }
 
-        const filePath = path.join(process.cwd(), 'tmp/uploads', req.file.filename);
+        // Get file buffer and original name from memory
+        const fileBuffer = req.file.buffer;
+        const originalname = req.file.originalname;
         
+        let newImageUrl; // URL received from Express
+
         try {
-            const sanitizedTitle = slugify(title || req.file.originalname);
-            
-            // Step 2: Forward file to the Express server
-            const fileData = fs.readFileSync(filePath);
-            
-            const form = new FormData();
-            // Field name must match the one in Express's Multer setup ('file')
-            form.append('file', fileData, req.file.filename); 
-            form.append('title', title || req.file.originalname);
+            const sanitizedTitle = slugify(title || originalname); // Used for metadata, not file name
 
-            const uploadResponse = await fetch(`${EXPRESS_BASE_URL}/upload-image`, {
-                method: 'POST',
-                body: form,
-                headers: form.getHeaders(), 
-            });
+            // Step 2: Forward file buffer to the Express server
+            newImageUrl = await uploadFileToExpress(fileBuffer, originalname, title); 
 
-            const uploadResult = await uploadResponse.json();
+            // 🛑 Local file deletion code removed
 
-            // Check if Express upload was successful
-            if (uploadResponse.status !== 200) {
-                throw new Error(uploadResult.message || 'Express server upload failed.');
-            }
-            
-            // Step 3: Delete the local temporary file
-            fs.unlinkSync(filePath);
-
-            // Step 4: Save metadata to MongoDB
+            // Step 3: Save metadata to MongoDB
             const imageMetadata = {
-                title: title || req.file.originalname,
-                // Full accessible URL using the Express base and the path returned by Express
-                url: `${EXPRESS_BASE_URL}${uploadResult.data.url}`, 
+                title: title || originalname,
+                url: newImageUrl, 
                 uploadDate: new Date(),
             };
 
@@ -97,10 +99,13 @@ const handler = async (req, res) => {
         } catch (error) {
             console.error('Error inserting content:', error);
             
-            // Clean up temporary file in case of failure
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
+            // Clean up Express file in case of MongoDB insertion failure
+            if (newImageUrl) {
+                const fileToDelete = path.basename(newImageUrl);
+                const deleteUrl = `${EXPRESS_BASE_URL}/delete-image/${fileToDelete}`;
+                await fetch(deleteUrl, { method: 'DELETE' }).catch(err => console.warn('Express cleanup failed:', err));
             }
+            
             res.status(500).json({ message: 'Error inserting content', error: error.message });
         }
     } else if (req.method === 'DELETE') {

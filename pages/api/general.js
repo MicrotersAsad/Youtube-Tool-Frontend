@@ -3,12 +3,10 @@ import { connectToDatabase } from '../../utils/mongodb';
 import multer from 'multer';
 import FormData from 'form-data';
 import fetch from 'node-fetch';
-import fs from 'fs';
 import path from 'path';
+// 🛑 fs import removed as local file system operations are no longer needed
 
-// ❌ AWS S3/multer-s3 related imports and configurations are removed
-
-// 🛑 Express Server URL (Update if port changes)
+// 🛑 Express Server URL
 const EXPRESS_BASE_URL = 'https://img.ytubetools.com';
 
 export const config = {
@@ -17,14 +15,17 @@ export const config = {
     },
 };
 
-// Configure multer for TEMPORARY file storage before forwarding to Express
+// ✅ Configure multer for MEMORY STORAGE (Ensures EROFS/Read-Only File System compatibility)
 const upload = multer({
-    storage: multer.diskStorage({
-        destination: './tmp/uploads', // Temporary folder
-        filename: (req, file, cb) => {
-            cb(null, file.originalname);
-        },
-    }),
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!allowedTypes.includes(file.mimetype)) {
+            return cb(new Error('Invalid file type'), false);
+        }
+        cb(null, true);
+    }
 });
 
 const runMiddleware = (req, res, fn) =>
@@ -41,12 +42,14 @@ const runMiddleware = (req, res, fn) =>
 // ## Express Service Functions
 // -----------------------------------------------------------------
 
-// Upload file to Express server and return the full URL
-const uploadFileToExpress = async (filePath, originalname, title) => {
-    const fileData = fs.readFileSync(filePath);
+// ✅ Upload file to Express server (Uses Buffer directly from multer.memoryStorage)
+const uploadFileToExpress = async (fileBuffer, originalname, title) => {
+    // 🛑 No local file system usage (fs.readFileSync)
+
     const form = new FormData();
 
-    form.append('file', fileData, originalname);
+    // ✅ Appends file buffer to the form
+    form.append('file', fileBuffer, { filename: originalname });
     form.append('title', title || originalname);
 
     const uploadResponse = await fetch(`${EXPRESS_BASE_URL}/upload-image`, {
@@ -119,23 +122,24 @@ export default async function handler(req, res) {
 // -----------------------------------------------------------------
 
 const handlePostRequest = async (req, res, collection) => {
-    let filePath, newImageUrl;
+    // 🛑 filePath variable removed
+    let newImageUrl;
 
     try {
-        await runMiddleware(req, res, upload.single('image')); // Save file to temp folder
+        await runMiddleware(req, res, upload.single('image')); // File saved to memory
 
         const { siteTitle } = req.body;
 
+        const isImageUploaded = !!req.file;
+        const fileBuffer = req.file?.buffer; // ✅ Get Buffer from memory
+        const originalname = req.file?.originalname;
+
         // 1. Upload to Express
-        if (req.file) {
-            filePath = path.join(process.cwd(), 'tmp/uploads', req.file.filename);
-            newImageUrl = await uploadFileToExpress(filePath, req.file.originalname, siteTitle);
+        if (isImageUploaded) {
+            newImageUrl = await uploadFileToExpress(fileBuffer, originalname, siteTitle);
         }
 
-        // 2. Clean up temporary file
-        if (filePath && fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-        }
+        // 🛑 Local temporary file cleanup code removed
 
         if (!siteTitle || !newImageUrl) {
             // If validation fails after Express upload, delete the new image
@@ -160,8 +164,7 @@ const handlePostRequest = async (req, res, collection) => {
         console.error('POST error:', error);
         // Clean up Express file if DB insertion fails
         if (newImageUrl) await deleteFileFromExpress(newImageUrl);
-        // Clean up local temp file
-        if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        // 🛑 Local temporary file cleanup code removed
 
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
@@ -172,7 +175,7 @@ const handleGetRequest = async (req, res, collection, query) => {
         if (query.id) {
             const id = query.id;
             if (!ObjectId.isValid(id)) return res.status(400).json({ message: 'Invalid ID format' });
-            
+
             const document = await collection.findOne({ _id: new ObjectId(id) });
             if (!document) return res.status(404).json({ message: 'Resource not found' });
 
@@ -188,7 +191,8 @@ const handleGetRequest = async (req, res, collection, query) => {
 };
 
 const handlePutRequest = async (req, res, collection, query) => {
-    let filePath, newImageUrl;
+    // 🛑 filePath variable removed
+    let newImageUrl;
 
     try {
         const { id } = query;
@@ -197,20 +201,21 @@ const handlePutRequest = async (req, res, collection, query) => {
         const existingDocument = await collection.findOne({ _id: new ObjectId(id) });
         if (!existingDocument) return res.status(404).json({ message: 'Document not found' });
 
-        await runMiddleware(req, res, upload.single('image')); // Parse incoming file
+        await runMiddleware(req, res, upload.single('image')); // File saved to memory
 
         const updatedData = { ...req.body };
         let oldImageUrl = existingDocument.image;
 
         if (req.file) {
-            // 1. Upload new file to Express
-            filePath = path.join(process.cwd(), 'tmp/uploads', req.file.filename);
-            newImageUrl = await uploadFileToExpress(filePath, req.file.originalname, updatedData.siteTitle || existingDocument.siteTitle);
+            const fileBuffer = req.file?.buffer; // ✅ Get Buffer from memory
+            const originalname = req.file?.originalname;
 
-            // 2. Clean up temporary file
-            if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
-            
-            // 3. Delete OLD image from Express server
+            // 1. Upload new file to Express
+            newImageUrl = await uploadFileToExpress(fileBuffer, originalname, updatedData.siteTitle || existingDocument.siteTitle);
+
+            // 🛑 Local temporary file cleanup code removed
+
+            // 2. Delete OLD image from Express server
             if (oldImageUrl) await deleteFileFromExpress(oldImageUrl);
 
             updatedData.image = newImageUrl; // Update URL
@@ -230,8 +235,7 @@ const handlePutRequest = async (req, res, collection, query) => {
         console.error('PUT error:', error);
         // Clean up Express file if DB update fails
         if (newImageUrl) await deleteFileFromExpress(newImageUrl);
-        // Clean up local temp file
-        if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        // 🛑 Local temporary file cleanup code removed
 
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
@@ -244,7 +248,7 @@ const handleDeleteRequest = async (req, res, collection, query) => {
 
         const existingDocument = await collection.findOne({ _id: new ObjectId(id) });
         if (!existingDocument) return res.status(404).json({ message: 'Document not found' });
-        
+
         const imageUrl = existingDocument.image;
 
         // 1. Delete the image from the Express server

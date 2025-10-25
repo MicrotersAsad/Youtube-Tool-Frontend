@@ -3,10 +3,8 @@ import { ObjectId } from "mongodb";
 import multer from 'multer';
 import FormData from 'form-data'; // ✅ For sending files to Express
 import fetch from 'node-fetch'; // ✅ For making HTTP requests to Express
-import fs from 'fs';
 import path from 'path';
-
-// ❌ AWS S3/multer-s3 সম্পর্কিত ইম্পোর্ট এবং কনফিগারেশন বাদ দেওয়া হয়েছে
+// 🛑 fs import not strictly necessary as local file system operations are removed
 
 // 🛑 Express সার্ভারের বেস URL (আপলোড/ডিলিট এর জন্য)
 const EXPRESS_BASE_URL = 'https://img.ytubetools.com';
@@ -18,14 +16,10 @@ export const config = {
     },
 };
 
-// Multer Configuration for TEMPORARY storage
+// ✅ Multer Configuration for MEMORY STORAGE (EROFS Solution)
 const upload = multer({
-    storage: multer.diskStorage({
-        destination: './tmp/uploads', // Temporary folder
-        filename: (req, file, cb) => {
-            cb(null, file.originalname); 
-        },
-    }),
+    // ✅ diskStorage এর বদলে memoryStorage ব্যবহার করা হচ্ছে
+    storage: multer.memoryStorage(),
     limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB
     fileFilter: (req, file, cb) => {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
@@ -36,7 +30,6 @@ const upload = multer({
     }
 });
 
-// Helper function to run multer middleware
 const runMiddleware = (req, res, fn) => {
     return new Promise((resolve, reject) => {
         fn(req, res, (result) => {
@@ -70,13 +63,15 @@ const errorHandler = (res, error) => {
 // ## Express Service Functions
 // -----------------------------------------------------------------
 
-// Upload file to Express server and return the full URL
-const uploadFileToExpress = async (filePath, originalname, title) => {
-    const fileData = fs.readFileSync(filePath);
+// ✅ Upload file to Express server (Uses Buffer directly)
+const uploadFileToExpress = async (fileBuffer, originalname, title) => {
+    // 🛑 Local file system use removed
+
     const form = new FormData();
 
-    form.append('file', fileData, originalname);
-    form.append('title', title || originalname); 
+    // ✅ Buffer ব্যবহার করে ডেটা যোগ করা হচ্ছে
+    form.append('file', fileBuffer, { filename: originalname });
+    form.append('title', title || originalname);
 
     const uploadResponse = await fetch(`${EXPRESS_BASE_URL}/upload-image`, {
         method: 'POST',
@@ -168,7 +163,8 @@ export default async function handler(req, res) {
 }
 
 const handlePostRequest = async (req, res, youtube) => {
-    let filePath, newImageUrl;
+    // 🛑 Local file path variables removed
+    let newImageUrl; 
 
     try {
         await runMiddleware(req, res, upload.single('image'));
@@ -178,18 +174,19 @@ const handlePostRequest = async (req, res, youtube) => {
             content, title, metaTitle, description, slug, metaDescription, category, language,
             author, editor, developer,
         } = formData;
+        
+        const isImageUploaded = !!req.file;
+        const fileBuffer = req.file?.buffer; // ✅ মেমোরি থেকে Buffer নিন
+        const originalname = req.file?.originalname;
 
         // 1. Upload the file to Express (if present)
-        if (req.file) {
-            filePath = path.join(process.cwd(), 'tmp/uploads', req.file.filename);
-            newImageUrl = await uploadFileToExpress(filePath, req.file.originalname, title);
+        if (isImageUploaded) {
+            // ✅ Buffer ব্যবহার করে আপলোড করা হচ্ছে
+            newImageUrl = await uploadFileToExpress(fileBuffer, originalname, title);
         }
 
-        // 2. Clean up local temporary file
-        if (filePath && fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-        }
-
+        // 🛑 Local temporary file cleanup code removed
+        
         // Field validation
         if (!category || !content || !title || !slug || !metaTitle || !description || !metaDescription || !language || !author || !editor || !developer) {
             if (newImageUrl) await deleteFileFromExpress(newImageUrl); // Clean up Express file
@@ -249,7 +246,6 @@ const handlePostRequest = async (req, res, youtube) => {
     } catch (error) {
         // General cleanup on error
         if (newImageUrl) await deleteFileFromExpress(newImageUrl);
-        if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
         errorHandler(res, error);
     }
 };
@@ -306,7 +302,8 @@ const handleGetRequest = async (req, res, youtube, query) => {
 };
 
 const handlePutRequest = async (req, res, youtube, query) => {
-    let filePath, newImageUrl;
+    // 🛑 Local file path variables removed
+    let newImageUrl;
 
     try {
         await runMiddleware(req, res, upload.single('image'));
@@ -317,17 +314,17 @@ const handlePutRequest = async (req, res, youtube, query) => {
         // Find existing document to get old image URL
         const existingyoutube = await youtube.findOne({ _id: new ObjectId(id) });
         if (!existingyoutube) {
-             if (req.file) { filePath = path.join(process.cwd(), 'tmp/uploads', req.file.filename); if (fs.existsSync(filePath)) fs.unlinkSync(filePath); } // Clean local temp file
-             return res.status(404).json({ message: 'Resource not found' });
+            return res.status(404).json({ message: 'Resource not found' });
         }
         
         // 1. Upload new file to Express (if present)
         if (req.file) {
-            filePath = path.join(process.cwd(), 'tmp/uploads', req.file.filename);
-            newImageUrl = await uploadFileToExpress(filePath, req.file.originalname, updatedData.title);
+            const fileBuffer = req.file?.buffer; // ✅ মেমোরি থেকে Buffer নিন
+            const originalname = req.file?.originalname;
 
-            // Clean up local temporary file
-            if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+            newImageUrl = await uploadFileToExpress(fileBuffer, originalname, updatedData.title);
+
+            // 🛑 Local temporary file cleanup code removed
 
             // 2. Delete OLD image from Express server
             const oldImageUrl = existingyoutube.translations[language]?.image;
@@ -376,7 +373,6 @@ const handlePutRequest = async (req, res, youtube, query) => {
     } catch (error) {
         // General cleanup on error
         if (newImageUrl) await deleteFileFromExpress(newImageUrl);
-        if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
         errorHandler(res, error);
     }
 };
