@@ -8,7 +8,7 @@ export const useContent = () => useContext(ContentContext);
 
 export const fetchContent = async (category, locale, host, protocol, setLoading) => {
   setLoading(true);
-  const AUTH_TOKEN = "fc905a5a5ae08609ba38b046ecc8ef00"; // Authorization token from .env
+  // AUTH_TOKEN has been removed as per request.
 
   try {
     const apiUrl = `${protocol}://${host}/api/content?category=${category}&language=${locale}`;
@@ -16,7 +16,7 @@ export const fetchContent = async (category, locale, host, protocol, setLoading)
 
     const contentResponse = await fetch(apiUrl, {
       headers: {
-        'Authorization': `Bearer ${AUTH_TOKEN}`, // Add Authorization header
+        // Authorization header has been removed.
         'Content-Type': 'application/json',
       },
     });
@@ -91,13 +91,13 @@ export const fetchContent = async (category, locale, host, protocol, setLoading)
 
 export const fetchReviews = async (tool, host, protocol, setLoading) => {
   setLoading(true);
-  const AUTH_TOKEN = "fc905a5a5ae08609ba38b046ecc8ef00"; // Authorization token from .env
+  // AUTH_TOKEN has been removed as per request.
 
   try {
     const apiUrl = `${protocol}://${host}/api/reviews?tool=${tool}`;
     const response = await fetch(apiUrl, {
       headers: {
-        'Authorization': `Bearer ${AUTH_TOKEN}`, // Add Authorization header
+        // Authorization header has been removed.
         'Content-Type': 'application/json',
       },
     });
