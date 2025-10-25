@@ -1,30 +1,24 @@
 import { ObjectId } from 'mongodb';
 import { connectToDatabase } from '../../utils/mongodb';
 import multer from 'multer';
-import FormData from 'form-data'; // ✅ Express এ ডেটা পাঠানোর জন্য
-import fetch from 'node-fetch'; // ✅ Express এ HTTP রিকোয়েস্ট পাঠানোর জন্য
-import path from 'path';
-import fs from 'fs';
+import FormData from 'form-data'; 
+import fetch from 'node-fetch'; 
+import path from 'path'; // ফাইল ডিলিট করার জন্য basename দরকার
 
-// ❌ AWS S3/multer-s3 সম্পর্কিত ইম্পোর্ট এবং কনফিগারেশন বাদ দেওয়া হয়েছে
 
 // 🛑 Express সার্ভারের বেস URL
 const EXPRESS_BASE_URL = 'https://img.ytubetools.com';
 
 export const config = {
     api: {
-        bodyParser: false,
+        bodyParser: false, // Multer ব্যবহার করার জন্য এটি false রাখা আবশ্যক
     },
 };
 
-// Multer Configuration for Temporary Storage (Express-এ পাঠানোর আগে লোকালি সেভ করার জন্য)
+// ✅ Multer Configuration for Memory Storage
+// ফাইলগুলি ডিস্কে সেভ না হয়ে সরাসরি মেমোরিতে (buffer হিসেবে) থাকবে।
 const upload = multer({
-    storage: multer.diskStorage({
-        destination: './tmp/uploads', // টেম্প ফোল্ডার
-        filename: (req, file, cb) => {
-            cb(null, file.originalname); // Express সার্ভার ইউনিক নাম তৈরি করবে
-        },
-    }),
+    storage: multer.memoryStorage(),
 });
 
 const runMiddleware = (req, res, fn) => {
@@ -89,17 +83,16 @@ export default async function handler(req, res) {
     }
 }
 
-// -----------------------------------------------------------------
-// ## Request Handlers
-// -----------------------------------------------------------------
 
-// Express সার্ভারে ফাইল আপলোড করে URL নিয়ে আসে
-const uploadFileToExpress = async (filePath, originalname, title) => {
-    const fileData = fs.readFileSync(filePath);
+
+// ✅ Express সার্ভারে ফাইল আপলোড করে URL নিয়ে আসে
+// এই ফাংশনটি এখন সরাসরি ফাইল Buffer (fileBuffer) গ্রহণ করবে।
+const uploadFileToExpress = async (fileBuffer, originalname, title) => {
     const form = new FormData();
     
     // Express সার্ভারের Multer ফিল্ডের নাম 'file' হতে হবে
-    form.append('file', fileData, originalname); 
+    // Buffer ডেটা এবং ফাইলের নাম ব্যবহার করে FormData তে যোগ করা হচ্ছে
+    form.append('file', fileBuffer, { filename: originalname }); 
     form.append('title', title);
 
     const uploadResponse = await fetch(`${EXPRESS_BASE_URL}/upload-image`, {
@@ -132,9 +125,10 @@ const deleteFileFromExpress = async (imageUrl) => {
     }
 };
 
+// ---
 
 const handlePostRequest = async (req, res, blogs) => {
-    let filePath, newImageUrl;
+    let newImageUrl; // 🛑 filePath variable has been removed
 
     try {
         await runMiddleware(req, res, upload.single('image'));
@@ -146,23 +140,21 @@ const handlePostRequest = async (req, res, blogs) => {
         } = formData;
 
         const isImageUploaded = !!req.file;
-        filePath = isImageUploaded ? path.join(process.cwd(), 'tmp/uploads', req.file.filename) : null;
+        const fileBuffer = req.file?.buffer; // ✅ মেমোরি থেকে Buffer নিন
         
         // 1. Express-এ ইমেজ আপলোড
         if (isImageUploaded) {
-            newImageUrl = await uploadFileToExpress(filePath, req.file.originalname, title);
+            // ✅ uploadFileToExpress ফাংশনে Buffer পাঠানো হচ্ছে
+            newImageUrl = await uploadFileToExpress(fileBuffer, req.file.originalname, title);
         }
 
         // Simplified validation check
         if (!content || !title || !slug || !language) {
-            if (newImageUrl) await deleteFileFromExpress(newImageUrl); // Clean up if validation fails
+            if (newImageUrl) await deleteFileFromExpress(newImageUrl); // Clean up Express file if validation fails
             return res.status(400).json({ message: 'Missing required fields (content, title, slug, or language)' });
         }
         
-        // 2. টেম্পোরারি ফাইল ডিলিট
-        if (filePath && fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-        }
+        // 🛑 লোকাল ফাইল ডিলিট করার যুক্তি মুছে দেওয়া হয়েছে (memory storage এর জন্য দরকার নেই)
 
         const existingBlog = await blogs.findOne({ [`translations.${language}.slug`]: slug });
         
@@ -173,7 +165,7 @@ const handlePostRequest = async (req, res, blogs) => {
         
         const coreFields = { author, editor, developer };
 
-        // 3. MongoDB অপারেশন (Update/Insert)
+        // 2. MongoDB অপারেশন (Update/Insert)
         if (existingBlog) {
             let oldImageUrl = existingBlog.translations[language]?.image;
             
@@ -217,20 +209,19 @@ const handlePostRequest = async (req, res, blogs) => {
     } catch (error) {
         console.error('POST error:', error);
         
-        // Clean up temporary file and Express file in case of failure
-        if (filePath && fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-        }
+        // 🛑 লোকাল ফাইল ডিলিট করার যুক্তি মুছে দেওয়া হয়েছে
         if (newImageUrl) {
-            await deleteFileFromExpress(newImageUrl);
+            await deleteFileFromExpress(newImageUrl); // Express ফাইল ক্লিনআপ
         }
 
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };
 
+// ---
+
 const handlePutRequest = async (req, res, blogs, query) => {
-    let filePath, newImageUrl;
+    let newImageUrl; // 🛑 filePath variable has been removed
 
     try {
         await runMiddleware(req, res, upload.single('image'));
@@ -249,14 +240,11 @@ const handlePutRequest = async (req, res, blogs, query) => {
 
         // 1. Express-এ ইমেজ আপলোড
         if (req.file) {
-            filePath = path.join(process.cwd(), 'tmp/uploads', req.file.filename);
-            newImageUrl = await uploadFileToExpress(filePath, req.file.originalname, updatedData.title);
+            const fileBuffer = req.file?.buffer; // ✅ মেমোরি থেকে Buffer নিন
+            newImageUrl = await uploadFileToExpress(fileBuffer, req.file.originalname, updatedData.title);
         }
 
-        // 2. টেম্পোরারি ফাইল ডিলিট
-        if (filePath && fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-        }
+        // 🛑 লোকাল ফাইল ডিলিট করার যুক্তি মুছে দেওয়া হয়েছে
 
         // Handle image replacement logic:
         let oldImageUrl = existingBlog.translations[language]?.image;
@@ -296,17 +284,16 @@ const handlePutRequest = async (req, res, blogs, query) => {
     } catch (error) {
         console.error('PUT error:', error);
         
-        // Clean up temporary file and Express file in case of failure
-        if (filePath && fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-        }
+        // 🛑 লোকাল ফাইল ডিলিট করার যুক্তি মুছে দেওয়া হয়েছে
         if (newImageUrl) {
-            await deleteFileFromExpress(newImageUrl);
+            await deleteFileFromExpress(newImageUrl); // Express ফাইল ক্লিনআপ
         }
         
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };
+
+// ---
 
 const handleGetRequest = async (req, res, blogs, query) => {
     try {
@@ -337,6 +324,8 @@ const handleGetRequest = async (req, res, blogs, query) => {
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };
+
+// ---
 
 const handleDeleteRequest = async (req, res, blogs, query) => {
     try {
