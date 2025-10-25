@@ -32,12 +32,25 @@ const handler = async (req, res) => {
     return res.status(405).json({ message: 'Only POST requests allowed' });
   }
 
-  await runMiddleware(req, res, upload.single('file'));
+  try {
+    await runMiddleware(req, res, upload.single('file'));
+  } catch (error) {
+    console.error('Multer error:', error);
+    return res.status(500).json({ message: 'File upload error', error: error.message });
+  }
 
-  const { collectionName, language } = req.body;
+  // Removed 'language' from destructuring
+  const { collectionName } = req.body; 
 
   if (!collectionName) {
+    if (req.file && req.file.path) {
+        fs.unlinkSync(req.file.path);
+    }
     return res.status(400).json({ message: 'Collection name is required' });
+  }
+  
+  if (!req.file) {
+      return res.status(400).json({ message: 'File is required for upload' });
   }
 
   const { db } = await connectToDatabase();
@@ -45,16 +58,19 @@ const handler = async (req, res) => {
   try {
     const filePath = path.join(process.cwd(), 'public/uploads', req.file.originalname);
     const fileContent = fs.readFileSync(filePath, 'utf8');
+    
+    fs.unlinkSync(filePath); 
+    
     const content = JSON.parse(fileContent);
 
     if (!Array.isArray(content)) {
       throw new Error('Uploaded file must contain an array of content entries.');
     }
 
-    // Adding language to each content entry if language is provided
-    const contentWithLanguage = content.map(entry => (language ? { ...entry, language } : entry));
+    // Removed language processing. Inserting content array directly.
+    const contentToInsert = content; 
 
-    const result = await db.collection(collectionName).insertMany(contentWithLanguage);
+    const result = await db.collection(collectionName).insertMany(contentToInsert);
     res.status(200).json({ message: `${result.insertedCount} items inserted successfully.` });
   } catch (error) {
     console.error('Error inserting content:', error);

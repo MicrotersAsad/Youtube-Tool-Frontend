@@ -5,7 +5,7 @@ export default function Home() {
   const [collectionName, setCollectionName] = useState('');
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState('');
-  const [language, setLanguage] = useState('');
+  // Removed: const [language, setLanguage] = useState('');
   const [exportFormat, setExportFormat] = useState('json');
 
   const handleFileChange = (e) => {
@@ -15,10 +15,15 @@ export default function Home() {
   const handleImport = async (e) => {
     e.preventDefault();
 
+    if (!file) {
+      setMessage('Error: Please select a file to upload.');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('collectionName', collectionName);
     formData.append('file', file);
-    formData.append('language', language);
+    // Removed: formData.append('language', language); 
 
     try {
       const response = await fetch('/api/upload-content', {
@@ -52,6 +57,7 @@ export default function Home() {
           format: exportFormat 
         }),
       });
+      console.log(response);
 
       if (response.ok) {
         const blob = await response.blob();
@@ -59,7 +65,6 @@ export default function Home() {
         const a = document.createElement('a');
         a.href = url;
         
-        // Set appropriate file extension based on format
         const fileExtension = exportFormat === 'mysql' ? 'sql' : 'json';
         a.download = `${collectionName}.${fileExtension}`;
         
@@ -81,6 +86,7 @@ export default function Home() {
         <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
           <h1 className="text-2xl font-bold mb-4">Upload and Export Content</h1>
           <form onSubmit={handleImport} className="mb-4">
+            <h2 className="text-xl font-semibold mb-3 border-b pb-2">Import Content</h2>
             <div className="mb-4">
               <label htmlFor="collectionName" className="block text-gray-700 font-bold mb-2">Collection Name</label>
               <select
@@ -94,45 +100,22 @@ export default function Home() {
                 <option value="about">About</option>
                 <option value="blogs">Blogs</option>
                 <option value="notice">Notice</option>
+                <option value="test">Test</option>
+                <option value="images">Images</option>
                 <option value="content">Content</option>
                 <option value="terms">Terms</option>
                 <option value="privacy">Privacy</option>
                 <option value="reviews">Reviews</option>
                 <option value="comments">Comments</option>
-                <option value="user">User</option>
+                <option value="users">User</option>
                 <option value="ytApi">Youtube Api</option>
                 <option value="openaiKey">Openai Key</option>
                 <option value="youtube">Youtube</option>
               </select>
             </div>
-            <div className="mb-4">
-              <label htmlFor="language" className="block text-gray-700 font-bold mb-2">Language</label>
-              <select
-                id="language"
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="">Select a language</option>
-                <option value="en">English</option>
-                <option value="fr">French</option>
-                <option value="zh-HANT">中国传统的</option>
-                <option value="zh-HANS">简体中文</option>
-                <option value="nl">Nederlands</option>
-                <option value="gu">ગુજરાતી</option>
-                <option value="hi">हिंदी</option>
-                <option value="it">Italiano</option>
-                <option value="ja">日本語</option>
-                <option value="ko">한국어</option>
-                <option value="pl">Polski</option>
-                <option value="pt">Português</option>
-                <option value="ru">Русский</option>
-                <option value="es">Español</option>
-                <option value="de">Deutsch</option>
-                {/* Add more languages as needed */}
-              </select>
-            </div>
+            {/* Removed Language Selection Block:
+            <div className="mb-4">...</div>
+            */}
             <div className="mb-4">
               <label htmlFor="file" className="block text-gray-700 font-bold mb-2">Upload JSON File</label>
               <input
@@ -146,7 +129,9 @@ export default function Home() {
             </div>
             <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Upload Content</button>
           </form>
+          
           <form onSubmit={handleExport}>
+            <h2 className="text-xl font-semibold mb-3 border-b pb-2">Export Content</h2>
             <div className="mb-4">
               <label htmlFor="collectionNameExport" className="block text-gray-700 font-bold mb-2">Collection Name</label>
               <select
@@ -161,18 +146,19 @@ export default function Home() {
                 <option value="blogs">Blogs</option>
                 <option value="notice">Notice</option>
                 <option value="content">Content</option>
+                <option value="images">Images</option>
                 <option value="terms">Terms</option>
                 <option value="privacy">Privacy</option>
                 <option value="reviews">Reviews</option>
                 <option value="comments">Comments</option>
-                <option value="user">User</option>
+                <option value="users">User</option>
                 <option value="ytApi">Youtube Api</option>
                 <option value="openaiKey">Openai Key</option>
+                <option value="test">Test</option>
                 <option value="youtube">Youtube</option>
               </select>
             </div>
             
-            {/* New export format selection */}
             <div className="mb-4">
               <label htmlFor="exportFormat" className="block text-gray-700 font-bold mb-2">Export Format</label>
               <div className="flex space-x-4">
@@ -203,7 +189,7 @@ export default function Home() {
             
             <button type="submit" className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500">Export Content</button>
           </form>
-          {message && <p className="mt-4 text-red-500">{message}</p>}
+          {message && <p className={`mt-4 ${message.startsWith('Error:') ? 'text-red-500' : 'text-green-600'}`}>{message}</p>}
         </div>
       </div>
     </Layout>

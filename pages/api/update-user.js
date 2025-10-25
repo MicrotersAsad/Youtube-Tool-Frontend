@@ -1,117 +1,183 @@
 import { connectToDatabase } from '../../utils/mongodb';
 import jwt from 'jsonwebtoken';
 import multer from 'multer';
-import { S3Client } from '@aws-sdk/client-s3';
-import multerS3 from 'multer-s3';
+import FormData from 'form-data'; // ✅ Express এ ডেটা পাঠানোর জন্য
+import fetch from 'node-fetch'; // ✅ Express এ HTTP রিকোয়েস্ট পাঠানোর জন্য
 import { ObjectId } from 'mongodb';
+import fs from 'fs';
+import path from 'path';
+
+// ❌ AWS S3/multer-s3 সম্পর্কিত ইম্পোর্ট এবং কনফিগারেশন বাদ দেওয়া হয়েছে
+
+// 🛑 Express সার্ভারের বেস URL (আপলোড/ডিলিট এর জন্য)
+const EXPRESS_BASE_URL = 'http://localhost:4000';
 
 export const config = {
-  api: {
-    bodyParser: false, // Disable default body parser to handle file uploads
-  },
+    api: {
+        bodyParser: false, // Disable default body parser to handle file uploads
+    },
 };
 
-// Configure AWS S3
-const s3 = new S3Client({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-// Check for bucket name environment variable
-if (!process.env.AWS_S3_BUCKET_NAME) {
-  throw new Error("AWS_S3_BUCKET_NAME environment variable is not set");
-}
-
-// Configure multer to use S3 for storage
+// Multer Configuration for Temporary Storage (Express-এ পাঠানোর আগে লোকালি সেভ করার জন্য)
 const upload = multer({
-  storage: multerS3({
-    s3,
-    bucket: process.env.AWS_S3_BUCKET_NAME,
-    metadata: (req, file, cb) => {
-      cb(null, { fieldName: file.fieldname });
-    },
-    key: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-      cb(null, `uploads/${uniqueSuffix}-${file.originalname}`);
-    },
-  }),
-  limits: { fileSize: 5 * 1024 * 1024 }, // Set file size limit to 5MB
+    storage: multer.diskStorage({
+        destination: './tmp/uploads', // টেম্প ফোল্ডার
+        filename: (req, file, cb) => {
+            cb(null, file.originalname); // Express সার্ভার ইউনিক নাম তৈরি করবে
+        },
+    }),
+    limits: { fileSize: 5 * 1024 * 1024 }, // Set file size limit to 5MB
+    // Note: File filter validation should be done here if needed.
 });
 
-// Middleware to handle Multer file upload
+// Helper function to run multer middleware
 const runMiddleware = (req, res, fn) => {
-  return new Promise((resolve, reject) => {
-    fn(req, res, (result) => {
-      if (result instanceof Error) {
-        return reject(result);
-      }
-      return resolve(result);
+    return new Promise((resolve, reject) => {
+        fn(req, res, (result) => {
+            if (result instanceof Error) {
+                return reject(result);
+            }
+            return resolve(result);
+        });
     });
-  });
 };
+
+// -----------------------------------------------------------------
+// ## Express Service Functions
+// -----------------------------------------------------------------
+
+// Express সার্ভারে ফাইল আপলোড করে URL নিয়ে আসে
+const uploadFileToExpress = async (filePath, originalname) => {
+    const fileData = fs.readFileSync(filePath);
+    const form = new FormData();
+    
+    // Express সার্ভারের Multer ফিল্ডের নাম 'file' হতে হবে (আগের কনফিগারেশন অনুযায়ী)
+    form.append('file', fileData, originalname); 
+    form.append('title', originalname); // ফাইল নেম টাইটেল হিসেবে পাঠানো হলো
+
+    const uploadResponse = await fetch(`${EXPRESS_BASE_URL}/upload-image`, {
+        method: 'POST',
+        body: form,
+        headers: form.getHeaders(),
+    });
+
+    const uploadResult = await uploadResponse.json();
+
+    if (uploadResponse.status !== 200) {
+        throw new Error(uploadResult.message || 'Express server upload failed.');
+    }
+    
+    // MongoDB-তে সেভ করার জন্য সম্পূর্ণ URL
+    return `${EXPRESS_BASE_URL}${uploadResult.data.url}`; 
+};
+
+// Express সার্ভার থেকে ফাইল ডিলিট করে
+const deleteFileFromExpress = async (imageUrl) => {
+    const fileToDelete = path.basename(imageUrl);
+    const deleteUrl = `${EXPRESS_BASE_URL}/delete-image/${fileToDelete}`;
+
+    const deleteResponse = await fetch(deleteUrl, {
+        method: 'DELETE',
+    });
+
+    if (deleteResponse.status !== 200) {
+        console.warn(`Express server file deletion failed for ${fileToDelete}. Status: ${deleteResponse.status}`);
+    }
+};
+
+// -----------------------------------------------------------------
+// ## Main Handler
+// -----------------------------------------------------------------
 
 export default async function handler(req, res) {
-  if (req.method !== 'PUT') {
-    return res.status(405).json({ success: false, message: `Method ${req.method} not allowed` });
-  }
+    let filePath, newImageUrl, existingUser;
 
-  try {
-    // Handle file upload
-    await runMiddleware(req, res, upload.single('profileImage'));
-
-    // Verify JWT token
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    if (req.method !== 'PUT') {
+        return res.status(405).json({ success: false, message: `Method ${req.method} not allowed` });
     }
 
-    const decodedToken = jwt.verify(token, process.env.NEXT_PUBLIC_JWT_SECRET);
-    if (!decodedToken) {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    try {
+        // 1. Multer দিয়ে ফাইলটি টেম্পোরারিলি সেভ করুন
+        await runMiddleware(req, res, upload.single('profileImage'));
+
+        // 2. JWT token ভেরিফিকেশন (অপরিবর্তিত)
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+
+        const decodedToken = jwt.verify(token, process.env.NEXT_PUBLIC_JWT_SECRET);
+        if (!decodedToken) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+
+        const { db } = await connectToDatabase();
+        const { userId, username, role, email } = req.body;
+        
+        if (!ObjectId.isValid(userId)) {
+            return res.status(400).json({ success: false, message: 'Invalid user ID' });
+        }
+        
+        // Find existing user to get old image URL
+        existingUser = await db.collection('user').findOne({ _id: new ObjectId(userId) });
+        if (!existingUser) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        
+        const updateData = {
+            username, role, email,
+            updatedAt: new Date(),
+        };
+
+        // 3. ফাইল আপলোড লজিক (S3 থেকে Express এ পরিবর্তিত)
+        if (req.file) {
+            // A. Express এ নতুন ফাইল আপলোড
+            filePath = path.join(process.cwd(), 'tmp/uploads', req.file.filename);
+            newImageUrl = await uploadFileToExpress(filePath, req.file.originalname);
+            
+            // B. টেম্পোরারি ফাইল ডিলিট
+            if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+            
+            // C. পুরানো ইমেজ ডিলিট
+            const oldImageUrl = existingUser.profileImage;
+            if (oldImageUrl) {
+                await deleteFileFromExpress(oldImageUrl);
+            }
+
+            updateData.profileImage = newImageUrl; // Store the new image URL
+        }
+
+        // 4. MongoDB আপডেট
+        const updatedUser = await db.collection('user').updateOne(
+            { _id: new ObjectId(userId) },
+            { $set: updateData }
+        );
+
+        if (!updatedUser.matchedCount) {
+            // যদি MongoDB তে আপডেট ব্যর্থ হয় কিন্তু Express এ আপলোড সফল হয়, তাহলে ফাইল ডিলিট করুন
+            if (newImageUrl) {
+                 await deleteFileFromExpress(newImageUrl);
+            }
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // 5. সাফল্য রেসপন্স
+        res.status(200).json({
+            success: true,
+            message: 'User updated successfully',
+            imageUrl: updateData.profileImage || existingUser.profileImage, // Return the final image URL
+        });
+    } catch (error) {
+        console.error('Error updating user:', error.message);
+        
+        // General cleanup if any error occurred mid-process
+        if (filePath && fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
+        if (newImageUrl) {
+            await deleteFileFromExpress(newImageUrl);
+        }
+        
+        res.status(500).json({ success: false, message: error.message });
     }
-
-    // Connect to the database
-    const { db } = await connectToDatabase();
-    const { userId, username, role, email } = req.body;
-
-    // Ensure that `userId` is a valid ObjectId
-    if (!ObjectId.isValid(userId)) {
-      return res.status(400).json({ success: false, message: 'Invalid user ID' });
-    }
-
-    const updateData = {
-      username,
-      role,
-      email,
-      updatedAt: new Date(),
-    };
-
-    // Only add profileImage if the file exists
-    if (req.file) {
-      updateData.profileImage = req.file.location; // Store the image URL from S3
-    }
-
-    // Update the user document in MongoDB
-    const updatedUser = await db.collection('user').updateOne(
-      { _id: new ObjectId(userId) },
-      { $set: updateData }
-    );
-
-    if (!updatedUser.matchedCount) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-
-    // Send a success response
-    res.status(200).json({
-      success: true,
-      message: 'User updated successfully',
-      imageUrl: req.file ? req.file.location : null, // Return the image URL if available
-    });
-  } catch (error) {
-    console.error('Error updating user:', error.message);
-    res.status(500).json({ success: false, message: error.message });
-  }
 }
