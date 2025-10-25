@@ -725,7 +725,7 @@ export async function getServerSideProps({ locale = "en", req, query }) {
   const baseUrl = `${protocol}://${host}`;
 
   // Fetch the token securely (e.g., from cookies, environment variables)
-  const token = "AZ-fc905a5a5ae08609ba38b046ecc8ef00";  // Secure token retrieval
+  const token = "fc905a5a5ae08609ba38b046ecc8ef00";  // Secure token retrieval
 
   if (!token) {
     throw new Error("No authorization token found");

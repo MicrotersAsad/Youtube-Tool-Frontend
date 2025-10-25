@@ -78,7 +78,7 @@ const YtEmbedCode = ({ meta, reviews, content, relatedTools, faqs, reactions, hr
       try {
         const protocol = window.location.protocol === "https:" ? "https" : "http";
         const host = window.location.host;
-        const token = "AZ-fc905a5a5ae08609ba38b046ecc8ef00";
+        const token = "fc905a5a5ae08609ba38b046ecc8ef00";
 
         if (!token) {
           console.error("No authentication token found!");

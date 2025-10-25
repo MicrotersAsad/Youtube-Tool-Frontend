@@ -5,7 +5,7 @@ const ArticleData = () => {
     const fetchArticles = async (page = 1) => {
         setLoading(true);
         try {
-          const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+          const token = 'fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
         
           if (!token) {
             console.error('Authorization token is missing.');

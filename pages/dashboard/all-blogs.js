@@ -45,7 +45,7 @@ function AllBlogs() {
     setLoading(true);
     try {
       // Retrieve the token from localStorage (or wherever you're storing it)
-      const token ="AZ-fc905a5a5ae08609ba38b046ecc8ef00" // Replace this with your actual token retrieval method
+      const token ="fc905a5a5ae08609ba38b046ecc8ef00" // Replace this with your actual token retrieval method
   
       if (!token) {
         throw new Error('Authorization token is missing');
@@ -90,7 +90,7 @@ function AllBlogs() {
     if (window.confirm('Are you sure you want to delete this blog?')) {
       try {
         // Retrieve the token from localStorage (or wherever you're storing it)
-        const token ="AZ-fc905a5a5ae08609ba38b046ecc8ef00" // Replace this with your actual token retrieval method
+        const token ="fc905a5a5ae08609ba38b046ecc8ef00" // Replace this with your actual token retrieval method
   
         if (!token) {
           throw new Error('Authorization token is missing');

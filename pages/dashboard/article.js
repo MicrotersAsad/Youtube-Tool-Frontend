@@ -102,7 +102,7 @@ function Article() {
   const fetchContent = async () => {
     try {
       // Retrieve the token from localStorage or other secure storage
-      const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+      const token = 'fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
   
       if (!token) {
         console.error('Authorization token is missing.');
@@ -200,7 +200,7 @@ function Article() {
       formData.append('isDraft', JSON.stringify(false));
   
       // Retrieve the token from localStorage (or other secure storage)
-      const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+      const token = 'fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
   
       if (!token) {
         toast.error('You are not authenticated. Please log in.');

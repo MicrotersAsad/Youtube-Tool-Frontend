@@ -143,7 +143,7 @@ const truncateDescription = (description, maxWords = 26) => {
     setLoading(true);
   
     // Assuming you have the token stored in a variable (localStorage, cookies, etc.)
-    const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace with actual token, e.g. localStorage.getItem('authToken')
+    const token = 'fc905a5a5ae08609ba38b046ecc8ef00';  // Replace with actual token, e.g. localStorage.getItem('authToken')
   
     try {
       const response = await axios.get('/api/blogs', {
@@ -487,7 +487,7 @@ export async function getServerSideProps({ locale, req }) {
     const metaUrl = locale === 'en' ? `${baseUrl}${req.url}` : `${baseUrl}/${locale}${req.url}`;
 
     // Retrieve token from cookies (or headers)
-    const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // assuming the token is stored in the cookies as 'authToken'
+    const token ='fc905a5a5ae08609ba38b046ecc8ef00';  // assuming the token is stored in the cookies as 'authToken'
     
     // Ensure token is present for authorized API access
     if (!token) {

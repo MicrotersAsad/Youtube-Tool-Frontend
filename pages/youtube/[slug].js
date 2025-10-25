@@ -60,7 +60,7 @@ const BlogPost = ({
         const limit = 600; // Fetch 600 blogs at a time
 
         // Get the token from secure places
-        const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+        const token = 'fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
         if (!token) {
           throw new Error('Authorization token not found');
         }
@@ -411,7 +411,7 @@ export async function getServerSideProps({ locale, params, req }) {
     const apiUrl = `${protocol}://${host}/api/youtube`;
 
     // Retrieve the token securely (from cookies or headers)
-    const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token  // You can change this to suit where you store the token
+    const token = 'fc905a5a5ae08609ba38b046ecc8ef00'; // Example token  // You can change this to suit where you store the token
     if (!token) {
       console.error("Authorization token is missing.");
       return { notFound: true };

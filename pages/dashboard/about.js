@@ -14,7 +14,7 @@ function About() {
   const [existingMetaDescription, setExistingMetaDescription] = useState('');
   const [error, setError] = useState(null);
   const [language, setLanguage] = useState('en'); // Default language
-  const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Add your token here
+  const token = 'fc905a5a5ae08609ba38b046ecc8ef00'; // Add your token here
   useEffect(() => {
     const fetchContent = async () => {
       try {

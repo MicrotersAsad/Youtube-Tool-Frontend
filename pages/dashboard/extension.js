@@ -25,7 +25,7 @@ const Extensions = () => {
   }, []);
 
   const fetchExtensions = async () => {
-    const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00';
+    const token = 'fc905a5a5ae08609ba38b046ecc8ef00';
     try {
       const response = await fetch("/api/extensions", {
         method: "GET", // Use GET method if you're just fetching data
@@ -62,7 +62,7 @@ const Extensions = () => {
   };
 
   const saveConfig = async () => {
-    const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Add your token here
+    const token = 'fc905a5a5ae08609ba38b046ecc8ef00'; // Add your token here
     try {
       const dbExtension = dbExtensions.find((ext) => ext.key === selectedExtension.key);
       if (!dbExtension) {
@@ -117,7 +117,7 @@ const Extensions = () => {
   };
   
   const toggleStatus = async (extension) => {
-    const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Add your token here
+    const token = 'fc905a5a5ae08609ba38b046ecc8ef00'; // Add your token here
     const dbExtension = dbExtensions.find((ext) => ext.key === extension.key);
   
     if (!dbExtension) {

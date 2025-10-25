@@ -78,7 +78,7 @@ useEffect(() => {
       const host = window.location.host;
       
       // Retrieve the JWT token from localStorage (or other storage mechanisms)
-      const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace 'authToken' with your key if different
+      const token ='fc905a5a5ae08609ba38b046ecc8ef00';  // Replace 'authToken' with your key if different
       
         
       if (!token) {
@@ -127,7 +127,7 @@ useEffect(() => {
       try {
         const language = i18n.language;
        
-        const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00'; 
+        const token ='fc905a5a5ae08609ba38b046ecc8ef00'; 
         // Fetch content with Authorization header if authToken is available
         const response = await fetch(
           `/api/content?category=YouTube-Video-Summary-Generator&language=${language}`,

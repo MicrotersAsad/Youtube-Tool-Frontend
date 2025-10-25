@@ -83,7 +83,7 @@ useEffect(() => {
       const host = window.location.host;
       
       // Retrieve the JWT token from localStorage (or other storage mechanisms)
-      const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace 'authToken' with your key if different
+      const token ='fc905a5a5ae08609ba38b046ecc8ef00';  // Replace 'authToken' with your key if different
       
         
       if (!token) {
@@ -98,6 +98,7 @@ useEffect(() => {
           'Authorization': `Bearer ${token}`, // Include the token in the header
         },
       });
+console.log(response);
 
       const result = await response.json();
 

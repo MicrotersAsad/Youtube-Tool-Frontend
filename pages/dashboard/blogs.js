@@ -100,7 +100,7 @@ function Blogs() {
   const fetchContent = async () => {
     try {
       // Retrieve the token from localStorage (or cookie, or wherever it is stored)
-      const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Replace with your actual token storage method
+      const token ='fc905a5a5ae08609ba38b046ecc8ef00'; // Replace with your actual token storage method
   
       if (!token) {
         throw new Error('Authorization token is missing');
@@ -156,7 +156,7 @@ function Blogs() {
       formData.append('isDraft', JSON.stringify(false));
   
       // Retrieve the token from localStorage (or wherever you're storing it)
-      const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Replace this with your actual token retrieval method
+      const token ='fc905a5a5ae08609ba38b046ecc8ef00'; // Replace this with your actual token retrieval method
   
       if (!token) {
         throw new Error('Authorization token is missing');

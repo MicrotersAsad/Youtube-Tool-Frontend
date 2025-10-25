@@ -85,7 +85,7 @@ function EditBlog() {
   const fetchBlogData = async (id, lang) => {
     try {
       // Get the authentication token from localStorage (or wherever you store it)
-      const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+      const token = 'fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
   
       if (!token) {
         throw new Error('You are not authenticated. Please log in.');
@@ -152,7 +152,7 @@ function EditBlog() {
       if (!selectedCategory || selectedCategory.length !== 24) throw new Error('Invalid category ID format');
   
       // Get the authentication token from localStorage (or wherever you store it)
-      const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+      const token = 'fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
       if (!token) {
         throw new Error('You are not authenticated. Please log in.');
       }

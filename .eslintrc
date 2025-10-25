@@ -88,6 +88,7 @@
     "wrap-iife": "off",
     "react/display-name": "off",
      "no-extra-semi": "off",
+     
     "yoda": "off",
     "strict": "off",
     "init-declarations": "off",

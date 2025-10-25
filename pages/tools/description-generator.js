@@ -77,7 +77,7 @@ const YouTubeDescriptionGenerator = ({ meta = [], faqList = [], relatedTools = [
         const language = i18n.language;
   
         // Retrieve the authentication token
-        const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+        const token = 'fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
         if (!token) {
           throw new Error('You are not authenticated. Please log in.');
         }
@@ -916,7 +916,7 @@ export async function getStaticProps({ locale }) {
 
   try {
     // Authorization token
-    const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+    const token = 'fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
 
     // Fetch content and header data in parallel
     const [contentResponse, headerResponse] = await Promise.all([

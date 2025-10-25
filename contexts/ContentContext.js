@@ -8,22 +8,26 @@ export const useContent = () => useContext(ContentContext);
 
 export const fetchContent = async (category, locale, host, protocol, setLoading) => {
   setLoading(true);
-  const AUTH_TOKEN ="AZ-fc905a5a5ae08609ba38b046ecc8ef00"; // Authorization token from .env
+  const AUTH_TOKEN = "fc905a5a5ae08609ba38b046ecc8ef00"; // Authorization token from .env
 
   try {
     const apiUrl = `${protocol}://${host}/api/content?category=${category}&language=${locale}`;
+    console.log(apiUrl);
+
     const contentResponse = await fetch(apiUrl, {
       headers: {
         'Authorization': `Bearer ${AUTH_TOKEN}`, // Add Authorization header
         'Content-Type': 'application/json',
       },
     });
+    console.log(contentResponse);
 
     if (!contentResponse.ok) {
       throw new Error('Failed to fetch content');
     }
 
     const contentData = await contentResponse.json();
+    console.log(contentData);
 
     if (!contentData.translations || !contentData.translations[locale]) {
       throw new Error('Invalid content data format');
@@ -87,7 +91,7 @@ export const fetchContent = async (category, locale, host, protocol, setLoading)
 
 export const fetchReviews = async (tool, host, protocol, setLoading) => {
   setLoading(true);
-  const AUTH_TOKEN ="AZ-fc905a5a5ae08609ba38b046ecc8ef00"; // Authorization token from .env
+  const AUTH_TOKEN = "fc905a5a5ae08609ba38b046ecc8ef00"; // Authorization token from .env
 
   try {
     const apiUrl = `${protocol}://${host}/api/reviews?tool=${tool}`;

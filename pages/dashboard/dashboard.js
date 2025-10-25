@@ -106,14 +106,14 @@ const articlesPerPage = 10; // Set the number of articles per page
           .format('YYYY-MM-DD')}&end=${moment().format('YYYY-MM-DD')}`,
         {
           headers: {
-            Authorization: `Bearer AZ-fc905a5a5ae08609ba38b046ecc8ef00`,
+            Authorization: `Bearer fc905a5a5ae08609ba38b046ecc8ef00`,
             'Content-Type': 'application/json',
           },
         }
       ),
       fetch(`/api/youtube?page=${page}&limit=${articlesPerPage}`, {
         headers: {
-          Authorization: `Bearer AZ-fc905a5a5ae08609ba38b046ecc8ef00`,
+          Authorization: `Bearer fc905a5a5ae08609ba38b046ecc8ef00`,
         },
       }),
       fetch('/api/user-list', {

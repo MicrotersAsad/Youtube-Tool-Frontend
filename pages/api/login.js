@@ -22,7 +22,7 @@ export default async function handler(req, res) {
       // Fetch reCAPTCHA secret from the extensions API
       const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
       const host = req.headers.host;
-      const authToken = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Authorization token from header
+      const authToken = 'fc905a5a5ae08609ba38b046ecc8ef00'; // Authorization token from header
 
       if (!authToken) {
         return res.status(200).json({ message: "Authorization token is required" });

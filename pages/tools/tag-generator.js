@@ -132,7 +132,7 @@ useEffect(() => {
       const host = window.location.host;
       
       // Retrieve the JWT token from localStorage (or other storage mechanisms)
-      const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace 'authToken' with your key if different
+      const token ='fc905a5a5ae08609ba38b046ecc8ef00';  // Replace 'authToken' with your key if different
       
         
       if (!token) {
@@ -198,7 +198,7 @@ useEffect(() => {
         const language = i18n.language;
   
         // Retrieve authentication token (modify this based on your auth setup)
-        const token ="AZ-fc905a5a5ae08609ba38b046ecc8ef00"
+        const token ="fc905a5a5ae08609ba38b046ecc8ef00"
   
         if (!token) {
           throw new Error("Authentication token not found");

@@ -98,7 +98,7 @@ function EditBlog() {
   const fetchBlogData = async (id, lang) => {
     try {
       // Retrieve the token from localStorage (or other secure storage)
-      const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+      const token = 'fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
       if (!token) {
         throw new Error('You are not authenticated. Please log in.');
       }
@@ -192,7 +192,7 @@ const handleSave = useCallback(async () => {
     formData.append('language', language);
 
     // API কল করা
-    const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // উদাহরণ টোকেন
+    const token = 'fc905a5a5ae08609ba38b046ecc8ef00'; // উদাহরণ টোকেন
 
     if (!token) {
       throw new Error('You are not authenticated. Please log in.');

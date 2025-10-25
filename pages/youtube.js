@@ -128,7 +128,7 @@ const [totalPages, setTotalPages] = useState(meta?.totalPages || 1);  // Safe fa
     async (page = 1, category = '') => {
       setLoading(true);
       try {
-        const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
+        const token = 'fc905a5a5ae08609ba38b046ecc8ef00'; // Example token
   
         if (!token) {
           throw new Error('No authorization token found');
@@ -377,7 +377,7 @@ export async function getServerSideProps({ locale = 'en', req, query }) {
   const baseUrl = `${protocol}://${host}`;
 
   // Fetch the token securely (e.g., from cookies, environment variables)
-  const token ='AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace with a secure way of managing the token
+  const token ='fc905a5a5ae08609ba38b046ecc8ef00';  // Replace with a secure way of managing the token
 
   if (!token) {
     throw new Error('No authorization token found');

@@ -42,7 +42,7 @@ const Pricing = () => {
    */
   useEffect(() => {
     const fetchPaymentConfig = async () => {
-      const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00'; // Consider storing in env or secure storage
+      const token = 'fc905a5a5ae08609ba38b046ecc8ef00'; // Consider storing in env or secure storage
       try {
         const res = await fetch('/api/paymentConfig', {
           method: 'GET',

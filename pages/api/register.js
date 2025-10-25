@@ -18,7 +18,7 @@ async function fetchSecretKey() {
     const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
     const host = process.env.API_HOST || "localhost:3000";
     
-    const token = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00';
+    const token = 'fc905a5a5ae08609ba38b046ecc8ef00';
     
     if (!token) {
       throw new Error("Authorization token is missing");

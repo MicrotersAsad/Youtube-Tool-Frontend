@@ -9,7 +9,7 @@
 //     console.log('Base URL:', baseUrl);  // Check the base URL for debugging
   
 //     // Authorization token (replace this with your actual token)
-//     const authToken = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace with your token
+//     const authToken = 'fc905a5a5ae08609ba38b046ecc8ef00';  // Replace with your token
   
 //     // List of language codes
 //     const languages = [
@@ -162,7 +162,7 @@ export async function getServerSideProps({ req, res }) {
   console.log('Base URL:', baseUrl);  // Check the base URL for debugging
 
   // Authorization token (replace this with your actual token)
-  const authToken = 'AZ-fc905a5a5ae08609ba38b046ecc8ef00';  // Replace with your token
+  const authToken = 'fc905a5a5ae08609ba38b046ecc8ef00';  // Replace with your token
 
   // List of language codes
   const languages = [

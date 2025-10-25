@@ -213,7 +213,7 @@ function Content() {
         {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer AZ-fc905a5a5ae08609ba38b046ecc8ef00`, // Add Authorization header
+            'Authorization': `Bearer fc905a5a5ae08609ba38b046ecc8ef00`, // Add Authorization header
             'Content-Type': 'application/json', // Optional: Include Content-Type if needed
           },
         }
@@ -291,7 +291,7 @@ function Content() {
         {
           method,
           headers: {
-            'Authorization': `Bearer AZ-fc905a5a5ae08609ba38b046ecc8ef00`, // Add Authorization header
+            'Authorization': `Bearer fc905a5a5ae08609ba38b046ecc8ef00`, // Add Authorization header
           },
           body: formData,
         }
