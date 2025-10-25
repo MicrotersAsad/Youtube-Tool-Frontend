@@ -9,7 +9,7 @@ import fs from "fs";
 // ❌ AWS S3/multer-s3 সম্পর্কিত ইম্পোর্ট এবং কনফিগারেশন বাদ দেওয়া হয়েছে
 
 // 🛑 Express সার্ভারের বেস URL
-const EXPRESS_BASE_URL = 'http://localhost:4000';
+const EXPRESS_BASE_URL = 'https://img.ytubetools.com';
 
 // Multer Configuration for Temporary Storage (Express-এ পাঠানোর আগে লোকালি সেভ করার জন্য)
 const upload = multer({

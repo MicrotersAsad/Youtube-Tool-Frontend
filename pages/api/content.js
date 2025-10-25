@@ -7,7 +7,7 @@ import fs from 'fs';
 import path from 'path';
 
 // 🛑 Express Server URL (Update if port changes)
-const EXPRESS_BASE_URL = 'http://localhost:4000';
+const EXPRESS_BASE_URL = 'https://img.ytubetools.com';
 
 export const config = {
     api: {

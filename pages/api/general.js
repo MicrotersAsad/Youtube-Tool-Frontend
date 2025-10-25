@@ -9,7 +9,7 @@ import path from 'path';
 // ❌ AWS S3/multer-s3 related imports and configurations are removed
 
 // 🛑 Express Server URL (Update if port changes)
-const EXPRESS_BASE_URL = 'http://localhost:4000';
+const EXPRESS_BASE_URL = 'https://img.ytubetools.com';
 
 export const config = {
     api: {

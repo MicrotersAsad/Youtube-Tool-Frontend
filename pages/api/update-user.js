@@ -10,7 +10,7 @@ import path from 'path';
 // ❌ AWS S3/multer-s3 সম্পর্কিত ইম্পোর্ট এবং কনফিগারেশন বাদ দেওয়া হয়েছে
 
 // 🛑 Express সার্ভারের বেস URL (আপলোড/ডিলিট এর জন্য)
-const EXPRESS_BASE_URL = 'http://localhost:4000';
+const EXPRESS_BASE_URL = 'https://img.ytubetools.com';
 
 export const config = {
     api: {
