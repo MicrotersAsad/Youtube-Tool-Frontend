@@ -375,8 +375,8 @@ const simulateProgress = () => {
     <div className="">
       <Head>
           {/* SEO Meta Tags */}
-          <title>{t("Meta Title")}</title>
-          <meta name="description" content={t("Meta Description")} />
+          <title>{t("YtubeTools | Free YouTube Tools For Creators")}</title>
+          <meta name="description" content={t("Access 50+ free AI-powered YouTube tools for creators with unlimited usage—no credit card required!")} />
           <meta
             name="viewport"
             content="width=device-width, initial-scale=1.0"
@@ -390,7 +390,7 @@ const simulateProgress = () => {
           <meta property="og:type" content="website" />
           <meta property="og:url"  content="https://ytubetools.com/"/>
           <meta property="og:title" content={t("Meta Title")} />
-          <meta property="og:description" content={t("Meta Description")} />
+          <meta property="og:description" content={t("Access 50+ free AI-powered YouTube tools for creators with unlimited usage—no credit card required!")} />
           <meta property="og:image" content="https://img.ytubetools.com/public/uploads/1733308755615-ytubetools-homepage.png" />
           <meta property="og:image:secure_url" content="https://img.ytubetools.com/public/uploads/1733308755615-ytubetools-homepage.png" />
           <meta property="og:site_name" content="Ytubetools" />
@@ -401,7 +401,7 @@ const simulateProgress = () => {
           <meta name="twitter:domain" content="https://ytubetools.com/" />
           <meta property="twitter:url" content="https://ytubetools.com/"/>
           <meta name="twitter:title" content={t("Meta Title")} />
-          <meta name="twitter:description" content={t("Meta Description")} />
+          <meta name="twitter:description" content={t("Access 50+ free AI-powered YouTube tools for creators with unlimited usage—no credit card required!")} />
           <meta name="twitter:image" content="" />
           <meta name="twitter:site" content="@ytubetools" />
           <meta name="twitter:image:alt" content="https://img.ytubetools.com/public/uploads/1733308755615-ytubetools-homepage.png" />
