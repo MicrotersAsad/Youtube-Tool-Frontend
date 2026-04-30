@@ -450,13 +450,13 @@ const isLocalHost = typeof window !== "undefined" &&
   
           if (serviceType === "openai") {
             // For OpenAI API
-            url = "https://api.openai.com/v1/chat/completions";
+            url = "https://api.oxyy.ai/v1/chat/completions";
             headers = {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             };
             body = JSON.stringify({
-              model: "gpt-3.5-turbo-16k",
+              model: "gemini-2.0-flash",
               messages: [
                 {
                   role: "system",
