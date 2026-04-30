@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-  "build": "npm install --legacy-peer-deps && next build",
+    "build": "npm install --legacy-peer-deps && next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -67,7 +67,7 @@
     "next-connect": "^1.0.0",
     "next-i18next": "^15.4.0",
     "node-fetch": "^3.3.2",
-    "nodemailer": "^6.9.13",
+    "nodemailer": "^7.0.13",
     "nprogress": "^0.2.0",
     "path": "^0.12.7",
     "prismjs": "^1.29.0",
