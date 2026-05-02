@@ -390,149 +390,108 @@ const isLocalHost = typeof window !== "undefined" &&
       setGenerateCount(storedCount);
     }
   }, [isFreePlan]);
+
   const generateTitles = async () => {
-    // Check if required fields are filled
-    if ( !captchaVerified || tags.length === 0 || !selectedLanguage || !selectedTone) {
-      toast.error(t("complete all fields"));
+
+  if ((!captchaVerified && !isLocalHost) || tags.length === 0 || !selectedLanguage || !selectedTone) {
+    toast.error(t("complete all fields"));
+    return;
+  }
+
+  if (isFreePlan && generateCount >= 5) {
+    toast.error(t("Free users are limited to 5 tag generations in their lifetime. Upgrade to premium for unlimited access."));
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    const response = await fetch("/api/openaiKey");
+    if (!response.ok) throw new Error(`Failed to fetch API keys: ${response.status}`);
+
+    const keysData = await response.json();
+    const activeKeys = keysData.filter((key) => key.active);
+
+    if (activeKeys.length === 0) {
+      toast.error("No active API keys available.");
+      setIsLoading(false);
       return;
     }
-  
-    // Check if user has access or needs to upgrade
-    // If user is not logged in, show the login message
-    // if (!user) {
-    //   toast.error(t("Please log in to generate unlimited titles."));
-    //   return;
-    // }
-  
-    // Uncomment this section when payment system is implemented
-    /*
-    // If user has reached the limit and hasn't paid, restrict the access
-    if (user.paymentStatus !== "success" && user.role !== "admin" && generateCount >= 3) {
-      toast.error(t("You have exceeded your free title generation limit. Please upgrade for unlimited access."));
-      return;
-    }
-    */
-  
-    // If user is logged in, we allow unlimited titles (no check for payment status for now)
-  // If the user is not logged in, check if they have exceeded the 3-limit
-     // Check lifetime generation limit for free users
-     if (isFreePlan && generateCount >= 5) {
-       toast.error(t("Free users are limited to 5 tag generations in their lifetime. Upgrade to premium for unlimited access."));
-       return;
-     }
-  
-    setIsLoading(true);
-  
-    try {
-      // Fetch active API keys from the server
-      const response = await fetch("/api/openaiKey");
-      if (!response.ok) {
-        throw new Error(`Failed to fetch API keys: ${response.status}`);
-      }
-  
-      const keysData = await response.json();
-      const activeKeys = keysData.filter((key) => key.active);  // Filter out inactive keys
-  
-      if (activeKeys.length === 0) {
-        toast.error("No active API keys available.");
-        return;
-      }
-  
-      // Try each active API key
-      for (const keyData of activeKeys) {
-        try {
-          const { token, serviceType } = keyData;  // Extract token and serviceType
-  
-          // Determine the correct API URL and headers based on serviceType
-          let url = '';
-          let headers = {};
-          let body = {};
-  
-          if (serviceType === "openai") {
-            // For OpenAI API
-            url = "https://api.oxyy.ai/v1/chat/completions";
-            headers = {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            };
-            body = JSON.stringify({
-              model: "gemini-2.0-flash",
-              messages: [
-                {
-                  role: "system",
-                  content: `Generate a list of at least 10 SEO-friendly Title for keywords: "${tags.join(", ")}" in this ${selectedTone} tone & language ${selectedLanguage}.`,
-                },
-                { role: "user", content: tags.join(", ") },
-              ],
-              temperature: 0.7,
-              max_tokens: 3500,
-            });
-          } else if (serviceType === "azure") {
-            // For Azure OpenAI API
-            url = "https://nazmul.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview";
-            headers = {
-              "Content-Type": "application/json",
-              "api-key": token, // Azure API key
-            };
-            body = {
-              messages: [
-                {
-                  role: "system",
-                  content: `Generate a list of at least 10 SEO-friendly Title for keywords: "${tags.join(", ")}" in this language ${selectedLanguage}.`,
-                },
-                { role: "user", content: tags.join(", ") },
-              ],
-              temperature: 1,
-              max_tokens: 4096,
-              top_p: 1,
-              frequency_penalty: 0.5,
-              presence_penalty: 0.5,
-            };
-          }
-  
-          // Make the API request based on the selected service type
-          const result = await axios.post(url, body, {
-            headers: headers,
-          });
-  
-          const data = result.data;
-  
-          // Check if data has choices or a similar property based on the API type
-          if (data && data.choices && data.choices.length > 0) {
-            const titles = data.choices[0].message.content
-              .trim()
-              .split("\n")
-              .map((title) => ({ text: title, selected: false }));
-            setGeneratedTitles(titles);
-            break; // Stop after the first successful response
-          } else if (data && data.error) {
-            console.error("Azure API Error:", data.error);
-            toast.error(`Azure API Error: ${data.error.message}`);
-            break; // Break the loop if there's an error response
-          } else {
-            console.error("No titles found in the response:", data);
-            toast.error(t("failedToGenerateTitles"));
-          }
-        } catch (error) {
-          console.error("Error with key:", keyData.token, error.message);
-          toast.error(`Error with key: ${error.message}`);
+
+    let success = false;
+
+    for (const keyData of activeKeys) {
+      try {
+        const { serviceType } = keyData;
+        const token = keyData.token.trim(); // ✅ space remove
+
+        const url =
+          serviceType === "openai"
+            ? "https://api.oxyy.ai/v1/chat/completions"
+            : serviceType === "azure"
+            ? "https://nazmul.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview"
+            : null;
+
+        if (!url) {
+          toast.error("Unknown service type.");
+          continue;
         }
+
+        // ✅ /api/generate-titles এ call — server side থেকে external API call হবে
+        const result = await fetch("/api/generate-titles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tags, selectedLanguage, selectedTone, serviceType, token, url }),
+        });
+
+        const contentType = result.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          const text = await result.text();
+          console.error("Non-JSON response:", text);
+          toast.error("Server error: /api/generate-titles not found!");
+          break;
+        }
+
+        const data = await result.json();
+
+        if (!result.ok) {
+          console.error("API Error:", data.error);
+          toast.error(`API Error: ${data.error?.message || data.error}`);
+          continue;
+        }
+
+        if (data?.choices?.length > 0) {
+          const titles = data.choices[0].message.content
+            .trim()
+            .split("\n")
+            .filter((title) => title.trim() !== "")
+            .map((title) => ({ text: title, selected: false }));
+          setGeneratedTitles(titles);
+          success = true;
+          break;
+        } else {
+          toast.error(t("failedToGenerateTitles"));
+        }
+
+      } catch (error) {
+        console.error("Error with key:", error.message);
+        toast.error(`Error: ${error.message}`);
       }
-  
-      // Update generate count if the user doesn't have unlimited access
-       if (isFreePlan) {
-         const newCount = generateCount + 1;
-         setGenerateCount(newCount);
-         localStorage.setItem("generateCount", newCount);
-         console.log(`Free user generation: ${newCount}/5`);
-       }
-     } catch (error) {
-       console.error("Error generating titles:", error);
-       toast.error(`Error: ${error.message}`);
-     } finally {
-       setIsLoading(false);
-     }
-   };
+    }
+
+    if (isFreePlan && success) {
+      const newCount = generateCount + 1;
+      setGenerateCount(newCount);
+      localStorage.setItem("generateCount", newCount);
+    }
+
+  } catch (error) {
+    console.error("Global error:", error);
+    toast.error(`Error: ${error.message}`);
+  } finally {
+    setIsLoading(false);
+  }
+};
   
   
 

@@ -400,126 +400,113 @@ useEffect(() => {
     }
   }, [isFreePlan]);
   
-  const generateTitles = async () => {
-    // Check if required fields are filled
-    if (tags.length === 0) {
-      toast.error(t("All Fields Required"));
-      return;
-    }
-    // Check if CAPTCHA is verified
-    if (!captchaVerified) {
-      toast.error("Pls Complete this captcha");
-      return;
-    }
-    // Check lifetime generation limit for free users
-    if (isFreePlan && generateCount >= 5) {
-      toast.error(t("Free users are limited to 5 tag generations in their lifetime. Upgrade to premium for unlimited access."));
-      return;
-    }
-  
-    setIsLoading(true);
-  
-    try {
-      // Fetch active API keys from the server
-      const response = await fetch("/api/openaiKey");
-      if (!response.ok) {
-        throw new Error(`Failed to fetch API keys: ${response.status}`);
-      }
-  
-      const keysData = await response.json();
-      const activeKeys = keysData.filter((key) => key.active);
-  
-      if (activeKeys.length === 0) {
-        toast.error("No active API keys available.");
-        return;
-      }
-  
-      // Try each active API key
-      for (const keyData of activeKeys) {
-        try {
-          const { token, serviceType } = keyData;
-          let url = '';
-          let headers = {};
-          let body = {};
-  
-          if (serviceType === "openai") {
-            url = "https://api.oxyy.ai/v1/chat/completions";
-            headers = {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            };
-            body = JSON.stringify({
-              model: "gemini-2.0-flash",
-              messages: [
-                {
-                  role: "system",
-                  content: `Generate a list of at least 10 SEO-friendly tags for keywords: "${tags.join(", ")}" in this ${selectedTone} tone & language ${selectedLanguage}.`,
-                },
-                { role: "user", content: tags.join(", ") },
-              ],
-              temperature: 0.7,
-              max_tokens: 3500,
-            });
-          } else if (serviceType === "azure") {
-            url = "https://nazmul.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview";
-            headers = {
-              "Content-Type": "application/json",
-              "api-key": token,
-            };
-            body = {
-              messages: [
-                {
-                  role: "system",
-                  content: `Generate a list of at least 10 SEO-friendly tags for keywords: "${tags.join(", ")}" in this language ${selectedLanguage}.`,
-                },
-                { role: "user", content: tags.join(", ") },
-              ],
-              temperature: 1,
-              max_tokens: 4096,
-              top_p: 1,
-              frequency_penalty: 0.5,
-              presence_penalty: 0.5,
-            };
-          }
-  
-          const result = await axios.post(url, body, { headers });
-          const data = result.data;
-  
-          if (data && data.choices && data.choices.length > 0) {
-            const titles = data.choices[0].message.content
-              .trim()
-              .split("\n")
-              .map((title) => ({ text: title, selected: false }));
-            setGeneratedTitles(titles);
-            break;
-          } else if (data && data.error) {
-            console.error("Azure API Error:", data.error);
-            toast.error(`Azure API Error: ${data.error.message}`);
-            break;
-          } else {
-            console.error("No titles found in the response:", data);
-            toast.error(t("failedToGenerateTitles"));
-          }
-        } catch (error) {
-          console.error("Error with key:", keyData.token, error.message);
-          toast.error(`Error with key: ${error.message}`);
-        }
-      }
-  
-      // Increment generate count for free users
-      if (isFreePlan) {
-        const newCount = generateCount + 1;
-        setGenerateCount(newCount);
-        localStorage.setItem("generateCount", newCount);
-        console.log(`Free user generation: ${newCount}/5`);
-      }
-    } catch (error) {
-      console.error("Error generating titles:", error);
-      toast.error(`Error: ${error.message}`);
-    } finally {
+const generateTitles = async () => {
+  if (tags.length === 0) {
+    toast.error(t("All Fields Required"));
+    return;
+  }
+
+  if (!captchaVerified && !isLocalHost) {
+    toast.error("Pls Complete this captcha");
+    return;
+  }
+
+  if (isFreePlan && generateCount >= 5) {
+    toast.error(t("Free users are limited to 5 tag generations in their lifetime. Upgrade to premium for unlimited access."));
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    const response = await fetch("/api/openaiKey");
+    if (!response.ok) throw new Error(`Failed to fetch API keys: ${response.status}`);
+
+    const keysData = await response.json();
+    const activeKeys = keysData.filter((key) => key.active);
+
+    if (activeKeys.length === 0) {
+      toast.error("No active API keys available.");
       setIsLoading(false);
+      return;
     }
-  };
+
+    let success = false;
+
+    for (const keyData of activeKeys) {
+      try {
+        const { serviceType } = keyData;
+        const token = keyData.token.trim(); // ✅ trim()
+
+        const url =
+          serviceType === "openai"
+            ? "https://api.oxyy.ai/v1/chat/completions"
+            : serviceType === "azure"
+            ? "https://nazmul.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview"
+            : null;
+
+        if (!url) {
+          toast.error("Unknown service type.");
+          continue;
+        }
+
+        // ✅ /api/generate-tag এ call — CORS নেই
+        const result = await fetch("/api/generate-tag", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tags, selectedLanguage, selectedTone, serviceType, token, url }),
+        });
+
+        const contentType = result.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          const text = await result.text();
+          console.error("Non-JSON response:", text);
+          toast.error("Server error: /api/generate-tag not found!");
+          break;
+        }
+
+        const data = await result.json();
+
+        if (!result.ok) {
+          console.error("API Error:", data.error);
+          toast.error(`API Error: ${data.error?.message || data.error}`);
+          continue;
+        }
+
+        if (data?.choices?.length > 0) {
+          const titles = data.choices[0].message.content
+            .trim()
+            .split("\n")
+            .filter((title) => title.trim() !== "") // ✅ empty line বাদ
+            .map((title) => ({ text: title, selected: false }));
+          setGeneratedTitles(titles);
+          success = true;
+          break;
+        } else {
+          toast.error(t("failedToGenerateTitles"));
+        }
+
+      } catch (error) {
+        console.error("Error with key:", error.message);
+        toast.error(`Error: ${error.message}`);
+      }
+    }
+
+    // ✅ শুধু success হলে count বাড়বে
+    if (isFreePlan && success) {
+      const newCount = generateCount + 1;
+      setGenerateCount(newCount);
+      localStorage.setItem("generateCount", newCount);
+      console.log(`Free user generation: ${newCount}/5`);
+    }
+
+  } catch (error) {
+    console.error("Error generating titles:", error);
+    toast.error(`Error: ${error.message}`);
+  } finally {
+    setIsLoading(false);
+  }
+};
   const handleReviewSubmit = async () => {
     if (!user) {
       router.push("/login");

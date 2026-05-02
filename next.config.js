@@ -1,6 +1,5 @@
 const { i18n } = require('./next-i18next.config');
 
-// ✅ Safe bundle analyzer (won’t crash if not installed)
 let withBundleAnalyzer = (config) => config;
 
 if (process.env.ANALYZE === 'true') {
@@ -25,6 +24,15 @@ const nextConfig = {
       {
         source: '/uploads/:path*',
         destination: '/uploads/:path*',
+      },
+      // ✅ CORS fix — নতুন proxy routes
+      {
+        source: '/proxy/openai/:path*',
+        destination: 'https://api.oxyy.ai/:path*',
+      },
+      {
+        source: '/proxy/azure/:path*',
+        destination: 'https://nazmul.openai.azure.com/:path*',
       },
     ];
   },
