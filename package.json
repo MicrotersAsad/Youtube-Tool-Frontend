@@ -2,12 +2,12 @@
   "name": "Asatem",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "npm install --legacy-peer-deps && next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
+ "scripts": {
+  "dev": "next dev",
+  "build": "next build", 
+  "start": "next start",
+  "lint": "next lint"
+},
   "dependencies": {
     "@aws-sdk/client-s3": "^3.678.0",
     "@aws-sdk/s3-request-presigner": "^3.717.0",
