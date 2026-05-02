@@ -10,7 +10,6 @@ import { ContentProvider } from "../contexts/ContentContext";
 import CookieConsent from "react-cookie-consent";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import "../public/laraberg.css";
 import nextI18NextConfig from "../next-i18next.config";
 import { UserActionProvider } from "../contexts/UserActionContext";
 
