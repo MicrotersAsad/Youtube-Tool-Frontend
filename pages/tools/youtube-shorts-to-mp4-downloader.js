@@ -111,7 +111,11 @@ const YtShortdw =({ meta, reviews, content, relatedTools, faqs,reactions,hreflan
       console.log("[handleDownload] Quality:", quality, "| Format:", format);
       console.log("[handleDownload] Stream URL:", streamUrl);
 
-      setDownloadUrl(streamUrl); // UI তে "Click Here to Download" button এ এই link যাবে
+      window.location.href = streamUrl; // সরাসরি download trigger করবে
+
+      // Download শুরু হওয়া পর্যন্ত spinner দেখাবে
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
     } catch (err) {
       setError("Error generating download link.");
       console.error("[handleDownload] Error:", err);

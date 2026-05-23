@@ -19,6 +19,9 @@ import { Spinner } from "react-bootstrap";
 import axios from "axios";
 import { useRouter } from "next/router";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
+const API_BASE = "https://api.videoters.com";
+const API_KEY = process.env.NEXT_PUBLIC_YT_API_KEY; // এখানে আপনার real API key বসান
+
 const YtShortdw =({ meta, reviews, content, relatedTools, faqs,reactions,hreflangs})   => {
   const { t } = useTranslation('calculator');
   const { user, updateUserProfile, logout } = useAuth();
@@ -46,6 +49,7 @@ const YtShortdw =({ meta, reviews, content, relatedTools, faqs,reactions,hreflan
   const [formats, setFormats] = useState([]);
   const [selectedFormat, setSelectedFormat] = useState("");
   const [selectedType, setSelectedType] = useState("");
+  const [selectedQuality, setSelectedQuality] = useState("");
   const [downloadUrl, setDownloadUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -66,8 +70,11 @@ const YtShortdw =({ meta, reviews, content, relatedTools, faqs,reactions,hreflan
 
     try {
       setLoading(true);
-      const response = await axios.post("https://ytd.mhnazmul.com/api/getFormats", { url });
-console.log(response);
+      console.log("[fetchFormats] Calling API:", `${API_BASE}/api/fetchFormats`);
+      const response = await axios.post(`${API_BASE}/api/fetchFormats`, { url }, {
+        headers: { "X-API-Key": API_KEY }
+      });
+      console.log("[fetchFormats] Response:", response.data);
 
       if (response.data.formats.length > 0) {
         setFormats(response.data.formats);
@@ -84,32 +91,32 @@ console.log(response);
     }
   };
 
-  // Download Selected Format
+  // Download as MP3
   const handleDownload = async () => {
     setError("");
     setDownloadUrl("");
 
-    if (!selectedFormat || !selectedType) {
-      setError("Please select a format first.");
+    if (!url) {
+      setError("Please enter a valid YouTube URL.");
       return;
     }
 
     try {
       setLoading(true);
-      const response = await axios.post("https://ytd.mhnazmul.com/api/downloadMedia", {
-        url,
-        itag: selectedFormat,
-        type: selectedType,
-      });
 
-      if (response.data.downloadUrl) {
-        setDownloadUrl(`https://ytd.mhnazmul.com${response.data.downloadUrl}`);
-      } else {
-        setError("Failed to generate download link.");
-      }
+      // audio=1 দিলে API সরাসরি MP3 return করে
+      const streamUrl = `${API_BASE}/stream?url=${encodeURIComponent(url)}&audio=1&key=${API_KEY}`;
+
+      console.log("[handleDownload MP3] Stream URL:", streamUrl);
+
+      window.location.href = streamUrl; // browser MP3 download করবে
+
+      // Download শুরু হওয়া পর্যন্ত spinner দেখাবে
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
     } catch (err) {
-      setError("Error downloading media.");
-      console.error(err);
+      setError("Error generating MP3 download link.");
+      console.error("[handleDownload MP3] Error:", err);
     } finally {
       setLoading(false);
     }
@@ -528,35 +535,27 @@ console.log(response);
               </div>
               <div className="col-md-6">
         <div className="text-center">
-          <h4 className="mb-3">Select Format</h4>
-          <select
-            className="form-select mb-3"
-            value={selectedFormat}
-            onChange={(e) => {
-              const selectedItag = e.target.value;
-              const selectedFormat = formats.find(
-                (f) => f.itag.toString() === selectedItag
-              );
-              if (selectedFormat) {
-                setSelectedFormat(selectedItag);
-                setSelectedType(selectedFormat.type);
-              }
-            }}
-          >
-            <option value="">Select Format</option>
-            {formats.map((format, index) => (
-              <option key={index} value={format.itag}>
-                {format.qualityLabel} ({format.type})
-              </option>
-            ))}
-          </select>
+          <h4 className="mb-3">Download Audio</h4>
+          <p className="text-muted mb-3">🎵 MP3 format • High quality audio</p>
 
           <button
-            className="btn btn-success"
+            className="btn btn-success btn-lg"
             onClick={handleDownload}
-            disabled={!selectedFormat || loading}
+            disabled={loading}
           >
-            {loading ? "Downloading..." : "Download"}
+            {loading ? (
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-2"
+                />
+                Downloading...
+              </>
+            ) : "⬇️ Download MP3"}
           </button>
         </div>
         </div>

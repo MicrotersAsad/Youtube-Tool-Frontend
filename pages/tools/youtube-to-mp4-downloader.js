@@ -92,32 +92,38 @@ const YtShortdw =({ meta, reviews, content, relatedTools, faqs,reactions,hreflan
   };
 
 const handleDownload = async () => {
-    if (!selectedFormat) {
-        setError("Please select a format first.");
-        return;
+    setError("");
+    setDownloadUrl("");
+
+    if (!selectedFormat || !selectedType) {
+      setError("Please select a format first.");
+      return;
     }
 
     try {
-        setLoading(true);
-        setError("");
+      setLoading(true);
 
-        // "720p" → "720", "1080p" → "1080", বাকি সব "best"
-        const quality = selectedQuality ? selectedQuality.replace(/[^0-9]/g, '') || "best" : "best";
-        const format = selectedType || "mp4";
+      // "720p" → "720", "1080p" → "1080", বাকি সব "best"
+      const quality = selectedQuality ? selectedQuality.replace(/[^0-9]/g, '') || "best" : "best";
+      const format = selectedType || "mp4";
 
-        const streamUrl = `${API_BASE}/stream?url=${encodeURIComponent(url)}&quality=${quality}&format=${format}&key=${API_KEY}`;
+      const streamUrl = `${API_BASE}/stream?url=${encodeURIComponent(url)}&quality=${quality}&format=${format}&key=${API_KEY}`;
 
-        console.log("[handleDownload] Quality:", quality, "| Format:", format);
-        console.log("[handleDownload] Stream URL:", streamUrl);
+      console.log("[handleDownload] Quality:", quality, "| Format:", format);
+      console.log("[handleDownload] Stream URL:", streamUrl);
 
-        window.location.href = streamUrl; // browser সরাসরি download করবে
+      window.location.href = streamUrl; // সরাসরি download trigger করবে
+
+      // Download শুরু হওয়া পর্যন্ত spinner দেখাবে
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
     } catch (err) {
-        setError("Download failed. Please try again.");
-        console.error("[handleDownload] Error:", err);
+      setError("Error generating download link.");
+      console.error("[handleDownload] Error:", err);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
 
   useEffect(() => {
     let timer;
