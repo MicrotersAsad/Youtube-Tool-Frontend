@@ -37,6 +37,10 @@ export default async function handler(req, res) {
     const { db } = await connectToDatabase();
     const apiTokens = await db.collection('openaiKey').find({ active: true }).toArray();
 
+    if (!apiTokens.length) {
+      return res.status(500).json({ message: 'No active API keys available' });
+    }
+
     const scrapApiUrl = `http://185.126.181.74:8000/api/scrap_youtube_video/?video_title=on&description=on&total_likes=off&comments=on&video_views=on&upload_date=on&video_duration=on&video_thumbnail=on&channel_url=on&video_id=on&total_subscribers=on&verified=on&latest_comments=on&transcripts=on`;
 
     const scrapResponse = await fetch(scrapApiUrl, {
@@ -96,12 +100,12 @@ export default async function handler(req, res) {
               Authorization: `Bearer ${apiKey.trim()}`, // ✅ trim()
             };
             body = JSON.stringify({
-              model: 'gemini-3.1-flash-lite-preview-thinking', // ✅ সঠিক model
+              model: 'chatgpt-4o-latest', // ✅ সঠিক model
               messages: [
                 { role: 'user', content: `Summarize the following transcript: ${segmentText}` },
               ],
               temperature: 0.7,
-              max_tokens: 8192, // ✅ সঠিক max_tokens
+              max_tokens: 8192,
               stream: false,
             });
           } else if (serviceType === 'azure') {

@@ -19,6 +19,9 @@ import { Spinner } from "react-bootstrap";
 import axios from "axios";
 import { useRouter } from "next/router";
 const StarRating = dynamic(() => import("./StarRating"), { ssr: false });
+const API_BASE = "https://api.videoters.com";
+const API_KEY = "95a661856e8f6d7b65b43ce6c7943c9b09c0be46c4f2d90528b81076fe984434"; // এখানে আপনার real API key বসান
+
 const YtShortdw =({ meta, reviews, content, relatedTools, faqs,reactions,hreflangs})   => {
   const { t } = useTranslation('calculator');
   const { user, updateUserProfile, logout } = useAuth();
@@ -46,6 +49,7 @@ const YtShortdw =({ meta, reviews, content, relatedTools, faqs,reactions,hreflan
   const [formats, setFormats] = useState([]);
   const [selectedFormat, setSelectedFormat] = useState("");
   const [selectedType, setSelectedType] = useState("");
+  const [selectedQuality, setSelectedQuality] = useState(""); // new: quality label store করবে
   const [downloadUrl, setDownloadUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -66,8 +70,11 @@ const YtShortdw =({ meta, reviews, content, relatedTools, faqs,reactions,hreflan
 
     try {
       setLoading(true);
-      const response = await axios.post("https://ytd.mhnazmul.com/api/getFormats", { url });
-console.log(response);
+      console.log("[fetchFormats] Calling API:", `${API_BASE}/api/fetchFormats`);
+      const response = await axios.post(`${API_BASE}/api/fetchFormats`, { url }, {
+        headers: { "X-API-Key": API_KEY }
+      });
+      console.log("[fetchFormats] Response:", response.data);
 
       if (response.data.formats.length > 0) {
         setFormats(response.data.formats);
@@ -84,36 +91,33 @@ console.log(response);
     }
   };
 
-  // Download Selected Format
-  const handleDownload = async () => {
-    setError("");
-    setDownloadUrl("");
-
-    if (!selectedFormat || !selectedType) {
-      setError("Please select a format first.");
-      return;
+const handleDownload = async () => {
+    if (!selectedFormat) {
+        setError("Please select a format first.");
+        return;
     }
 
     try {
-      setLoading(true);
-      const response = await axios.post("https://ytd.mhnazmul.com/api/downloadMedia", {
-        url,
-        itag: selectedFormat,
-        type: selectedType,
-      });
+        setLoading(true);
+        setError("");
 
-      if (response.data.downloadUrl) {
-        setDownloadUrl(`https://ytd.mhnazmul.com${response.data.downloadUrl}`);
-      } else {
-        setError("Failed to generate download link.");
-      }
+        // "720p" → "720", "1080p" → "1080", বাকি সব "best"
+        const quality = selectedQuality ? selectedQuality.replace(/[^0-9]/g, '') || "best" : "best";
+        const format = selectedType || "mp4";
+
+        const streamUrl = `${API_BASE}/stream?url=${encodeURIComponent(url)}&quality=${quality}&format=${format}&key=${API_KEY}`;
+
+        console.log("[handleDownload] Quality:", quality, "| Format:", format);
+        console.log("[handleDownload] Stream URL:", streamUrl);
+
+        window.location.href = streamUrl; // browser সরাসরি download করবে
     } catch (err) {
-      setError("Error downloading media.");
-      console.error(err);
+        setError("Download failed. Please try again.");
+        console.error("[handleDownload] Error:", err);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   useEffect(() => {
     let timer;
@@ -534,12 +538,14 @@ console.log(response);
             value={selectedFormat}
             onChange={(e) => {
               const selectedItag = e.target.value;
-              const selectedFormat = formats.find(
+              const selectedFormatObj = formats.find(
                 (f) => f.itag.toString() === selectedItag
               );
-              if (selectedFormat) {
+              if (selectedFormatObj) {
                 setSelectedFormat(selectedItag);
-                setSelectedType(selectedFormat.type);
+                setSelectedType(selectedFormatObj.type);
+                setSelectedQuality(selectedFormatObj.qualityLabel || "best"); // যেমন "720p"
+                console.log("[Format Selected] itag:", selectedItag, "| quality:", selectedFormatObj.qualityLabel, "| type:", selectedFormatObj.type);
               }
             }}
           >
